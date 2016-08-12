@@ -36,6 +36,9 @@ export interface ComponentContext<M, T> {
     rootNode: Node
 }
 
+/**
+ * Update/Dispatch types
+ */
 export interface Update<M, A> {
     (model: M, arg?: A): M | [M, Task | Task[]]
 }
@@ -46,13 +49,14 @@ export type Dispatch = <M, A>(fn: Update<M, A>, ...args: any[]) => void
 export interface Task {
     execute(dispatch: Dispatch): void
 }
-export interface View<M> {
-    (model: M): NodeDescriptor
-}
 
 /**
  * View types
  */
+export interface View<M> {
+    (model: M): NodeDescriptor
+}
+
 export interface AttributeMap { [name: string]: string }
 export interface TaskWithEventOptions {
     task: Task

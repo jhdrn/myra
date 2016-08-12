@@ -65,7 +65,6 @@ function setAttr(element: HTMLElement, attributeName: string, attributeValue: an
     }
 }
 
-
 /** Removes an attribute or event listener from an HTMLElement. */
 function removeAttr(a: string, node: Node) {
     const [eventName, ] = a.substr(2).toLowerCase().split('_')
@@ -161,7 +160,7 @@ function shouldReplaceNode(newDescriptor: NodeDescriptor, oldDescriptor: NodeDes
 }
 
 /** Renders the view by walking the node descriptor tree recursively */
-function traverseNodeTree(parentNode: Element, newDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor, existingNode: Node | undefined, dispatch: Dispatch): Node {
+export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor, existingNode: Node | undefined, dispatch: Dispatch): Node {
     const replaceNode = shouldReplaceNode(newDescriptor, oldDescriptor)
     if (typeof existingNode === 'undefined' || existingNode === null || replaceNode) {
         // if no existing node, create one
@@ -197,7 +196,7 @@ function traverseNodeTree(parentNode: Element, newDescriptor: NodeDescriptor, ol
             newDescriptor.children
                         .filter(c => typeof c !== 'undefined')
                         .forEach(c => {
-                            traverseNodeTree(newNode as Element, c, c, undefined, dispatch)
+                            render(newNode as Element, c, c, undefined, dispatch)
                             // add "whitespace" between elements
                             newNode.appendChild(document.createTextNode('\r\n'))
                         })
@@ -276,7 +275,7 @@ function traverseNodeTree(parentNode: Element, newDescriptor: NodeDescriptor, ol
                     else if (childDescriptorIndex < newDescriptorChildLengh) {
                         const childDescriptor = newDescriptor.children[childDescriptorIndex]
                         
-                        traverseNodeTree(existingNode as Element, childDescriptor, oldDescriptor.__type === 'element' ? oldDescriptor!.children[childDescriptorIndex] : childDescriptor, childNode, dispatch)
+                        render(existingNode as Element, childDescriptor, oldDescriptor.__type === 'element' ? oldDescriptor!.children[childDescriptorIndex] : childDescriptor, childNode, dispatch)
                         
                         if (!childNode) {
                             // add "whitespace" between elements
@@ -313,15 +312,4 @@ function traverseNodeTree(parentNode: Element, newDescriptor: NodeDescriptor, ol
         }
     }
     return existingNode
-}
-
-export function render(parentNode: Element, view: NodeDescriptor, oldView: NodeDescriptor | undefined, oldRootNode: Node | undefined, dispatch: Dispatch): Node {
-      
-    return traverseNodeTree(
-        parentNode,
-        view, 
-        oldView || view, 
-        oldRootNode, 
-        dispatch
-    )
 }

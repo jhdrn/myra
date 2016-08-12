@@ -3,9 +3,10 @@ import { equal } from './helpers'
 import { dispatch } from './dispatch'
 import { render } from './view'
 
-export 
-type Subscribe = <M, A>(msg: string, update: Update<M, A>, context: ComponentContext<M, any>) => void
+export type Subscribe = <M, A>(msg: string, update: Update<M, A>, context: ComponentContext<M, any>) => void
 
+
+/** Public API for a component instance. */
 class ComponentInstanceImpl<M, A> implements ComponentInstance<A> {
     
     private static nextId = 1
@@ -55,6 +56,8 @@ class ComponentInstanceImpl<M, A> implements ComponentInstance<A> {
     }
 }
 
+
+/** Internal class that holds component state. */
 class ComponentContextImpl<M, T> implements ComponentContext<M, T> {
     constructor(readonly parentNode: Element,
                 readonly name: string,
@@ -72,7 +75,6 @@ class ComponentContextImpl<M, T> implements ComponentContext<M, T> {
         }
     }
 
-   
     dispatchLevel = 0
     isUpdating = false
     model: M | undefined
@@ -83,7 +85,6 @@ class ComponentContextImpl<M, T> implements ComponentContext<M, T> {
 
 /** Defines a component. */
 export function defineComponent<M, A>(args: ComponentArgs<M, A>, subscribe: Subscribe): Component {        
-    console.log(`Define component: ${args.name}:`)
     
     return {
         name: args.name,

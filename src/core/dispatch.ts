@@ -28,9 +28,6 @@ export function dispatch<M, A>(fn: Update<M, A>, arg: A | undefined, context: Co
         if (Array.isArray(task)) {
             task.forEach(t => t.execute(dispatchFn))
         }
-        else if (typeof task === 'undefined') {
-            console.warn(`${context.name}: Task is undefined.`)
-        }
         else {
             task.execute(dispatchFn)
         }
@@ -39,10 +36,11 @@ export function dispatch<M, A>(fn: Update<M, A>, arg: A | undefined, context: Co
         context.model = result
     }
     
-    // Update view if the component was already mounted
+    // Update view if the component was already mounted and the dispatchLevel
+    // is at "lowest" level (i.e. 1).
     if (context.mounted && context.dispatchLevel === 1) {
         
-        const newView = context.view(context.model!) || { __type: 'comment', comment: `Component: ${context.name}` }
+        const newView = context.view(context.model!)
 
         context.rootNode = render(context.parentNode, newView, context.oldView, context.rootNode, dispatchFn)
         context.oldView = newView
