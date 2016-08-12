@@ -1,46 +1,43 @@
-import { defineComponent, evolve, View, Update } from 'myra/core'
+import { defineComponent, evolve, View, Update, Task } from 'myra/core'
 import { section, footer, div, ul, li, input, component, label, span, strong, a, button, text, nothing } from 'myra/html'
-import { matchLocation } from 'myra/location'
+import { matchLocation, replaceLocation } from 'myra/location'
+import { TodosFilter, saveFilter, loadFilter } from '../models/filter'
 import * as todos from '../models/todos'
 import { todoItemComponent } from './todo-item'
 
 type Todo = todos.Todo
 
+
 /**
  * Model
  */
-type TodosFilter = 'all' | 'active' | 'completed'
 type Model = {
     todos: Todo[]
     itemsLeft: number
     filter: TodosFilter
 }
-const init: Model = {
-    todos: [],
-    itemsLeft: 0,
-    filter: 'all'
-}
-
 
 
 /**
  * Updates
  */
+const applySavedFilter = (m: Model, filter: TodosFilter): Model | [Model, Task] => 
+    [m, replaceLocation(`#/${filter === 'all' ? '' : filter || ''}`)]
+ 
+const applyFilterFromLocation = (m: Model): Model | [Model, Task] => {
 
-const setFilter = (m: Model) => {
     if (matchLocation('#/active')) {
-        return evolve(m, x => x.filter = 'active')
+        return [evolve(m, x => x.filter = 'active'), saveFilter('active')]
     }
     else if (matchLocation('#/completed')) {
-        return evolve(m, x => x.filter = 'completed')
+        return [evolve(m, x => x.filter = 'completed'), saveFilter('completed')]
     }
     else if (matchLocation('#/', '')) {
-        return evolve(m, x => x.filter = 'all')
+        return [evolve(m, x => x.filter = 'all'), saveFilter('all')]
     }
     return m
 }
 
-// Callback 
 const todosLoaded = (m: Model, todos: Todo[]) => 
     evolve(m, x => {
         x.todos = todos 
@@ -48,7 +45,7 @@ const todosLoaded = (m: Model, todos: Todo[]) =>
     })
 
 // Mount function: load all todos
-const mount: Update<Model, any> = (m: Model) => [setFilter(m), todos.getAll(todosLoaded)]
+const mount: Update<Model, any> = (m: Model) => [m, todos.getAll(todosLoaded)]
 
 
 /**
@@ -56,10 +53,17 @@ const mount: Update<Model, any> = (m: Model) => [setFilter(m), todos.getAll(todo
  */
 const subscriptions = {
     'todosChanged': todosLoaded,
-    '__locationChanged': setFilter
+    '__locationChanged': applyFilterFromLocation
 }
 
-
+/**
+ * Init model
+ */
+const init: [Model, Task] = [{
+    todos: [],
+    itemsLeft: 0,
+    filter: 'all'
+}, loadFilter(applySavedFilter)]
 
 /**
  * View
@@ -107,7 +111,6 @@ const view: View<Model> = (model) =>
                 strong(text(model.itemsLeft)), 
                 text(model.itemsLeft === 1 ? 'item left' : 'items left')
             ),
-            //<!-- Remove this if you don't implement routing -->
             ul({ 'class': 'filters' },
                 li(
                     filterLink('#/', 'All')

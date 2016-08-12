@@ -6,7 +6,7 @@ export type Todo = {
     title: string
 }
 
-const LOCAL_STORAGE_KEY = 'todos-xxx'
+const LOCAL_STORAGE_KEY = 'todos-myra'
 const get = () => (JSON.parse(window.localStorage.getItem(LOCAL_STORAGE_KEY)) || []) as Todo[]
 const set = (todos: Todo[], dispatch: Dispatch) => {
     window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(todos))
