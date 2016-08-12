@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+build/
+src/**/*.js
+src/**/*.js.map
+examples/**/lib/*.*
+examples/**/src/*.js
+examples/**/src/*.js.map
+/examples/todomvc/lib
+/examples/kitchen-sink/lib
+/examples/hello-world/lib

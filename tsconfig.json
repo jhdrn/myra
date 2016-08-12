@@ -1,0 +1,38 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+        "sourceMap": true,
+        "declaration": true,
+        "target": "es5",
+        "module": "umd",
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noUnusedParameters": true,
+        "noUnusedLocals": true,
+        "strictNullChecks": true,
+        "moduleResolution": "node",
+        "pretty": true,
+        "outDir": "./build",
+        "listFiles": true,
+        "baseUrl": "./",
+        "paths": {
+            "core": ["src/core/index.ts"],
+            "core/contract": ["src/core/contract.ts"],
+            "core/dispatch": ["src/core/dispatch.ts"],
+            "core/helpers": ["src/core/helpers.ts"],
+            "core/subscriptions": ["src/core/subscriptions.ts"],
+            "core/view": ["src/core/view.ts"],
+            "html": ["src/html.ts"],
+            "http": ["src/http.ts"],
+            "time": ["src/time.ts"]
+        },
+        "listEmittedFiles": true
+    },
+    "include": [
+        "./src/*.ts",
+        "./test/unit/*.ts",
+        "./node_modules/@types/jasmine/index.d.ts"
+    ]
+}

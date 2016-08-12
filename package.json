@@ -1,0 +1,31 @@
+{
+  "name": "myra-dev",
+  "version": "1.0.0-alpha",
+  "private": true,
+  "dependencies": {},
+  "devDependencies": {
+    "@types/jasmine": "^2.2.29",
+    "copyfiles": "^1.0.0",
+    "jasmine-core": "^2.4.1",
+    "karma": "^1.1.1",
+    "karma-chrome-launcher": "^1.0.1",
+    "karma-coverage": "^1.1.0",
+    "karma-jasmine": "^1.0.2",
+    "remap-istanbul": "^0.6.4",
+    "rimraf": "^2.5.3",
+    "systemjs": "^0.19.31",
+    "typescript": "^2.0.0"
+  },
+  "scripts": {
+    "build": "rimraf build && tsc",
+    "pretest": "npm run build",
+    "test": "karma start karma.conf.js",
+    "posttest": "node_modules/.bin/remap-istanbul -i ./coverage/coverage-final.json -o ./coverage -t html",
+    "coverage": "http-server -c-1 -o -p 9875 ./coverage"
+  },
+  "author": { 
+    "name": "Jonathan Hedrén",
+    "email": "jonathan.hedren@gmail.com"
+  },
+  "license": "MIT"
+}

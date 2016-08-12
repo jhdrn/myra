@@ -1,0 +1,23 @@
+{
+  "name": "myra",
+  "version": "1.0.0-alpha",
+  "description": "Myra: A small Typescript framework for the browser",
+  "readme": "README.md",
+  "repository": { 
+    "type" : "git",
+    "url" : "https://github.com/jhdrn/myra.git"
+  },
+  "keywords": [
+    "myra",
+    "functional",
+    "typescript"
+  ],
+  "author": { 
+    "name": "Jonathan Hedrén",
+    "email": "jonathan.hedren@gmail.com"
+  },
+  "bugs": {
+    "url": "https://github.com/jhdrn/myra/issues"
+  },
+  "license": "MIT"
+}
