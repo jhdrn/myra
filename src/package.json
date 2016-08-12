@@ -1,6 +1,6 @@
 {
   "name": "myra",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.20160812",
   "description": "Myra: A small Typescript framework for the browser",
   "readme": "README.md",
   "repository": { 
