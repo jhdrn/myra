@@ -35,6 +35,20 @@ describe('core.helpers.equal', () => {
         expect(equal(o1, o2)).toBe(true)
     })
 
+    it('equals date against date', () => {
+        const d1 = new Date('2016-01-01')
+        const d2 = new Date('2016-01-01')
+        
+        expect(equal(d1, d2)).toBe(true)
+    })
+
+    it('equals regexp against regexp', () => {
+        const r1 = /^.*$/
+        const r2 = /^.*$/
+        
+        expect(equal(r1, r2)).toBe(true)
+    })
+
     it('does not equal string against undefined', () => {
         expect(equal('a string', undefined)).toBe(false)
     })
@@ -67,7 +81,28 @@ describe('core.helpers.equal', () => {
         expect(equal(a1, a2)).toBe(false)
     })
 
-    //FIXME: Dates, regexps, functions?
+    it('does not equal date against different date', () => {
+        const d1 = new Date('2015-01-01')
+        const d2 = new Date('2016-01-01')
+        
+        expect(equal(d1, d2)).toBe(false)
+    })
+
+    it('does not equal regexp against different regexp', () => {
+        const r1 = /^.*$/
+        const r2 = /^.+$/
+        
+        expect(equal(r1, r2)).toBe(false)
+    })
+
+    
+    it('does not equal different types', () => {
+        const a = 'A string'
+        const b = 254
+        
+        expect(equal(a, b as any)).toBe(false)
+    })
+    //FIXME: functions?
 })
 
 describe('core.helpers.max', () => {

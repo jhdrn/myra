@@ -39,6 +39,12 @@ export function equal<T>(a: T, b: T): boolean {
         }
         return true
     }
-    // FIXME: Dates, regexps, functions?
+    else if (typeOfA === 'date' && typeOfB === 'date') {
+        return (a as any as Date).getTime() === (b as any as Date).getTime()
+    }
+    else if (typeOfA === 'regexp' && typeOfB === 'regexp') {
+        return (a as any).toString() === (b as any).toString()
+    }
+    // FIXME: functions?
     return false
 }
