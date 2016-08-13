@@ -8,5 +8,8 @@
         "**/node_modules": true,
         "examples/**/src/*.js.map": true,
         "examples/**/src/*.js": true
-    }
+    },
+    "editor.rulers": [
+        80
+    ]
 }

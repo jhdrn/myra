@@ -1,7 +1,258 @@
 # Myra
+Myra is a simple and small [Typescript](http://www.typescriptlang.org/) 
+framework for building web interfaces.
 
-Myra is a simple and small [Typescript](http://www.typescriptlang.org/) framework.
+## Requirements
+Myra requires Typescript 2.0 to function properly. It is also highly advised 
+that the compiler options `strictNullChecks`, `noImplicitReturns` and 
+`noImplicitAny` are set to true.
 
+## Features
+* **Functional:** Myra encourages functional programming and immutability for 
+  predictable behavior.
+* **Small API:** Myra should be easy to learn as it's API and concepts are 
+  limited.
+* **Statically typed views:** 
+    Myra does not use HTML templates but uses functions to build up view 
+    hierarchies. This reduces run time errors and increases performance.
+* **No dependencies:** Myra does not depend on any external libraries.
+* **Small code base:** ~40kb/~11kb minified/~4kb minified and gzipped
+
+## Getting started
+Clone the repository and check the examples folder. Open any example's folder
+in your terminal and execute `npm install` followed by `npm start`, then open 
+your favorite browser point it to `localhost:8080`.
+
+## Components
+Myra is all about components and there is always at least one component in a 
+Myra application. A component will have it's own state (the 'Model') and view.
+
+A component will be defined with `defineComponent`:
+
+    import { defineComponent } from 'myra/core'
+
+    const myComponent = defineComponent({
+        // The name of the component
+        name: 'MyComponent', 
+        
+        // The initial model (see 'Model' below)
+        init: ..., 
+
+        // An optional Update function to call when the component is mounted.
+        // See 'Update' below.
+        mount: ..., 
+        
+        // Any subscriptions (see 'Subscriptions' below)
+        subscriptions: ...,
+        
+        // The view of the component (see 'View' below)
+        view: ... 
+    })
+
+The "main" component should be mounted to a HTML element:
+
+    myComponent.mount(document.body)
+
+### Model
+Represents the state of the component. Can be anything but a function, even 
+undefined or null.
+
+### Update
+One or more functions that updates the model. Update functions should always be 
+pure and should also always copy the model if any changes are made to it.
+The `evolve` function helps with copying the model.
+
+    import { evolve } from 'myra/core'
+
+    type Model = {
+        foo: string
+    }
+
+    const updateFoo = (model: Model, newFoo: string) => 
+        evolve(model, x => x.foo = newFoo)
+
+Update functions can either return the model or a tuple 
+`[Model, Task | Task[]]` to do side effects.
+
+### Task
+A `Task` represents some kind of side effect. It receives a dispatch function
+that may be used to dispatch an `Update` function with any given arguments.
+
+    import { task, Update } from 'myra/core'
+
+    const myTask = (update: Update<any, any>) => task(dispatch => {
+        ...some side effect...
+        const arg = ...
+        dispatch(update, arg)
+    })
+
+### View
+Myra does not use HTML templates but creates it's views with functions returning 
+`NodeDescriptor` which is a union type of the following types:
+
+#### ElementNodeDescriptor
+Renders as an HTML element. Most HTML elements are represented as functions in
+`myra/html` module (there is also an `el` function to create custom elements). 
+
+    import { div, ul, li, text, el } from 'myra/html'
+
+    const view = (_) => 
+        div(
+            ul(
+                li(
+                    text('A list item')
+                )
+            ),
+            el('custom')
+        )
+
+##### Attributes and event listeners
+Most functions returning an `ElementNodeDescriptor` takes an anonymous object as 
+first argument. The keys and values of the supplied object will be mapped to
+attributes and event listeners on the element. Event listeners can be either an
+`Update` function or a `Task`.
+
+    import { div } from 'myra/html'
+    
+    const myUpdate = (m: Model) => {
+        ...
+        return m
+    }
+
+    const view = (_) => 
+        div({
+            'class': 'className',
+            onclick: myUpdate,
+        })
+
+##### Special behavior
+Some attributes and events has special behavior associated with them.
+
+* If an event listener is added to an `input`, `select` or `textarea` element,
+  it's `value` will be passed as an argument to the attached `Update` function.
+* If the element is a form element and the `onsubmit` event listener is 
+  triggered, all values of it's child elements with a `name` attribute will be 
+  serialized into an anonymous object which will be passed as argument to the 
+  attached `Update` function. 
+* Keyboard events are handled a bit different: in order to know what key to be
+  listening for, the key of the attribute must be suffixed with an underscore
+  and the name of the key to listen for, i.e. `keyup_enter`.
+* `blur` and `focus` attributes with a truthy value will result in a call to 
+  `element.blur()` and `element.focus()` respectively.
+* `checked` and `disabled` attributes with a truthy value will set 
+  `element.checked` and/or `element.disabled` to true.
+* The `value` attribute will set element.value if it is either an input, select 
+  or textarea element.
+* If there is a need to call `event.preventDefault()` and/or 
+  `event.stopPropagation()`, the event listener can be wrapped in an object 
+  like this: 
+  `{ listener: updateFn, preventDefault: true, stopPropagation: true }`
+
+
+    import { form, div, input, button } from 'myra/html'
+
+    type FormData = { 
+        foo: string
+        bar: string
+    }
+    const handleFormSubmit = (m: Model, formData: FormData) => {
+        ...
+        return m
+    }
+
+    // Example of update function that will receive an input elements value as 
+    // argument when the event is triggered.
+    const updateNothing = (m: Model, value: string) => {
+        return m
+    } 
+
+    const view = (_) =>
+        form({ onsubmit: handleFormSubmit },
+            div(
+                input({
+                    focus: true,
+                    name: 'foo',
+                    type: 'text',
+                    onkeyup_escape: {
+                        listener: updateNothing,
+                        preventDefault: true,
+                        stopPropagation: true
+                    }
+                }),
+                input({
+                    type: 'checkbox',
+                    checked: true,
+                    name: 'bar'
+                })
+                button({
+                    type: 'submit'
+                })
+            )
+        )
+
+#### ComponentNodeDescriptor
+Mounts a child component, rendering it's view hierarchy. It's possible to feed
+the child component with arguments.
+
+    import { component } from 'myra/html'
+    import { myOtherComponent } from './myOtherComponent'
+
+    const view = (_) => component(myOtherComponent, 'an argument')
+
+#### TextNodeDescriptor
+Renders as a text node.
+
+    import { text } from 'myra/html'
+
+    const view = (_) => text('Hello world!')
+
+#### CommentNodeDescriptor
+Renders as a comment node.
+
+    import { comment } from 'myra/html'
+
+    const view = (_) => comment('A comment')
+
+#### NothingNodeDescriptor
+Represents nothing, renders as a comment node with the comment "Nothing".
+
+    import { nothing } from 'myra/html'
+
+    const view = (model: Model) => nothing()
+
+
+#### Subscriptions
+Subscriptions makes it possible to communicate between components and between 
+tasks and components. 
+
+To subscribe to messages, supply `defineComponent` with an anonymous object 
+where the keys are the message type to listen for and the value is the `Update`
+function to call when a message is recieved:
+
+    import { defineComponent } from 'myra/core'
+
+    const onFooMessageRecieved = (m: Model, messageData: string) => {
+        ...
+        return m
+    }
+
+    const myComponent = defineComponent({
+        name: 'MyComponent',
+        model: ...,
+        subscriptions: {
+            'fooMessage': onFooMessageRecieved
+        },
+        view: ...
+    })
+
+To broadcast a message, use the `broadcast` function to create a "broadcast 
+task":
+
+    import { broadcast, Task } from 'myra/core'
+
+    const broadcastTask = broadcast('messageType', 'an argument')
+    const someUpdateFn = (m: Model) => 
+        [m, broadcastTask] as [Model, Task]
 
 ## License
 
