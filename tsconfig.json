@@ -26,6 +26,7 @@
             "core/view": ["src/core/view.ts"],
             "html": ["src/html.ts"],
             "http": ["src/http.ts"],
+            "location": ["src/location.ts"],
             "time": ["src/time.ts"]
         },
         "listEmittedFiles": true

@@ -22,6 +22,7 @@ System.config({
                 'core/view': './src/core/view',
                 'html': './src/html',
                 'http': './src/http',
+                'location': './src/location',
                 'time': './src/time'
             }
         }
