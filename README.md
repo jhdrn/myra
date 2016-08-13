@@ -2,6 +2,10 @@
 Myra is a simple and small [Typescript](http://www.typescriptlang.org/) 
 framework for building web interfaces.
 
+## Disclaimer
+This project is currently in alpha stage. There are bugs and it's API might 
+change in future versions. Use at your own risk!
+
 ## Requirements
 Myra requires Typescript 2.0 to function properly. It is also highly advised 
 that the compiler options `strictNullChecks`, `noImplicitReturns` and 
