@@ -58,17 +58,12 @@ export interface View<M> {
 }
 
 export interface AttributeMap { [name: string]: string }
-export interface TaskWithEventOptions {
-    task: Task
+export interface ListenerWithEventOptions {
+    listener: Task | Update<any, any>
     preventDefault?: boolean
     stopPropagation?: boolean 
 }
-export interface UpdateWithEventOptions {
-    update: UpdateAny
-    preventDefault?: boolean
-    stopPropagation?: boolean 
-}
-export type ElementEventAttributeArguments = Update<any, any> | UpdateWithEventOptions | Task | TaskWithEventOptions
+export type ElementEventAttributeArguments = Update<any, any> | Task | ListenerWithEventOptions
 export interface ElementAttributeMap {
     'class'?: string
     id?: string

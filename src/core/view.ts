@@ -1,5 +1,5 @@
 import { typeOf, max } from './helpers'
-import { Dispatch, Task, UpdateAny, ElementEventAttributeArguments, NodeDescriptor, TextNodeDescriptor, ElementNodeDescriptor, ComponentNodeDescriptor, TaskWithEventOptions, UpdateWithEventOptions } from './contract'
+import { Dispatch, Task, UpdateAny, ElementEventAttributeArguments, NodeDescriptor, TextNodeDescriptor, ElementNodeDescriptor, ComponentNodeDescriptor, ListenerWithEventOptions } from './contract'
 
 const EVENTS = [
     'blur',
@@ -90,18 +90,20 @@ function createEventListener([eventName, key]: [string, string], eventArgs: Elem
             return
         } 
         else if (eventArgsType === 'object') {
-            if ((eventArgs as TaskWithEventOptions).preventDefault) {
+            if ((eventArgs as ListenerWithEventOptions).preventDefault) {
                 ev.preventDefault()
             }
-            if ((eventArgs as TaskWithEventOptions).stopPropagation) {
+            if ((eventArgs as ListenerWithEventOptions).stopPropagation) {
                 ev.stopPropagation()
             }
-            if ((eventArgs as TaskWithEventOptions).task) {
-                (eventArgs as TaskWithEventOptions).task.execute(dispatch)
-                return
-            }
-            else if ((eventArgs as UpdateWithEventOptions).update) {
-                eventArgs = (eventArgs as UpdateWithEventOptions).update
+            if ((eventArgs as ListenerWithEventOptions).listener) {
+                if (((eventArgs as ListenerWithEventOptions).listener as Task).execute) {
+                    ((eventArgs as ListenerWithEventOptions).listener as Task).execute(dispatch)
+                    return
+                }
+                else {
+                    eventArgs = (eventArgs as ListenerWithEventOptions).listener
+                }
             }
         }
 
