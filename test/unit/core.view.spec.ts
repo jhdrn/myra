@@ -1,9 +1,9 @@
 import { defineComponent } from 'core'
 import { render } from 'core/view'
-import { div, input, textarea, text, comment, component, nothing } from 'html'
+import { div, input, textarea, text, comment, form, component, nothing } from 'html'
 
 const keyPressEvent = (key: string) => {
-    const event = document.createEvent("KeyboardEvent")
+    const event = document.createEvent('KeyboardEvent')
   
     event.initEvent('keyup', true, true)
 
@@ -270,42 +270,49 @@ describe('core.view.render', () => {
         
         expect(node.id).toBe('')
     })
-    // it('collects form data and passes it as argument to the update function', () => {
+    it('collects form data and passes it as argument to the update function', () => {
 
-    //     type FormData = {  
-    //         test1: string
-    //         test2: string
-    //     }
-    //     const mocks = {
-    //         formSubmitted: (m: any, formData: FormData) => {
-    //             expect(formData).toEqual({
-    //                 test1: 'testValue1',
-    //                 test2: 'on'
-    //             })
-    //             return m
-    //         }
-    //     }
+        type FormData = {  
+            test1: string
+            test2: string
+        }
+        const mocks = {
+            formSubmitted: (m: any, formData: FormData) => {
+                expect(formData).toEqual({
+                    test1: 'testValue1',
+                    test2: 'on'
+                })
+                return m
+            }
+        }
 
-    //     spyOn(mocks, 'formSubmitted')
+        spyOn(mocks, 'formSubmitted')
 
-    //     const view = form({
-    //             onsubmit: { update: mocks.formSubmitted, preventDefault: true, stopPropagation: true }
-    //         },
-    //         input({
-    //             name: 'test1',
-    //             type: 'text',
-    //             value: 'testValue'
-    //         }),
-    //         input({
-    //             name: 'test2',
-    //             type: 'checkbox',
-    //             checked: true
-    //         })
-    //     )
+        const view = form({
+                onsubmit: { 
+                    listener: mocks.formSubmitted, 
+                    preventDefault: true
+                }
+            },
+            input({
+                name: 'test1',
+                type: 'text',
+                value: 'testValue'
+            }),
+            input({
+                name: 'test2',
+                type: 'checkbox',
+                checked: true
+            })
+        )
 
-    //     const node = render(document.body, view, view, undefined, dispatch) as HTMLFormElement
-    //     node.submit()
+        const node = render(document.body, view, view, undefined, dispatch) as HTMLFormElement
 
-    //     expect(mocks.formSubmitted).toHaveBeenCalledTimes(1)
-    // })
+        const event = document.createEvent('Event')
+        event.initEvent('submit', true, true)
+
+        node.dispatchEvent(event)
+
+        expect(mocks.formSubmitted).toHaveBeenCalledTimes(1)
+    })
 })
