@@ -12,27 +12,31 @@ that the compiler options `strictNullChecks`, `noImplicitReturns` and
 `noImplicitAny` are set to true.
 
 ## Features
-* **Functional:** Myra encourages functional programming and immutability for 
-  predictable behavior.
-* **Small API:** Myra should be easy to learn as it's API and concepts are 
-  limited.
+* **Functional:** 
+  Myra encourages functional programming and immutability for predictable 
+  behavior.
+* **Small API:** 
+  Myra should be easy to learn as it's API and concepts are limited.
 * **Statically typed views:** 
-    Myra does not use HTML templates but uses functions to build up view 
-    hierarchies. This reduces run time errors and increases performance.
-* **No dependencies:** Myra does not depend on any external libraries.
-* **Small code base:** ~40kb/~11kb minified/~4kb minified and gzipped
+  Myra does not use HTML templates but uses functions to build up view 
+  hierarchies. This reduces run time errors and increases performance.
+* **No dependencies:** 
+  Myra does not depend on any external libraries.
+* **Small code base/size:** 
+  ~48kb/~17kb minified/~5kb minified and gzipped
 
 ## Getting started
-Clone the repository and check the examples folder. Open any example's folder
+Clone the repository and check the [examples](https://github.com/jhdrn/myra/tree/master/examples) folder. Open any example's folder
 in your terminal and execute `npm install` followed by `npm start`, then open 
-your favorite browser point it to `localhost:8080`.
+your favorite browser and point it to `localhost:8080`.
 
 ## Components
 Myra is all about components and there is always at least one component in a 
 Myra application. A component will have it's own state (the 'Model') and view.
 
 A component will be defined with `defineComponent`:
-
+    
+```typescript
     import { defineComponent } from 'myra/core'
 
     const myComponent = defineComponent({
@@ -52,10 +56,13 @@ A component will be defined with `defineComponent`:
         // The view of the component (see 'View' below)
         view: ... 
     })
+```
 
 The "main" component should be mounted to a HTML element:
 
+```typescript
     myComponent.mount(document.body)
+```
 
 ### Model
 Represents the state of the component. Can be anything but a function, even 
@@ -66,6 +73,7 @@ One or more functions that updates the model. Update functions should always be
 pure and should also always copy the model if any changes are made to it.
 The `evolve` function helps with copying the model.
 
+```typescript
     import { evolve } from 'myra/core'
 
     type Model = {
@@ -74,14 +82,16 @@ The `evolve` function helps with copying the model.
 
     const updateFoo = (model: Model, newFoo: string) => 
         evolve(model, x => x.foo = newFoo)
+```
 
-Update functions can either return the model or a tuple 
+Update functions can either return just the model or a tuple 
 `[Model, Task | Task[]]` to do side effects.
 
 ### Task
 A `Task` represents some kind of side effect. It receives a dispatch function
 that may be used to dispatch an `Update` function with any given arguments.
 
+```typescript
     import { task, Update } from 'myra/core'
 
     const myTask = (update: Update<any, any>) => task(dispatch => {
@@ -89,6 +99,7 @@ that may be used to dispatch an `Update` function with any given arguments.
         const arg = ...
         dispatch(update, arg)
     })
+```
 
 ### View
 Myra does not use HTML templates but creates it's views with functions returning 
@@ -98,6 +109,7 @@ Myra does not use HTML templates but creates it's views with functions returning
 Renders as an HTML element. Most HTML elements are represented as functions in
 `myra/html` module (there is also an `el` function to create custom elements). 
 
+```typescript
     import { div, ul, li, text, el } from 'myra/html'
 
     const view = (_) => 
@@ -109,6 +121,7 @@ Renders as an HTML element. Most HTML elements are represented as functions in
             ),
             el('custom')
         )
+```
 
 ##### Attributes and event listeners
 Most functions returning an `ElementNodeDescriptor` takes an anonymous object as 
@@ -116,6 +129,7 @@ first argument. The keys and values of the supplied object will be mapped to
 attributes and event listeners on the element. Event listeners can be either an
 `Update` function or a `Task`.
 
+```typescript
     import { div } from 'myra/html'
     
     const myUpdate = (m: Model) => {
@@ -128,6 +142,7 @@ attributes and event listeners on the element. Event listeners can be either an
             'class': 'className',
             onclick: myUpdate,
         })
+```
 
 ##### Special behavior
 Some attributes and events has special behavior associated with them.
@@ -153,6 +168,7 @@ Some attributes and events has special behavior associated with them.
   `{ listener: updateFn, preventDefault: true, stopPropagation: true }`
 
 
+```typescript
     import { form, div, input, button } from 'myra/html'
 
     type FormData = { 
@@ -193,37 +209,45 @@ Some attributes and events has special behavior associated with them.
                 })
             )
         )
+```
 
 #### ComponentNodeDescriptor
 Mounts a child component, rendering it's view hierarchy. It's possible to feed
 the child component with arguments.
 
+```typescript
     import { component } from 'myra/html'
     import { myOtherComponent } from './myOtherComponent'
 
     const view = (_) => component(myOtherComponent, 'an argument')
+```
 
 #### TextNodeDescriptor
 Renders as a text node.
 
+```typescript
     import { text } from 'myra/html'
 
     const view = (_) => text('Hello world!')
+```
 
 #### CommentNodeDescriptor
 Renders as a comment node.
 
+```typescript
     import { comment } from 'myra/html'
 
     const view = (_) => comment('A comment')
+```
 
 #### NothingNodeDescriptor
 Represents nothing, renders as a comment node with the comment "Nothing".
 
+```typescript
     import { nothing } from 'myra/html'
 
     const view = (model: Model) => nothing()
-
+```
 
 #### Subscriptions
 Subscriptions makes it possible to communicate between components and between 
@@ -233,6 +257,7 @@ To subscribe to messages, supply `defineComponent` with an anonymous object
 where the keys are the message type to listen for and the value is the `Update`
 function to call when a message is recieved:
 
+```typescript
     import { defineComponent } from 'myra/core'
 
     const onFooMessageRecieved = (m: Model, messageData: string) => {
@@ -248,15 +273,18 @@ function to call when a message is recieved:
         },
         view: ...
     })
+```
 
 To broadcast a message, use the `broadcast` function to create a "broadcast 
 task":
 
+```typescript
     import { broadcast, Task } from 'myra/core'
 
     const broadcastTask = broadcast('messageType', 'an argument')
     const someUpdateFn = (m: Model) => 
         [m, broadcastTask] as [Model, Task]
+```
 
 ## License
 
