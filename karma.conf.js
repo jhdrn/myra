@@ -30,6 +30,14 @@ module.exports = function(config) {
 
         browsers: ['Chrome'],
 
+        // For Travis CI
+        customLaunchers: {  
+            Chrome_travis_ci: {
+                base: 'Chrome',
+                flags: ['--no-sandbox']
+            }
+        },
+
         // Karma plugins loaded
         plugins: [
             'karma-jasmine',
@@ -56,4 +64,8 @@ module.exports = function(config) {
 
         singleRun: true
     })
+
+    if (process.env.TRAVIS) {  
+       config.browsers = ['Chrome_travis_ci'];
+    }
 };
