@@ -5,6 +5,7 @@
   "dependencies": {},
   "devDependencies": {
     "@types/jasmine": "^2.2.29",
+    "codecov": "^1.0.1",
     "copyfiles": "^1.0.0",
     "jasmine-core": "^2.4.1",
     "karma": "^1.1.1",
@@ -20,10 +21,10 @@
     "build": "rimraf build && tsc",
     "pretest": "npm run build",
     "test": "karma start karma.conf.js",
-    "posttest": "node_modules/.bin/remap-istanbul -i ./coverage/coverage-final.json -o ./coverage -t html",
+    "posttest": "node_modules/.bin/remap-istanbul -i ./coverage/coverage-final.json -o ./coverage -t html && codecov -f ./coverage/coverage-final.json",
     "coverage": "http-server -c-1 -o -p 9875 ./coverage"
   },
-  "author": { 
+  "author": {
     "name": "Jonathan Hedrén",
     "email": "jonathan.hedren@gmail.com"
   },
