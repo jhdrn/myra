@@ -152,9 +152,9 @@ Some attributes and events has special behavior associated with them.
 
 * If an event listener is added to an `input`, `select` or `textarea` element,
   it's `value` will be passed as an argument to the attached `Update` function.
-* If the element is a form element and the `onsubmit` event listener is 
+* If the element is a `form` element and the `onsubmit` event listener is 
   triggered, all values of it's child elements with a `name` attribute will be 
-  serialized into an anonymous object which will be passed as argument to the 
+  copied to an anonymous object which will be passed as argument to the 
   attached `Update` function. 
 * Keyboard events are handled a bit different: in order to know what key to be
   listening for, the key of the attribute must be suffixed with an underscore
@@ -163,12 +163,12 @@ Some attributes and events has special behavior associated with them.
   `element.blur()` and `element.focus()` respectively.
 * `checked` and `disabled` attributes with a truthy value will set 
   `element.checked` and/or `element.disabled` to true.
-* The `value` attribute will set element.value if it is either an input, select 
-  or textarea element.
+* The `value` attribute will set element.value if it is either an `input`, 
+  `select` or `textarea` element.
 * If there is a need to call `event.preventDefault()` and/or 
   `event.stopPropagation()`, the event listener can be wrapped in an object 
   like this: 
-  `{ listener: updateFn, preventDefault: true, stopPropagation: true }`
+  `{ listener: updateFnOrTask, preventDefault: true, stopPropagation: true }`
 
 
 ```typescript
@@ -190,23 +190,19 @@ Some attributes and events has special behavior associated with them.
     } 
 
     const view = (_) =>
-        form({ onsubmit: handleFormSubmit },
+        form({ onsubmit: { listener: handleFormSubmit, preventDefault: true } },
             div(
                 input({
                     focus: true,
                     name: 'foo',
                     type: 'text',
-                    onkeyup_escape: {
-                        listener: updateNothing,
-                        preventDefault: true,
-                        stopPropagation: true
-                    }
+                    onkeyup_escape: updateNothing
                 }),
                 input({
                     type: 'checkbox',
                     checked: true,
                     name: 'bar'
-                })
+                }),
                 button({
                     type: 'submit'
                 })
@@ -249,7 +245,7 @@ Represents nothing, renders as a comment node with the comment "Nothing".
 ```typescript
     import { nothing } from 'myra/html'
 
-    const view = (model: Model) => nothing()
+    const view = (_) => nothing()
 ```
 
 ### Subscriptions
