@@ -252,7 +252,7 @@ Represents nothing, renders as a comment node with the comment "Nothing".
     const view = (model: Model) => nothing()
 ```
 
-#### Subscriptions
+### Subscriptions
 Subscriptions makes it possible to communicate between components and between 
 tasks and components. 
 
