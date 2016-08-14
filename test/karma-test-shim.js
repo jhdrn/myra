@@ -31,7 +31,9 @@ System.config({
 
 System.import('base/build/src/core/index')
     .then(function() { return Promise.all(resolveTestFiles()); })
-    .then(function() { __karma__.start(); }, function(error) { __karma__.error(error.stack || error); });
+    .then(function() { __karma__.start(); }, function(error) {
+        __karma__.error(error.stack || error.message); 
+    });
 
 function onlySpecFiles(path) {
     return /\.spec\.js$/.test(path);
