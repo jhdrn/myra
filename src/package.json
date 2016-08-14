@@ -1,7 +1,7 @@
 {
   "name": "myra",
-  "version": "1.0.0-alpha.20160812",
-  "description": "Myra: A small Typescript framework for the browser",
+  "version": "1.0.0-alpha.20160814",
+  "description": "Myra is a simple and small Typescript framework for building web interfaces.",
   "readme": "README.md",
   "repository": { 
     "type" : "git",
