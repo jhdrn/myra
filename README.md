@@ -286,6 +286,29 @@ task":
         [m, broadcastTask] as [Model, Task]
 ```
 
+### HTTP requests
+`myra/http` is a module with `Task` wrappers for making XmlHttpRequests. It 
+exposes the `httpRequest` function and 'shortcut' functions for GET, POST, PUT 
+and DELETE requests. Take a look at 
+[examples/kitchen-sink/src/models/books.ts](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/models/books.ts)
+for an example on how to use the module.
+
+### Location/"routing"
+`myra/location` is a module with `Task` wrappers for 
+`pushState/replaceState/popState`.
+
+Both the 
+[kitchen-sink example](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/header.ts) 
+and the 
+[todomvc example](https://github.com/jhdrn/myra/blob/master/examples/todomvc/src/components/todo-list.ts) 
+contains code examples for `myra/location`.
+
+### Timeouts and intervals
+`myra/time` is a module with `Task` wrappers for `setTimeout` and `setInterval`.
+Take a look at 
+[examples/kitchen-sink/src/components/book-search.ts](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/book-search.ts)
+for an example on how to use the module.
+
 ## License
 
 [MIT](http://opensource.org/licenses/MIT)
