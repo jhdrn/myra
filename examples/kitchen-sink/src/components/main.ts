@@ -1,5 +1,5 @@
 import { defineComponent, evolve, View } from 'myra/core'
-import { main, footer, div, text, component, nothing } from 'myra/html'
+import { main, footer, div, p, text, component, nothing } from 'myra/html'
 import { trackLocationChanges, matchLocation } from 'myra/location'
 import { headerComponent } from './header'
 import { bookSearchComponent } from './book-search'
@@ -33,6 +33,9 @@ const view: View<Model> = (model: Model) =>
     div({ 'class': 'mdl-layout__container has-scrolling-header' },
         div({ 'class': 'mdl-layout mdl-layout--fixed-header' },
             component(headerComponent),
+            div({ 'class': 'mdl-grid'},
+                p(text('THIS EXAMPLE IS CURRENTLY A WORK IN PROGRESS! So it\'s really not a kitchen sink demo just yet :)'))
+            ),
             main({ 'class': 'mdl-layout__content' },
                 matchLocation('books') ?
                     div({ 'class': 'books mdl-grid'},
