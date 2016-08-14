@@ -1,4 +1,4 @@
-import { defineComponent } from 'core'
+import { defineComponent, task } from 'core'
 import { render } from 'core/view'
 import { div, input, textarea, text, comment, form, component, nothing } from 'html'
 
@@ -259,17 +259,92 @@ describe('core.view.render', () => {
         })
         
         const view2 = div({
-            'class': 'foo',
+            'class': 'foo'
         })
         
         let node = render(document.body, view1, view1, undefined, () => {}) as HTMLDivElement
 
         expect(node.id).toBe('bar')
         
-        node = render(document.body, view2, view1, undefined, () => {}) as HTMLDivElement
+        node = render(document.body, view2, view1, node, () => {}) as HTMLDivElement
         
         expect(node.id).toBe('')
     })
+
+    it('removes attributes from existing element if the attribute is undefined', () => {
+        const view1 = div({
+            'class': 'foo',
+            id: 'bar'
+        })
+        
+        const view2 = div({
+            'class': 'foo',
+            id: undefined
+        })
+        
+        let node = render(document.body, view1, view1, undefined, () => {}) as HTMLDivElement
+
+        expect(node.id).toBe('bar')
+        
+        node = render(document.body, view2, view1, node, () => {}) as HTMLDivElement
+        
+        expect(node.id).toBe('')
+    })
+
+    it('removes old event listeners when element is replaced', () => {
+        const view1 = div({
+            onclick: m => m
+        })
+        
+        const view2 = nothing()
+        
+        const node = render(document.body, view1, view1, undefined, () => {}) as HTMLDivElement
+
+        expect(node.onclick).not.toBeNull()
+        
+        render(document.body, view2, view1, node, () => {}) as HTMLDivElement
+        
+        expect(node.onclick).toBeNull()
+    })
+
+    it('executes Task when set as event listener', () => {
+        const mocks = {
+            testTask: () => {
+            }
+        }
+
+        spyOn(mocks, 'testTask')
+
+        const view = div({
+            onclick: task(mocks.testTask)
+        })
+        
+        const node = render(document.body, view, view, undefined, () => {}) as HTMLDivElement
+        node.click()
+
+        expect(mocks.testTask).toHaveBeenCalledTimes(1)
+        
+    })
+
+    it('executes Task when set as event listener with options', () => {
+        const mocks = {
+            testTask: () => {
+            }
+        }
+
+        spyOn(mocks, 'testTask')
+
+        const view = div({
+            onclick: { listener: task(mocks.testTask), stopPropagation: true }
+        })
+        
+        const node = render(document.body, view, view, undefined, () => {}) as HTMLDivElement
+        node.click()
+        
+        expect(mocks.testTask).toHaveBeenCalledTimes(1)
+        
+    })
+
     it('collects form data and passes it as argument to the update function', () => {
 
         type FormData = {  
@@ -291,7 +366,8 @@ describe('core.view.render', () => {
         const view = form({
                 onsubmit: { 
                     listener: mocks.formSubmitted, 
-                    preventDefault: true
+                    preventDefault: true,
+                    stopPropagation: true
                 }
             },
             input({
