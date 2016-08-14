@@ -58,7 +58,7 @@ module.exports = function(config) {
             dir: './coverage/',
             includeAllSources: true,
             reporters:[
-                { type: 'json', subdir: '.', file: 'coverage-final.json' }
+                { type: 'json', subdir: '.', file: 'coverage.json' }
             ]
         },
 

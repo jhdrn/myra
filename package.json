@@ -21,7 +21,8 @@
     "build": "rimraf build && tsc",
     "pretest": "npm run build",
     "test": "karma start karma.conf.js",
-    "posttest": "node_modules/.bin/remap-istanbul -i ./coverage/coverage-final.json -o ./coverage -t html && codecov -f ./coverage/coverage-final.json",
+    "posttest": "node_modules/.bin/remap-istanbul -i ./coverage/coverage.json -o ./coverage -t html",
+    "codecov": "node_modules/.bin/remap-istanbul -i coverage/coverage.json -o ./coverage/lcov.info -t lcovonly && codecov -f ./coverage/lcov.info",
     "coverage": "http-server -c-1 -o -p 9875 ./coverage"
   },
   "author": {
