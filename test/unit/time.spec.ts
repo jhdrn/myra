@@ -3,9 +3,8 @@ import { now, startTimeout, cancelTimeout, startInterval, cancelInterval } from 
 const dispatch = (fn: any, args: any) => fn(undefined, args)
 
 describe('time module', () => {
-    let timerCallback: jasmine.Spy
+    
     beforeEach(() => {
-        timerCallback = jasmine.createSpy("timerCallback")
         jasmine.clock().install()
     })
 
