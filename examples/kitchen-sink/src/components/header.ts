@@ -6,7 +6,7 @@ const navLink = (path: string, title: string) => {
     return a({ 
                 'class': 'mdl-navigation__link', 
                 href: `/${path}`, 
-                onclick: { task: updateLocation(path), preventDefault: true }
+                onclick: { listener: updateLocation(path), preventDefault: true }
             }, 
             text(title)
         )

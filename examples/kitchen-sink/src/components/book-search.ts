@@ -115,7 +115,7 @@ const view: View<Model> = (model) =>
                                 { 
                                     'href': '#', 
                                     'class': 'mdl-list__item-primary-content',
-                                    onclick: { update: bookSelected(b.id), preventDefault: true } 
+                                    onclick: { listener: bookSelected(b.id), preventDefault: true } 
                                 }, 
                                 !!b.imageLinks ? img({ 'class': 'mdl-list__item-avatar', src: b.imageLinks.smallThumbnail, alt: 'Book thumbnail' }) : span({ 'class': 'mdl-list__item-avatar' }),
                                 span(text(b.title)),
