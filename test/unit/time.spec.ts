@@ -3,7 +3,7 @@ import { now, startTimeout, cancelTimeout, startInterval, cancelInterval } from 
 const dispatch = (fn: any, args: any) => fn(undefined, args)
 
 describe('time module', () => {
-    
+
     beforeEach(() => {
         jasmine.clock().install()
     })
@@ -21,7 +21,7 @@ describe('time module', () => {
             }
         }
 
-        spyOn(mocks, 'success')
+        spyOn(mocks, 'success').and.callThrough()
 
         now(mocks.success).execute(dispatch)
         expect(mocks.success).toHaveBeenCalledTimes(1)
