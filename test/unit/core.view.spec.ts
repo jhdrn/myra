@@ -35,7 +35,7 @@ describe('core.view.render', () => {
         let node = render(document.body, view1, view1, undefined, () => {})
         expect(node.nodeValue).toBe('a text')
 
-        node = render(document.body, view2, view1, undefined, () => {})
+        node = render(document.body, view2, view1, node, () => {})
         expect(node.nodeValue).toBe('a new text')
     })
 
@@ -55,7 +55,7 @@ describe('core.view.render', () => {
         let node = render(document.body, view1, view1, undefined, () => {})
         expect(node.nodeValue).toBe('a text')
 
-        node = render(document.body, view2, view1, undefined, () => {})
+        node = render(document.body, view2, view1, node, () => {})
         expect(node.nodeValue).toBe('a new text')
     })
 
@@ -80,6 +80,33 @@ describe('core.view.render', () => {
         const node = render(document.body, view, view, undefined, () => {}) as HTMLDivElement
 
         expect((node.childNodes.item(0) as HTMLDivElement).id).toBe('testComponent')
+    })
+
+    it('remounts a component', () => {
+        const mocks = {
+            mount: (m: any) => m
+        }
+
+        spyOn(mocks, 'mount')
+
+        const testComponent = defineComponent({
+            name: 'TestComponent',
+            init: undefined,
+            mount: mocks.mount,
+            view: (_) => div({ id: 'testComponent' })
+        })
+
+        const view1 = component(testComponent)
+        const view2 = component(testComponent, undefined, true)
+
+        const node = render(document.body, view1, view1, undefined, () => {}) as HTMLDivElement
+
+        const componentInstance = view1.componentInstance
+
+        render(document.body, view2, view1, node, () => {}) as HTMLDivElement
+
+        expect(view2.componentInstance!.id).toBe(componentInstance!.id)
+        expect(mocks.mount).toHaveBeenCalledTimes(2)
     })
 
     it('creates and returns an element node from an element node descriptor', () => {
@@ -156,7 +183,7 @@ describe('core.view.render', () => {
 
         let node = render(document.body, view1, view1, undefined, dispatch) as HTMLDivElement
 
-        node = render(document.body, view2, view1, undefined, dispatch) as HTMLDivElement
+        node = render(document.body, view2, view1, node, dispatch) as HTMLDivElement
 
         node.click()
 
@@ -246,7 +273,7 @@ describe('core.view.render', () => {
         expect(node.className).toBe('foo')
         expect(node.id).toBe('bar')
         
-        node = render(document.body, view2, view1, undefined, () => {}) as HTMLDivElement
+        node = render(document.body, view2, view1, node, () => {}) as HTMLDivElement
         
         expect(node.className).toBe('bar')
         expect(node.id).toBe('foo')
