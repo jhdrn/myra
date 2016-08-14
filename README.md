@@ -4,6 +4,7 @@ framework for building web interfaces.
 
 [![npm](https://img.shields.io/npm/v/myra.svg?maxAge=2592000)](https://www.npmjs.com/package/myra)
 [![Travis](https://img.shields.io/travis/jhdrn/myra.svg?maxAge=2592000)](https://travis-ci.org/jhdrn/myra)
+[![Codecov](https://img.shields.io/codecov/c/github/jhdrn/myra.svg?maxAge=2592000)](https://codecov.io/gh/jhdrn/myra)
 
 ## Disclaimer
 This project is currently in alpha stage. There are bugs and it's API might 
