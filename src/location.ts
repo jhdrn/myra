@@ -1,4 +1,4 @@
-import { task, broadcast, Task, Dispatch } from './core'
+import { task, broadcast, Task, Dispatch } from './core/index'
 
 export { Task }
 export type Params = { [key: string]: any }

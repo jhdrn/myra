@@ -1,4 +1,4 @@
-import { task, Task, Dispatch, Update } from './core'
+import { task, Task, Dispatch, Update } from './core/index'
 
 export { Task }
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
