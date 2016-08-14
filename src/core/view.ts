@@ -161,6 +161,18 @@ function shouldReplaceNode(newDescriptor: NodeDescriptor, oldDescriptor: NodeDes
     return false
 }
 
+function getAttributesToRemove(newDescriptor: ElementNodeDescriptor, oldDescriptor: NodeDescriptor, existingNode: Node) {
+    const oldAttributeKeys = Object.keys((oldDescriptor as ElementNodeDescriptor).attributes)
+    
+    if (existingNode !== oldDescriptor.node) {
+        return oldAttributeKeys
+    }
+    
+    const newAttributeKeys = Object.keys(newDescriptor.attributes)
+    return newAttributeKeys.filter(x => oldAttributeKeys.indexOf(x) === -1)
+                           .concat(oldAttributeKeys.filter(x => newAttributeKeys.indexOf(x) === -1 || x.indexOf('on') === 0))
+}
+
 /** Renders the view by walking the node descriptor tree recursively */
 export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor, existingNode: Node | undefined, dispatch: Dispatch): Node {
     const replaceNode = shouldReplaceNode(newDescriptor, oldDescriptor)
@@ -220,11 +232,7 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
             case 'element':
             
                 // remove any attributes that was added with the old node descriptor but does not exist in the new descriptor.
-                const newAttributeKeys = Object.keys(newDescriptor.attributes)
-                const oldAttributeKeys = Object.keys((oldDescriptor as ElementNodeDescriptor).attributes)
-                const attributesToRemove = newAttributeKeys.filter(x => oldAttributeKeys.indexOf(x) === -1)
-                                                           .concat(oldAttributeKeys.filter(x => newAttributeKeys.indexOf(x) === -1 || x.indexOf('on') === 0))
-                attributesToRemove.forEach(a => {
+                getAttributesToRemove(newDescriptor, oldDescriptor, existingNode).forEach(a => {
                     removeAttr(a, existingNode!)
                 })
                 
@@ -233,9 +241,8 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
                     if (newDescriptor.attributes.hasOwnProperty(name)) {
                         const attributeValue = newDescriptor.attributes[name]
                         const oldAttributeValue = (oldDescriptor as ElementNodeDescriptor).attributes[name]
-                        // TODO: (newDescriptor.tagName === 'input' && name === 'value') vs attributeValue !== oldAttributeValue
-                        if (name.indexOf('on') === 0 || (newDescriptor.tagName === 'input' && name === 'value') || 
-                            attributeValue !== oldAttributeValue && typeof attributeValue !== 'undefined'
+                        if ((name.indexOf('on') === 0 || !existingNode.attributes.getNamedItem(name) || 
+                            attributeValue !== oldAttributeValue) && typeof attributeValue !== 'undefined'
                         ) {
                             setAttr(existingNode as HTMLElement, name, attributeValue, dispatch)
                         }

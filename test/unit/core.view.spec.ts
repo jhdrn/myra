@@ -1,6 +1,6 @@
 import { defineComponent, task } from 'core'
 import { render } from 'core/view'
-import { div, input, textarea, text, comment, form, component, nothing } from 'html'
+import { div, span, input, textarea, text, comment, form, component, nothing } from 'html'
 
 const keyPressEvent = (key: string) => {
     const event = document.createEvent('KeyboardEvent')
@@ -107,6 +107,44 @@ describe('core.view.render', () => {
 
         expect(view2.componentInstance!.id).toBe(componentInstance!.id)
         expect(mocks.mount).toHaveBeenCalledTimes(2)
+    })
+
+    it('removes excessive child nodes', () => {
+        const viewItems1 = ['a', 'b', 'c', 'd']
+        const viewItems2 = ['a', 'c']
+        const view1 = div(
+            viewItems1.map(item => div(text(item)))
+        )
+        const view2 = div(
+            viewItems2.map(item => div(text(item)))
+        )
+
+        let node = render(document.body, view1, view1, undefined, () => {}) as HTMLDivElement
+        
+        expect(node.childElementCount).toBe(viewItems1.length)
+
+        node = render(document.body, view2, view1, node, () => {}) as HTMLDivElement
+
+        expect(node.childElementCount).toBe(viewItems2.length)
+    })
+
+    it('adds child nodes if needed', () => {
+        const viewItems1 = ['a', 'b']
+        const viewItems2 = ['a', 'b', 'c', 'd']
+        const view1 = div(
+            viewItems1.map(item => div(text(item)))
+        )
+        const view2 = div(
+            viewItems2.map(item => div(text(item)))
+        )
+
+        let node = render(document.body, view1, view1, undefined, () => {}) as HTMLDivElement
+        
+        expect(node.childElementCount).toBe(viewItems1.length)
+
+        node = render(document.body, view2, view1, node, () => {}) as HTMLDivElement
+
+        expect(node.childElementCount).toBe(viewItems2.length)
     })
 
     it('creates and returns an element node from an element node descriptor', () => {
@@ -316,6 +354,21 @@ describe('core.view.render', () => {
         node = render(document.body, view2, view1, node, () => {}) as HTMLDivElement
         
         expect(node.id).toBe('')
+    })
+
+    it('replaces the element if the tagName has changed', () => {
+        const view1 = div()
+        
+        const view2 = span()
+        
+        let node = render(document.body, view1, view1, undefined, () => {}) as HTMLDivElement
+        (node as any)._id = 1
+        expect(node.tagName).toBe('DIV')
+        
+        node = render(document.body, view2, view1, node, () => {}) as HTMLDivElement
+        
+        expect((node as any)._id).not.toBeDefined()
+        expect(node.tagName).toBe('SPAN')
     })
 
     it('removes old event listeners when element is replaced', () => {
