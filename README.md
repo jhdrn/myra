@@ -22,8 +22,9 @@ that the compiler options `strictNullChecks`, `noImplicitReturns` and
 * **Small API:** 
   Myra should be easy to learn as it's API and concepts are limited.
 * **Statically typed views:** 
-  Myra does not use HTML templates but uses functions to build up view 
-  hierarchies. This reduces run time errors and increases performance.
+  Myra does not use HTML templates but uses functions or 
+  [JSX](https://facebook.github.io/react/docs/jsx-in-depth.html) to build up 
+  view hierarchies. This reduces run time errors and increases performance.
 * **No dependencies:** 
   Myra does not depend on any external libraries.
 * **Small code base/size:** 
@@ -106,15 +107,16 @@ that may be used to dispatch an `Update` function with any given arguments.
 ```
 
 ### View
-Myra does not use HTML templates but creates it's views with functions returning 
-`NodeDescriptor` which is a union type of the following types:
+Myra does not use HTML templates but creates it's views with functions or JSX 
+returning `NodeDescriptor` which is a union type of the following types:
 
 #### ElementNodeDescriptor
 Renders as an HTML element. Most HTML elements are represented as functions in
 `myra/html` module (there is also an `el` function to create custom elements). 
 
 ```typescript
-    import { div, ul, li, text, el } from 'myra/html'
+    import { text } from 'myra/html'
+    import { div, ul, li, el } from 'myra/html/elements'
 
     const view = (_) => 
         div(
@@ -125,6 +127,21 @@ Renders as an HTML element. Most HTML elements are represented as functions in
             ),
             el('custom')
         )
+```
+JSX can also be used:
+
+```JSX
+    import * as jsxFactory from 'myra/html/jsxFactory'
+
+    const view = (_) => 
+        <div>
+            <ul>
+                <li>
+                    A list item
+                </li>
+            </ul>
+        </div>
+
 ```
 
 ##### Attributes and event listeners
@@ -146,6 +163,18 @@ attributes and event listeners on the element. Event listeners can be either an
             'class': 'className',
             onclick: myUpdate,
         })
+```
+
+JSX:
+
+```JSX
+    import * as jsxFactory from 'myra/html/jsxFactory'
+
+    ...
+
+    const view = (_) => 
+        <div class="className" onclick={ myUpdate }></div>
+
 ```
 
 ##### Special behavior
@@ -222,6 +251,18 @@ the child component with arguments.
     const view = (_) => component(myOtherComponent, 'an argument')
 ```
 
+JSX:
+
+```JSX
+    import * as jsxFactory from 'myra/html/jsxFactory'
+
+    ...
+    
+    const view = (_) => 
+        <mount component={ myOtherComponent } args={ 'an argument' } />
+
+```
+
 #### TextNodeDescriptor
 Renders as a text node.
 
@@ -231,6 +272,8 @@ Renders as a text node.
     const view = (_) => text('Hello world!')
 ```
 
+With JSX you will have to wrap the text in an element.
+
 #### NothingNodeDescriptor
 Represents nothing, renders as a comment node with the comment "Nothing".
 
@@ -238,6 +281,17 @@ Represents nothing, renders as a comment node with the comment "Nothing".
     import { nothing } from 'myra/html'
 
     const view = (_) => nothing()
+```
+
+JSX:
+
+```JSX
+    import * as jsxFactory from 'myra/html/jsxFactory'
+
+    ...
+    
+    const view = (_) => <nothing />
+
 ```
 
 ### Subscriptions

@@ -1,6 +1,7 @@
 import { defineComponent, task } from 'core'
 import { render } from 'core/view'
-import { div, span, input, textarea, text, form, component, nothing } from 'html'
+import { text, component, nothing } from 'html'
+import { div, span, input, textarea, form } from 'html/elements'
 
 const keyPressEvent = (key: string) => {
     const event = document.createEvent('KeyboardEvent')

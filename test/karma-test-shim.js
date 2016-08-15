@@ -20,7 +20,9 @@ System.config({
                 'core/helpers': './src/core/helpers',
                 'core/subscriptions': './src/core/subscriptions',
                 'core/view': './src/core/view',
-                'html': './src/html',
+                'html': './src/html/index',
+                'html/jsxFactory': './src/html/jsxFactory',
+                'html/elements': './src/html/elements',
                 'http': './src/http',
                 'location': './src/location',
                 'time': './src/time'

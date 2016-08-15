@@ -1,3 +1,5 @@
+/// <reference path="contract-global.d.ts" />
+
 /**
  * Component types
  */

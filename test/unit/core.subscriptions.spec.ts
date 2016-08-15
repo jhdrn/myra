@@ -1,5 +1,5 @@
 import { defineComponent, broadcast } from 'core'
-import { div } from 'html' 
+import { div } from 'html/elements' 
 
 /**
  * defineComponent

@@ -15,7 +15,6 @@
         "moduleResolution": "node",
         "pretty": true,
         "outDir": "./build",
-        "listFiles": true,
         "baseUrl": "./",
         "reactNamespace": "jsxFactory",
         "jsx": "react",
@@ -26,7 +25,9 @@
             "core/helpers": ["src/core/helpers.ts"],
             "core/subscriptions": ["src/core/subscriptions.ts"],
             "core/view": ["src/core/view.ts"],
-            "html": ["src/html.ts"],
+            "html": ["src/html/index.ts"],
+            "html/elements": ["src/html/elements.ts"],
+            "html/jsxFactory": ["src/html/jsxFactory.ts"],
             "http": ["src/http.ts"],
             "location": ["src/location.ts"],
             "time": ["src/time.ts"]
@@ -34,8 +35,9 @@
         "listEmittedFiles": true
     },
     "include": [
-        "./src/*.ts",
+        "./src/**/*.ts",
         "./test/unit/*.ts",
+        "./test/unit/*.tsx",
         "./node_modules/@types/jasmine/index.d.ts"
     ]
 }

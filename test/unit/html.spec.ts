@@ -1,37 +1,38 @@
 import * as core from 'core'
-import * as html from 'html'
+import { nothing, text, component } from 'html'
+import * as html from 'html/elements'
 
 describe('Node descriptor helpers', () => {
 
-    it('is a NothingNodeDescriptor', () => {
-        expect(html.nothing()).toEqual({
+    it('nothing returns a NothingNodeDescriptor', () => {
+        expect(nothing()).toEqual({
             __type: 'nothing',
         } as core.NothingNodeDescriptor)
     })
 
     it('creates a TextNodeDescriptor', () => {
-        expect(html.text('some text')).toEqual({
+        expect(text('some text')).toEqual({
             __type: 'text',
             value: 'some text'
         } as core.TextNodeDescriptor)
     })
 
     it('creates a TextNodeDescriptor and converts the argument to a string', () => {
-        expect(html.text(5)).toEqual({
+        expect(text(5)).toEqual({
             __type: 'text',
             value: '5'
         } as core.TextNodeDescriptor)
     })
 
     it('creates a TextNodeDescriptor and converts undefined to an empty string', () => {
-        expect(html.text(undefined)).toEqual({
+        expect(text(undefined)).toEqual({
             __type: 'text',
             value: ''
         } as core.TextNodeDescriptor)
     })
 
     it('creates a TextNodeDescriptor and converts null to an empty string', () => {
-        expect(html.text(null)).toEqual({
+        expect(text(null)).toEqual({
             __type: 'text',
             value: ''
         } as core.TextNodeDescriptor)
@@ -103,14 +104,14 @@ describe('Node descriptor helpers', () => {
     })
 
     it('creates a ComponentNodeDescriptor', () => {
-        const component = core.defineComponent({
+        const testComponent = core.defineComponent({
             name: 'TestComponent',
             init: undefined,
             view: () => html.div()
         })
-        expect(html.component(component)).toEqual({
+        expect(component(testComponent)).toEqual({
             __type: 'component',
-            component: component,
+            component: testComponent,
             args: undefined,
             forceMount: undefined
         } as core.ComponentNodeDescriptor)

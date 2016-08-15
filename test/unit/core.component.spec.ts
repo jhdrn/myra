@@ -1,5 +1,5 @@
 import * as core from 'core'
-import { div } from 'html' 
+import { div } from 'html/elements' 
 
 const q = (x: string) => document.querySelector(x)
 
