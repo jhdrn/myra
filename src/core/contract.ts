@@ -98,10 +98,6 @@ export interface TextNodeDescriptor extends NodeDescriptorBase {
     __type: 'text'
     value: string
 }
-export interface CommentNodeDescriptor extends NodeDescriptorBase {
-    __type: 'comment'
-    comment: string
-}
 export interface ElementNodeDescriptor extends NodeDescriptorBase {
     __type: 'element'
     tagName: string
@@ -118,4 +114,4 @@ export interface ComponentNodeDescriptor extends NodeDescriptorBase {
 export interface NothingNodeDescriptor extends NodeDescriptorBase {
     __type: 'nothing'
 }
-export type NodeDescriptor = TextNodeDescriptor | CommentNodeDescriptor | ElementNodeDescriptor | ComponentNodeDescriptor | NothingNodeDescriptor
+export type NodeDescriptor = TextNodeDescriptor | ElementNodeDescriptor | ComponentNodeDescriptor | NothingNodeDescriptor

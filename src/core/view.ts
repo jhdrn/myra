@@ -133,8 +133,6 @@ function createNode(descriptor: NodeDescriptor, parentNode: Element): Node {
             return document.createElement(descriptor.tagName)
         case 'text':
             return document.createTextNode(descriptor.value)
-        case 'comment':
-            return document.createComment(descriptor.comment)
         case 'component':
             descriptor.componentInstance = descriptor.component.mount(parentNode, descriptor.args) 
             return descriptor.componentInstance.rootNode
@@ -301,9 +299,6 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
                 break
             case 'text':
                 existingNode.textContent = newDescriptor.value
-                break
-            case 'comment':
-                existingNode.textContent = newDescriptor.comment
                 break
             case 'component':
                 newDescriptor.componentInstance = (oldDescriptor as ComponentNodeDescriptor).componentInstance

@@ -17,6 +17,8 @@
         "outDir": "./build",
         "listFiles": true,
         "baseUrl": "./",
+        "reactNamespace": "jsxFactory",
+        "jsx": "react",
         "paths": {
             "core": ["src/core/index.ts"],
             "core/contract": ["src/core/contract.ts"],

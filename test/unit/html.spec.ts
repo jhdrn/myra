@@ -9,13 +9,6 @@ describe('Node descriptor helpers', () => {
         } as core.NothingNodeDescriptor)
     })
 
-    it('creates a CommentNodeDescriptor', () => {
-        expect(html.comment('a comment')).toEqual({
-            __type: 'comment',
-            comment: 'a comment'
-        } as core.CommentNodeDescriptor)
-    })
-
     it('creates a TextNodeDescriptor', () => {
         expect(html.text('some text')).toEqual({
             __type: 'text',

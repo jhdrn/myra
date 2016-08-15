@@ -231,15 +231,6 @@ Renders as a text node.
     const view = (_) => text('Hello world!')
 ```
 
-#### CommentNodeDescriptor
-Renders as a comment node.
-
-```typescript
-    import { comment } from 'myra/html'
-
-    const view = (_) => comment('A comment')
-```
-
 #### NothingNodeDescriptor
 Represents nothing, renders as a comment node with the comment "Nothing".
 

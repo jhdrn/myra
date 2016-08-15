@@ -27,13 +27,11 @@ export const text = (value: any): c.TextNodeDescriptor => {
     }
 }
 
-export const comment = (comment: string) => ({ __type: 'comment', comment }) as c.CommentNodeDescriptor
-
 /**
  * Elements
  */
 const element = (tagName: string) => (attributesOrNode?: c.ElementAttributeMap | c.NodeDescriptor[] | c.NodeDescriptor, ...children: c.NodeDescriptor[]): c.ElementNodeDescriptor => {
-    if (typeof attributesOrNode === 'undefined') {
+    if (typeof attributesOrNode === 'undefined' && typeof children === 'undefined') {
         return {
             __type: 'element',
             tagName: tagName,
@@ -42,7 +40,7 @@ const element = (tagName: string) => (attributesOrNode?: c.ElementAttributeMap |
         }
     }
 
-    const isNodeDescriptor = attributesOrNode.hasOwnProperty('__type')
+    const isNodeDescriptor = Array.isArray(attributesOrNode) || typeof attributesOrNode === 'undefined' ? false : attributesOrNode.hasOwnProperty('__type')
     if (Array.isArray(attributesOrNode)) {
         children = attributesOrNode.concat(children)
     } 
@@ -53,7 +51,7 @@ const element = (tagName: string) => (attributesOrNode?: c.ElementAttributeMap |
     return {
         __type: 'element',
         tagName,
-        attributes: isNodeDescriptor || Array.isArray(attributesOrNode) ? {} : attributesOrNode,
+        attributes: isNodeDescriptor || Array.isArray(attributesOrNode) || typeof attributesOrNode === 'undefined' ? {} : attributesOrNode,
         children
     }
 }

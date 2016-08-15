@@ -1,6 +1,6 @@
 import { defineComponent, task } from 'core'
 import { render } from 'core/view'
-import { div, span, input, textarea, text, comment, form, component, nothing } from 'html'
+import { div, span, input, textarea, text, form, component, nothing } from 'html'
 
 const keyPressEvent = (key: string) => {
     const event = document.createEvent('KeyboardEvent')
@@ -31,26 +31,6 @@ describe('core.view.render', () => {
     it('updates a text node with a new value', () => {
         const view1 = text('a text')
         const view2 = text('a new text')
-
-        let node = render(document.body, view1, view1, undefined, () => {})
-        expect(node.nodeValue).toBe('a text')
-
-        node = render(document.body, view2, view1, node, () => {})
-        expect(node.nodeValue).toBe('a new text')
-    })
-
-    it('creates and returns a comment node from a comment node descriptor', () => {
-        const view = comment('a comment')
-
-        const node = render(document.body, view, view, undefined, () => {})
-
-        expect(node.nodeType).toBe(Node.COMMENT_NODE)
-        expect(node.nodeValue).toBe('a comment')
-    })
-
-    it('updates a comment node with a new value', () => {
-        const view1 = comment('a text')
-        const view2 = comment('a new text')
 
         let node = render(document.body, view1, view1, undefined, () => {})
         expect(node.nodeValue).toBe('a text')
