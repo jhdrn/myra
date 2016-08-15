@@ -108,8 +108,8 @@ const view: View<Model> = (model) =>
             focus: true,
             value: model.todo.title,
             onblur: saveTodo,
-            onkeyup_enter: { update: saveTodo, preventDefault: true },
-            onkeyup_escape: { update: undoEditTodo, preventDefault: true }
+            onkeyup_enter: { listener: saveTodo, preventDefault: true },
+            onkeyup_escape: { listener: undoEditTodo, preventDefault: true }
         }) : nothing()
     )
 
