@@ -1,0 +1,23 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+        "sourceMap": true,
+        "target": "es5",
+        "module": "commonjs",
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noUnusedParameters": true,
+        "noUnusedLocals": true,
+        "strictNullChecks": true,
+        "moduleResolution": "node",
+        "pretty": true,
+        "reactNamespace": "jsxFactory",
+        "jsx": "react"
+    },
+    "include": [
+        "src/**/*",
+        "node_modules/myra/**/*.ts"
+    ]
+}
