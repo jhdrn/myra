@@ -151,7 +151,7 @@ attributes and event listeners on the element. Event listeners can be either an
 `Update` function or a `Task`.
 
 ```typescript
-    import { div } from 'myra/html'
+    import { div } from 'myra/html/elements'
     
     const myUpdate = (m: Model) => {
         ...
@@ -202,12 +202,15 @@ Some attributes and events has special behavior associated with them.
 
 
 ```typescript
-    import { form, div, input, button } from 'myra/html'
+    import { form, div, input, button } from 'myra/html/elements'
 
     type FormData = { 
         foo: string
         bar: string
     }
+
+    // Example of update function that will receive form data as 
+    // argument when the event is triggered.
     const handleFormSubmit = (m: Model, formData: FormData) => {
         ...
         return m
@@ -238,6 +241,29 @@ Some attributes and events has special behavior associated with them.
                 })
             )
         )
+```
+
+JSX:
+
+```JSX
+    import * as jsxFactory from 'myra/html/jsxFactory'
+
+    ...
+    
+    const view = (_) =>
+        <form onsubmit={{ listener: handleFormSubmit, preventDefault: true }}>
+            <div>
+                <input focus={ true }
+                       name="foo"
+                       type="text"
+                       onkeyup_escape={ updateNothing } />
+                
+                <input type="checkbox"
+                       checked={ true }
+                       name="bar" />
+                <button type="submit"></button>
+            </div>
+        </form>
 ```
 
 #### ComponentNodeDescriptor
