@@ -30,7 +30,7 @@ export const text = (value: any): c.TextNodeDescriptor => {
 /**
  * Creates an ElementNodeDescriptor
  */
-export const element = (tagName: string) => (attributesOrNode?: c.ElementAttributeMap | c.NodeDescriptor[] | c.NodeDescriptor, ...children: c.NodeDescriptor[]): c.ElementNodeDescriptor => {
+export const element = <A extends c.GlobalAttributes>(tagName: string) => (attributesOrNode?: A | c.NodeDescriptor[] | c.NodeDescriptor, ...children: c.NodeDescriptor[]): c.ElementNodeDescriptor => {
     if (typeof attributesOrNode === 'undefined' && typeof children === 'undefined') {
         return {
             __type: 'element',

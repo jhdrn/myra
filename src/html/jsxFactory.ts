@@ -1,11 +1,11 @@
 /// <reference path="jsx-global.d.ts" />
 
-import { ElementAttributeMap, NodeDescriptor, ElementNodeDescriptor, TextNodeDescriptor, ComponentNodeDescriptor, NothingNodeDescriptor } from '../core/contract'
+import { GlobalAttributes, NodeDescriptor, ElementNodeDescriptor, TextNodeDescriptor, ComponentNodeDescriptor, NothingNodeDescriptor } from '../core/contract'
 import { component, element, nothing, text } from './index'
 
 export { ElementNodeDescriptor, TextNodeDescriptor, ComponentNodeDescriptor, NothingNodeDescriptor }
 
-export function createElement(tagNameOrComponent: string, props: ElementAttributeMap): NodeDescriptor {
+export function createElement(tagNameOrComponent: string, props: GlobalAttributes): NodeDescriptor {
 
     if (typeof tagNameOrComponent === 'string') {
         if (tagNameOrComponent === 'nothing') {

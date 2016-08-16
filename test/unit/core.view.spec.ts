@@ -354,7 +354,7 @@ describe('core.view.render', () => {
 
     it('removes old event listeners when element is replaced', () => {
         const view1 = div({
-            onclick: m => m
+            onclick: (m: any) => m
         })
         
         const view2 = nothing()

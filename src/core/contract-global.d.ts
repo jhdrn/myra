@@ -3,7 +3,7 @@ declare namespace myra.core.contract {
     /**
      * Component types
      */
-    export interface ComponentArgs<M, A> {
+    interface ComponentArgs<M, A> {
         name: string
         init: M | [M, Task | Task[]]
         mount?: Update<M, A>
@@ -11,12 +11,12 @@ declare namespace myra.core.contract {
         view: View<M>
     }
 
-    export interface Component {
+    interface Component {
         readonly name: string
         mount<A>(parentNode: Element, arg?: A): ComponentInstance<A>
     }
 
-    export interface ComponentInstance<T> {
+    interface ComponentInstance<T> {
         readonly name: string
         readonly id: number
         readonly rootNode: Node
@@ -24,7 +24,7 @@ declare namespace myra.core.contract {
     }
 
     /** "Component state holder" interface */
-    export interface ComponentContext<M, T> {
+    interface ComponentContext<M, T> {
         readonly name: string
         readonly view: View<M>
         readonly parentNode: Element
@@ -40,43 +40,79 @@ declare namespace myra.core.contract {
     /**
      * Update/Dispatch types
      */
-    export interface Update<M, A> {
+    interface Update<M, A> {
         (model: M, arg?: A): M | [M, Task | Task[]]
     }
-    export interface UpdateAny extends Update<any, any> { }
+    interface UpdateAny extends Update<any, any> { }
 
-    export type Dispatch = <M, A>(fn: Update<M, A>, ...args: any[]) => void
+    type Dispatch = <M, A>(fn: Update<M, A>, ...args: any[]) => void
 
-    export interface Task {
+    interface Task {
         execute(dispatch: Dispatch): void
     }
 
     /**
      * View types
      */
-    export interface View<M> {
+    interface View<M> {
         (model: M): NodeDescriptor
     }
 
-    export interface AttributeMap { [name: string]: string }
-    export interface ListenerWithEventOptions {
+    interface AttributeMap { [name: string]: string }
+    interface ListenerWithEventOptions {
         listener: Task | Update<any, any>
         preventDefault?: boolean
         stopPropagation?: boolean 
     }
-    export type ElementEventAttributeArguments = Update<any, any> | Task | ListenerWithEventOptions
-    export interface ElementAttributeMap {
+    type ElementEventAttributeArguments = Update<any, any> | Task | ListenerWithEventOptions
+
+    interface NodeDescriptorBase {
+        node?: Node
+    }
+    interface TextNodeDescriptor extends NodeDescriptorBase {
+        __type: 'text'
+        value: string
+    }
+    interface ElementNodeDescriptor extends NodeDescriptorBase {
+        __type: 'element'
+        tagName: string
+        attributes: GlobalAttributes
+        children: NodeDescriptor[]
+    }
+    interface ComponentNodeDescriptor extends NodeDescriptorBase {
+        __type: 'component'
+        component: Component
+        componentInstance?: ComponentInstance<any>
+        forceMount?: boolean
+        args: any
+    }
+    interface NothingNodeDescriptor extends NodeDescriptorBase {
+        __type: 'nothing'
+    }
+    type NodeDescriptor = TextNodeDescriptor | ElementNodeDescriptor | ComponentNodeDescriptor | NothingNodeDescriptor
+
+    
+    interface GlobalAttributes {
+        accesskey?: string
         'class'?: string
+        contenteditable?: boolean | ''
+        contextmenu?: string
+        dir?: 'ltr' | 'rtl' | 'auto'
+        draggable?: boolean
+        hidden?: boolean
         id?: string
+        lang?: string
+        spellcheck?: boolean | 'default'
+        style?: string
+        tabindex?: number
         title?: string
-        focus?: boolean
+        translate?: '' | 'yes' | 'no'
+
         onblur?: ElementEventAttributeArguments
-        onchange?: ElementEventAttributeArguments // input, select, textarea
         onclick?: ElementEventAttributeArguments
         oncontextmenu?: ElementEventAttributeArguments
         ondblclick?: ElementEventAttributeArguments
         onfocus?: ElementEventAttributeArguments
-        oninput?: ElementEventAttributeArguments // input, textarea
         onkeydown?: ElementEventAttributeArguments
         onkeypress?: ElementEventAttributeArguments
         onkeyup?: ElementEventAttributeArguments
@@ -87,33 +123,277 @@ declare namespace myra.core.contract {
         onmouseout?: ElementEventAttributeArguments
         onmouseover?: ElementEventAttributeArguments
         onmouseup?: ElementEventAttributeArguments
-        onreset?: ElementEventAttributeArguments // form
         onshow?: ElementEventAttributeArguments
-        onsubmit?: ElementEventAttributeArguments // form
+
         [name: string]: any
     }
-    export interface NodeDescriptorBase {
-        node?: Node
+
+    interface AAttributes extends GlobalAttributes {
+        download?: string
+        href?: string
+        hreflang?: string
+        rel?: string
+        target?: string
+        type?: string
     }
-    export interface TextNodeDescriptor extends NodeDescriptorBase {
-        __type: 'text'
-        value: string
+
+    interface AreaAttributes extends GlobalAttributes {
+        alt?: string
+        coords?: string
+        download?: string
+        href?: string
+        hreflang?: string
+        media?: string
+        rel?: string
+        shape?: string
+        target?: string
+        type?: string
     }
-    export interface ElementNodeDescriptor extends NodeDescriptorBase {
-        __type: 'element'
-        tagName: string
-        attributes: ElementAttributeMap
-        children: NodeDescriptor[]
+    interface AudioAttributes extends GlobalAttributes {
+        autoplay?: boolean
+        buffered?: any
+        controls?: any
+        loop?: boolean
+        muted?: boolean
+        played?: any
+        preload?: '' | 'none' | 'metadata' | 'auto'
+        src?: string
+        volume?: number
     }
-    export interface ComponentNodeDescriptor extends NodeDescriptorBase {
-        __type: 'component'
-        component: Component
-        componentInstance?: ComponentInstance<any>
-        forceMount?: boolean
-        args: any
+    interface ButtonAttributes extends GlobalAttributes {
+        autofocus?: boolean
+        disabled?: boolean
+        form?: string
+        formaction?: string
+        formenctype?: 'application/x-www-form-urlencoded' | 'multipart/form-data' | 'text/plain'
+        formmethod?: 'post' | 'get'
+        formnovalidate?: boolean
+        formtarget?: string
+        name?: string
+        type?: 'submit' | 'reset' | 'button'
+        value?: string
     }
-    export interface NothingNodeDescriptor extends NodeDescriptorBase {
-        __type: 'nothing'
+    interface CanvasAttributes extends GlobalAttributes {
+        height?: number
+        width?: number
     }
-    export type NodeDescriptor = TextNodeDescriptor | ElementNodeDescriptor | ComponentNodeDescriptor | NothingNodeDescriptor
+    interface ColAttributes extends GlobalAttributes {
+        span?: number
+    }
+    interface ColGroupAttributes extends GlobalAttributes {
+        span?: number
+    }
+    interface DelAttributes extends GlobalAttributes {
+        cite?: string
+        datetime?: string
+    }
+    interface DetailsAttributes extends GlobalAttributes {
+        open?: boolean
+    }
+    interface EmbedAttributes extends GlobalAttributes {
+        height?: number
+        src?: string
+        type?: string
+        width?: number
+    }
+    interface FieldsetAttributes extends GlobalAttributes {
+        disabled?: boolean
+        form?: string
+        name?: string
+    }
+    interface FormAttributes extends GlobalAttributes {
+        accept?: string
+        'accept-charset'?: string
+        action?: string
+        autocomplete?: 'on' | 'off'
+        enctype?: 'application/x-www-form-urlencoded' | 'multipart/form-data' | 'text/plain'
+        method?: 'post' | 'get'
+        name?: string
+        novalidate?: boolean
+        target?: string
+        
+        onreset?: ElementEventAttributeArguments
+        onsubmit?: ElementEventAttributeArguments
+    }
+    interface IframeAttribute extends GlobalAttributes {
+        allowfullscreen?: boolean
+        height?: number
+        name?: string
+        sandbox?: string
+        src?: string
+        srcdoc?: string
+        width?: number
+    }
+    interface ImgAttributes extends GlobalAttributes {
+        alt?: string
+        crossorigin?: 'anonymous' | 'use-credentials'
+        height?: number
+        ismap?: boolean
+        longdesc?: string
+        sizes?: string
+        src: string
+        srcset?: string
+        width?: number
+        usemap?: string
+    }
+    interface InputAttributes extends GlobalAttributes {
+        type?: 'button' | 'checkbox' | 'color' | 'date' | 'datetime' | 'datetime-local' | 'email' | 'file' | 'hidden' | 'image' | 'month' | 'number' | 'password' | 'radio' | 'range' | 'reset' | 'search' | 'submit' | 'tel' | 'text' | 'time' | 'url' | 'week'
+        accept?: string
+        autocomplete?: string
+        autofocus?: boolean
+        capture?: boolean
+        checked?: boolean
+        disabled?: boolean
+        form?: string
+        formaction?: string
+        formenctype?: 'application/x-www-form-urlencoded' | 'multipart/form-data' | 'text/plain'
+        formmethod?: 'post' | 'get'
+        formnovalidate?: boolean
+        formtarget?: string
+        height?: number
+        inputmode?: string
+        list?: string
+        max?: number | string
+        maxlength?: number
+        min?: number | string
+        minlength?: number
+        muliple?: boolean
+        name?: string
+        pattern?: string
+        placeholder?: string
+        readonly?: boolean
+        required?: boolean
+        selectionDirection?: string
+        size?: number
+        spellcheck?: boolean
+        src?: string
+        step?: number | string
+        value?: string
+        width?: number
+        
+        onchange?: ElementEventAttributeArguments
+        oninput?: ElementEventAttributeArguments
+        
+    }
+    interface InsAttributes extends GlobalAttributes {
+        cite?: string
+        datetime?: string
+    }
+    interface LabelAttributes extends GlobalAttributes {
+        for?: string
+        form?: string
+    }
+    interface LiAttributes extends GlobalAttributes {
+        value?: number
+    }
+    interface MapAttributes extends GlobalAttributes {
+        name?: string
+    }
+    interface MeterAttributes extends GlobalAttributes {
+        value?: number
+        min?: number
+        max?: number
+        low?: number
+        high?: number
+        optimum?: number
+        form?: string
+    }
+    interface ObjectAttributes extends GlobalAttributes {
+        data?: string
+        height?: number
+        name?: string
+        type?: string
+        usemap?: string
+        width?: number
+    }
+    interface OptgroupAttributes extends GlobalAttributes {
+        disabled?: boolean
+        label?: string
+    }
+    interface OptionAttributes extends GlobalAttributes {
+        disabled?: boolean
+        label?: string
+        selected?: boolean
+        value?: string
+    }
+    interface ParamAttributes extends GlobalAttributes {
+        name?: string
+        value?: string
+    }
+    interface ProgressAttributes extends GlobalAttributes {
+        max?: number
+        value?: number
+    }
+    interface QAttributes extends GlobalAttributes {
+        cite?: string
+    }
+    interface SelectAttributes extends GlobalAttributes {
+        autofocus?: boolean
+        disabled?: boolean
+        form?: string
+        multiple?: boolean
+        name?: string
+        required?: boolean
+        size?: number
+
+        onchange?: ElementEventAttributeArguments
+    }
+    interface SourceAttributes extends GlobalAttributes {
+        src?: string
+        type?: string
+    }
+    interface TdAttributes extends GlobalAttributes {
+        colspan?: number
+        headers?: string
+        rowspan?: number
+    }
+    interface TextareaAttributes extends GlobalAttributes {
+        autocomplete?: 'on' | 'off'
+        autofocus?: boolean
+        cols?: number
+        disabled?: boolean
+        form?: string
+        maxlength?: number
+        minlength?: number
+        name?: string
+        placeholder?: string
+        required?: boolean
+        selectionDirection?: string
+        selectionEnd?: number
+        selectionStart?: number
+        wrap?: 'soft' | 'hard'
+
+        onchange?: ElementEventAttributeArguments
+        oninput?: ElementEventAttributeArguments
+    }
+    interface ThAttributes extends GlobalAttributes {
+        colspan?: number
+        headers?: string
+        rowspan?: number
+        scope?: 'row' | 'col' | 'rowgroup' | 'colgroup' | 'auto'
+    }
+    interface TimeAttributes extends GlobalAttributes {
+        datetime?: string
+    }
+    interface TrackAttributes extends GlobalAttributes {
+        default?: boolean
+        kind?: 'subtitles' | 'captions' | 'descriptions' | 'chapters' | 'metadata'
+        label?: string
+        src?: string
+        srclang?: string
+    }
+    interface VideoAttributes extends GlobalAttributes {
+        autoplay?: boolean
+        buffered?: any
+        controls?: boolean
+        crossorigin?: 'anonymous' | 'use-credentials'
+        height?: number
+        loop?: boolean
+        muted?: boolean
+        played?: any
+        preload?: 'none' | 'metadata' | 'auto' | ''
+        poster?: string
+        src?: string
+        width?: number
+    }
 }

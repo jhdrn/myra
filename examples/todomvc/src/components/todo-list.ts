@@ -1,5 +1,6 @@
 import { defineComponent, evolve, View, Update, Task } from 'myra/core'
-import { section, footer, div, ul, li, input, component, label, span, strong, a, button, text, nothing } from 'myra/html'
+import { component, text, nothing } from 'myra/html'
+import { section, footer, div, ul, li, input, label, span, strong, a, button } from 'myra/html/elements'
 import { matchLocation, replaceLocation } from 'myra/location'
 import { TodosFilter, saveFilter, loadFilter } from '../models/filter'
 import * as todos from '../models/todos'

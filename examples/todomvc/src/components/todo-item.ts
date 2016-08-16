@@ -1,5 +1,6 @@
 import { defineComponent, evolve, Update, View } from 'myra/core'
-import { div, input, label, li, button, text, nothing } from 'myra/html'
+import { text, nothing } from 'myra/html'
+import { div, input, label, li, button } from 'myra/html/elements'
 import * as todos from '../models/todos'
 
 type Todo = todos.Todo
