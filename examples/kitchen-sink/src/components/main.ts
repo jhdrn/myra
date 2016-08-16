@@ -1,5 +1,6 @@
 import { defineComponent, evolve, View } from 'myra/core'
-import { main, footer, div, p, text, component, nothing } from 'myra/html'
+import { text, component, nothing } from 'myra/html'
+import { main, footer, div, p } from 'myra/html/elements'
 import { trackLocationChanges, matchLocation } from 'myra/location'
 import { headerComponent } from './header'
 import { bookSearchComponent } from './book-search'

@@ -1,5 +1,6 @@
 import { defineComponent } from 'myra/core'
-import { header, nav, div, a, span, text } from 'myra/html'
+import { text } from 'myra/html'
+import { header, nav, div, a, span } from 'myra/html/elements'
 import { updateLocation } from 'myra/location'
 
 const navLink = (path: string, title: string) => {

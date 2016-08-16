@@ -1,6 +1,7 @@
 import { defineComponent, evolve, broadcast, Update, View } from 'myra/core';
-import { section, div, h2, ul, li, img, a, span, label, input, text, nothing } from 'myra/html';
-import { delay, cancelDelay } from 'myra/time'
+import { text, nothing } from 'myra/html';
+import { section, div, h2, ul, li, img, a, span, label, input } from 'myra/html/elements'
+import { startTimeout, cancelTimeout } from 'myra/time'
 import { updateLocation, LocationData } from 'myra/location'
 import { Book, findBooks  } from '../models/books';
 
@@ -69,10 +70,10 @@ const updateQuery: Update<Model, string> = (m: Model, value: string) => {
     // If there is a debounceHandle, a delay has already been set
     if (m.debounceHandle) {
         // Restart the delay if the user keeps typing
-        return [newModel, [cancelDelay(m.debounceHandle), delay(300, delayStarted, delayEnded)]]
+        return [newModel, [cancelTimeout(m.debounceHandle), startTimeout(300, delayStarted, delayEnded)]]
     }
     else if (!m.isQuerying) { 
-        return [newModel, delay(300, delayStarted, delayEnded)]
+        return [newModel, startTimeout(300, delayStarted, delayEnded)]
     }
     return m
 }

@@ -1,5 +1,6 @@
 import { Update, View, defineComponent } from 'myra/core'
-import { div, text } from 'myra/html'
+import { text } from 'myra/html'
+import { div } from 'myra/html/elements'
 
 
 /**

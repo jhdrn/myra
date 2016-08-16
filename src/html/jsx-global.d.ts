@@ -63,7 +63,7 @@ declare namespace JSX {
         hr: GlobalAttributes
 
         i: GlobalAttributes
-        iframe: myra.core.contract.IframeAttribute
+        iframe: myra.core.contract.IframeAttributes
         img: myra.core.contract.ImgAttributes
         input: myra.core.contract.InputAttributes
         ins: myra.core.contract.InsAttributes

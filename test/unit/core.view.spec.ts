@@ -143,7 +143,7 @@ describe('core.view.render', () => {
             id: 'testId',
             autofocus: true,
             type: 'email',
-            disabled: 'disabled',
+            disabled: true,
             checked: true,
             value: 5
         })

@@ -1,5 +1,6 @@
 import { defineComponent, evolve, View, Update } from 'myra/core'
-import { section, div, h2, dl, dt, dd, img, button, text } from 'myra/html'
+import { text } from 'myra/html'
+import { section, div, h2, dl, dt, dd, img, button } from 'myra/html/elements'
 import { Book, findBook } from '../models/books'
 import { addFavourite, removeFavourite } from '../models/favourites'
 

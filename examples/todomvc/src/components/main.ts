@@ -50,7 +50,7 @@ const view: View<Model> = (_) =>
                 input({ 
                     'class': 'new-todo', 
                     placeholder: 'What needs to be done?', 
-                    autofocus: 'autofocus',
+                    autofocus: true,
                     value: '',
                     onkeyup_enter: addNewTodo
                 })

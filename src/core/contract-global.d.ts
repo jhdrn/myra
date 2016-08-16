@@ -171,7 +171,7 @@ declare namespace myra.core.contract {
         formtarget?: string
         name?: string
         type?: 'submit' | 'reset' | 'button'
-        value?: string
+        value?: string | number 
     }
     interface CanvasAttributes extends GlobalAttributes {
         height?: number
@@ -215,7 +215,7 @@ declare namespace myra.core.contract {
         onreset?: ElementEventAttributeArguments
         onsubmit?: ElementEventAttributeArguments
     }
-    interface IframeAttribute extends GlobalAttributes {
+    interface IframeAttributes extends GlobalAttributes {
         allowfullscreen?: boolean
         height?: number
         name?: string
@@ -268,7 +268,7 @@ declare namespace myra.core.contract {
         spellcheck?: boolean
         src?: string
         step?: number | string
-        value?: string
+        value?: string | number
         width?: number
         
         onchange?: ElementEventAttributeArguments
@@ -314,7 +314,7 @@ declare namespace myra.core.contract {
         disabled?: boolean
         label?: string
         selected?: boolean
-        value?: string
+        value?: string | number
     }
     interface ParamAttributes extends GlobalAttributes {
         name?: string

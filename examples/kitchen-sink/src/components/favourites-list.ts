@@ -1,5 +1,6 @@
 import { defineComponent, evolve, Update } from 'myra/core';
-import { section, div, h2, ul, li, img, a, span, text, nothing } from 'myra/html';
+import { text, nothing } from 'myra/html';
+import { section, div, h2, ul, li, img, a, span } from 'myra/html/elements'
 import { Book } from '../models/books'
 import { getFavourites } from '../models/favourites';
 
