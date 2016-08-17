@@ -37,7 +37,10 @@ export const replaceLocation = (path: string, params?: Params) => task((dispatch
 
 function makeUrl(path: string, params?: Params) {
     if (params) {
-        return [path, Object.keys(params).map(key => [key, params![key]].map(encodeURIComponent).join("="))].join("&")
+        const queryString = Object.keys(params).map(key => 
+            [key, params![key]].map(encodeURIComponent).join('=')
+        ).join('&')
+        return `${path}?${queryString}`
     }
     return path
 }
@@ -102,66 +105,3 @@ function createPattern(route: string) {
 
    return normalizedRoute
 } 
-
-// /**
-//  *
-//  */
-// function normalizeAndAddRoute(route: string, callback: Function): void {
-//     var parameterNames = [];
-//     var normalizedRoute = '^' + route.replace(/{\*.+}/i, function (match) {
-//         parameterNames.push(match.substr(2, match.length - 3));
-//         return "(.+)";
-//     }) // {*path}
-//         .replace(/{[^\/]+}/ig, function (match) {
-//             parameterNames.push(match.substr(1, match.length - 2));
-//             return "([^/]+)";
-//         }) // {parameter}
-//         .replace(/\*/g, '[^/]+') // *
-//         .replace(/\//g, '\\/') // replace / with \/
-//         + '$';
-
-//     _routes.push({
-//         normalizedRoute: normalizedRoute,
-//         route: route,
-//         callback: callback,
-//         parameterNames: parameterNames
-//     });
-// }
-
-/**
- *
- */
-// function normalizePath(path: string): string {
-//     if (path.match(/^(https?|ftp|file):\/\//)) {
-//         return path;
-//     }
-//     return _window.location.protocol + '//' + _window.location.host + _basePath + trimSlashes(path);
-// }
-
-// function merge(obj1: object, obj2) {
-//     var key;
-//     for (key in obj2) {
-//         obj1[key] = obj2[key];
-//     }
-// }
-
-// /**
-// * Returns any query parameters of the request as an object.
-// */
-// function getQueryParameters(): { [key: string]: string } {
-//     var parameters: { [key: string]: string } = {};
-//     if (_window.location.search) {
-//         var kvps: string[] = _window.location.search.substring(1).split('&'),
-//             kvp: string[],
-//             key: string,
-//             value: string;
-
-//         for (var i = 0; i < kvps.length; i++) {
-//             kvp = kvps[i].split('=');
-//             key = kvp[0];
-//             value = decodeURIComponent(kvp[1]);
-//             parameters[key] = value;
-//         }
-//     }
-//     return parameters;
-// }
