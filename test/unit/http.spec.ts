@@ -22,11 +22,7 @@ describe('http module', () => {
 
         httpRequest(mocks.success, m => m, {
             method: 'GET',
-            url: 'https://api.github.com/repos/jhdrn/myra',
-            headers: {
-                'Accept': 'application/vnd.github.v3+json',
-                'User-Agent': 'Myra'
-            },
+            url: 'http://localhost:9876/base/test/test.json',
             responseType: 'json'
         }).execute(dispatch)
 
@@ -49,11 +45,7 @@ describe('http module', () => {
 
         httpRequest(m => m, mocks.error, {
             method: 'GET',
-            url: 'https://api.github.com/repos/jhdrn/myr',
-            headers: {
-                'Accept': 'application/vnd.github.v3+json',
-                'User-Agent': 'Myra'
-            },
+            url: 'http://localhost:9876/base/test/fail.json',
             responseType: 'json'
         }).execute(dispatch)
 

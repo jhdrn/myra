@@ -10,6 +10,7 @@ module.exports = function(config) {
             // paths loaded by Karma
             { pattern: 'node_modules/systemjs/dist/system.src.js', included: true, watched: true },
             { pattern: 'test/karma-test-shim.js', included: true, watched: true },
+            { pattern: 'test/test.json', included: false, watched: true, served: true },
 
             // paths loaded via module imports
             { pattern: 'build/**/*.js', included: false, watched: true },
