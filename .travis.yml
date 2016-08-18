@@ -1,24 +1,24 @@
-sudo: required  
-dist: trusty  
-
+sudo: required
+dist: trusty
 language: node_js
-
 node_js:
- - node
- 
+- node
 cache:
   directories:
-    - node_modules
-
-before_install:  
- - export CHROME_BIN=/usr/bin/google-chrome
- - export DISPLAY=:99.0 
- - sh -e /etc/init.d/xvfb start
- - sudo apt-get update
- - sudo apt-get install -y libappindicator1 fonts-liberation
- - wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
- - sudo dpkg -i google-chrome*.deb
- 
+  - node_modules
+before_install:
+- export CHROME_BIN=/usr/bin/google-chrome
+- export DISPLAY=:99.0
+- sh -e /etc/init.d/xvfb start
+- sudo apt-get update
+- sudo apt-get install -y libappindicator1 fonts-liberation
+- wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+- sudo dpkg -i google-chrome*.deb
 script:
- - npm test
- - npm run codecov
+- npm test
+- npm run codecov
+addons:
+  sauce_connect:
+    username: myra
+    access_key:
+      secure: pqa7aku5C7iBhkBDNxNm7bX8f9a7d/K/ib5/7dO/4hEEJXLrMDfHj5f95RI7kodbsw/DbMCA1BXl6LhykvGHxwP950W+TJG2UvTPSj66d1DvQM0Tr3YsvwcNf8zU7gnEytUiMR8UT7WLhqjpPnZ4goWImIP0nBB09pdNzeJR/vmI6zwRrEk3PHXmEZi1TMHwu2rrZR+Z2rTDb00HzRIUgwGD7ikN6yFNN30ccGwj7b+5seCIBShNArNGt6sMRorscQFy8OKPBwhV/MXBMbfHq8696T2eBkONxZ+GZLtgdrmNqOEsyaw3zCp4fPEOfmTX8l/XCyaZG3sNT+2VTMsJHa7CyeXQL5jng1q6vMS8i+ek9pDr3Lc/wlFD2a2bXBn+4prHTkkMQmt6NKF79MS2WBUc5Cqf1pe055cz3+4ioYFltNd9RGwqltYr7RdHj+bLckEsO4+Bw6IGJo4gfKn0ZWF7dgR92WMio6c7IhoYh6KemHS7IXdqQX5q8LHzLX7lfzII8x7My6TPCuZvwA2VA5ebFNcj33srGVIFFhfPTBFS/Arj3HRGODFEZWixBuWDDGxlXrxojBu4pI5jhN+dJK2zbzYP1ovibgGQB+rXGEA6/8AiNNJ3bJpzNLQlvBcVOh0Sjtt85NbO80wFys4LJABnnoc+5YduRaUw5rBDT0A=
