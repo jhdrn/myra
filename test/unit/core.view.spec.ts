@@ -142,7 +142,7 @@ describe('core.view.render', () => {
             'class': 'testClass',
             id: 'testId',
             autofocus: true,
-            type: 'email',
+            type: 'text',
             disabled: true,
             checked: true,
             value: 5
@@ -153,7 +153,7 @@ describe('core.view.render', () => {
         expect(node.id).toBe('testId')
         expect(node.className).toBe('testClass')
         expect(node.autofocus).toBe(true)
-        expect(node.type).toBe('email')
+        expect(node.type).toBe('text')
         expect(node.disabled).toBe(true)    
         expect(node.checked).toBe(true)
         expect(node.value).toBe('5')
