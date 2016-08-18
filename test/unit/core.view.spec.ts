@@ -452,4 +452,51 @@ describe('core.view.render', () => {
 
         expect(mocks.formSubmitted).toHaveBeenCalledTimes(1)
     })
+
+    
+    it('onchange propagates event from child to form, resulting in a call to the update function', () => {
+
+        type FormData = {  
+            test1: string
+            test2: string
+        }
+        const mocks = {
+            update: (m: any, formData: FormData) => {
+                expect(formData).toEqual({
+                    test1: 'testValue1',
+                    test2: 'on'
+                })
+                return m
+            }
+        }
+
+        spyOn(mocks, 'update')
+
+        const view = form({
+                onchange: { 
+                    listener: mocks.update, 
+                    preventDefault: true
+                }
+            },
+            input({
+                name: 'test1',
+                id: 'test1',
+                type: 'text',
+                value: 'testValue'
+            }),
+            input({
+                name: 'test2',
+                type: 'checkbox',
+                checked: true
+            })
+        )
+
+        const node = render(document.body, view, view, undefined, dispatch) as HTMLFormElement
+
+        const event = document.createEvent('Event')
+        event.initEvent('change', true, true)
+        node.querySelector('#test1').dispatchEvent(event)
+
+        expect(mocks.update).toHaveBeenCalledTimes(1)
+    })
 })

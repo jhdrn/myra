@@ -214,6 +214,7 @@ declare namespace myra.core.contract {
         
         onreset?: ElementEventAttributeArguments
         onsubmit?: ElementEventAttributeArguments
+        onchange?: ElementEventAttributeArguments
     }
     interface IframeAttributes extends GlobalAttributes {
         allowfullscreen?: boolean
