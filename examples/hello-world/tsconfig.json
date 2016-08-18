@@ -12,10 +12,13 @@
         "noUnusedLocals": true,
         "strictNullChecks": true,
         "moduleResolution": "node",
-        "pretty": true
+        "pretty": true,
+        "baseUrl": "./",
+        "paths": {
+            "myra/*": ["node_modules/myra/*"]
+        }
     },
     "include": [
-        "src/**/*",
-        "node_modules/myra/**/*.ts"
+        "src/**/*"
     ]
 }

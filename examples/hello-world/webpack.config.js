@@ -20,7 +20,7 @@ module.exports = {
             // All files with a '.ts' extension will be handled by 'ts-loader'.
             { 
                 test: /\.ts$/, 
-                loader: "ts-loader"
+                loader: "awesome-typescript-loader"
             }
         ],
 
