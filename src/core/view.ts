@@ -90,12 +90,12 @@ function removeAttr(a: string, node: Element) {
 
 /** Creates an event listener */
 function createEventListener([eventName, key]: [string, string], eventArgs: ElementEventAttributeArguments, node: Node, dispatch: Dispatch) {
-    console.log(`createEventListener for ${eventName}`)
+    
     const isKeyboardEvent = ['keyup', 'keypress', 'keydown'].indexOf(eventName) >= 0
     let keyCode: number | undefined = undefined
     if (isKeyboardEvent && typeof key !== 'undefined') {
         keyCode = parseInt(key)
-        if (typeof keyCode === 'NaN') {
+        if (isNaN(keyCode)) {
             keyCode = KEY_MAP[key as string]
         }
         if (typeof keyCode === 'undefined') {
@@ -107,8 +107,7 @@ function createEventListener([eventName, key]: [string, string], eventArgs: Elem
 
         if (isKeyboardEvent) {
             
-            const eventKeyCode = typeof (ev as KeyboardEvent).which === 'number' ? (ev as KeyboardEvent).which : (ev as KeyboardEvent).keyCode
-            console.log(eventName + ' ' + eventKeyCode + ' ' + keyCode)
+            const eventKeyCode = (ev as KeyboardEvent).which || (ev as KeyboardEvent).keyCode || 0
             
             if (typeof key !== 'undefined' && eventKeyCode !== keyCode) {
                 return

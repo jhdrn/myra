@@ -6,7 +6,7 @@ const dispatch = (fn: any, args: any) => fn(undefined, args)
 describe('location module', () => {
 
     afterEach(() => {
-        window.location.pathname = '/'
+        window.history.pushState('/', '', '/')
     })
 
     it('updateLocation updates window.location', () => {

@@ -3,13 +3,13 @@ import { render } from 'core/view'
 import { text, component, nothing } from 'html'
 import { div, span, input, textarea, form } from 'html/elements'
 
-const keyPressEvent = (key: string) => {
+const keyPressEvent = (keyCode: number) => {
     const event = document.createEvent('KeyboardEvent')
   
     event.initEvent('keyup', true, true)
 
     delete event.key
-    Object.defineProperty(event, 'key', { value: key })
+    Object.defineProperty(event, 'keyCode', { value: keyCode })
 
     return event
 }
@@ -221,14 +221,14 @@ describe('core.view.render', () => {
 
         const view = div({
             onkeyup_enter: mocks.onkeyupUpdate,
-            onkeyup_k: mocks.onkeyupUpdate
+            onkeyup_49: mocks.onkeyupUpdate
         })
 
         const node = render(document.body, view, view, undefined, dispatch) as HTMLDivElement
         expect(node.onkeyup).not.toBeNull()
 
-        node.dispatchEvent(keyPressEvent('enter'))
-        node.dispatchEvent(keyPressEvent('k'))
+        node.dispatchEvent(keyPressEvent(13))
+        node.dispatchEvent(keyPressEvent(49))
 
         expect(mocks.onkeyupUpdate).toHaveBeenCalledTimes(2)
     })
@@ -256,14 +256,32 @@ describe('core.view.render', () => {
         expect(mocks.onclickUpdate).toHaveBeenCalledTimes(1)
     })
 
-    it('calls element.blur() and element.focus() when blur and focus attributes are set to true', () => {
+    it('calls element.focus() when focus attribute is set to true', () => {
         const mocks = {
             onEventTriggered: (m: any) => m
         }
         spyOn(mocks, 'onEventTriggered')
 
         const view = input({
+            blur: true,
             onfocus: mocks.onEventTriggered,
+            focus: true
+        })
+
+        const node = render(document.body, view, view, undefined, dispatch) as HTMLTextAreaElement
+
+        expect(node.onfocus).not.toBeNull()
+
+        expect(mocks.onEventTriggered).toHaveBeenCalledTimes(1)
+    })
+
+    it('calls element.blur() when blur and focus attribute is set to true', () => {
+        const mocks = {
+            onEventTriggered: (m: any) => m
+        }
+        spyOn(mocks, 'onEventTriggered')
+
+        const view = input({
             focus: true,
             onblur: mocks.onEventTriggered,
             blur: true
@@ -271,9 +289,8 @@ describe('core.view.render', () => {
 
         const node = render(document.body, view, view, undefined, dispatch) as HTMLTextAreaElement
         expect(node.onblur).not.toBeNull()
-        expect(node.onfocus).not.toBeNull()
 
-        expect(mocks.onEventTriggered).toHaveBeenCalledTimes(2)
+        expect(mocks.onEventTriggered).toHaveBeenCalledTimes(1)
     })
 
     it('updates attributes if they have changed', () => {
