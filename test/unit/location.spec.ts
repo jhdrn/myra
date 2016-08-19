@@ -5,6 +5,10 @@ const dispatch = (fn: any, args: any) => fn(undefined, args)
 
 describe('location module', () => {
 
+    afterEach(() => {
+        window.location.pathname = '/'
+    })
+
     it('updateLocation updates window.location', () => {
 
         location.updateLocation('/some/path').execute(dispatch)
