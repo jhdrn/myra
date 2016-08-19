@@ -22,7 +22,6 @@ export interface HttpResponse {
 export const httpRequest = <M>(success: Update<M, HttpResponse>, failure: Update<M, HttpResponse>, params: RequestParams) => {
     return task((dispatch: Dispatch) => {
         const xhr = new XMLHttpRequest()
-        // onreadystatechange?
 
         xhr.onload = () => {
             const headers = 
@@ -35,10 +34,17 @@ export const httpRequest = <M>(success: Update<M, HttpResponse>, failure: Update
                         return acc
                     }, {} as { [key: string]: string })
                     
+            let data = xhr.response;
+            // IE is not honoring responseType = 'json', so manually parsing is
+            // needed.
+            if (params.responseType === 'json' && typeof data === 'string') {
+                data = JSON.parse(data)
+            }
+
             const responseData = { 
                 status: xhr.status, 
                 statusText: xhr.statusText,
-                data: xhr.response,
+                data: data,
                 headers: headers
             }
             dispatch(xhr.status >= 200 && xhr.status < 300 ? success : failure, responseData)
