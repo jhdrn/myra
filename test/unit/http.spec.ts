@@ -22,7 +22,7 @@ describe('http module', () => {
 
         httpRequest(mocks.success, m => m, {
             method: 'GET',
-            url: 'http://localhost:9876/base/test/test.json',
+            url: '/base/test/test.json',
             responseType: 'json'
         }).execute(dispatch)
 
@@ -45,7 +45,7 @@ describe('http module', () => {
 
         httpRequest(m => m, mocks.error, {
             method: 'GET',
-            url: 'http://localhost:9876/base/test/fail.json',
+            url: '/base/test/fail.json',
             responseType: 'json'
         }).execute(dispatch)
 
