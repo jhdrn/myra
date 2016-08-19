@@ -26,6 +26,20 @@ const EVENTS = [
 
 const INPUT_TAG_NAMES = ['INPUT', 'TEXTAREA', 'SELECT']
 
+const BOOL_ATTRS = [
+    'checked',
+    'disabled'
+    // TODO: add more
+]
+
+const KEY_MAP = {
+    backspace: 8,
+    tab: 9,
+    enter: 13,
+    esc: 27,
+    space: 32
+} as { [key: string]: number }
+
 function nodesEqual(a: Node | undefined, b: Node) {
     return typeof a !== 'undefined' && (a === b || a.nodeType === Node.COMMENT_NODE && b.nodeType === Node.COMMENT_NODE && a.nodeValue === b.nodeValue) 
 }
@@ -46,11 +60,8 @@ function setAttr(element: HTMLElement, attributeName: string, attributeValue: an
             ;(element as any)['on' + eventName] = eventListener
         }
     }
-    else if (attributeName === 'disabled') {
-        (element as HTMLInputElement).disabled = !!attributeValue
-    }
-    else if (attributeName === 'checked') {
-        (element as HTMLInputElement).checked = !!attributeValue
+    else if (BOOL_ATTRS.indexOf(attributeName) >= 0) {
+        (element as any)[attributeName] = !!attributeValue
     }
     else if (attributeValue && ['blur', 'focus'].indexOf(attributeName) >= 0) {
         (element as any)[attributeName]()
@@ -58,31 +69,52 @@ function setAttr(element: HTMLElement, attributeName: string, attributeValue: an
     else if (attributeName === 'value' && INPUT_TAG_NAMES.indexOf(element.tagName) >= 0) {
         (element as HTMLInputElement).value = attributeValue
     }
+    else if (attributeName === 'class') {
+        element.className = attributeValue
+    }
     else {
-        const attr = document.createAttribute(attributeName)
-        attr.value = attributeValue
-        element.attributes.setNamedItem(attr)
+        element.setAttribute(attributeName, attributeValue)
     }
 }
 
 /** Removes an attribute or event listener from an HTMLElement. */
-function removeAttr(a: string, node: Node) {
+function removeAttr(a: string, node: Element) {
     const [eventName, ] = a.substr(2).toLowerCase().split('_')
     if (a.indexOf('on') === 0 && EVENTS.indexOf(eventName) >= 0) {
         (node as any)['on' + eventName.toLowerCase()] = null
     }
-    else if ((node as Node).attributes.getNamedItem(a)) {
-        (node as Node).attributes.removeNamedItem(a)
+    else if (node.hasAttribute(a)) {
+        node.removeAttribute(a)
     }
 }
 
 /** Creates an event listener */
 function createEventListener([eventName, key]: [string, string], eventArgs: ElementEventAttributeArguments, node: Node, dispatch: Dispatch) {
+    console.log(`createEventListener for ${eventName}`)
+    const isKeyboardEvent = ['keyup', 'keypress', 'keydown'].indexOf(eventName) >= 0
+    let keyCode: number | undefined = undefined
+    if (isKeyboardEvent && typeof key !== 'undefined') {
+        keyCode = parseInt(key)
+        if (typeof keyCode === 'NaN') {
+            keyCode = KEY_MAP[key as string]
+        }
+        if (typeof keyCode === 'undefined') {
+            throw `Unhandled key '${key}'. Use a key code instead, for example keyup_65 for 'a'.`
+        }
+    }
+    
     return (ev: Event) => {
 
-        if (['keyup', 'keypress', 'keydown'].indexOf(eventName) >= 0 && typeof key !== 'undefined' && key !== (ev as KeyboardEvent).key.toLowerCase()) {
-            return
+        if (isKeyboardEvent) {
+            
+            const eventKeyCode = typeof (ev as KeyboardEvent).which === 'number' ? (ev as KeyboardEvent).which : (ev as KeyboardEvent).keyCode
+            console.log(eventName + ' ' + eventKeyCode + ' ' + keyCode)
+            
+            if (typeof key !== 'undefined' && eventKeyCode !== keyCode) {
+                return
+            }
         }
+
         const eventArgsType = typeOf(eventArgs)
 
         if ((eventArgs as Task).execute) {
@@ -184,7 +216,7 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
             if (oldDescriptor.__type === 'element') {
                 // Remove old event listeners before replacing the node. 
                 Object.keys(oldDescriptor.attributes).filter(a => a.indexOf('on') === 0).forEach(a => {
-                    removeAttr(a, existingNode!)
+                    removeAttr(a, existingNode as Element)
                 })
             }
 
@@ -231,7 +263,7 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
             
                 // remove any attributes that was added with the old node descriptor but does not exist in the new descriptor.
                 getAttributesToRemove(newDescriptor, oldDescriptor, existingNode).forEach(a => {
-                    removeAttr(a, existingNode!)
+                    removeAttr(a, existingNode as Element)
                 })
                 
                 // update any attribute where the attribute value has changed
