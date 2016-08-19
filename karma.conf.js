@@ -1,4 +1,3 @@
-
 module.exports = function(config) {
     config.set({
 
@@ -8,7 +7,8 @@ module.exports = function(config) {
 
         files: [
             // paths loaded by Karma
-            { pattern: 'node_modules/systemjs/dist/system.src.js', included: true, watched: true },
+            { pattern: 'node_modules/systemjs/dist/system-polyfills.js', included: true, watched: true },
+            { pattern: 'node_modules/systemjs/dist/system.js', included: true, watched: true },
             { pattern: 'test/karma-test-shim.js', included: true, watched: true },
             { pattern: 'test/test.json', included: false, watched: true, served: true },
 
@@ -30,10 +30,10 @@ module.exports = function(config) {
 
         autoWatch: true,
 
-        browsers: ['Chrome'],
+        browsers: ['Chrome', 'IE'],
 
         // For Travis CI
-        customLaunchers: {  
+        customLaunchers: {
             Chrome_travis_ci: {
                 base: 'Chrome',
                 flags: ['--no-sandbox']
@@ -44,6 +44,7 @@ module.exports = function(config) {
         plugins: [
             'karma-jasmine',
             'karma-chrome-launcher',
+            'karma-ie-launcher',
             'karma-coverage'
         ],
 
@@ -59,7 +60,7 @@ module.exports = function(config) {
         coverageReporter: {
             dir: './coverage/',
             includeAllSources: true,
-            reporters:[
+            reporters: [
                 { type: 'json', subdir: '.', file: 'coverage.json' }
             ]
         },
@@ -67,7 +68,7 @@ module.exports = function(config) {
         singleRun: true
     })
 
-    if (process.env.TRAVIS) {  
-       config.browsers = ['Chrome_travis_ci'];
+    if (process.env.TRAVIS) {
+        config.browsers = ['Chrome_travis_ci'];
     }
 };
