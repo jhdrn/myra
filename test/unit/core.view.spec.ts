@@ -4,12 +4,13 @@ import { text, component, nothing } from 'html'
 import { div, span, input, textarea, form } from 'html/elements'
 
 const keyPressEvent = (keyCode: number) => {
-    const event = document.createEvent('KeyboardEvent')
+    const event = document.createEvent('Event')
   
     event.initEvent('keyup', true, true)
 
-    delete event.key
     Object.defineProperty(event, 'keyCode', { value: keyCode })
+
+    Object.defineProperty(event, 'which', { value: keyCode })
 
     return event
 }
@@ -214,6 +215,7 @@ describe('core.view.render', () => {
     it('returns an element with multiple onkeyup event listeners set', () => {
         const mocks = {
             onkeyupUpdate: (m: any) => {
+                console.log('onkeyupUpdate')
                 return m
             }
         }
@@ -263,6 +265,7 @@ describe('core.view.render', () => {
         spyOn(mocks, 'onEventTriggered')
 
         const view = input({
+            tabindex: 1,
             blur: true,
             onfocus: mocks.onEventTriggered,
             focus: true
@@ -282,6 +285,7 @@ describe('core.view.render', () => {
         spyOn(mocks, 'onEventTriggered')
 
         const view = input({
+            tabindex: 1,
             focus: true,
             onblur: mocks.onEventTriggered,
             blur: true

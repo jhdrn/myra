@@ -29,7 +29,7 @@ describe('http module', () => {
         setTimeout(() => {
             expect(mocks.success).toHaveBeenCalledTimes(1)
             done()
-        }, 4000)
+        }, 1000)
     })
 
     it('httpRequest calls error callback with HttpResponse as argument', done => {
@@ -52,6 +52,6 @@ describe('http module', () => {
         setTimeout(() => {
             expect(mocks.error).toHaveBeenCalledTimes(1)
             done()
-        }, 4000)
+        }, 1000)
     })
 })
