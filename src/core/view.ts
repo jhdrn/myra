@@ -1,35 +1,22 @@
 import { typeOf, max } from './helpers'
 import { Dispatch, Task, UpdateAny, ElementEventAttributeArguments, NodeDescriptor, TextNodeDescriptor, ElementNodeDescriptor, ComponentNodeDescriptor, ListenerWithEventOptions } from './contract'
 
-const EVENTS = [
-    'blur',
-    'change', // input, select, textarea
-    'click',
-    'contextmenu',
-    'dblclick',
-    'focus',
-    'input', // input, textarea
-    'keydown',
-    'keypress',
-    'keyup',
-    'mousedown',
-    'mouseenter',
-    'mouseleave',
-    'mousemove',
-    'mouseout',
-    'mouseover',
-    'mouseup',
-    'reset', // form
-    'show',
-    'submit' // form
+const INPUT_TAG_NAMES = [
+    'INPUT', 
+    'TEXTAREA', 
+    'SELECT'
 ]
-
-const INPUT_TAG_NAMES = ['INPUT', 'TEXTAREA', 'SELECT']
 
 const BOOL_ATTRS = [
     'checked',
     'disabled'
     // TODO: add more
+]
+
+const CALLABLE_ATTRS = [
+    'blur',
+    'click',
+    'focus'
 ]
 
 const KEY_MAP = {
@@ -47,9 +34,11 @@ function nodesEqual(a: Node | undefined, b: Node) {
 /** Sets an attribute or event listener on an HTMLElement. */
 function setAttr(element: HTMLElement, attributeName: string, attributeValue: any, dispatch: Dispatch) {
     const [eventName, key] = attributeName.substr(2).toLowerCase().split('_')
-    if (attributeName.indexOf('on') === 0 && EVENTS.indexOf(eventName) >= 0) {
+    if (attributeName.indexOf('on') === 0) {
         let eventListener = createEventListener([eventName, key], attributeValue, element, dispatch)
         if ((element as any)['on' + eventName]) {
+            // If there is a previous event listener, wrap it and the new one in
+            // a function calling both.
             const prevListener = (element as any)['on' + eventName]
             ;(element as any)['on' + eventName] = (ev: Event) => {
                 prevListener(ev)
@@ -60,17 +49,14 @@ function setAttr(element: HTMLElement, attributeName: string, attributeValue: an
             ;(element as any)['on' + eventName] = eventListener
         }
     }
-    else if (BOOL_ATTRS.indexOf(attributeName) >= 0) {
-        (element as any)[attributeName] = !!attributeValue
-    }
-    else if (attributeValue && ['blur', 'focus'].indexOf(attributeName) >= 0) {
-        (element as any)[attributeName]()
-    }
     else if (attributeName === 'value' && INPUT_TAG_NAMES.indexOf(element.tagName) >= 0) {
         (element as HTMLInputElement).value = attributeValue
     }
-    else if (attributeName === 'class') {
-        element.className = attributeValue
+    else if (BOOL_ATTRS.indexOf(attributeName) >= 0) {
+        (element as any)[attributeName] = !!attributeValue
+    }
+    else if (attributeValue && CALLABLE_ATTRS.indexOf(attributeName) >= 0) {
+        (element as any)[attributeName]()
     }
     else {
         element.setAttribute(attributeName, attributeValue)
@@ -80,7 +66,7 @@ function setAttr(element: HTMLElement, attributeName: string, attributeValue: an
 /** Removes an attribute or event listener from an HTMLElement. */
 function removeAttr(a: string, node: Element) {
     const [eventName, ] = a.substr(2).toLowerCase().split('_')
-    if (a.indexOf('on') === 0 && EVENTS.indexOf(eventName) >= 0) {
+    if (a.indexOf('on') === 0) {
         (node as any)['on' + eventName.toLowerCase()] = null
     }
     else if (node.hasAttribute(a)) {
@@ -106,9 +92,7 @@ function createEventListener([eventName, key]: [string, string], eventArgs: Elem
     return (ev: Event) => {
 
         if (isKeyboardEvent) {
-            
             const eventKeyCode = (ev as KeyboardEvent).which || (ev as KeyboardEvent).keyCode || 0
-            
             if (typeof key !== 'undefined' && eventKeyCode !== keyCode) {
                 return
             }
@@ -270,12 +254,12 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
                     if (newDescriptor.attributes.hasOwnProperty(name)) {
                         const attributeValue = newDescriptor.attributes[name]
                         const oldAttributeValue = (oldDescriptor as ElementNodeDescriptor).attributes[name]
-                        if ((name.indexOf('on') === 0 || !existingNode.attributes.getNamedItem(name) || 
+                        if ((name.indexOf('on') === 0 || !(existingNode as Element).hasAttribute(name) || 
                             attributeValue !== oldAttributeValue) && typeof attributeValue !== 'undefined'
                         ) {
                             setAttr(existingNode as HTMLElement, name, attributeValue, dispatch)
                         }
-                        else if (typeof attributeValue === 'undefined' && existingNode.attributes.getNamedItem(name)) {
+                        else if (typeof attributeValue === 'undefined' && (existingNode as Element).hasAttribute(name)) {
                             existingNode.attributes.removeNamedItem(name)
                         }
                     }

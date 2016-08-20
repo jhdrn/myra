@@ -1,4 +1,4 @@
-import { httpRequest, HttpResponse } from 'http'
+import { httpGet, httpPost, httpPut, httpDelete, httpRequest, HttpResponse } from 'http'
 
 const dispatch = (fn: any, args: any) => fn(undefined, args)
 
@@ -8,8 +8,7 @@ describe('http module', () => {
         done()
     })
 
-
-    it('httpRequest calls success callback with HttpResponse as argument', done => {
+    it('httpGet calls success callback with HttpResponse as argument', done => {
 
         const mocks = {
             success: (m: any, response: HttpResponse) => {
@@ -20,11 +19,7 @@ describe('http module', () => {
 
         spyOn(mocks, 'success').and.callThrough()
 
-        httpRequest(mocks.success, m => m, {
-            method: 'GET',
-            url: '/base/test/test.json',
-            responseType: 'json'
-        }).execute(dispatch)
+        httpGet(mocks.success, m => m, '/base/test/test.json', {}, 'json').execute(dispatch)
 
         setTimeout(() => {
             expect(mocks.success).toHaveBeenCalledTimes(1)
@@ -48,6 +43,64 @@ describe('http module', () => {
             url: '/base/test/fail.json',
             responseType: 'json'
         }).execute(dispatch)
+
+        setTimeout(() => {
+            expect(mocks.error).toHaveBeenCalledTimes(1)
+            done()
+        }, 1000)
+    })
+
+    
+    it('httpPost calls error callback with HttpResponse as argument', done => {
+
+        const mocks = {
+            error: (m: any, response: HttpResponse) => {
+                expect(response.status).toBe(404)
+                return m
+            }
+        }
+
+        spyOn(mocks, 'error').and.callThrough()
+
+        httpPost(m => m, mocks.error, '/base/test/fail', 'some data', { 'Header': 'header value'}, 'json').execute(dispatch)
+
+        setTimeout(() => {
+            expect(mocks.error).toHaveBeenCalledTimes(1)
+            done()
+        }, 1000)
+    })
+    
+    it('httpPut calls error callback with HttpResponse as argument', done => {
+
+        const mocks = {
+            error: (m: any, response: HttpResponse) => {
+                expect(response.status).toBe(404)
+                return m
+            }
+        }
+
+        spyOn(mocks, 'error').and.callThrough()
+
+        httpPut(m => m, mocks.error, '/base/test/fail', 'some data', { 'Header': 'header value'}, 'json').execute(dispatch)
+
+        setTimeout(() => {
+            expect(mocks.error).toHaveBeenCalledTimes(1)
+            done()
+        }, 1000)
+    })
+    
+    it('httpDelete calls error callback with HttpResponse as argument', done => {
+
+        const mocks = {
+            error: (m: any, response: HttpResponse) => {
+                expect(response.status).toBe(404)
+                return m
+            }
+        }
+
+        spyOn(mocks, 'error').and.callThrough()
+
+        httpDelete(m => m, mocks.error, '/base/test/fail', { 'Header': 'header value'}).execute(dispatch)
 
         setTimeout(() => {
             expect(mocks.error).toHaveBeenCalledTimes(1)

@@ -38,7 +38,12 @@ export const httpRequest = <M>(success: Update<M, HttpResponse>, failure: Update
             // IE is not honoring responseType = 'json', so manually parsing is
             // needed.
             if (params.responseType === 'json' && typeof data === 'string') {
-                data = JSON.parse(data)
+                try {
+                    data = JSON.parse(data)
+                }
+                catch(error) {
+                    console.error(error)
+                }
             }
 
             const responseData = { 
