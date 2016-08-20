@@ -180,6 +180,12 @@ JSX:
 ##### Special behavior
 Some attributes and events has special behavior associated with them.
 
+* Any attribute key starting with `on` is treated as an event listener. The
+  value of such an attribute should be an `Update` or `Task` function. However,
+  if there is a need to call `event.preventDefault()` and/or 
+  `event.stopPropagation()`, the event listener can be wrapped in an object 
+  like this: 
+  `{ listener: updateFnOrTask, preventDefault: true, stopPropagation: true }`
 * If an event listener is added to an `input`, `select` or `textarea` element,
   it's `value` will be passed as an argument to the attached `Update` function.
 * If the element is a `form` element and the `onsubmit` event listener is 
@@ -188,17 +194,16 @@ Some attributes and events has special behavior associated with them.
   attached `Update` function. 
 * Keyboard events are handled a bit different: in order to know what key to be
   listening for, the key of the attribute must be suffixed with an underscore
-  and the name of the key to listen for, i.e. `keyup_enter`.
-* `blur` and `focus` attributes with a truthy value will result in a call to 
-  `element.blur()` and `element.focus()` respectively.
+  and the name of the key code to listen for, i.e. `keyup_49`. There are also
+  aliases for the following common keys: backspace, tab, enter, esc and space.
+  These can be used instead of their corresponding key code, i.e. 
+  `keyup_backspace`, `keydown_enter` etc. 
+* `blur`, `focus` and `click` attributes with a truthy value will result in a call to 
+  `element.blur()`, `element.focus()` and `element.click()` respectively.
 * `checked` and `disabled` attributes with a truthy value will set 
   `element.checked` and/or `element.disabled` to true.
 * The `value` attribute will set element.value if it is either an `input`, 
   `select` or `textarea` element.
-* If there is a need to call `event.preventDefault()` and/or 
-  `event.stopPropagation()`, the event listener can be wrapped in an object 
-  like this: 
-  `{ listener: updateFnOrTask, preventDefault: true, stopPropagation: true }`
 
 
 ```typescript
