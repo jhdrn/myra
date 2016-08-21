@@ -2,6 +2,7 @@
 
 import { GlobalAttributes, NodeDescriptor, ElementNodeDescriptor, TextNodeDescriptor, ComponentNodeDescriptor, NothingNodeDescriptor } from '../core/contract'
 import { component, element, nothing, text } from './index'
+import { flatten } from '../core/helpers'
 
 export { ElementNodeDescriptor, TextNodeDescriptor, ComponentNodeDescriptor, NothingNodeDescriptor }
 
@@ -19,7 +20,7 @@ export function createElement(tagNameOrComponent: string, props: GlobalAttribute
 
         for (let i = 2; i < arguments.length; i++) {
             if (Array.isArray(arguments[i])) {
-                (arguments[i] as NodeDescriptor[]).forEach(c => children.push(c))
+                flatten<NodeDescriptor>(arguments[i]).forEach(c => children.push(c))
             }
             else if (typeof arguments[i] === 'object') {
                 if ((arguments[i] as NodeDescriptor).__type) {

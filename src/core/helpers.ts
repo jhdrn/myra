@@ -50,6 +50,19 @@ export function equal<T>(a: T, b: T): boolean {
 }
 
 /**
+ * Flattens multidimensional arrays into a one dimensional.
+ */
+export function flatten<T>(arg: T[]): T[] {
+    return arg.reduce((acc, x) => {
+        if (Array.isArray(x)) {
+            return acc.concat(flatten(x))
+        }
+        acc.push(x)
+        return acc
+    }, [] as T[])
+}
+
+/**
  * Creates a new object by shallow copying the arguments. The second argument's 
  * properties will have precedence over the first's. 
  * 

@@ -1,4 +1,4 @@
-import { equal, max, typeOf } from 'core/helpers'
+import { equal, max, typeOf, evolve, flatten } from 'core/helpers'
 
 
 describe('core.helpers.equal', () => {
@@ -159,5 +159,68 @@ describe('core.helpers.typeOf', () => {
 
     it('identifies undefined', () => {
         expect(typeOf(undefined)).toBe('undefined')
+    })
+})
+
+describe('core.helpers.evolve', () => {
+    it('leaves the original object untouched', () => {
+        const obj = {
+            a: 'A string'
+        }
+        evolve(obj, x => x.a = 'A new string')
+        expect(obj).toEqual(obj)
+    })
+
+    it('only updates changed properties', () => {
+        type EvolveTestObj = {
+            a: string
+            b: number
+            c: string[]
+            d: {
+                e: string
+            }
+        }
+        
+        const obj: EvolveTestObj = {
+            a: 'A string',
+            b: 6,
+            c: [],
+            d: {
+                e: 'Another string'
+            }
+        }
+
+        const evolvedObj = evolve(obj, x => {
+            x.a = 'An updated string'
+        })
+
+        expect(evolvedObj).toEqual({
+            a: 'An updated string',
+            b: 6,
+            c: [],
+            d: {
+                e: 'Another string'
+            }
+        })
+    })
+})
+
+
+describe('core.helpers.flatten', () => {
+    it('flattens a multidimensional array', () => {
+        const multidimensional = 
+            [
+                'a',
+                [
+                    'b',
+                    [
+                        'c'
+                    ],
+                    'd'
+                ],
+                'e'
+            ]
+
+        expect(flatten(multidimensional)).toEqual(['a', 'b', 'c', 'd', 'e'])
     })
 })
