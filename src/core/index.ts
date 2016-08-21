@@ -2,7 +2,7 @@ import { Subscriptions, broadcast as broadcastInternal } from './subscriptions'
 import { Task, Component, ComponentArgs, ComponentContext, Update } from './contract'
 import { defineComponent as defineComponentInternal, Subscribe } from './component'
 
-export * from './evolve'
+export { evolve } from './helpers'
 export * from './contract'
 export * from './task'
 

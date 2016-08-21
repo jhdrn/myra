@@ -48,3 +48,27 @@ export function equal<T>(a: T, b: T): boolean {
     // FIXME: functions?
     return false
 }
+
+/**
+ * Creates a new object by shallow copying the arguments. The second argument's 
+ * properties will have precedence over the first's. 
+ * 
+ * All non-primitive properties are copied by reference).
+ */
+export function evolve<T>(original: T, evolve: (obj: T) => void): T {
+    const newValues = {} as T
+    evolve(newValues)
+
+    let result: any = {};
+    for (let prop in original) {
+        if (original.hasOwnProperty(prop)) {
+            result[prop] = (original as any)[prop];
+        }
+    }
+    for (let prop in newValues) {
+        if (newValues.hasOwnProperty(prop)) {
+            result[prop] = (newValues as any)[prop];
+        }
+    }
+    return result as T;
+}
