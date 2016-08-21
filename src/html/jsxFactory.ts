@@ -22,7 +22,12 @@ export function createElement(tagNameOrComponent: string, props: GlobalAttribute
                 (arguments[i] as NodeDescriptor[]).forEach(c => children.push(c))
             }
             else if (typeof arguments[i] === 'object') {
-                children.push(arguments[i] as NodeDescriptor)
+                if ((arguments[i] as NodeDescriptor).__type) {
+                    children.push(arguments[i] as NodeDescriptor)
+                }
+                else {
+                    children.push(text(arguments[i]))    
+                }
             }
             else {
                 children.push(text(arguments[i])) 
