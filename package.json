@@ -23,8 +23,8 @@
   "scripts": {
     "build": "rimraf build && tsc",
     "pretest": "npm run build",
-    "test": "karma start karma.conf.js",
-    "test-ci": "karma start karma.conf-ci.js",
+    "test": "karma start karma.conf-ci.js",
+    "test-local": "karma start karma.conf-local.js",
     "posttest": "node_modules/.bin/remap-istanbul -i ./coverage/coverage.json -o ./coverage -t html",
     "codecov": "node_modules/.bin/remap-istanbul -i coverage/coverage.json -o ./coverage/lcov.info -t lcovonly && codecov -f ./coverage/lcov.info",
     "coverage": "http-server -c-1 -o -p 9875 ./coverage"
