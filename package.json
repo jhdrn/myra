@@ -11,6 +11,7 @@
     "karma": "^1.1.1",
     "karma-chrome-launcher": "^1.0.1",
     "karma-coverage": "^1.1.0",
+    "karma-edge-launcher": "0.0.0",
     "karma-firefox-launcher": "^1.0.0",
     "karma-ie-launcher": "^1.0.0",
     "karma-jasmine": "^1.0.2",
@@ -24,7 +25,7 @@
     "build": "rimraf build && tsc",
     "pretest": "npm run build",
     "test": "karma start karma.conf-ci.js",
-    "test-local": "karma start karma.conf-local.js",
+    "test-local": "npm run pretest && karma start karma.conf-local.js && npm run posttest",
     "posttest": "node_modules/.bin/remap-istanbul -i ./coverage/coverage.json -o ./coverage -t html",
     "codecov": "node_modules/.bin/remap-istanbul -i coverage/coverage.json -o ./coverage/lcov.info -t lcovonly && codecov -f ./coverage/lcov.info",
     "coverage": "http-server -c-1 -o -p 9875 ./coverage"

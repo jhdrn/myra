@@ -57,7 +57,9 @@ export const httpRequest = <M>(success: Update<M, HttpResponse>, failure: Update
             }
             dispatch(xhr.status >= 200 && xhr.status < 300 ? success : failure, responseData)
         }
+
         xhr.open(params.method, params.url)
+        
         if (typeof params.headers !== 'undefined') {
             for (const header in params.headers) {
                 if (params.headers.hasOwnProperty(header)) {
