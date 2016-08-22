@@ -62,7 +62,7 @@ describe('http module', () => {
 
         spyOn(mocks, 'error').and.callThrough()
 
-        httpPost(m => m, mocks.error, '/base/test/fail', 'some data', { 'Header': 'header value'}, 'json').execute(dispatch)
+        httpPost(m => m, mocks.error, '/base/test/fail', 'some data', { 'Header': 'header value'}, 'text').execute(dispatch)
 
         setTimeout(() => {
             expect(mocks.error).toHaveBeenCalledTimes(1)
@@ -81,7 +81,7 @@ describe('http module', () => {
 
         spyOn(mocks, 'error').and.callThrough()
 
-        httpPut(m => m, mocks.error, '/base/test/fail', 'some data', { 'Header': 'header value'}, 'json').execute(dispatch)
+        httpPut(m => m, mocks.error, '/base/test/fail', 'some data', { 'Header': 'header value'}, 'text').execute(dispatch)
 
         setTimeout(() => {
             expect(mocks.error).toHaveBeenCalledTimes(1)
