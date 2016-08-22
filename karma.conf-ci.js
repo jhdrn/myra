@@ -97,7 +97,8 @@ module.exports = function(config) {
         plugins: [
             'karma-jasmine',
             'karma-chrome-launcher',
-            'karma-sauce-launcher'
+            'karma-sauce-launcher',
+            'karma-coverage'
         ],
 
         // Source files that you wanna generate coverage for.
