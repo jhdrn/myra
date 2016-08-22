@@ -275,15 +275,15 @@ describe('core.view.render', () => {
         spyOn(mocks, 'update')
 
         const view = textarea({
-            onclick: mocks.update,
+            onkeyup_enter: mocks.update,
             value: 'a value'
         })
 
         const node = render(document.body, view, view, undefined, dispatch) as HTMLTextAreaElement
         expect(node.value).toBe('a value')
-        expect(node.onclick).not.toBeNull()
+        expect(node.onkeyup).not.toBeNull()
 
-        node.click()
+        node.dispatchEvent(keyPressEvent(13))
 
         expect(mocks.update).toHaveBeenCalledTimes(1)
 
@@ -434,11 +434,11 @@ describe('core.view.render', () => {
 
         spyOn(mocks, 'testTask')
 
-        const view = div({
+        const view = button({
             onclick: { listener: task(mocks.testTask), stopPropagation: true }
         })
         
-        const node = render(document.body, view, view, undefined, () => {}) as HTMLDivElement
+        const node = render(document.body, view, view, undefined, () => {}) as HTMLButtonElement
         node.click()
         
         expect(mocks.testTask).toHaveBeenCalledTimes(1)
