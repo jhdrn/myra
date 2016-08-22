@@ -36,6 +36,38 @@ module.exports = function(config) {
         'SL_FireFox': {
             base: 'SauceLabs',
             browserName: 'firefox',
+        },
+        'SL_IOS_Safari': {
+            base: 'SauceLabs',
+            browserName: 'iphone',
+            platform: 'OS X 10.9',
+            version: '7.1'
+        },
+        'SL_IOS_Safari_Latest': {
+            base: 'SauceLabs',
+            browserName: 'iphone',
+            platform: 'OS X 10.11'
+        },
+        'SL_Android': {
+            base: 'SauceLabs',
+            browserName: 'android',
+            platform: 'Linux',
+            version: '4.2'
+        },
+        'SL_Android_Latest': {
+            base: 'SauceLabs',
+            browserName: 'android',
+            platform: 'Linux'
+        },
+        'SL_Edge': {
+            base: 'SauceLabs',
+            browserName: 'microsoftedge',
+            platform: 'Windows 10'
+        },
+        'SL_Safari': {
+            base: 'SauceLabs',
+            browserName: 'safari',
+            platform: 'Mac 10.10'
         }
     };
 

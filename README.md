@@ -5,6 +5,7 @@ framework for building web interfaces.
 [![npm](https://img.shields.io/npm/v/myra.svg?maxAge=36000)](https://www.npmjs.com/package/myra)
 [![Travis](https://img.shields.io/travis/jhdrn/myra.svg?maxAge=36000)](https://travis-ci.org/jhdrn/myra)
 [![codecov](https://codecov.io/gh/jhdrn/myra/branch/master/graph/badge.svg)](https://codecov.io/gh/jhdrn/myra)
+[![Sauce Test Status](https://saucelabs.com/browser-matrix/myra.svg)](https://saucelabs.com/u/myra)
 
 ## Disclaimer
 This project is currently in alpha stage. There are bugs and it's API might 
