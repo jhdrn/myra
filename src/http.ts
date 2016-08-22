@@ -1,4 +1,5 @@
 import { task, Task, Dispatch, Update } from './core/index'
+import { isIE9 } from './core/helpers'
 
 export { Task }
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
@@ -33,8 +34,12 @@ export const httpRequest = <M>(success: Update<M, HttpResponse>, failure: Update
                         acc[key] = value
                         return acc
                     }, {} as { [key: string]: string })
-                    
-            let data = xhr.response;
+                    console.log(xhr)
+
+            
+            // IE 9 does not populate xhr.response...
+            let data = isIE9 ? xhr.responseText : xhr.response
+            
             // IE is not honoring responseType = 'json', so manually parsing is
             // needed.
             if (params.responseType === 'json' && typeof data === 'string') {

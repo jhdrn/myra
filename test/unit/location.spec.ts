@@ -1,6 +1,6 @@
 import * as location from 'location' 
 
-if (window.history) {
+if (window.history && window.history.pushState) {
     
     const dispatch = (fn: any, args: any) => fn(undefined, args)
 

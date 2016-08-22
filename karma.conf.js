@@ -30,13 +30,21 @@ module.exports = function(config) {
 
         autoWatch: true,
 
-        browsers: ['Chrome', 'IE'],
+        browsers: ['Chrome', 'IE', 'IE10', 'IE9'],
 
         // For Travis CI
         customLaunchers: {
             Chrome_travis_ci: {
                 base: 'Chrome',
                 flags: ['--no-sandbox']
+            },
+            IE10: {
+                base: 'IE',
+                'x-ua-compatible': 'IE=EmulateIE10'
+            },
+            IE9: {
+                base: 'IE',
+                'x-ua-compatible': 'IE=EmulateIE9'
             }
         },
 
