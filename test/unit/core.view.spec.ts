@@ -267,26 +267,25 @@ describe('core.view.render', () => {
 
     it('passes the value of a textarea element when an event listener is triggered', (done) => {
         const mocks = {
-            onclickUpdate: (m: any, value: string) => {
+            update: (m: any, value: string) => {
                 expect(value).toBe('a value')
                 return m
             }
         }
-        spyOn(mocks, 'onclickUpdate')
+        spyOn(mocks, 'update')
 
         const view = textarea({
-            onblur: mocks.onclickUpdate,
+            onclick: mocks.update,
             value: 'a value'
         })
 
         const node = render(document.body, view, view, undefined, dispatch) as HTMLTextAreaElement
         expect(node.value).toBe('a value')
-        expect(node.onblur).not.toBeNull()
+        expect(node.onclick).not.toBeNull()
 
-        node.focus()
-        node.blur()
+        node.click()
 
-        expect(mocks.onclickUpdate).toHaveBeenCalledTimes(1)
+        expect(mocks.update).toHaveBeenCalledTimes(1)
 
         done()
     })
