@@ -12,14 +12,14 @@ describe('http module', () => {
 
         const mocks = {
             success: (m: any, response: HttpResponse) => {
-                expect(response.data.name).toBe('myra')
+                expect(JSON.parse(response.data).name).toBe('myra')
                 return m
             }
         }
 
         spyOn(mocks, 'success').and.callThrough()
 
-        httpGet(mocks.success, m => m, '/base/test/test.json', {}, 'json').execute(dispatch)
+        httpGet(mocks.success, m => m, '/base/test/test.json', {}, 'text').execute(dispatch)
 
         setTimeout(() => {
             expect(mocks.success).toHaveBeenCalledTimes(1)
@@ -41,7 +41,7 @@ describe('http module', () => {
         httpRequest(m => m, mocks.error, {
             method: 'GET',
             url: '/base/test/fail.json',
-            responseType: 'json'
+            responseType: 'text'
         }).execute(dispatch)
 
         setTimeout(() => {
