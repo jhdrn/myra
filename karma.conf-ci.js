@@ -101,7 +101,7 @@ module.exports = function(config) {
         // test results reporter to use
         // possible values: 'dots', 'progress'
         // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-        reporters: ['progress', 'dots', 'coverage', 'saucelabs'],
+        reporters: ['dots', 'coverage', 'saucelabs'],
 
         // web server port
         port: 9876,
@@ -122,12 +122,12 @@ module.exports = function(config) {
             // startConnect: false,
             // public: 'public'
         },
-        captureTimeout: 150000,
+        captureTimeout: 300000,
         customLaunchers: customLaunchers,
-        
+
         browserDisconnectTimeout: 5000,
         browserDisconnectTolerance: 1,
-        browserNoActivityTimeout: 30000,
+        browserNoActivityTimeout: 300000,
 
         // Karma plugins loaded
         plugins: [

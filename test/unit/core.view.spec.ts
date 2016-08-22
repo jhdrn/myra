@@ -1,7 +1,7 @@
 import { defineComponent, task } from 'core'
 import { render } from 'core/view'
 import { text, component, nothing } from 'html'
-import { div, span, input, textarea, form } from 'html/elements'
+import { div, button, span, input, textarea, form } from 'html/elements'
 
 const keyPressEvent = (keyCode: number) => {
     const event = document.createEvent('Event')
@@ -192,11 +192,11 @@ describe('core.view.render', () => {
         }
         spyOn(mocks, 'onclickUpdate')
 
-        const view = div({
+        const view = button({
             onclick: mocks.onclickUpdate
         })
 
-        const node = render(document.body, view, view, undefined, dispatch) as HTMLDivElement
+        const node = render(document.body, view, view, undefined, dispatch) as HTMLButtonElement
         expect(node.onclick).not.toBeNull()
 
         node.click()
@@ -219,17 +219,17 @@ describe('core.view.render', () => {
         spyOn(mocks, 'onclickUpdate1')
         spyOn(mocks, 'onclickUpdate2')
 
-        const view1 = div({
+        const view1 = button({
             onclick: mocks.onclickUpdate1
         })
 
-        const view2 = div({
+        const view2 = button({
             onclick: mocks.onclickUpdate2
         })
 
-        let node = render(document.body, view1, view1, undefined, dispatch) as HTMLDivElement
+        let node = render(document.body, view1, view1, undefined, dispatch) as HTMLButtonElement
 
-        node = render(document.body, view2, view1, node, dispatch) as HTMLDivElement
+        node = render(document.body, view2, view1, node, dispatch) as HTMLButtonElement
 
         node.click()
 
@@ -275,15 +275,16 @@ describe('core.view.render', () => {
         spyOn(mocks, 'onclickUpdate')
 
         const view = textarea({
-            onclick: mocks.onclickUpdate,
+            onblur: mocks.onclickUpdate,
             value: 'a value'
         })
 
         const node = render(document.body, view, view, undefined, dispatch) as HTMLTextAreaElement
         expect(node.value).toBe('a value')
-        expect(node.onclick).not.toBeNull()
+        expect(node.onblur).not.toBeNull()
 
-        node.click()
+        node.focus()
+        node.blur()
 
         expect(mocks.onclickUpdate).toHaveBeenCalledTimes(1)
 
@@ -389,17 +390,17 @@ describe('core.view.render', () => {
     })
 
     it('removes old event listeners when element is replaced', (done) => {
-        const view1 = div({
+        const view1 = button({
             onclick: (m: any) => m
         })
         
         const view2 = nothing()
         
-        const node = render(document.body, view1, view1, undefined, () => {}) as HTMLDivElement
+        const node = render(document.body, view1, view1, undefined, () => {}) as HTMLButtonElement
 
         expect(node.onclick).not.toBeNull()
         
-        render(document.body, view2, view1, node, () => {}) as HTMLDivElement
+        render(document.body, view2, view1, node, () => {}) as HTMLButtonElement
         
         expect(node.onclick).toBeNull()
 
@@ -414,11 +415,11 @@ describe('core.view.render', () => {
 
         spyOn(mocks, 'testTask')
 
-        const view = div({
+        const view = button({
             onclick: task(mocks.testTask)
         })
         
-        const node = render(document.body, view, view, undefined, () => {}) as HTMLDivElement
+        const node = render(document.body, view, view, undefined, () => {}) as HTMLButtonElement
         node.click()
 
         expect(mocks.testTask).toHaveBeenCalledTimes(1)
