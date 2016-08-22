@@ -124,6 +124,8 @@ module.exports = function(config) {
         },
         captureTimeout: 150000,
         customLaunchers: customLaunchers,
+        
+        browserNoActivityTimeout: 30000,
 
         // Karma plugins loaded
         plugins: [
