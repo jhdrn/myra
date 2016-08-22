@@ -34,8 +34,6 @@ export const httpRequest = <M>(success: Update<M, HttpResponse>, failure: Update
                         acc[key] = value
                         return acc
                     }, {} as { [key: string]: string })
-                    console.log(xhr)
-
             
             // IE 9 does not populate xhr.response...
             let data = isIE9 ? xhr.responseText : xhr.response

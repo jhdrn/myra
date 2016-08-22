@@ -30,7 +30,7 @@ module.exports = function(config) {
 
         autoWatch: true,
 
-        browsers: ['Chrome', 'IE', 'IE10', 'IE9'],
+        browsers: ['Chrome', 'Firefox', 'IE', 'IE10', 'IE9'],
 
         // For Travis CI
         customLaunchers: {
@@ -53,6 +53,7 @@ module.exports = function(config) {
             'karma-jasmine',
             'karma-chrome-launcher',
             'karma-ie-launcher',
+            'karma-firefox-launcher',
             'karma-coverage'
         ],
 
