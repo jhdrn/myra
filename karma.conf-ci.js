@@ -46,7 +46,8 @@ module.exports = function(config) {
         'SL_IOS_Safari_Latest': {
             base: 'SauceLabs',
             browserName: 'iphone',
-            platform: 'OS X 10.11'
+            platform: 'OS X 10.11',
+            version: '9.3'
         },
         'SL_Android': {
             base: 'SauceLabs',
@@ -122,12 +123,12 @@ module.exports = function(config) {
             // startConnect: false,
             // public: 'public'
         },
-        captureTimeout: 150000,
+        captureTimeout: 30000,
         customLaunchers: customLaunchers,
 
-        browserDisconnectTimeout: 5000,
-        browserDisconnectTolerance: 0,
-        browserNoActivityTimeout: 150000,
+        browserDisconnectTimeout: 15000,
+        browserDisconnectTolerance: 1,
+        browserNoActivityTimeout: 30000,
 
         // Karma plugins loaded
         plugins: [
