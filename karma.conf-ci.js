@@ -62,13 +62,15 @@ module.exports = function(config) {
         },
         'SL_Edge': {
             base: 'SauceLabs',
-            browserName: 'microsoftedge',
-            platform: 'Windows 10'
+            browserName: 'MicrosoftEdge',
+            platform: 'Windows 10',
+            version: '13.10586'
         },
         'SL_Safari': {
             base: 'SauceLabs',
             browserName: 'safari',
-            platform: 'Mac 10.10'
+            platform: 'OS X 10.11',
+            version: '9.0'
         }
     };
 
@@ -123,12 +125,12 @@ module.exports = function(config) {
             // startConnect: false,
             // public: 'public'
         },
-        captureTimeout: 30000,
+        captureTimeout: 300000,
         customLaunchers: customLaunchers,
 
         browserDisconnectTimeout: 15000,
         browserDisconnectTolerance: 1,
-        browserNoActivityTimeout: 30000,
+        browserNoActivityTimeout: 300000,
 
         // Karma plugins loaded
         plugins: [
