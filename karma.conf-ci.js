@@ -64,13 +64,13 @@ module.exports = function(config) {
             base: 'SauceLabs',
             browserName: 'MicrosoftEdge',
             platform: 'Windows 10',
-            version: '13.10586'
+            version: '13'
         },
         'SL_Safari': {
             base: 'SauceLabs',
             browserName: 'safari',
-            platform: 'OS X 10.11',
-            version: '9.0'
+            platform: 'OS X 10.10',
+            version: '8'
         }
     };
 
