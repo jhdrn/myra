@@ -58,7 +58,7 @@ module.exports = function(config) {
             base: 'SauceLabs',
             browserName: 'android',
             platform: 'Linux'
-        },
+        }/*,
         'SL_Edge': {
             base: 'SauceLabs',
             browserName: 'microsoftedge',
@@ -68,7 +68,7 @@ module.exports = function(config) {
             base: 'SauceLabs',
             browserName: 'safari',
             platform: 'Mac 10.10'
-        }
+        }*/
     };
 
     config.set({
