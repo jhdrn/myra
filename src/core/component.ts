@@ -51,7 +51,8 @@ class ComponentInstanceImpl<M, A> implements ComponentInstance<A> {
             }
         }
         else {
-            console.log(`${this.name}: No mount argument changes detected. Skipping mount dispatch.`)
+            // TODO: "debug mode" with logging
+            // console.log(`${this.name}: No mount argument changes detected. Skipping mount dispatch.`)
         }
     }
 }

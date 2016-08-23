@@ -233,11 +233,12 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
     else { // reuse the old node
 
         if (!nodesEqual(oldDescriptor.node, existingNode)) {
-            console.error('The view is not matching the DOM. Are outside forces tampering with it?')
-            console.error('Expected node:')
-            console.error(oldDescriptor.node)
-            console.error('Actual node:')
-            console.error(existingNode)
+            // TODO: "debug mode" with logging
+            // console.error('The view is not matching the DOM. Are outside forces tampering with it?')
+            // console.error('Expected node:')
+            // console.error(oldDescriptor.node)
+            // console.error('Actual node:')
+            // console.error(existingNode)
         }
 
         // update existing node
