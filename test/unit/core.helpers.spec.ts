@@ -1,4 +1,4 @@
-import { equal, max, typeOf, evolve, flatten } from 'core/helpers'
+import { equal, max, typeOf, evolve, deepCopy, flatten } from 'core/helpers'
 
 
 describe('core.helpers.equal', () => {
@@ -161,6 +161,31 @@ describe('core.helpers.typeOf', () => {
         expect(typeOf(undefined)).toBe('undefined')
     })
 })
+
+describe('core.helpers.deepCopy', () => {
+
+    it('copies a deep hierarchy', () => {
+        const obj = {
+            a: 'A string',
+            b: {
+                c: [1, 2, 6, 10]
+            },
+            d: new Date()
+        }
+        const objCopy = deepCopy(obj)
+        
+        expect(JSON.stringify(objCopy)).toEqual(JSON.stringify(obj))
+        expect(objCopy).not.toBe(obj)
+    })
+
+    it('throws if trying to copy a function', () => {
+        const obj = {
+            a: () => 'foo'
+        }
+        expect(() => deepCopy(obj)).toThrow()
+    })
+})
+
 
 describe('core.helpers.evolve', () => {
     it('leaves the original object untouched', () => {

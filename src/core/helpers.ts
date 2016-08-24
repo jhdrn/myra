@@ -64,26 +64,34 @@ export function flatten<T>(arg: T[]): T[] {
     }, [] as T[])
 }
 
+export function deepCopy<T>(value: T): T {
+    const type = typeOf(value)
+    switch (type) {
+        case 'array':
+            return (value as any as Array<any>).map(x => deepCopy(x)) as any as T
+        case 'object':
+            const copy = {}
+            for (const key in value) {
+                if (value.hasOwnProperty(key)) {
+                    (copy as any)[key] = deepCopy((value as any)[key])
+                }
+            }
+            return copy as T
+        case 'date':
+            return new Date((value as any as Date).valueOf()) as any as T
+        case 'function':
+            throw 'Copying functions are not allowed'
+        default:
+            return value
+    }
+}
+
 /**
- * Creates a new object by shallow copying the arguments. The second argument's 
- * properties will have precedence over the first's. 
- * 
- * All non-primitive properties are copied by reference).
+ * Creates a new object by deep copying "original". The evolve function is used 
+ * to update the copy with new data.
  */
 export function evolve<T>(original: T, evolve: (obj: T) => void): T {
-    const newValues = {} as T
-    evolve(newValues)
-
-    let result: any = {};
-    for (let prop in original) {
-        if (original.hasOwnProperty(prop)) {
-            result[prop] = (original as any)[prop];
-        }
-    }
-    for (let prop in newValues) {
-        if (newValues.hasOwnProperty(prop)) {
-            result[prop] = (newValues as any)[prop];
-        }
-    }
-    return result as T;
+    const copy = deepCopy(original)
+    evolve(copy)
+    return copy
 }
