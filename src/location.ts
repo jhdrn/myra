@@ -22,18 +22,46 @@ export const trackLocationChanges = () => task((dispatch) => {
         broadcastLocationChanged(dispatch)
     }
 })
+
 export const updateLocation = (path: string, params?: Params) => task((dispatch) => {
     const url = makeUrl(path, params)
     window.history.pushState({ url: url }, '', url)
 
     broadcastLocationChanged(dispatch)
 })
+
 export const replaceLocation = (path: string, params?: Params) => task((dispatch) => {
     const url = makeUrl(path, params)
     window.history.replaceState({ url: url }, '', url)
 
     broadcastLocationChanged(dispatch)
 })
+
+export const goBack = (steps?: number) => task(dispatch => {
+    window.history.back(steps)
+    broadcastLocationChanged(dispatch)
+}) 
+
+export const goForward = (steps?: number) => task(dispatch => {
+    window.history.forward(steps)
+    broadcastLocationChanged(dispatch)
+}) 
+
+// export const getLocationParams = () => {
+    
+//     const url = pattern.indexOf('#') === 0 ? trimSlashes(window.location.hash) :
+//         trimSlashes(window.location.pathname).split('&')[0]
+
+//     if (matchPattern(trimSlashes(pattern), url)) {
+//         return true
+//     } else if (patterns) {
+//         for (const i in patterns) {
+//             if (matchPattern(trimSlashes(patterns[i]), url)) {
+//                 return true
+//             }
+//         }
+//     }
+// }
 
 function makeUrl(path: string, params?: Params) {
     if (params) {
@@ -95,7 +123,7 @@ function createPattern(route: string) {
         // parameterNames.push(match.substr(2, match.length - 3));
         return "(.+)";
     }) // {*path}
-        .replace(/{[^\/]+}/ig, (_match) => {
+        .replace(/:[^\/]+/ig, (_match) => {
             // parameterNames.push(match.substr(1, match.length - 2));
             return "([^/]+)";
         }) // {parameter}
