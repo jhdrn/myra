@@ -1,6 +1,7 @@
-import { task, broadcast, Task, Dispatch } from './core/index'
+import { task, broadcast, Task, Dispatch, NodeDescriptor, ComponentNodeDescriptor, ElementNodeDescriptor, TextNodeDescriptor, NothingNodeDescriptor  } from './core/index'
+import { nothing } from './html' 
 
-export { Task }
+export { Task, ComponentNodeDescriptor, ElementNodeDescriptor, TextNodeDescriptor, NothingNodeDescriptor }
 export type Params = { [key: string]: any }
 export interface LocationData {
     // FIXME: Add all properties from window.location object
@@ -47,21 +48,7 @@ export const goForward = (steps?: number) => task(dispatch => {
     broadcastLocationChanged(dispatch)
 }) 
 
-// export const getLocationParams = () => {
-    
-//     const url = pattern.indexOf('#') === 0 ? trimSlashes(window.location.hash) :
-//         trimSlashes(window.location.pathname).split('&')[0]
 
-//     if (matchPattern(trimSlashes(pattern), url)) {
-//         return true
-//     } else if (patterns) {
-//         for (const i in patterns) {
-//             if (matchPattern(trimSlashes(patterns[i]), url)) {
-//                 return true
-//             }
-//         }
-//     }
-// }
 
 function makeUrl(path: string, params?: Params) {
     if (params) {
@@ -81,28 +68,49 @@ const trimSlashes = (str: string) => !str ? '' : str.replace(/^\/+|\/+$/g, '')
 /**
  * Tries to match a route for the given path.
  */
-const matchPattern = (path: string, url: string) => !!new RegExp(createPattern(trimSlashes(path)), 'i').exec(url)
+const matchPattern = (pattern: string, url: string) => !!new RegExp(createPattern(trimSlashes(pattern)), 'i').exec(url)
+
+
+// export const getLocationParams = (pattern: string) => {
+//     // FIXME
+//     console.log(new RegExp(createPattern(trimSlashes(pattern)), 'i').exec(window.location.hash || window.location.pathname))
+// }
 
 /**
  * Checks if the given pattern matches the location.
  */
-
 export const matchLocation = (pattern: string, ...patterns: string[]): boolean => {
     
     const url = pattern.indexOf('#') === 0 ? trimSlashes(window.location.hash) :
         trimSlashes(window.location.pathname).split('&')[0]
 
-    if (matchPattern(trimSlashes(pattern), url)) {
+    if (matchPattern(pattern, url)) {
         return true
     } else if (patterns) {
         for (const i in patterns) {
-            if (matchPattern(trimSlashes(patterns[i]), url)) {
+            if (matchPattern(patterns[i], url)) {
                 return true
             }
         }
     }
     return false
 } 
+
+export type RouteOptions = {
+    [pattern: string]: NodeDescriptor
+}
+export const route = (opts: RouteOptions) => {
+    for (const pattern in opts) {
+        if (opts.hasOwnProperty(pattern) && matchLocation(pattern)) {
+            const nodeDescriptor = opts[pattern] as NodeDescriptor
+            if (nodeDescriptor.__type === 'component') {
+                //nodeDescriptor.args = routeParams
+            } 
+            return nodeDescriptor
+        }
+    }
+    return nothing()
+}
 
 function searchStrToObj(searchString: string) {
     if (!searchString) return {}

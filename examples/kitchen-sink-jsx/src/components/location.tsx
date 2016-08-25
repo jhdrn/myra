@@ -1,6 +1,7 @@
 import { defineComponent, Task } from 'myra/core'
-import { updateLocation, matchLocation, trackLocationChanges, goBack, goForward, LocationData } from 'myra/location'
+import { route, updateLocation, matchLocation, trackLocationChanges, goBack, goForward, LocationData } from 'myra/location'
 import * as jsxFactory from 'myra/html/jsxFactory'
+import { routeComponent } from './route-component'
 
 type Model = undefined
 const init = [undefined, trackLocationChanges()] as [Model, Task]
@@ -14,9 +15,12 @@ const subscriptions = {
  */
 const view = (_: Model) => 
     <section>
-        <h2>Location example</h2>
-        { matchLocation('test1') ? 
-            <p>Location '/test1' matched.</p> : <nothing /> }
+        <h2>Location examples</h2>
+        {route({
+            'test1': <p>Route to '/test1'.</p>,
+            'test1/:param': <mount component={routeComponent}  /> 
+        })}
+        
         { matchLocation('test1/:param') ? 
             <p>Location '/test2/:param' matched.</p> : <nothing /> }
         <ul class="list-group">
