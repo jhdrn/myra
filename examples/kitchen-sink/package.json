@@ -11,6 +11,6 @@
     "webpack-dev-server": "^1.14.1"
   },
   "dependencies": {
-    "myra": "^1.0.0-alpha.20160815"
+    "myra": "^1.0.0-alpha.20160827"
   }
 }
