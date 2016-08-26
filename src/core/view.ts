@@ -23,7 +23,7 @@ const KEY_MAP = {
     backspace: 8,
     tab: 9,
     enter: 13,
-    esc: 27,
+    escape: 27,
     space: 32
 } as { [key: string]: number }
 
