@@ -117,15 +117,12 @@ Renders as an HTML element. Most HTML elements are represented as functions in
 `myra/html` module (there is also an `el` function to create custom elements). 
 
 ```typescript
-    import { text } from 'myra/html'
     import { div, ul, li, el } from 'myra/html/elements'
 
     const view = (_) => 
         div(
             ul(
-                li(
-                    text('A list item')
-                )
+                li('A list item')
             ),
             el('custom')
         )
@@ -299,13 +296,32 @@ JSX:
 #### TextNodeDescriptor
 Renders as a text node.
 
+There is a helper function 'text':
+
 ```typescript
     import { text } from 'myra/html'
 
     const view = (_) => text('Hello world!')
 ```
 
-With JSX you will have to wrap the text in an element.
+Alternatively, you can pass a string to any element function:
+
+```typescript
+    import { p } from 'myra/html/elements'
+
+    const view = (_) => p('Hello world!')
+```
+
+With JSX you will have to wrap the text in an element:
+
+```JSX
+    import * as jsxFactory from 'myra/html/jsxFactory'
+
+    ...
+    
+    const view = (_) => <p>A text</p>
+
+```
 
 #### NothingNodeDescriptor
 Represents nothing, renders as a comment node with the comment "Nothing".
