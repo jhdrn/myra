@@ -1,4 +1,5 @@
 import * as c from '../core/contract'
+import { flatten } from '../core/helpers'
 
 /**
  * Creates a ComponentNodeDescriptor
@@ -30,28 +31,54 @@ export const text = (value: any): c.TextNodeDescriptor => {
 /**
  * Creates an ElementNodeDescriptor
  */
-export const element = <A extends c.GlobalAttributes>(tagName: string) => (attributesOrNode?: A | c.NodeDescriptor[] | c.NodeDescriptor, ...children: c.NodeDescriptor[]): c.ElementNodeDescriptor => {
-    if (typeof attributesOrNode === 'undefined' && typeof children === 'undefined') {
+export function element<A extends c.GlobalAttributes>(tagName: string) {
+    return function (attributesOrNode?: A | (c.NodeDescriptor | string)[] | c.NodeDescriptor | string, ...children: (c.NodeDescriptor | string)[]): c.ElementNodeDescriptor {
+        if (typeof attributesOrNode === 'undefined' && typeof children === 'undefined') {
+            return {
+                __type: 'element',
+                tagName: tagName,
+                attributes: {},
+                children: []
+            }
+        }
+
+        const attributesGiven = !Array.isArray(attributesOrNode) && typeof attributesOrNode === 'object' && !(attributesOrNode as c.NodeDescriptor).__type
+
+        const flattenedChildren = [] as (c.NodeDescriptor | string)[]
+
+        for (let i = 0; i < arguments.length; i++) {
+            if (attributesGiven && i === 0) {
+                continue
+            }
+
+            if (Array.isArray(arguments[i])) {
+                flatten<c.NodeDescriptor>(arguments[i])
+                    .map(c => typeof c === 'object' && !(c as c.NodeDescriptor).__type ? text(c) : c)
+                    .forEach(c => flattenedChildren.push(c))
+            }
+            else if (typeof arguments[i] === 'object') {
+                if ((arguments[i] as c.NodeDescriptor).__type) {
+                    flattenedChildren.push(arguments[i] as c.NodeDescriptor)
+                }
+                else {
+                    flattenedChildren.push(text(arguments[i]))    
+                }
+            }
+            else {
+                flattenedChildren.push(arguments[i]) 
+            }
+        }
+
         return {
             __type: 'element',
-            tagName: tagName,
-            attributes: {},
-            children: []
+            tagName,
+            attributes: attributesGiven ? attributesOrNode as A : {},
+            children: flattenedChildren.filter(c => typeof c !== 'undefined').map(c => {
+                if (typeof c === 'string') {
+                    return text(c)
+                }
+                return c
+            })
         }
-    }
-
-    const isNodeDescriptor = Array.isArray(attributesOrNode) || typeof attributesOrNode === 'undefined' ? false : attributesOrNode.hasOwnProperty('__type')
-    if (Array.isArray(attributesOrNode)) {
-        children = attributesOrNode.concat(children)
-    } 
-    else if (isNodeDescriptor) {
-        children.unshift(attributesOrNode as c.NodeDescriptor)
-    }
-    
-    return {
-        __type: 'element',
-        tagName,
-        attributes: isNodeDescriptor || Array.isArray(attributesOrNode) || typeof attributesOrNode === 'undefined' ? {} : attributesOrNode,
-        children: children.filter(c => typeof c !== 'undefined')
     }
 }

@@ -59,6 +59,61 @@ describe('Node descriptor helpers', () => {
         } as core.ElementNodeDescriptor)
     })
 
+    it('creates an ElementNodeDescriptor and adds a TextNodeDescriptor child', () => {
+        expect(JSON.stringify(html.el('div', 'A text'))).toEqual(JSON.stringify({
+            __type: 'element',
+            tagName: 'div',
+            attributes: {},
+            children: [{
+                __type: 'text',
+                value: 'A text'
+            } as core.TextNodeDescriptor]
+        } as core.ElementNodeDescriptor))
+    })
+
+    it('creates an ElementNodeDescriptor and adds a TextNodeDescriptor children and attributes', () => {
+        expect(JSON.stringify(html.el('div', { id: 'anId' }, 'Text A', 'Text B'))).toEqual(JSON.stringify({
+            __type: 'element',
+            tagName: 'div',
+            attributes: { id: 'anId' },
+            children: [{
+                __type: 'text',
+                value: 'Text A'
+            } as core.TextNodeDescriptor,
+            {
+                __type: 'text',
+                value: 'Text B'
+            } as core.TextNodeDescriptor]
+        } as core.ElementNodeDescriptor))
+    })
+
+    it('creates an ElementNodeDescriptor and flattens children', () => {
+        expect(JSON.stringify(html.el('div', ['Text A', 'Text B'], 'Text C', ...['Text D', 'Text E']))).toEqual(JSON.stringify({
+            __type: 'element',
+            tagName: 'div',
+            attributes: {},
+            children: [
+                { __type: 'text', value: 'Text A' } as core.TextNodeDescriptor,
+                { __type: 'text', value: 'Text B' } as core.TextNodeDescriptor,
+                { __type: 'text', value: 'Text C' } as core.TextNodeDescriptor,
+                { __type: 'text', value: 'Text D' } as core.TextNodeDescriptor,
+                { __type: 'text', value: 'Text E' } as core.TextNodeDescriptor
+            ]
+        } as core.ElementNodeDescriptor))
+    })
+
+    it('creates an TextNodeDescriptor from a supplied non-NodeDescriptor object', () => {
+        expect(JSON.stringify(html.el('div', [{ someKey: 'A text' }]))).toEqual(JSON.stringify({
+            __type: 'element',
+            tagName: 'div',
+            attributes: {},
+            children: [{
+                __type: 'text',
+                value: '[object Object]'
+            } as core.TextNodeDescriptor]
+        } as core.ElementNodeDescriptor))
+    })
+
     const childNodeDescriptor = {
         __type: 'element',
         tagName: 'div',
