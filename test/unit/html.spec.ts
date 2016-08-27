@@ -102,7 +102,7 @@ describe('Node descriptor helpers', () => {
         } as core.ElementNodeDescriptor))
     })
 
-    it('creates an TextNodeDescriptor from a supplied non-NodeDescriptor object', () => {
+    it('creates a TextNodeDescriptor from a supplied non-NodeDescriptor object', () => {
         expect(JSON.stringify(html.el('div', [{ someKey: 'A text' }]))).toEqual(JSON.stringify({
             __type: 'element',
             tagName: 'div',
