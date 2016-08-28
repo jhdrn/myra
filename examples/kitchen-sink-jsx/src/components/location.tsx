@@ -3,9 +3,17 @@ import { route, updateLocation, matchLocation, trackLocationChanges, goBack, goF
 import * as jsxFactory from 'myra/html/jsxFactory'
 import { routeComponent } from './route-component'
 
+
+/**
+ * Model
+ */
 type Model = undefined
 const init = [undefined, trackLocationChanges()] as [Model, Task]
 
+
+/**
+ * Subscriptions
+ */
 const subscriptions = {
     '__locationChanged': (m: Model, _locationData: LocationData) => m
 }
@@ -46,11 +54,10 @@ const view = (_: Model) =>
             </li>
         </ul>
     </section>
-               
 
 
 /**
- * component
+ * Component
  */
 export const locationComponent = defineComponent({
     // The name of the component. Used for debugging purposes.

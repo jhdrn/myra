@@ -1,11 +1,11 @@
 import { defineComponent } from 'myra/core'
-import * as jsxFactory from 'myra/html/jsxFactory'
+import { p } from 'myra/html/elements'
 
 
 /**
  * View
  */
-const view = () => <p>Hello route!</p>
+const view = () => p('Hello route!')
 
    
 /**

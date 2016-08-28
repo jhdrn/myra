@@ -18,7 +18,7 @@ const mount: Update<Model, any> = (_) => 'Hello world!'
 /**
  * View
  */
-const view: View<Model> = (model) => <p>a<span>{ model }</span><span>{ model }</span></p>
+const view: View<Model> = (model) => <p>{ model }</p>
 
 
 /**
@@ -33,6 +33,6 @@ const appComponent = defineComponent({
 
 
 /**
- * Execute and mount component
+ * Mount the component
  */
 appComponent.mount(document.body)

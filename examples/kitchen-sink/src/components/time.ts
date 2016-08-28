@@ -1,6 +1,6 @@
 import { defineComponent, evolve } from 'myra/core'
 import { startTimeout, cancelTimeout, startInterval, cancelInterval } from 'myra/time'
-import * as jsxFactory from 'myra/html/jsxFactory'
+import { section, h2, p, button } from 'myra/html/elements'
 
 
 /**
@@ -51,38 +51,36 @@ const cancelIntervalTask = (handle: number) => cancelInterval(handle, intervalCa
  * View
  */
 const view = (model: Model) => 
-    <section>
-        <h2>Time examples</h2>
-        <p>
-        { model.timeoutHandle ? 
-            <button type="button"
-                    class="btn btn-sm btn-default"
-                    onclick={cancelTimeoutTask(model.timeoutHandle)}>
-                    Cancel timeout
-            </button>
-            : <button type="button"
-                    class="btn btn-sm btn-default"
-                    onclick={startTimeoutTask}>
-                    Set a timeout of 5 seconds
-            </button>
-        }
-        </p>
-        <p>
-            { model.intervalHandle ? 
-                <button type="button"
-                        class="btn btn-sm btn-default"
-                        onclick={cancelIntervalTask(model.intervalHandle)}>
-                        Cancel interval
-                </button>
-                : <button type="button"
-                        class="btn btn-sm btn-default"
-                        onclick={startIntervalTask}>
-                        Start interval
-                </button>
-            }
-        </p>
-        <p>Milliseconds since interval started: {model.intervalTickValue}</p>
-    </section>
+    section(
+        h2('Time examples'),
+        p(
+            model.timeoutHandle ? 
+                button({ type: 'button',
+                         'class': 'btn btn-sm btn-default',
+                         onclick: cancelTimeoutTask(model.timeoutHandle) },
+                    'Cancel timeout'
+                )
+                : button({ type: 'button',
+                           'class': 'btn btn-sm btn-default',
+                           onclick: startTimeoutTask },
+                    'Set a timeout of 5 seconds'
+                )
+        ),
+        p(
+            model.intervalHandle ? 
+                button({ type: 'button',
+                         'class': 'btn btn-sm btn-default',
+                         onclick: cancelIntervalTask(model.intervalHandle) },
+                        'Cancel interval'
+                )
+                : button({ type: 'button',
+                           'class': 'btn btn-sm btn-default',
+                           onclick: startIntervalTask },
+                        'Start interval'
+                )
+        ),
+        p(`Milliseconds since interval started: ${model.intervalTickValue}`)
+    )
 
 
 /**

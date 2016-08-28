@@ -4,6 +4,7 @@ import * as todos from '../models/todos'
 
 type Todo = todos.Todo
 
+
 /**
  * Model
  */
@@ -19,7 +20,6 @@ const init: Model = {
         title: ''
     }
 }
-
 
 
 /**
@@ -75,7 +75,6 @@ const toggleTodoCompleted = (m: Model) => {
         todos.save(updatedTodo)
     ]
 }
-
 
 
 /**

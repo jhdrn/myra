@@ -6,6 +6,7 @@ import { httpComponent } from './http'
 import { timeComponent } from './time'
 import { locationComponent } from './location'
 
+
 /**
  * View
  */
@@ -23,11 +24,10 @@ const view = () =>
         <hr />
         <mount component={ locationComponent } />
     </div>
-               
 
 
 /**
- * component
+ * Component
  */
 export const mainComponent = defineComponent({
     // The name of the component. Used for debugging purposes.

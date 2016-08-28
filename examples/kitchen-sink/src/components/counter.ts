@@ -1,6 +1,5 @@
 import { defineComponent } from 'myra/core'
-import * as jsxFactory from 'myra/html/jsxFactory'
-
+import { section, h2, button } from 'myra/html/elements'
 
 /**
  * Model
@@ -20,22 +19,22 @@ const decrease = (model: Model) => model - 1
  * View
  */
 const view = (model: Model) => 
-    <section>
-        <h2>Counter example</h2>
-        <button type="button"
-                class="btn btn-sm btn-default"
-                onclick={increase}>+</button>
+    section(
+        h2('Counter example'),
+        button({ type: 'button',
+                 'class': 'btn btn-sm btn-default',
+                 onclick: increase }, '+'),
                 
-        {model}
+        model.toString(),
         
-        <button type="button"
-                class="btn btn-sm btn-default"
-                onclick={decrease}>-</button>
-    </section>
+        button({ type: 'button',
+                 'class': 'btn btn-sm btn-default',
+                 onclick: decrease }, '-')
+    )
 
 
 /**
- * component
+ * Component
  */
 export const counterComponent = defineComponent({
     // The name of the component. Used for debugging purposes.

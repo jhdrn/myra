@@ -1,6 +1,10 @@
 import { defineComponent, evolve } from 'myra/core'
 import * as jsxFactory from 'myra/html/jsxFactory'
 
+
+/**
+ * Model
+ */
 type FormData = {
     oninputDemo?: string
     onchangeDemo?: string
@@ -12,6 +16,10 @@ const init: Model = {
     formData: {}
 }
 
+
+/**
+ * Updates
+ */
 const onFormSubmitUpdate = (model: Model, formData: FormData) => 
     evolve(model, m => m.formData = formData)
 
@@ -21,6 +29,10 @@ const oninputUpdate = (model: Model, value: string) =>
 const onchangeUpdate = (model: Model, value: string) => 
     evolve(model, m => m.formData = evolve(m.formData, x => x.onchangeDemo = value))
 
+
+/**
+ * View
+ */
 const renderFormData = (formData: FormData) => 
     <div>
         <h3>Form data:</h3>
@@ -79,6 +91,10 @@ const view = (model: Model) =>
         </form>
     </section>
 
+
+/**
+ * Component
+ */
 export const formComponent = defineComponent({
     name: 'FormComponent',
     init: init,

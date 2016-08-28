@@ -36,7 +36,6 @@ const addNewTodo: Update<Model, any> = (m: Model, value: string) => {
 }
 
 
-
 /**
  * View
  */

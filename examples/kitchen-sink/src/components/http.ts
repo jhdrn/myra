@@ -1,6 +1,7 @@
 import { defineComponent, evolve } from 'myra/core'
 import { httpRequest, HttpResponse } from 'myra/http'
-import * as jsxFactory from 'myra/html/jsxFactory'
+import { nothing } from 'myra/html'
+import { section, div, h2, p, strong, button } from 'myra/html/elements'
 
 
 /**
@@ -42,28 +43,23 @@ const httpRequestTask =
  * View
  */
 const view = (model: Model) => 
-    <section>
-        <h2>HTTP example</h2>
-        <button type="button"
-                class="btn btn-sm btn-default"
-                onclick={httpRequestTask}>
-            Make HTTP request
-        </button>
-
-        <p>Response status:{model.responseStatus}</p>
-        {model.response ? 
-            <div>
-                {model.response.status}
-                {model.response.statusText}
-                {model.responseStatus === 'success' ? 
-                    <p><strong>Response text:</strong>{model.response.data}</p> 
-                    : <nothing />
-                }
-            </div> 
-            : <nothing /> 
-        }
-        
-    </section>
+    section(
+        h2('HTTP example'),
+        button({ type: 'button',
+                 'class': 'btn btn-sm btn-default',
+                 onclick: httpRequestTask },
+            'Make HTTP request'
+        ),
+        p(`Response status: ${model.responseStatus}`),
+        model.response ? 
+            div(
+                model.response.status,
+                model.response.statusText,
+                model.responseStatus === 'success' ? 
+                    p(strong('Response text:'), model.response.data) 
+                    : nothing()
+            ) : nothing() 
+    )
 
 
 /**
