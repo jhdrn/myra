@@ -41,7 +41,7 @@ const renderFormData = (formData: FormData) =>
                 dt(name), 
                 dd((formData as any)[name])
             ]
-        )
+        ))
     )
 
 const view = (model: Model) =>
@@ -71,7 +71,7 @@ const view = (model: Model) =>
                          name: 'onchangeDemo',
                          'class': 'form-control',
                          onchange: onchangeUpdate },
-                    ['Choice A', 'Choice B', 'Choice C'].map(option) 
+                    ...['Choice A', 'Choice B', 'Choice C'].map(c => option(c)) 
                 )
             ),
             div(

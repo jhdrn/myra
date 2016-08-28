@@ -70,6 +70,18 @@ describe('Node descriptor helpers', () => {
             } as core.TextNodeDescriptor]
         } as core.ElementNodeDescriptor))
     })
+    
+    it('creates an ElementNodeDescriptor and adds a TextNodeDescriptor child from a number', () => {
+        expect(JSON.stringify(html.el('div', 5 as any))).toEqual(JSON.stringify({
+            __type: 'element',
+            tagName: 'div',
+            attributes: {},
+            children: [{
+                __type: 'text',
+                value: '5'
+            } as core.TextNodeDescriptor]
+        } as core.ElementNodeDescriptor))
+    })
 
     it('creates an ElementNodeDescriptor and adds a TextNodeDescriptor children and attributes', () => {
         expect(JSON.stringify(html.el('div', { id: 'anId' }, 'Text A', 'Text B'))).toEqual(JSON.stringify({

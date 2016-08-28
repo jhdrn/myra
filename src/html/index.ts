@@ -74,10 +74,10 @@ export function element<A extends c.GlobalAttributes>(tagName: string) {
             tagName,
             attributes: attributesGiven ? attributesOrNode as A : {},
             children: flattenedChildren.filter(c => typeof c !== 'undefined').map(c => {
-                if (typeof c === 'string') {
+                if (typeof c !== 'object' || Array.isArray(c) || typeof c === 'object' && !(c as c.NodeDescriptor).__type) {
                     return text(c)
                 }
-                return c
+                return c as c.NodeDescriptor
             })
         }
     }
