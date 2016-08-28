@@ -114,7 +114,7 @@ returning `NodeDescriptor` which is a union type of the following types:
 
 #### ElementNodeDescriptor
 Renders as an HTML element. Most HTML elements are represented as functions in
-`myra/html` module (there is also an `el` function to create custom elements). 
+`myra/html/elements` module (there is also an `el` function to create custom elements). 
 
 ```typescript
     import { div, ul, li, el } from 'myra/html/elements'
