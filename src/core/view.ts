@@ -1,15 +1,47 @@
 import { typeOf, max } from './helpers'
 import { Dispatch, Task, UpdateAny, ElementEventAttributeArguments, NodeDescriptor, TextNodeDescriptor, ElementNodeDescriptor, ComponentNodeDescriptor, ListenerWithEventOptions } from './contract'
 
+type EventInterceptor = (element: Element, event: Event, update: UpdateAny, dispatch: Dispatch) => boolean
+
+const eventInterceptors = [] as EventInterceptor[]
+
 const INPUT_TAG_NAMES = [
     'INPUT', 
     'TEXTAREA', 
     'SELECT'
 ]
 
+eventInterceptors.push((element, _, update, dispatch) => {
+    if (INPUT_TAG_NAMES.indexOf(element.tagName) !== -1) {
+        dispatch(update, (element as HTMLInputElement).value)
+        return true
+    }
+    return false
+})
+
+eventInterceptors.push((element, _, update, dispatch) => {
+    if (element.tagName === 'FORM') {
+        const namedElements = element.querySelectorAll('[name]')
+        const formData: { [name: string]: string } = {}
+        for (let i = 0; i < namedElements.length; i++) {
+            const el = namedElements.item(i) as HTMLInputElement
+            formData[el.name] = el.value
+        }
+        dispatch(update, formData)
+        return true
+    }
+    return false
+})
+
 const BOOL_ATTRS = [
     'checked',
-    'disabled'
+    'disabled',
+    'hidden',
+    'autofocus',
+    'required',
+    'selected',
+    'multiple',
+    'draggable',
     // TODO: add more
 ]
 
@@ -121,21 +153,11 @@ function createEventListener([eventName, key]: [string, string], eventArgs: Elem
                 }
             }
         }
-
-        const tagName = (node as Element).tagName
-        if (INPUT_TAG_NAMES.indexOf(tagName) !== -1) {
-            dispatch(eventArgs as UpdateAny, (node as HTMLInputElement).value)
-        }
-        else if (tagName === 'FORM' && eventName === 'submit') {
-            const namedElements = (node as Element).querySelectorAll('[name]')
-            const formData: { [name: string]: string } = {}
-            for (let i = 0; i < namedElements.length; i++) {
-                const el = namedElements.item(i) as HTMLInputElement
-                formData[el.name] = el.value
-            }
-            dispatch(eventArgs as UpdateAny, formData)
-        }
-        else {
+        
+        const intercepted = eventInterceptors.reduce((stop, interceptor) => 
+            stop ? stop : interceptor(node as Element, ev, eventArgs as UpdateAny, dispatch), false)
+        
+        if (!intercepted) {
             dispatch(eventArgs as UpdateAny)
         }
     }
