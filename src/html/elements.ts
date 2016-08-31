@@ -1,7 +1,7 @@
 import * as c from '../core/contract'
 import { element } from './index'
 
-type Element<A extends c.GlobalAttributes> = (attributesOrNode?: A | c.NodeDescriptor[] | c.NodeDescriptor | string, ...children: (c.NodeDescriptor | string)[]) => c.ElementNodeDescriptor
+export type Element<A extends c.GlobalAttributes> = (attributesOrNode?: A | c.NodeDescriptor[] | c.NodeDescriptor | string, ...children: (c.NodeDescriptor | string)[]) => c.ElementNodeDescriptor
 
 /**
  * Creates an element descriptor
