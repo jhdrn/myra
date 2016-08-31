@@ -1,7 +1,7 @@
 import { typeOf, max } from './helpers'
 import { Dispatch, Task, UpdateAny, ElementEventAttributeArguments, NodeDescriptor, TextNodeDescriptor, ElementNodeDescriptor, ComponentNodeDescriptor, ListenerWithEventOptions } from './contract'
 
-type EventInterceptor = (element: Element, event: Event, update: UpdateAny, dispatch: Dispatch) => boolean
+type EventInterceptor = (nodeDescriptor: NodeDescriptor, element: Element, event: Event, update: UpdateAny, dispatch: Dispatch) => boolean
 
 const eventInterceptors = [] as EventInterceptor[]
 
@@ -11,7 +11,7 @@ const INPUT_TAG_NAMES = [
     'SELECT'
 ]
 
-eventInterceptors.push((element, _, update, dispatch) => {
+eventInterceptors.push((_nodeDescriptor, element, _, update, dispatch) => {
     if (INPUT_TAG_NAMES.indexOf(element.tagName) !== -1) {
         dispatch(update, (element as HTMLInputElement).value)
         return true
@@ -19,7 +19,7 @@ eventInterceptors.push((element, _, update, dispatch) => {
     return false
 })
 
-eventInterceptors.push((element, _, update, dispatch) => {
+eventInterceptors.push((_nodeDescriptor, element, _, update, dispatch) => {
     if (element.tagName === 'FORM') {
         const namedElements = element.querySelectorAll('[name]')
         const formData: { [name: string]: string } = {}
@@ -64,21 +64,20 @@ function nodesEqual(a: Node | undefined, b: Node) {
 }
 
 /** Sets an attribute or event listener on an HTMLElement. */
-function setAttr(element: HTMLElement, attributeName: string, attributeValue: any, dispatch: Dispatch) {
-    const [eventName, key] = attributeName.substr(2).toLowerCase().split('_')
+function setAttr(element: HTMLElement, attributeName: string, attributeValue: any) {
     if (attributeName.indexOf('on') === 0) {
-        let eventListener = createEventListener([eventName, key], attributeValue, element, dispatch)
-        if ((element as any)['on' + eventName]) {
+        const eventName = attributeName.split('_')[0]
+        if ((element as any)[eventName]) {
             // If there is a previous event listener, wrap it and the new one in
             // a function calling both.
-            const prevListener = (element as any)['on' + eventName]
-            ;(element as any)['on' + eventName] = (ev: Event) => {
+            const prevListener = (element as any)[eventName]
+            ;(element as any)[eventName] = (ev: Event) => {
                 prevListener(ev)
-                eventListener(ev)
+                attributeValue(ev)
             }
         }
         else {
-            ;(element as any)['on' + eventName] = eventListener
+            ;(element as any)[eventName] = attributeValue
         }
     }
     else if (attributeName === 'value' && INPUT_TAG_NAMES.indexOf(element.tagName) >= 0) {
@@ -107,8 +106,12 @@ function removeAttr(a: string, node: Element) {
 }
 
 /** Creates an event listener */
-function createEventListener([eventName, key]: [string, string], eventArgs: ElementEventAttributeArguments, node: Node, dispatch: Dispatch) {
-    
+function tryCreateEventListener(attributeName: string, eventArgs: ElementEventAttributeArguments, nodeDescriptor: NodeDescriptor, node: Node, dispatch: Dispatch) {
+    if (attributeName.indexOf('on') !== 0) {
+        return undefined
+    }
+
+    const [eventName, key] = attributeName.substr(2).toLowerCase().split('_')
     const isKeyboardEvent = ['keyup', 'keypress', 'keydown'].indexOf(eventName) >= 0
     let keyCode: number | undefined = undefined
     if (isKeyboardEvent && typeof key !== 'undefined') {
@@ -155,7 +158,7 @@ function createEventListener([eventName, key]: [string, string], eventArgs: Elem
         }
         
         const intercepted = eventInterceptors.reduce((stop, interceptor) => 
-            stop ? stop : interceptor(node as Element, ev, eventArgs as UpdateAny, dispatch), false)
+            stop ? stop : interceptor(nodeDescriptor, node as Element, ev, eventArgs as UpdateAny, dispatch), false)
         
         if (!intercepted) {
             dispatch(eventArgs as UpdateAny)
@@ -237,7 +240,8 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
                 if (newDescriptor.attributes.hasOwnProperty(name)) {
                     const attributeValue = newDescriptor.attributes[name]
                     if (typeof attributeValue !== 'undefined') {
-                        setAttr(newNode as HTMLElement, name, attributeValue, dispatch)
+                        const eventListener = tryCreateEventListener(name, attributeValue, newDescriptor, newNode, dispatch)
+                        setAttr(newNode as HTMLElement, name, eventListener || attributeValue)
                     }
                 }
             }
@@ -280,7 +284,8 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
                         if ((name.indexOf('on') === 0 || !(existingNode as Element).hasAttribute(name) || 
                             attributeValue !== oldAttributeValue) && typeof attributeValue !== 'undefined'
                         ) {
-                            setAttr(existingNode as HTMLElement, name, attributeValue, dispatch)
+                            const eventListener = tryCreateEventListener(name, attributeValue, newDescriptor, existingNode, dispatch)
+                            setAttr(existingNode as HTMLElement, name, eventListener || attributeValue)
                         }
                         else if (typeof attributeValue === 'undefined' && (existingNode as Element).hasAttribute(name)) {
                             existingNode.attributes.removeNamedItem(name)
