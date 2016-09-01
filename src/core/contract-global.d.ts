@@ -50,7 +50,7 @@ declare namespace myra.core.contract {
     }
     interface UpdateAny extends Update<any, any> { }
 
-    type Dispatch = <M, A>(fn: Update<M, A>, ...args: any[]) => void
+    type Dispatch = <M, A>(fn: Update<M, A>, arg: A) => void
 
     interface Task {
         execute(dispatch: Dispatch): void

@@ -31,7 +31,7 @@ class ComponentInstanceImpl<M, A> implements ComponentInstance<A> {
 
     initialize() {
         
-        dispatch((_) => this._args.init, undefined, this._context, render)
+        dispatch(this._context, render, (_) => this._args.init, undefined)
 
         this.remount(this._context.mountArg)
     }
@@ -44,10 +44,10 @@ class ComponentInstanceImpl<M, A> implements ComponentInstance<A> {
             this._context.mounted = true
             
             if (this._args.mount) {
-                dispatch(this._args.mount, arg, this._context, render)
+                dispatch(this._context, render, this._args.mount, arg)
             }
             else {
-                dispatch((m: M) => m, undefined, this._context, render)
+                dispatch(this._context, render, (m: M) => m, undefined)
             }
         }
         else {

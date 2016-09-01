@@ -32,5 +32,9 @@ export function validateForm(formData: Map<string>, formValidators: FormValidato
             }
         }
         return acc
-    }, { valid: true, errors: [], fields: formFields } as FormValidationResult)
+    }, { 
+        valid: Object.keys(formFields).map(k => formFields[k].valid).every(x => x), 
+        errors: [], 
+        fields: formFields 
+    } as FormValidationResult)
 }

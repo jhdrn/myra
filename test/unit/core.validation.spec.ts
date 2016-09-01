@@ -39,7 +39,7 @@ describe('core.validation', () => {
         expect(mocks.validate).toHaveBeenCalledTimes(1)
     })
 
-    it('validateForm calls validator with a successful validation', () => {
+    it('validateForm calls validators', () => {
         const mocks = {
             validateForm: (_: Map<string>) => ({
                 valid: false,

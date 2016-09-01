@@ -23,7 +23,7 @@ describe('core.dispatch', () => {
             expect(context.model).toBe(2)
             return null as any as Node
         }
-        dispatch(update, 2, context, render)
+        dispatch(context, render, update, 2)
     })
 
     it('does not call render if dispatchLevel > 1', () => {
@@ -48,7 +48,7 @@ describe('core.dispatch', () => {
 
         spyOn(renderMock, 'render')
 
-        dispatch(update, 2, context, renderMock.render)
+        dispatch(context, renderMock.render, update, 2)
         
         expect(renderMock.render).not.toHaveBeenCalled()
     })
@@ -71,7 +71,7 @@ describe('core.dispatch', () => {
             return null as any as Node
         }
 
-        expect(() => dispatch(update, 2, context, render)).toThrow()
+        expect(() => dispatch(context, render, update, 2)).toThrow()
     })
 
     it('updates model and executes task', () => {
@@ -96,7 +96,7 @@ describe('core.dispatch', () => {
             expect(context.model).toBe(2)
             return null as any as Node
         }
-        dispatch(update, 2, context, render)
+        dispatch(context, render, update, 2)
     })
 
     
@@ -124,6 +124,6 @@ describe('core.dispatch', () => {
             expect(context.model).toBe(2)
             return null as any as Node
         }
-        dispatch(update, 2, context, render)
+        dispatch(context, render, update, 2)
     })
 })

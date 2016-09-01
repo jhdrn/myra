@@ -1,10 +1,10 @@
-import { Update, Dispatch, NodeDescriptor, ComponentContext } from './contract'
+import { Update, Dispatch, NodeDescriptor, ComponentContext, Task } from './contract'
 
 export interface Render {
     (parentNode: Element, view: NodeDescriptor, oldView: NodeDescriptor | undefined, oldRootNode: Node, dispatch: Dispatch): Node
 }
 
-export function dispatch<M, A>(fn: Update<M, A>, arg: A | undefined, context: ComponentContext<M, A>, render: Render) {
+export function dispatch<M, A>(context: ComponentContext<M, A>, render: Render, fn: (model: M, ...args: any[]) => M | [M, Task | Task[]], ...args: any[]) {
 
     if (context.isUpdating) {
         throw `${context.name}: Dispatch error - the dispatch function may not be called during an update. Doing so would most likely corrupt the model state.`
@@ -14,11 +14,11 @@ export function dispatch<M, A>(fn: Update<M, A>, arg: A | undefined, context: Co
 
     context.isUpdating = true
 
-    const result = fn(context.model!, arg)
+    const result = fn(context.model!, ...args)
     
     context.isUpdating = false
 
-    const dispatchFn = (fn: Update<M, A>, arg: A | undefined) => dispatch(fn, arg, context, render)
+    const dispatchFn = (fn: Update<M, A>, ...args: any[]) => dispatch(context, render, fn, ...args)
 
     if (Array.isArray(result)) {
         const [newModel, task] = result
