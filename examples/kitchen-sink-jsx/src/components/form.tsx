@@ -6,6 +6,7 @@ import * as jsxFactory from 'myra/html/jsxFactory'
  * Model
  */
 type FormData = {
+    formField?: string
     oninputDemo?: string
     onchangeDemo?: string
 }

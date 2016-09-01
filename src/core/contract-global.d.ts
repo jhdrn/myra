@@ -65,11 +65,27 @@ declare namespace myra.core.contract {
 
     interface AttributeMap { [name: string]: string }
     interface ListenerWithEventOptions {
-        listener: Task | Update<any, any>
+        listener: Task | UpdateAny
         preventDefault?: boolean
         stopPropagation?: boolean 
     }
-    type ElementEventAttributeArguments = Update<any, any> | Task | ListenerWithEventOptions
+    type ElementEventAttributeArguments = UpdateAny | Task | ListenerWithEventOptions
+
+    interface FormElementListenerWithEventOptions {
+        listener: Task | UpdateWithFormValidation
+        preventDefault?: boolean
+        stopPropagation?: boolean 
+    }
+    type UpdateWithFormValidation = <M>(model: M, formData: Map<string>, formValidationResult: FormValidationResult) => M | [M, Task | Task[]]
+    type FormElementEventAttributeArguments =  UpdateWithFormValidation | Task | FormElementListenerWithEventOptions
+    
+    interface FieldElementListenerWithEventOptions {
+        listener: Task | UpdateWithFieldValidation
+        preventDefault?: boolean
+        stopPropagation?: boolean 
+    }
+    type UpdateWithFieldValidation = <M>(model: M, value: string, validationResult: FieldValidationResult) => M | [M, Task | Task[]]
+    type FieldElementEventAttributeArguments =  UpdateWithFieldValidation | Task | FieldElementListenerWithEventOptions
 
     interface NodeDescriptorBase {
         node?: Node
@@ -229,8 +245,8 @@ declare namespace myra.core.contract {
         target?: string
         
         onreset?: ElementEventAttributeArguments
-        onsubmit?: ElementEventAttributeArguments
-        onchange?: ElementEventAttributeArguments
+        onsubmit?: FormElementEventAttributeArguments
+        onchange?: FormElementEventAttributeArguments
         
         validators?: FormValidator | FormValidator[]
     }
@@ -290,8 +306,8 @@ declare namespace myra.core.contract {
         value?: string | number
         width?: number
         
-        onchange?: ElementEventAttributeArguments
-        oninput?: ElementEventAttributeArguments
+        onchange?: FieldElementEventAttributeArguments
+        oninput?: FieldElementEventAttributeArguments
         
         validators?: FieldValidator | FieldValidator[]
     }
@@ -356,7 +372,7 @@ declare namespace myra.core.contract {
         required?: boolean
         size?: number
 
-        onchange?: ElementEventAttributeArguments
+        onchange?: FieldElementEventAttributeArguments
         
         validators?: FieldValidator | FieldValidator[]
     }
@@ -385,8 +401,8 @@ declare namespace myra.core.contract {
         selectionStart?: number
         wrap?: 'soft' | 'hard'
 
-        onchange?: ElementEventAttributeArguments
-        oninput?: ElementEventAttributeArguments
+        onchange?: FieldElementEventAttributeArguments
+        oninput?: FieldElementEventAttributeArguments
 
         validators?: FieldValidator | FieldValidator[]
     }
