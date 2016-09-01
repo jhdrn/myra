@@ -1,5 +1,10 @@
 
 declare namespace myra.core.contract {
+
+    type Map<T> = {
+        [key: string]: T
+    }
+
     /**
      * Component types
      */
@@ -70,27 +75,38 @@ declare namespace myra.core.contract {
         node?: Node
     }
     interface TextNodeDescriptor extends NodeDescriptorBase {
-        __type: 'text'
-        value: string
+        readonly __type: 'text'
+        readonly value: string
     }
     interface ElementNodeDescriptor extends NodeDescriptorBase {
-        __type: 'element'
-        tagName: string
-        attributes: GlobalAttributes
-        children: NodeDescriptor[]
+        readonly __type: 'element'
+        readonly tagName: string
+        readonly attributes: GlobalAttributes
+        readonly children: NodeDescriptor[]
     }
     interface ComponentNodeDescriptor extends NodeDescriptorBase {
-        __type: 'component'
-        component: Component
+        readonly __type: 'component'
+        readonly component: Component
         componentInstance?: ComponentInstance<any>
         forceMount?: boolean
         args: any
     }
     interface NothingNodeDescriptor extends NodeDescriptorBase {
-        __type: 'nothing'
+        readonly __type: 'nothing'
     }
     type NodeDescriptor = TextNodeDescriptor | ElementNodeDescriptor | ComponentNodeDescriptor | NothingNodeDescriptor
 
+    type FieldValidationResult = {
+        readonly valid: boolean
+        readonly errors: string[]
+    }
+    type FormValidationResult = {
+        readonly valid: boolean
+        readonly errors: string[]
+        readonly fields: { [name: string]: FieldValidationResult }
+    }
+    type FieldValidator = (value: string) => FieldValidationResult
+    type FormValidator = (value: Map<string>) => FormValidationResult
     
     interface GlobalAttributes {
         accesskey?: string
@@ -215,6 +231,8 @@ declare namespace myra.core.contract {
         onreset?: ElementEventAttributeArguments
         onsubmit?: ElementEventAttributeArguments
         onchange?: ElementEventAttributeArguments
+        
+        validators?: FormValidator | FormValidator[]
     }
     interface IframeAttributes extends GlobalAttributes {
         allowfullscreen?: boolean
@@ -275,6 +293,7 @@ declare namespace myra.core.contract {
         onchange?: ElementEventAttributeArguments
         oninput?: ElementEventAttributeArguments
         
+        validators?: FieldValidator | FieldValidator[]
     }
     interface InsAttributes extends GlobalAttributes {
         cite?: string
@@ -338,6 +357,8 @@ declare namespace myra.core.contract {
         size?: number
 
         onchange?: ElementEventAttributeArguments
+        
+        validators?: FieldValidator | FieldValidator[]
     }
     interface SourceAttributes extends GlobalAttributes {
         src?: string
@@ -366,6 +387,8 @@ declare namespace myra.core.contract {
 
         onchange?: ElementEventAttributeArguments
         oninput?: ElementEventAttributeArguments
+
+        validators?: FieldValidator | FieldValidator[]
     }
     interface ThAttributes extends GlobalAttributes {
         colspan?: number

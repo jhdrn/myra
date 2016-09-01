@@ -24,6 +24,7 @@
             "core/dispatch": ["src/core/dispatch.ts"],
             "core/helpers": ["src/core/helpers.ts"],
             "core/subscriptions": ["src/core/subscriptions.ts"],
+            "core/validation": ["src/core/validation.ts"],
             "core/view": ["src/core/view.ts"],
             "html": ["src/html/index.ts"],
             "html/elements": ["src/html/elements.ts"],

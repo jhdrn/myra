@@ -1,5 +1,6 @@
 import { typeOf, max } from './helpers'
-import { Dispatch, Task, UpdateAny, ElementEventAttributeArguments, NodeDescriptor, TextNodeDescriptor, ElementNodeDescriptor, ComponentNodeDescriptor, ListenerWithEventOptions } from './contract'
+import { Dispatch, Task, UpdateAny, FieldValidator, ElementEventAttributeArguments, NodeDescriptor, TextNodeDescriptor, ElementNodeDescriptor, ComponentNodeDescriptor, ListenerWithEventOptions, FormAttributes, InputAttributes } from './contract'
+import { validateField, validateForm } from './validation'
 
 type EventInterceptor = (nodeDescriptor: NodeDescriptor, element: Element, event: Event, update: UpdateAny, dispatch: Dispatch) => boolean
 
@@ -13,13 +14,29 @@ const INPUT_TAG_NAMES = [
 
 eventInterceptors.push((_nodeDescriptor, element, _, update, dispatch) => {
     if (INPUT_TAG_NAMES.indexOf(element.tagName) !== -1) {
-        dispatch(update, (element as HTMLInputElement).value)
+        const validators = ((_nodeDescriptor as ElementNodeDescriptor).attributes as InputAttributes).validators
+        let validationResult = validators ? validateField((element as HTMLInputElement).value, Array.isArray(validators) ? validators : [validators]) : undefined
+        dispatch(update, (element as HTMLInputElement).value, validationResult)
         return true
     }
     return false
 })
 
-eventInterceptors.push((_nodeDescriptor, element, _, update, dispatch) => {
+function findFieldValidatorsRec(nodeDescriptors: NodeDescriptor[], fields: { [name: string]: FieldValidator[]}) {
+    return nodeDescriptors.reduce((acc, descriptor) => {
+        if (descriptor.__type === 'element') {
+            const fieldName = ((descriptor as ElementNodeDescriptor).attributes as InputAttributes).name
+            const validators = ((descriptor as ElementNodeDescriptor).attributes as InputAttributes).validators
+            if (fieldName && validators) {
+                acc[fieldName] = Array.isArray(validators) ? validators : [validators]
+            }
+            findFieldValidatorsRec((descriptor as ElementNodeDescriptor).children, acc)
+        }
+        return acc
+    }, fields)
+}
+
+eventInterceptors.push((nodeDescriptor, element, _, update, dispatch) => {
     if (element.tagName === 'FORM') {
         const namedElements = element.querySelectorAll('[name]')
         const formData: { [name: string]: string } = {}
@@ -27,7 +44,11 @@ eventInterceptors.push((_nodeDescriptor, element, _, update, dispatch) => {
             const el = namedElements.item(i) as HTMLInputElement
             formData[el.name] = el.value
         }
-        dispatch(update, formData)
+        const formValidators = ((nodeDescriptor as ElementNodeDescriptor).attributes as FormAttributes).validators || []
+        
+        const fieldValidators = findFieldValidatorsRec((nodeDescriptor as ElementNodeDescriptor).children, {})
+        const validationResult = validateForm(formData, Array.isArray(formValidators) ? formValidators : [formValidators], fieldValidators)
+        dispatch(update, formData, validationResult)
         return true
     }
     return false

@@ -1,5 +1,7 @@
 /// <reference path="contract-global.d.ts" />
 
+export type Map<T> = myra.core.contract.Map<T>
+
 /**
  * Component types
  */
@@ -29,6 +31,11 @@ export interface ElementNodeDescriptor extends myra.core.contract.ElementNodeDes
 export interface ComponentNodeDescriptor extends myra.core.contract.ComponentNodeDescriptor {}
 export interface NothingNodeDescriptor extends myra.core.contract.NothingNodeDescriptor {}
 export type NodeDescriptor = TextNodeDescriptor | ElementNodeDescriptor | ComponentNodeDescriptor | NothingNodeDescriptor
+
+export type FormValidator = myra.core.contract.FormValidator
+export type FieldValidator = myra.core.contract.FieldValidator
+export type FormValidationResult = myra.core.contract.FormValidationResult
+export type FieldValidationResult = myra.core.contract.FieldValidationResult
 
 export interface GlobalAttributes extends myra.core.contract.GlobalAttributes {}
 export interface AAttributes extends myra.core.contract.AAttributes {}

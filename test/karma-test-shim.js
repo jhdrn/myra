@@ -19,6 +19,7 @@ System.config({
                 'core/dispatch': './src/core/dispatch',
                 'core/helpers': './src/core/helpers',
                 'core/subscriptions': './src/core/subscriptions',
+                'core/validation': './src/core/validation',
                 'core/view': './src/core/view',
                 'html': './src/html/index',
                 'html/jsxFactory': './src/html/jsxFactory',
