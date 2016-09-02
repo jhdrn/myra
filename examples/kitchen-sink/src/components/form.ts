@@ -2,9 +2,9 @@ import { defineComponent, evolve, FormValidationResult } from 'myra/core'
 import { nothing } from 'myra/html'
 import { section, div, h2, h3, form, p, dl, dt, dd, label, input, select, option, button } from 'myra/html/elements'
 
-const required = (value: string) => ({ 
+const required = (label: string) => (value: string) => ({ 
     valid: !!value,
-    errors: []
+    errors: [`'${label}' is required`]
 })
 
 /**
@@ -57,15 +57,8 @@ const view = (m: Model) =>
         ),
         m.formValidationResult ?
             div(
-                h3('Form validation result:'),
-                m.formValidationResult.valid ? 'Valid' : 'Invalid',
-                ...m.formValidationResult.errors,
-                dl(Object.keys(m.formValidationResult.fields).map(name => 
-                    [
-                        dt(name), 
-                        dd((m.formValidationResult!.fields as any)[name].valid)
-                    ]
-                ))
+                h3('The form is ' + (m.formValidationResult.valid ? 'valid' : 'invalid')),
+                ...m.formValidationResult.errors
             ) 
             : nothing(),
         form({ onsubmit: { listener: onFormSubmitUpdate, preventDefault: true } },
@@ -74,8 +67,11 @@ const view = (m: Model) =>
                 input({ type: 'text',
                         id: 'formField',
                         name: 'formField',
-                        validators: [required],
-                        'class': 'form-control' })
+                        validators: [required('Just a form field')],
+                        'class': 'form-control' }),
+                m.formValidationResult ? 
+                    p({ 'class': 'help-text'}, (m.formValidationResult!.fields as any)['formField'].errors) 
+                    : nothing()
             ),
             div({ 'class': 'form-group' },
                 label({ for: 'oninputDemo' }, 'Oninput demo'),
