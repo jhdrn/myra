@@ -10,7 +10,6 @@ module.exports = {
     },
     output: {
         path: absolutePath('build'),
-        // publicPath: "/assets/",
         filename: "bundle.js"
     },
     resolve: {
@@ -20,10 +19,6 @@ module.exports = {
     },
     // Enable sourcemaps for debugging webpack's output.
     devtool: "source-map",
-  // Add minification
-//   plugins: [
-//     new webpack.optimize.UglifyJsPlugin()
-//   ],
     devServer: {
         historyApiFallback: true
     },

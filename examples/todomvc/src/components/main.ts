@@ -1,5 +1,5 @@
 import { defineComponent, Update, View, Task } from 'myra/core'
-import { text, component } from 'myra/html'
+import { text } from 'myra/html'
 import { section, header, footer, div, h1, input, p, a } from 'myra/html/elements'
 import { trackLocationChanges } from 'myra/location'
 import { todoListComponent } from './todo-list'
