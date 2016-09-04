@@ -68,7 +68,7 @@ A component will be defined with `defineComponent`:
 The "main" component should be mounted to a HTML element:
 
 ```typescript
-    myComponent.mount(document.body)
+    myComponent().mount(document.body)
 ```
 
 ### Model
@@ -275,10 +275,9 @@ Mounts a child component, rendering it's view hierarchy. It's possible to feed
 the child component with arguments.
 
 ```typescript
-    import { component } from 'myra/html'
     import { myOtherComponent } from './myOtherComponent'
 
-    const view = (_) => component(myOtherComponent, 'an argument')
+    const view = (_) => myOtherComponent({ foo: 'an argument' })
 ```
 
 JSX:
@@ -289,7 +288,7 @@ JSX:
     ...
     
     const view = (_) => 
-        <mount component={ myOtherComponent } args={ 'an argument' } />
+        <MyOtherComponent foo="an argument" />
 
 ```
 
