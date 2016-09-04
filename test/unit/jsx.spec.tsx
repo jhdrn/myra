@@ -5,7 +5,7 @@ describe('jsxFactory', () => {
 
     it('creates a TextNodeDescriptor from an expression inside an element', () => {
 
-        const view = <div>{'some text'}</div> as core.ElementNodeDescriptor
+        const view = <div>{'some text'}</div>
 
         expect(view.children[0]).toEqual({
             __type: 'text',
@@ -24,7 +24,7 @@ describe('jsxFactory', () => {
 
     it('creates an ElementNodeDescriptor with the supplied tagName', () => {
 
-        const view = <div></div> as core.ElementNodeDescriptor
+        const view = <div></div>
 
         expect(view).toEqual({
             __type: 'element',
