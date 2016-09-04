@@ -14,5 +14,5 @@ export function createElement(tagNameOrComponent: string | InitializeComponent, 
 
         return element(tagNameOrComponent)(props || undefined, ...Array.prototype.slice.call(arguments, 2) as NodeDescriptor[])
     }
-    return tagNameOrComponent(props, props['forceMount'])
+    return tagNameOrComponent(props || undefined, props ? props['forceMount'] : undefined)
 }
