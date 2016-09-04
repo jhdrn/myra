@@ -1,5 +1,5 @@
 import * as core from 'core'
-import { nothing, text, component } from 'html'
+import { nothing, text } from 'html'
 import * as html from 'html/elements'
 
 describe('Node descriptor helpers', () => {
@@ -168,19 +168,5 @@ describe('Node descriptor helpers', () => {
                 childNodeDescriptor
             ]
         } as core.ElementNodeDescriptor)
-    })
-
-    it('creates a ComponentNodeDescriptor', () => {
-        const testComponent = core.defineComponent({
-            name: 'TestComponent',
-            init: undefined,
-            view: () => html.div()
-        })
-        expect(component(testComponent)).toEqual({
-            __type: 'component',
-            component: testComponent,
-            args: undefined,
-            forceMount: undefined
-        } as core.ComponentNodeDescriptor)
     })
 })

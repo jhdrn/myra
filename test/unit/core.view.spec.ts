@@ -1,6 +1,6 @@
 import { defineComponent, task } from 'core'
 import { render } from 'core/view'
-import { text, component, nothing } from 'html'
+import { text, nothing } from 'html'
 import { div, button, span, input, textarea, form } from 'html/elements'
 
 const keyPressEvent = (keyCode: number) => {
@@ -71,7 +71,7 @@ describe('core.view.render', () => {
             view: (_) => div({ id: 'testComponent' })
         })
 
-        const view = div(component(testComponent))
+        const view = div(testComponent())
 
         const node = render(document.body, view, view, undefined, () => {}) as HTMLDivElement
 
@@ -94,8 +94,8 @@ describe('core.view.render', () => {
             view: (_) => div({ id: 'testComponent' })
         })
 
-        const view1 = component(testComponent)
-        const view2 = component(testComponent, undefined, true)
+        const view1 = testComponent()
+        const view2 = testComponent(undefined, true)
 
         const node = render(document.body, view1, view1, undefined, () => {}) as HTMLDivElement
 

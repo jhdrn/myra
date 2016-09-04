@@ -1,5 +1,5 @@
 import { Subscriptions, broadcast as broadcastInternal } from './subscriptions'
-import { Task, Component, ComponentArgs, ComponentContext, Update } from './contract'
+import { Task, InitializeComponent, ComponentArgs, ComponentContext, Update } from './contract'
 import { defineComponent as defineComponentInternal, Subscribe } from './component'
 
 export { evolve } from './helpers'
@@ -20,6 +20,6 @@ export function broadcast(type: string, data: any): Task {
 }
 
 /** Defines a component given the args. */
-export function defineComponent<M, A>(args: ComponentArgs<M, A>): Component {
+export function defineComponent<M, A>(args: ComponentArgs<M, A>): InitializeComponent {
     return defineComponentInternal(args, subscribe)
 }

@@ -195,7 +195,7 @@ function createNode(descriptor: NodeDescriptor, parentNode: Element): Node {
         case 'text':
             return document.createTextNode(descriptor.value)
         case 'component':
-            descriptor.componentInstance = descriptor.component.mount(parentNode, descriptor.args) 
+            descriptor.componentInstance = descriptor.mount(parentNode, descriptor.props) 
             return descriptor.componentInstance.rootNode
         case 'nothing':
             return document.createComment('Nothing')
@@ -367,7 +367,7 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
             case 'component':
                 newDescriptor.componentInstance = (oldDescriptor as ComponentNodeDescriptor).componentInstance
                 ;(oldDescriptor as ComponentNodeDescriptor).componentInstance = undefined
-                newDescriptor.componentInstance!.remount(newDescriptor.args, newDescriptor.forceMount)
+                newDescriptor.componentInstance!.remount(newDescriptor.props, newDescriptor.forceMount)
                 break
         }
 

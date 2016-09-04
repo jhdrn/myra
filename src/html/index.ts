@@ -2,12 +2,6 @@ import * as c from '../core/contract'
 import { flatten } from '../core/helpers'
 
 /**
- * Creates a ComponentNodeDescriptor
- */
-export const component = <T>(component: c.Component, args?: T, forceMount?: boolean) => 
-    ({ __type: 'component', component, args, forceMount }) as c.ComponentNodeDescriptor
-
-/**
  * Creates a NothingNodeDescriptor
  */
 export const nothing = (): c.NothingNodeDescriptor => ({ __type: 'nothing' })

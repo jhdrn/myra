@@ -16,11 +16,6 @@ declare namespace myra.core.contract {
         view: View<M>
     }
 
-    interface Component {
-        readonly name: string
-        mount<A>(parentNode: Element, arg?: A): ComponentInstance<A>
-    }
-
     interface ComponentInstance<T> {
         readonly name: string
         readonly id: number
@@ -42,6 +37,8 @@ declare namespace myra.core.contract {
         rootNode: Node
     }
 
+    type InitializeComponent = <A>(mountArgs?: A, forceMount?: boolean) => ComponentNodeDescriptor
+    
     /**
      * Update/Dispatch types
      */
@@ -102,10 +99,11 @@ declare namespace myra.core.contract {
     }
     interface ComponentNodeDescriptor extends NodeDescriptorBase {
         readonly __type: 'component'
-        readonly component: Component
+        readonly name: string
+        mount<A>(parentNode: Element, arg?: A): ComponentInstance<A>
         componentInstance?: ComponentInstance<any>
         forceMount?: boolean
-        args: any
+        props?: any
     }
     interface NothingNodeDescriptor extends NodeDescriptorBase {
         readonly __type: 'nothing'

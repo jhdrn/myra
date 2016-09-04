@@ -26,7 +26,7 @@ describe('core.subscriptions.broadcast', () => {
             view: () => div()
         })
 
-        component.mount(document.body)
+        component().mount(document.body)
 
         broadcast('test1', 'testdata1').execute((_: any) => {
         })

@@ -14,7 +14,7 @@ describe('core.defineComponent', () => {
     })
 
     it('has a name', () => {
-        expect(component1.name).toBe('TestComponent')
+        expect(component1().name).toBe('TestComponent')
     })
 })
 
@@ -33,7 +33,7 @@ describe('component.mount', () => {
             })
         })
 
-        component.mount(document.body)
+        component().mount(document.body)
 
         const rootNode = q('#root')
         
@@ -54,7 +54,7 @@ describe('component.mount', () => {
             view: () => div()
         })
 
-        component.mount(document.body)
+        component().mount(document.body)
 
         expect(mountMock.mount).toHaveBeenCalled()
     })
@@ -78,7 +78,7 @@ describe('component.mount', () => {
             view: () => div()
         })
 
-        component.mount(document.body)
+        component().mount(document.body)
 
         expect(mountMock.mount).toHaveBeenCalled()
     })
@@ -103,7 +103,7 @@ describe('componentInstance.remount', () => {
             view: () => div()
         })
 
-        const componentInstance = component.mount(document.body, 75)
+        const componentInstance = component().mount(document.body, 75)
         componentInstance.remount(75)
 
         expect(mountMock.mount).toHaveBeenCalledTimes(1)
@@ -123,7 +123,7 @@ describe('componentInstance.remount', () => {
             view: () => div()
         })
 
-        const componentInstance = component.mount(document.body)
+        const componentInstance = component().mount(document.body)
         componentInstance.remount(undefined, true)
 
         expect(mountMock.mount).toHaveBeenCalledTimes(2)
@@ -144,7 +144,7 @@ describe('componentInstance.remount', () => {
             view: () => div()
         })
 
-        const componentInstance = component.mount(document.body, { prop: 'value' })
+        const componentInstance = component().mount(document.body, { prop: 'value' })
         componentInstance.remount({ prop: 'new value' }, true)
 
         expect(mountMock.mount).toHaveBeenCalledTimes(2)

@@ -1,15 +1,24 @@
 /// <reference path="../core/contract-global.d.ts" />
 
+declare namespace myra.core.contract {
+    interface ComponentNodeDescriptor {
+        (): ComponentNodeDescriptor
+    }
+}
+
 type GlobalAttributes = myra.core.contract.GlobalAttributes
 declare namespace JSX {
     
     export interface Element extends myra.core.contract.ElementNodeDescriptor {
     }
+    interface ElementClass {
+        <A>(mountArgs?: A, forceMount?: boolean): myra.core.contract.ComponentNodeDescriptor
+    }
+    interface ElementAttributesProperty {
+        props: any
+    }
+    // export interface ElementAttributesProperty { props: {} } 
     export interface IntrinsicElements {
-        mount: { 
-            component: myra.core.contract.Component
-            args?: any 
-        }
         nothing: never
 
         a: myra.core.contract.AAttributes
@@ -130,5 +139,4 @@ declare namespace JSX {
         wbr: GlobalAttributes
 
     }
-    export interface ElementAttributesProperty { props: {} } 
 }

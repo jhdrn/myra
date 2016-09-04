@@ -1,4 +1,4 @@
-import { Component, ComponentArgs, ComponentInstance, ComponentContext, Update, View, NodeDescriptor } from './contract'
+import { InitializeComponent, ComponentArgs, ComponentInstance, ComponentContext, Update, View, NodeDescriptor } from './contract'
 import { equal } from './helpers'
 import { dispatch } from './dispatch'
 import { render } from './view'
@@ -83,12 +83,13 @@ class ComponentContextImpl<M, T> implements ComponentContext<M, T> {
     rootNode: Node
 }
 
-
 /** Defines a component. */
-export function defineComponent<M, A>(args: ComponentArgs<M, A>, subscribe: Subscribe): Component {        
-    
-    return {
+export function defineComponent<M, A>(args: ComponentArgs<M, A>, subscribe: Subscribe): InitializeComponent {        
+    return (mountArgs?: A, forceMount?: boolean) => ({
+        __type: 'component',
         name: args.name,
+        props: mountArgs,
+        forceMount: forceMount,
         mount: (parentNode: Element, mountArgs?: A): ComponentInstance<A> => {
 
             const context = new ComponentContextImpl<M, A>(parentNode, args.name, args.view, mountArgs)
@@ -103,5 +104,6 @@ export function defineComponent<M, A>(args: ComponentArgs<M, A>, subscribe: Subs
             componentInstance.initialize()
             return componentInstance
         }
-    }
+    }) as any // Needs this cast to be compatible with jsx interface augmentation
+    // Could it be done in a better way?
 }
