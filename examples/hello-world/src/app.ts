@@ -1,5 +1,5 @@
 import { Update, View, defineComponent } from 'myra/core'
-import { div } from 'myra/html/elements'
+import { p } from 'myra/html/elements'
 
 
 /**
@@ -18,7 +18,7 @@ const mount: Update<Model, any> = (_) => 'Hello world!'
 /**
  * View
  */
-const view: View<Model> = (model) => div(model)
+const view: View<Model> = (model) => p(model)
 
 
 /**
