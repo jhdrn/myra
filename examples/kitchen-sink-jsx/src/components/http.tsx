@@ -69,7 +69,7 @@ const view = (model: Model) =>
 /**
  * Component
  */
-export const httpComponent = defineComponent({
+export const HttpComponent = defineComponent({
     // The name of the component. Used for debugging purposes.
     name: 'HttpComponent',
 

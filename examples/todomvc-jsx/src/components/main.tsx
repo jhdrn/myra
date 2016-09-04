@@ -1,7 +1,7 @@
 import { defineComponent, Update, View, Task } from 'myra/core'
 import * as jsxFactory from 'myra/html/jsxFactory'
 import { trackLocationChanges } from 'myra/location'
-import { todoListComponent } from './todo-list'
+import { TodoListComponent } from './todo-list'
 import * as todos from '../models/todos'
 
 type Todo = todos.Todo
@@ -46,11 +46,11 @@ const view: View<Model> = (_) =>
                 <h1>todos</h1>
                 <input class="new-todo"
                        placeholder="What needs to be done?"
-                       autofocus="autofocus"
+                       autofocus={true}
                        value=""
                        onkeyup_enter={ addNewTodo } />
             </header>
-            <mount component={ todoListComponent } />
+            <TodoListComponent />
         </section>
         <footer class="info">
             <p>Double-click to edit a todo</p>

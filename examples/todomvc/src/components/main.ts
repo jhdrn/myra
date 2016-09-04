@@ -55,7 +55,7 @@ const view: View<Model> = (_) =>
                     onkeyup_enter: addNewTodo
                 })
             ),
-            component(todoListComponent)
+            todoListComponent()
         ),
         footer({ 'class': 'info' },
             p(text('Double-click to edit a todo')),

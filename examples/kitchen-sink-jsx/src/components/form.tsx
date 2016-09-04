@@ -96,7 +96,7 @@ const view = (model: Model) =>
 /**
  * Component
  */
-export const formComponent = defineComponent({
+export const FormComponent = defineComponent({
     name: 'FormComponent',
     init: init,
     view: view

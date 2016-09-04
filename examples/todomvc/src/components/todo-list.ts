@@ -1,5 +1,5 @@
 import { defineComponent, evolve, View, Update, Task } from 'myra/core'
-import { component, text, nothing } from 'myra/html'
+import { text, nothing } from 'myra/html'
 import { section, footer, div, ul, li, input, label, span, strong, a, button } from 'myra/html/elements'
 import { matchLocation, replaceLocation } from 'myra/location'
 import { TodosFilter, saveFilter, loadFilter } from '../models/filter'
@@ -101,7 +101,7 @@ const view: View<Model> = (model) =>
             label({ for: 'toggle-all' }, text('Mark all as complete')),
             ul({ 'class': 'todo-list' },
                 ...model.todos.filter(filterTodos(model)).map(todo => 
-                    component(todoItemComponent, todo)
+                    todoItemComponent(todo)
                 )
             )
         ),

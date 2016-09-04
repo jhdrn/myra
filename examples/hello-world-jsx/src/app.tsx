@@ -35,4 +35,4 @@ const appComponent = defineComponent({
 /**
  * Mount the component
  */
-appComponent.mount(document.body)
+appComponent().mount(document.body)

@@ -3,7 +3,7 @@ import * as jsxFactory from 'myra/html/jsxFactory'
 import { matchLocation, replaceLocation } from 'myra/location'
 import { TodosFilter, saveFilter, loadFilter } from '../models/filter'
 import * as todos from '../models/todos'
-import { todoItemComponent } from './todo-item'
+import { TodoItemComponent } from './todo-item'
 
 type Todo = todos.Todo
 
@@ -95,7 +95,7 @@ const view: View<Model> = (model) =>
                 <ul class="todo-list">
                     { 
                         model.todos.filter(filterTodos(model)).map(todo => 
-                            <mount component={ todoItemComponent } args={ todo } />
+                            <TodoItemComponent { ...todo } />
                         ) 
                     }
                 </ul>
@@ -132,7 +132,7 @@ const view: View<Model> = (model) =>
 /**
  * Component
  */
-export const todoListComponent = defineComponent({
+export const TodoListComponent = defineComponent({
     name: 'TodoListComponent',
     init: init,
     mount: mount,

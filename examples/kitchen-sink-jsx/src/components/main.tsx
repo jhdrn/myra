@@ -1,10 +1,10 @@
 import { defineComponent } from 'myra/core'
 import * as jsxFactory from 'myra/html/jsxFactory'
-import { counterComponent } from './counter'
-import { formComponent } from './form'
-import { httpComponent } from './http'
-import { timeComponent } from './time'
-import { locationComponent } from './location'
+import { CounterComponent } from './counter'
+import { FormComponent } from './form'
+import { HttpComponent } from './http'
+import { TimeComponent } from './time'
+import { LocationComponent } from './location'
 
 
 /**
@@ -14,15 +14,15 @@ const view = () =>
     <div class="container">
         <h1>Kitchen sink demo</h1>
         <hr />
-        <mount component={ counterComponent } />
+        <CounterComponent />
         <hr />
-        <mount component={ formComponent } />
+        <FormComponent />
         <hr />
-        <mount component={ httpComponent } />
+        <HttpComponent />
         <hr />
-        <mount component={ timeComponent } />
+        <TimeComponent />
         <hr />
-        <mount component={ locationComponent } />
+        <LocationComponent />
     </div>
 
 

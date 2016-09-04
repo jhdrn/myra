@@ -1,5 +1,4 @@
 import { defineComponent } from 'myra/core'
-import { component } from 'myra/html'
 import { div, h1, hr } from 'myra/html/elements'
 import { counterComponent } from './counter'
 import { formComponent } from './form'
@@ -15,15 +14,15 @@ const view = () =>
     div({ 'class': 'container' },
         h1('Kitchen sink demo'),
         hr(),
-        component(counterComponent),
+        counterComponent(),
         hr(),
-        component(formComponent),
+        formComponent(),
         hr(),
-        component(httpComponent),
+        httpComponent(),
         hr(),
-        component(timeComponent),
+        timeComponent(),
         hr(),
-        component(locationComponent)
+        locationComponent()
     )
 
 

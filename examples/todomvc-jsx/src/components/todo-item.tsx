@@ -117,7 +117,7 @@ const view: View<Model> = (model) =>
 /**
  * Component
  */
-export const todoItemComponent = defineComponent<Model, Todo>({
+export const TodoItemComponent = defineComponent<Model, Todo>({
     name: 'TodoItemComponent',
     init: init,
     mount: mount,

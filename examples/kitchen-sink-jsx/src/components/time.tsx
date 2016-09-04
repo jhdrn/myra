@@ -88,7 +88,7 @@ const view = (model: Model) =>
 /**
  * Component
  */
-export const timeComponent = defineComponent({
+export const TimeComponent = defineComponent({
     // The name of the component. Used for debugging purposes.
     name: 'TimeComponent',
 

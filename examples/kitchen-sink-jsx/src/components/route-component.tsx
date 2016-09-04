@@ -11,7 +11,7 @@ const view = () => <p>Hello route!</p>
 /**
  * Component
  */
-export const routeComponent = defineComponent({
+export const RouteComponent = defineComponent({
     // The name of the component. Used for debugging purposes.
     name: 'RouteComponent',
 

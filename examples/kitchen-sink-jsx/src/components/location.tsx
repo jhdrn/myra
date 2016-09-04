@@ -1,7 +1,7 @@
 import { defineComponent, Task } from 'myra/core'
 import { route, updateLocation, matchLocation, trackLocationChanges, goBack, goForward, LocationData } from 'myra/location'
 import * as jsxFactory from 'myra/html/jsxFactory'
-import { routeComponent } from './route-component'
+import { RouteComponent } from './route-component'
 
 
 /**
@@ -26,7 +26,7 @@ const view = (_: Model) =>
         <h2>Location examples</h2>
         {route({
             'test1': <p>Route to '/test1'.</p>,
-            'test1/:param': <mount component={routeComponent}  /> 
+            'test1/:param': <RouteComponent /> 
         })}
         
         { matchLocation('test1/:param') ? 
@@ -59,7 +59,7 @@ const view = (_: Model) =>
 /**
  * Component
  */
-export const locationComponent = defineComponent({
+export const LocationComponent = defineComponent({
     // The name of the component. Used for debugging purposes.
     name: 'LocationComponent',
 

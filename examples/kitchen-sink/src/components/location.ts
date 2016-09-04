@@ -1,6 +1,6 @@
 import { defineComponent, Task } from 'myra/core'
 import { route, updateLocation, matchLocation, trackLocationChanges, goBack, goForward, LocationData } from 'myra/location'
-import { component, nothing } from 'myra/html'
+import { nothing } from 'myra/html'
 import { section, h2, p, ul, li, a } from 'myra/html/elements'
 import { routeComponent } from './route-component'
 
@@ -28,7 +28,7 @@ const view = (_: Model) =>
         h2('Location examples'),
         route({
             'test1': p(`Route to '/test1'.`),
-            'test1/:param': component(routeComponent) 
+            'test1/:param': routeComponent()
         }),
         
         matchLocation('test1/:param') ? 
