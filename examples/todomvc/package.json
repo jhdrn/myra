@@ -4,7 +4,7 @@
     "start": "webpack-dev-server --inline --hot"
   },
   "dependencies": {
-    "myra": "^1.0.0-alpha.20160828",
+    "myra": "^1.0.0-alpha.20160904",
     "todomvc-app-css": "^2.0.0",
     "todomvc-common": "^1.0.0"
   },
