@@ -170,19 +170,13 @@ describe('core.helpers.deepCopy', () => {
             b: {
                 c: [1, 2, 6, 10]
             },
-            d: new Date()
+            d: new Date(),
+            e: () => 'foo'
         }
         const objCopy = deepCopy(obj)
         
         expect(JSON.stringify(objCopy)).toEqual(JSON.stringify(obj))
         expect(objCopy).not.toBe(obj)
-    })
-
-    it('throws if trying to copy a function', () => {
-        const obj = {
-            a: () => 'foo'
-        }
-        expect(() => deepCopy(obj)).toThrow()
     })
 })
 

@@ -1,20 +1,79 @@
-import { task, broadcast, Task, Dispatch, NodeDescriptor, ComponentNodeDescriptor, ElementNodeDescriptor, TextNodeDescriptor, NothingNodeDescriptor  } from './core/index'
-import { nothing } from './html' 
+import { task, broadcast, Map, Task, Dispatch } from './core/index'
+import { typeOf } from './core/helpers'
+export { Task }
 
-export { Task, ComponentNodeDescriptor, ElementNodeDescriptor, TextNodeDescriptor, NothingNodeDescriptor }
-export type Params = { [key: string]: any }
-export interface LocationData {
-    // FIXME: Add all properties from window.location object
-    url: string
-    params: Params
+
+export type PatternMap<T> = {
+    [pattern: string]: T | ((params: Map<string>) => T)
 }
-export const LOCATION_CHANGED_MSG = '__locationChanged'
+export interface LocationContext {
+    // FIXME: Add all properties from window.location object
+    readonly url: string
+    readonly params: Map<string>
+    readonly match: (pattern: string) => boolean
+    readonly matchAny: <T>(patterns: PatternMap<T>, defaultValue: T) => T 
+}
+const LOCATION_CHANGED_MSG = '__locationChanged'
 
-const broadcastLocationChanged = (dispatch: Dispatch) =>     
+/**
+ * Trims slashes and returns the trimmed string.
+ */
+const trimSlashes = (str: string) => !str ? '' : str.replace(/^\/+|\/+$/g, '')
+
+/**
+ * Tries to match a route for the given path.
+ */
+const matchPattern = (pattern: string, url: string) => {
+    const [regexp, ] = createRegExpFromPattern(trimSlashes(pattern))
+    return !!new RegExp(regexp, 'i').exec(url)
+} 
+
+/**
+ * Checks if the given pattern matches the location.
+ */
+const matchLocation = (location: Location, pattern: string, ...patterns: string[]): boolean => {
+    
+    const url = pattern.indexOf('#') === 0 ? trimSlashes(location.hash) :
+        trimSlashes(location.pathname).split('&')[0]
+
+    if (matchPattern(pattern, url)) {
+        return true
+    } else if (patterns) {
+        for (const i in patterns) {
+            if (matchPattern(patterns[i], url)) {
+                return true
+            }
+        }
+    }
+    return false
+} 
+
+function broadcastLocationChanged(dispatch: Dispatch) {
+    const location = window.location
     broadcast(LOCATION_CHANGED_MSG, { 
-        url: window.location.pathname, 
-        params: searchStrToObj(window.location.search) 
-    }).execute(dispatch)
+        url: location.pathname, 
+        params: searchStrToObj(location.search),
+        match: (pattern: string) => matchLocation(location, pattern),
+        matchAny: <T>(patterns: PatternMap<T>, defaultValue: T): T => {
+            for (const pattern in patterns) {
+                if (patterns.hasOwnProperty(pattern)) {
+                    const [regexp, paramNames] = createRegExpFromPattern(trimSlashes(pattern))
+                    const matches = new RegExp(regexp, 'i').exec(trimSlashes(location.pathname || location.hash))
+                    if (matches) {
+                        const fnOrVal = patterns[pattern] as T
+                        if (typeOf(fnOrVal) === 'function') {
+                            const params: Map<string> = {}
+                            paramNames.forEach((p, i) => params[p] = matches[i + 1])
+                            return (fnOrVal as any)(params)
+                        }
+                        return fnOrVal
+                    }
+                }
+            }
+            return defaultValue
+        }
+    } as LocationContext).execute(dispatch)
+}
 
 export const trackLocationChanges = () => task((dispatch) => {
     broadcastLocationChanged(dispatch)
@@ -24,14 +83,14 @@ export const trackLocationChanges = () => task((dispatch) => {
     }
 })
 
-export const updateLocation = (path: string, params?: Params) => task((dispatch) => {
+export const updateLocation = (path: string, params?: Map<string>) => task((dispatch) => {
     const url = makeUrl(path, params)
     window.history.pushState({ url: url }, '', url)
 
     broadcastLocationChanged(dispatch)
 })
 
-export const replaceLocation = (path: string, params?: Params) => task((dispatch) => {
+export const replaceLocation = (path: string, params?: Map<string>) => task((dispatch) => {
     const url = makeUrl(path, params)
     window.history.replaceState({ url: url }, '', url)
 
@@ -48,9 +107,7 @@ export const goForward = (steps?: number) => task(dispatch => {
     broadcastLocationChanged(dispatch)
 }) 
 
-
-
-function makeUrl(path: string, params?: Params) {
+function makeUrl(path: string, params?: Map<string>) {
     if (params) {
         const queryString = Object.keys(params).map(key => 
             [key, params![key]].map(encodeURIComponent).join('=')
@@ -58,58 +115,6 @@ function makeUrl(path: string, params?: Params) {
         return `${path}?${queryString}`
     }
     return path
-}
-
-/**
- * Trims slashes and returns the trimmed string.
- */
-const trimSlashes = (str: string) => !str ? '' : str.replace(/^\/+|\/+$/g, '')
-
-/**
- * Tries to match a route for the given path.
- */
-const matchPattern = (pattern: string, url: string) => !!new RegExp(createPattern(trimSlashes(pattern)), 'i').exec(url)
-
-
-// export const getLocationParams = (pattern: string) => {
-//     // FIXME
-//     console.log(new RegExp(createPattern(trimSlashes(pattern)), 'i').exec(window.location.hash || window.location.pathname))
-// }
-
-/**
- * Checks if the given pattern matches the location.
- */
-export const matchLocation = (pattern: string, ...patterns: string[]): boolean => {
-    
-    const url = pattern.indexOf('#') === 0 ? trimSlashes(window.location.hash) :
-        trimSlashes(window.location.pathname).split('&')[0]
-
-    if (matchPattern(pattern, url)) {
-        return true
-    } else if (patterns) {
-        for (const i in patterns) {
-            if (matchPattern(patterns[i], url)) {
-                return true
-            }
-        }
-    }
-    return false
-} 
-
-export type RouteOptions = {
-    [pattern: string]: NodeDescriptor
-}
-export const route = (opts: RouteOptions) => {
-    for (const pattern in opts) {
-        if (opts.hasOwnProperty(pattern) && matchLocation(pattern)) {
-            const nodeDescriptor = opts[pattern] as NodeDescriptor
-            if (nodeDescriptor.__type === 'component') {
-                //nodeDescriptor.args = routeParams
-            } 
-            return nodeDescriptor
-        }
-    }
-    return nothing()
 }
 
 function searchStrToObj(searchString: string) {
@@ -121,23 +126,23 @@ function searchStrToObj(searchString: string) {
         .reduce((acc, next) => {
             const [key, value] = next.split('=')
             acc[decodeURIComponent(key)] = decodeURIComponent(value)
-            return acc;
+            return acc
         }, {} as { [key: string]: string })
 }
 
-function createPattern(route: string) {
-    // var parameterNames = [];
-    var normalizedRoute = '^' + route.replace(/{\*.+}/i, (_match) => {
-        // parameterNames.push(match.substr(2, match.length - 3));
-        return "(.+)";
-    }) // {*path}
-        .replace(/:[^\/]+/ig, (_match) => {
-            // parameterNames.push(match.substr(1, match.length - 2));
-            return "([^/]+)";
-        }) // {parameter}
-        .replace(/\*/g, '[^/]+') // *
-        .replace(/\//g, '\\/') // replace / with \/
-        + '$'
+function createRegExpFromPattern(route: string): [string, string[]] {
+    const parameterNames: string[] = [];
+    var normalizedRoute = '^' + route.replace(/\*.+/i, (match) => {
+        parameterNames.push(match.substr(2, match.length - 2))
+        return '(.+)'
+    }) // *path
+    .replace(/:[^\/]+/ig, (match) => {
+        parameterNames.push(match.substr(1, match.length - 1))
+        return '([^/]+)'
+    }) // :parameter
+    .replace(/\*/g, '[^/]+') // *
+    .replace(/\//g, '\\/') // replace / with \/
+    + '$'
 
-   return normalizedRoute
+   return [normalizedRoute, parameterNames]
 } 

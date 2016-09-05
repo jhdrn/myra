@@ -79,8 +79,7 @@ export function deepCopy<T>(value: T): T {
             return copy as T
         case 'date':
             return new Date((value as any as Date).valueOf()) as any as T
-        case 'function':
-            throw 'Copying functions are not allowed'
+        case 'function': // Should this case be handled differently?
         default:
             return value
     }
