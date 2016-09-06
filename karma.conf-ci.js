@@ -129,12 +129,12 @@ module.exports = function(config) {
             // startConnect: false,
             // public: 'public'
         },
-        captureTimeout: 300000,
+        captureTimeout: 60000,
         customLaunchers: customLaunchers,
 
         browserDisconnectTimeout: 15000,
         browserDisconnectTolerance: 1,
-        browserNoActivityTimeout: 300000,
+        browserNoActivityTimeout: 60000,
 
         // Karma plugins loaded
         plugins: [
