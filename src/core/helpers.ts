@@ -4,6 +4,11 @@ export const isIE9 = document.all && !window.atob
 export type Type = 'array' | 'object' | 'string' | 'date' | 'regexp' | 'function' | 'boolean' | 'number' | 'null' | 'undefined'
 
 export function typeOf(obj: any): Type {
+	if (typeof obj === 'string') return 'string'
+	if (typeof obj === 'number') return 'number'
+	if (typeof obj === 'boolean') return 'boolean'
+	if (typeof obj === 'undefined') return 'undefined'
+	if (typeof obj === 'null') return 'null'
     return ({}).toString.call(obj).slice(8, -1).toLowerCase()
 } 
 
