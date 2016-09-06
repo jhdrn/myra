@@ -11,6 +11,9 @@
     "webpack-dev-server": "^1.14.1"
   },
   "dependencies": {
-    "myra": "^1.0.0-alpha.20160904"
+    "awesome-typescript-loader": "^2.2.3",
+    "myra": "^1.0.0-alpha.20160906",
+    "typescript": "^2.0.2",
+    "webpack-dev-server": "^1.15.1"
   }
 }

@@ -9,16 +9,16 @@ type Model = string | undefined
 
 
 /**
- * View
- */
-const view = (m: Model) => p(`Hello route, with param: ${m}`)
-
-
-/**
  * Updates
  */
 const mount = (_: Model, paramsFromRoute: { param: string }) =>
     paramsFromRoute.param
+
+
+/**
+ * View
+ */
+const view = (m: Model) => p(`Hello route, with param: ${m}`)
 
 
 /**

@@ -1,7 +1,7 @@
 import { defineComponent, evolve, View, Update, Task } from 'myra/core'
 import { text, nothing } from 'myra/html'
 import { section, footer, div, ul, li, input, label, span, strong, a, button } from 'myra/html/elements'
-import { matchLocation, replaceLocation } from 'myra/location'
+import { replaceLocation, LocationContext } from 'myra/location'
 import { TodosFilter, saveFilter, loadFilter } from '../models/filter'
 import * as todos from '../models/todos'
 import { todoItemComponent } from './todo-item'
@@ -16,6 +16,7 @@ type Model = {
     todos: Todo[]
     itemsLeft: number
     filter: TodosFilter
+    location: LocationContext
 }
 
 
@@ -25,18 +26,27 @@ type Model = {
 const applySavedFilter = (m: Model, filter: TodosFilter): Model | [Model, Task] => 
     [m, replaceLocation(`#/${filter === 'all' ? '' : filter || ''}`)]
  
-const applyFilterFromLocation = (m: Model): Model | [Model, Task] => {
+const applyFilterFromLocation = (m: Model, location: LocationContext): Model | [Model, Task] => {
 
-    if (matchLocation('#/active')) {
-        return [evolve(m, x => x.filter = 'active'), saveFilter('active')]
+    if (location.match('#/active')) {
+        return [evolve(m, x => {
+             x.filter = 'active'
+             x.location = location
+        }), saveFilter('active')]
     }
-    else if (matchLocation('#/completed')) {
-        return [evolve(m, x => x.filter = 'completed'), saveFilter('completed')]
+    else if (location.match('#/completed')) {
+        return [evolve(m, x => { 
+            x.filter = 'completed'
+            x.location = location
+        }), saveFilter('completed')]
     }
-    else if (matchLocation('#/', '')) {
-        return [evolve(m, x => x.filter = 'all'), saveFilter('all')]
+    else if (location.match('#/') || location.match('')) {
+        return [evolve(m, x => {
+            x.filter = 'all'
+            x.location = location
+        }), saveFilter('all')]
     }
-    return m
+    return evolve(m, x => x.location = location)
 }
 
 const todosLoaded = (m: Model, todos: Todo[]) => 
@@ -63,7 +73,8 @@ const subscriptions = {
 const init: [Model, Task] = [{
     todos: [],
     itemsLeft: 0,
-    filter: 'all'
+    filter: 'all',
+    location: {} as LocationContext
 }, loadFilter(applySavedFilter)]
 
 /**
@@ -79,11 +90,11 @@ const filterTodos = (model: Model) => (todo: Todo) => {
     return true
 }
 
-const filterLink = (href: string, txt: string) => {
+const filterLink = (href: string, txt: string, location: LocationContext) => {
     const attributes: any = { 
         href: href
     }
-    if (matchLocation(href)) {
+    if (location.match(href)) {
         attributes['class'] = 'selected'
     }
     return a(attributes, text(txt))
@@ -114,13 +125,13 @@ const view: View<Model> = (model) =>
             ),
             ul({ 'class': 'filters' },
                 li(
-                    filterLink('#/', 'All')
+                    filterLink('#/', 'All', model.location)
                 ),
                 li(
-                    filterLink('#/active', 'Active')
+                    filterLink('#/active', 'Active', model.location)
                 ),
                 li(
-                    filterLink('#/completed', 'Completed')
+                    filterLink('#/completed', 'Completed', model.location)
                 )
             ),
             //<!-- Hidden if no completed items are left ↓ -->
