@@ -74,12 +74,6 @@ module.exports = function(config) {
         }
     };
 
-    Object.keys(customLaunchers).forEach(function(k) {
-        customLaunchers[k]['base'] = 'SauceLabs';
-        customLaunchers[k]['tunnel-identifier'] = process.env.TRAVIS_JOB_NUMBER;
-        customLaunchers[k]['build'] = process.env.TRAVIS_JOB_NUMBER;
-    });
-
     config.set({
 
         basePath: './',
@@ -127,32 +121,21 @@ module.exports = function(config) {
 
         sauceLabs: {
             testName: 'Myra unit tests',
+            recordScreenshots: false,
             connectOptions: {
                 port: 5757,
                 logfile: 'sauce_connect.log'
             },
-            tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
-            build: 'TRAVIS #' + process.env.TRAVIS_BUILD_NUMBER + ' (' + process.env.TRAVIS_BUILD_ID + ')',
-            startConnect: false,
-            verbose: false,
-            retryLimit: 2,
-            recordVideo: false,
-            recordScreenshots: false,
-            verboseDebugging: false
+            // startConnect: false,
+            // public: 'public'
         },
-        captureTimeout: 200000,
+        captureTimeout: 120000,
         customLaunchers: customLaunchers,
 
         browserDisconnectTimeout: 30000,
-        browserDisconnectTolerance: 2,
-        browserNoActivityTimeout: 200000,
+        browserDisconnectTolerance: 1,
+        browserNoActivityTimeout: 120000,
 
-        client: {
-            env: {
-                AJAX_WAIT: 3000, 
-                JASMINE_TIMEOUT: 20000 
-            }
-        },
         // Karma plugins loaded
         plugins: [
             'karma-jasmine',
@@ -178,9 +161,6 @@ module.exports = function(config) {
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
         browsers: Object.keys(customLaunchers),
-        
-        singleRun: true,
-
-        concurrency: 4
+        singleRun: true
     });
 };
