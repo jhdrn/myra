@@ -67,7 +67,7 @@ const view = (m: Model) =>
                 input({ type: 'text',
                         id: 'formField',
                         name: 'formField',
-                        validators: [required('Just a form field')],
+                        validate: [required('Just a form field')],
                         'class': 'form-control' }),
                 m.formValidationResult ? 
                     p({ 'class': 'help-text'}, (m.formValidationResult!.fields as any)['formField'].errors) 

@@ -14,7 +14,7 @@ const INPUT_TAG_NAMES = [
 
 eventInterceptors.push((_nodeDescriptor, element, _, update, dispatch) => {
     if (INPUT_TAG_NAMES.indexOf(element.tagName) !== -1) {
-        const validators = ((_nodeDescriptor as ElementNodeDescriptor).attributes as InputAttributes).validators
+        const validators = ((_nodeDescriptor as ElementNodeDescriptor).attributes as InputAttributes).validate
         let validationResult = validators ? validateField((element as HTMLInputElement).value, Array.isArray(validators) ? validators : [validators]) : undefined
         dispatch(update, (element as HTMLInputElement).value, validationResult)
         return true
@@ -26,7 +26,7 @@ function findFieldValidatorsRec(nodeDescriptors: NodeDescriptor[], fields: { [na
     return nodeDescriptors.reduce((acc, descriptor) => {
         if (descriptor.__type === 'element') {
             const fieldName = ((descriptor as ElementNodeDescriptor).attributes as InputAttributes).name
-            const validators = ((descriptor as ElementNodeDescriptor).attributes as InputAttributes).validators
+            const validators = ((descriptor as ElementNodeDescriptor).attributes as InputAttributes).validate
             if (fieldName && validators) {
                 acc[fieldName] = Array.isArray(validators) ? validators : [validators]
             }
@@ -44,7 +44,7 @@ eventInterceptors.push((nodeDescriptor, element, _, update, dispatch) => {
             const el = namedElements.item(i) as HTMLInputElement
             formData[el.name] = el.value
         }
-        const formValidators = ((nodeDescriptor as ElementNodeDescriptor).attributes as FormAttributes).validators || []
+        const formValidators = ((nodeDescriptor as ElementNodeDescriptor).attributes as FormAttributes).validate || []
         
         const fieldValidators = findFieldValidatorsRec((nodeDescriptor as ElementNodeDescriptor).children, {})
         const validationResult = validateForm(formData, Array.isArray(formValidators) ? formValidators : [formValidators], fieldValidators)
@@ -110,7 +110,7 @@ function setAttr(element: HTMLElement, attributeName: string, attributeValue: an
     else if (attributeValue && CALLABLE_ATTRS.indexOf(attributeName) >= 0) {
         (element as any)[attributeName]()
     }
-    else {
+    else if (attributeName !== 'validate') {
         element.setAttribute(attributeName, attributeValue)
     }
 }

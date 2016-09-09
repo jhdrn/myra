@@ -246,7 +246,7 @@ declare namespace myra.core.contract {
         onsubmit?: FormElementEventAttributeArguments
         onchange?: FormElementEventAttributeArguments
         
-        validators?: FormValidator | FormValidator[]
+        validate?: FormValidator | FormValidator[]
     }
     interface IframeAttributes extends GlobalAttributes {
         allowfullscreen?: boolean
@@ -307,7 +307,7 @@ declare namespace myra.core.contract {
         onchange?: FieldElementEventAttributeArguments
         oninput?: FieldElementEventAttributeArguments
         
-        validators?: FieldValidator | FieldValidator[]
+        validate?: FieldValidator | FieldValidator[]
     }
     interface InsAttributes extends GlobalAttributes {
         cite?: string
@@ -372,7 +372,7 @@ declare namespace myra.core.contract {
 
         onchange?: FieldElementEventAttributeArguments
         
-        validators?: FieldValidator | FieldValidator[]
+        validate?: FieldValidator | FieldValidator[]
     }
     interface SourceAttributes extends GlobalAttributes {
         src?: string
@@ -402,7 +402,7 @@ declare namespace myra.core.contract {
         onchange?: FieldElementEventAttributeArguments
         oninput?: FieldElementEventAttributeArguments
 
-        validators?: FieldValidator | FieldValidator[]
+        validate?: FieldValidator | FieldValidator[]
     }
     interface ThAttributes extends GlobalAttributes {
         colspan?: number
