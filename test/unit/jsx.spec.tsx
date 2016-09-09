@@ -1,110 +1,110 @@
-// import * as core from 'core'
-// import * as jsxFactory from 'html/jsxFactory'
+import * as core from 'core'
+import * as jsxFactory from 'html/jsxFactory'
 
-// describe('jsxFactory', () => {
+describe('jsxFactory', () => {
 
-    // it('creates a TextNodeDescriptor from an expression inside an element', () => {
+    it('creates a TextNodeDescriptor from an expression inside an element', () => {
 
-    //     const view = <div>{'some text'}</div>
+        const view = <div>{'some text'}</div>
 
-    //     expect(view.children[0]).toEqual({
-    //         __type: 'text',
-    //         value: 'some text'
-    //     } as core.TextNodeDescriptor)
-    // })
+        expect(view.children[0]).toEqual({
+            __type: 'text',
+            value: 'some text'
+        } as core.TextNodeDescriptor)
+    })
 
-    // it('creates a NothingNodeDescriptor from a <nothing /> tag', () => {
+    it('creates a NothingNodeDescriptor from a <nothing /> tag', () => {
 
-    //     const view = <nothing />
+        const view = <nothing />
 
-    //     expect(view).toEqual({
-    //         __type: 'nothing'
-    //     } as core.NothingNodeDescriptor)
-    // })
+        expect(view).toEqual({
+            __type: 'nothing'
+        } as core.NothingNodeDescriptor)
+    })
 
-    // it('creates an ElementNodeDescriptor with the supplied tagName', () => {
+    it('creates an ElementNodeDescriptor with the supplied tagName', () => {
 
-    //     const view = <div></div>
+        const view = <div></div>
 
-    //     expect(view).toEqual({
-    //         __type: 'element',
-    //         tagName: 'div',
-    //         attributes: {},
-    //         children: []
-    //     } as core.ElementNodeDescriptor)
-    // })
+        expect(view).toEqual({
+            __type: 'element',
+            tagName: 'div',
+            attributes: {},
+            children: []
+        } as core.ElementNodeDescriptor)
+    })
 
-    // it('creates an ElementNodeDescriptor and sets attributes', () => {
+    it('creates an ElementNodeDescriptor and sets attributes', () => {
 
-    //     const fn = () => 0
-    //     const view = <div class="test" id="test" onclick={fn}></div>
+        const fn = () => 0
+        const view = <div class="test" id="test" onclick={fn}></div>
 
-    //     expect(view).toEqual({
-    //         __type: 'element',
-    //         tagName: 'div',
-    //         attributes: {
-    //             'class': 'test',
-    //             id: 'test',
-    //             onclick: fn
-    //         },
-    //         children: []
-    //     } as core.ElementNodeDescriptor)
-    // })
+        expect(view).toEqual({
+            __type: 'element',
+            tagName: 'div',
+            attributes: {
+                'class': 'test',
+                id: 'test',
+                onclick: fn
+            },
+            children: []
+        } as core.ElementNodeDescriptor)
+    })
 
-    //  const childNodeDescriptor = {
-    //     __type: 'element',
-    //     tagName: 'div',
-    //     attributes: {},
-    //     children: []
-    // } as core.ElementNodeDescriptor
+     const childNodeDescriptor = {
+        __type: 'element',
+        tagName: 'div',
+        attributes: {},
+        children: []
+    } as core.ElementNodeDescriptor
 
-    // it('creates an ElementNodeDescriptor and appends a single child', () => {
+    it('creates an ElementNodeDescriptor and appends a single child', () => {
         
-    //     const view = <div><div></div></div>
+        const view = <div><div></div></div>
 
-    //     expect(view).toEqual({
-    //         __type: 'element',
-    //         tagName: 'div',
-    //         attributes: {},
-    //         children: [
-    //             childNodeDescriptor
-    //         ]
-    //     } as core.ElementNodeDescriptor)
-    // })
+        expect(view).toEqual({
+            __type: 'element',
+            tagName: 'div',
+            attributes: {},
+            children: [
+                childNodeDescriptor
+            ]
+        } as core.ElementNodeDescriptor)
+    })
     
-    // it('creates an ElementNodeDescriptor and appends multiple children with a single argument', () => {
+    it('creates an ElementNodeDescriptor and appends multiple children with a single argument', () => {
 
-    //     const view = <div><div></div><div></div>abc</div>
+        const view = <div><div></div><div></div>abc</div>
 
-    //     expect(view).toEqual({
-    //         __type: 'element',
-    //         tagName: 'div',
-    //         attributes: {},
-    //         children: [
-    //             childNodeDescriptor,
-    //             childNodeDescriptor,
-    //             {
-    //                 __type: 'text',
-    //                 value: 'abc'
-    //             } as core.TextNodeDescriptor
-    //         ]
-    //     } as core.ElementNodeDescriptor)
-    // })
+        expect(view).toEqual({
+            __type: 'element',
+            tagName: 'div',
+            attributes: {},
+            children: [
+                childNodeDescriptor,
+                childNodeDescriptor,
+                {
+                    __type: 'text',
+                    value: 'abc'
+                } as core.TextNodeDescriptor
+            ]
+        } as core.ElementNodeDescriptor)
+    })
 
-    // it('mount element mounts a ComponentNodeDescriptor', () => {
-    //     const TestComponent = core.defineComponent({
-    //         name: 'TestComponent',
-    //         init: undefined,
-    //         view: () => <div></div>
-    //     })
+    it('mount element mounts a ComponentNodeDescriptor', () => {
+        const TestComponent = core.defineComponent({
+            name: 'TestComponent',
+            init: undefined,
+            view: () => <div></div>
+        })
 
-    //     const view = <TestComponent test="test" />
+        const view = <TestComponent test="test" />
 
-    //     expect(JSON.stringify(view)).toEqual(JSON.stringify({
-    //         __type: 'component',
-    //         name: 'TestComponent',
-    //         props: { test: 'test' },
-    //         forceMount: undefined
-    //     }))
-    // })
-// })
+        expect(JSON.stringify(view)).toEqual(JSON.stringify({
+            __type: 'component',
+            name: 'TestComponent',
+            props: { test: 'test' },
+            forceMount: undefined
+        }))
+    })
+})

@@ -1,33 +1,33 @@
-// import * as location from 'location' 
+import * as location from 'location' 
 
-// if (window.history && window.history.pushState) {
+if (window.history && window.history.pushState) {
     
-//     const dispatch = (fn: any, args: any) => fn(undefined, args)
+    const dispatch = (fn: any, args: any) => fn(undefined, args)
 
-//     describe('location module', () => {
+    describe('location module', () => {
 
-//         afterEach(() => {
-//             window.history.pushState('/', '', '/')
-//         })
+        afterEach(() => {
+            window.history.pushState('/', '', '/')
+        })
 
-//         it('updateLocation updates window.location', () => {
+        it('updateLocation updates window.location', () => {
 
-//             location.updateLocation('/some/path').execute(dispatch)
+            location.updateLocation('/some/path').execute(dispatch)
 
-//             expect(window.location.pathname).toBe('/some/path')
-//         })
+            expect(window.location.pathname).toBe('/some/path')
+        })
 
 
-//         it('updateLocation serializes parameters', () => {
+        it('updateLocation serializes parameters', () => {
 
-//             location.updateLocation('/some/path', {
-//                 foo: 'bar',
-//                 baz: 1
-//             }).execute(dispatch)
+            location.updateLocation('/some/path', {
+                foo: 'bar',
+                baz: '1'
+            }).execute(dispatch)
             
-//             expect(window.location.search).toBe('?foo=bar&baz=1')
-//         })
+            expect(window.location.search).toBe('?foo=bar&baz=1')
+        })
 
-//     })
+    })
 
-// }
+}
