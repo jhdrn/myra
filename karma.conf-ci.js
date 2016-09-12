@@ -3,10 +3,10 @@ var fs = require('fs');
 module.exports = function(config) {
 
     // Use ENV vars on Travis and sauce.json locally to get credentials
-    if (!process.env.SAUCE_USERNAME || !process.env.SAUCE_ACCESS_KEY) {
-        console.log('Make sure the SAUCE_USERNAME and SAUCE_ACCESS_KEY environment variables are set.')
-        process.exit(1)
-    }
+    // if (!process.env.SAUCE_USERNAME || !process.env.SAUCE_ACCESS_KEY) {
+    //     console.log('Make sure the SAUCE_USERNAME and SAUCE_ACCESS_KEY environment variables are set.')
+    //     process.exit(1)
+    // }
 
     // Browsers to run on Sauce Labs
     var customLaunchers = {
@@ -14,64 +14,64 @@ module.exports = function(config) {
             base: 'Chrome',
             flags: ['--no-sandbox']
         },
-        'SL_Chrome': {
-            base: 'SauceLabs',
-            browserName: 'chrome'
-        },
-        'SL_InternetExplorer11': {
-            base: 'SauceLabs',
-            browserName: 'internet explorer',
-            version: '11'
-        },
-        'SL_InternetExplorer10': {
-            base: 'SauceLabs',
-            browserName: 'internet explorer',
-            version: '10'
-        },
-        'SL_InternetExplorer9': {
-            base: 'SauceLabs',
-            browserName: 'internet explorer',
-            version: '9'
-        },
-        'SL_FireFox': {
-            base: 'SauceLabs',
-            browserName: 'firefox',
-        },
-        'SL_IOS_Safari': {
-            base: 'SauceLabs',
-            browserName: 'iphone',
-            platform: 'OS X 10.9',
-            version: '7.1'
-        },
-        'SL_IOS_Safari_Latest': {
-            base: 'SauceLabs',
-            browserName: 'iphone',
-            platform: 'OS X 10.11',
-            version: '9.3'
-        },
-        'SL_Android': {
-            base: 'SauceLabs',
-            browserName: 'android',
-            platform: 'Linux',
-            version: '4.2'
-        },
-        'SL_Android_Latest': {
-            base: 'SauceLabs',
-            browserName: 'android',
-            platform: 'Linux'
-        },
-        'SL_Edge': {
-            base: 'SauceLabs',
-            browserName: 'MicrosoftEdge',
-            platform: 'Windows 10',
-            version: '13'
-        },
-        'SL_Safari': {
-            base: 'SauceLabs',
-            browserName: 'safari',
-            platform: 'OS X 10.10',
-            version: '8'
-        }
+        // 'SL_Chrome': {
+        //     base: 'SauceLabs',
+        //     browserName: 'chrome'
+        // },
+        // 'SL_InternetExplorer11': {
+        //     base: 'SauceLabs',
+        //     browserName: 'internet explorer',
+        //     version: '11'
+        // },
+        // 'SL_InternetExplorer10': {
+        //     base: 'SauceLabs',
+        //     browserName: 'internet explorer',
+        //     version: '10'
+        // },
+        // 'SL_InternetExplorer9': {
+        //     base: 'SauceLabs',
+        //     browserName: 'internet explorer',
+        //     version: '9'
+        // },
+        // 'SL_FireFox': {
+        //     base: 'SauceLabs',
+        //     browserName: 'firefox',
+        // },
+        // 'SL_IOS_Safari': {
+        //     base: 'SauceLabs',
+        //     browserName: 'iphone',
+        //     platform: 'OS X 10.9',
+        //     version: '7.1'
+        // },
+        // 'SL_IOS_Safari_Latest': {
+        //     base: 'SauceLabs',
+        //     browserName: 'iphone',
+        //     platform: 'OS X 10.11',
+        //     version: '9.3'
+        // },
+        // 'SL_Android': {
+        //     base: 'SauceLabs',
+        //     browserName: 'android',
+        //     platform: 'Linux',
+        //     version: '4.2'
+        // },
+        // 'SL_Android_Latest': {
+        //     base: 'SauceLabs',
+        //     browserName: 'android',
+        //     platform: 'Linux'
+        // },
+        // 'SL_Edge': {
+        //     base: 'SauceLabs',
+        //     browserName: 'MicrosoftEdge',
+        //     platform: 'Windows 10',
+        //     version: '13'
+        // },
+        // 'SL_Safari': {
+        //     base: 'SauceLabs',
+        //     browserName: 'safari',
+        //     platform: 'OS X 10.10',
+        //     version: '8'
+        // }
     };
 
     config.set({
@@ -104,7 +104,7 @@ module.exports = function(config) {
         // test results reporter to use
         // possible values: 'dots', 'progress'
         // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-        reporters: ['dots', 'coverage', 'saucelabs'],
+        reporters: ['dots', 'coverage'/*, 'saucelabs'*/],
 
         // web server port
         port: 9876,
@@ -112,35 +112,40 @@ module.exports = function(config) {
         colors: true,
 
         client: {
-            captureConsole: false
+            captureConsole: false,
+            // env: {
+            //     AJAX_WAIT: 3000, // time in ms to tell ajax-based tests to wait for (saucelabs runners are very slow)
+            //     JASMINE_TIMEOUT: 20000 // time that jasmine will wait for async requests to complete
+            // }
         },
 
         // level of logging
         // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
         logLevel: config.LOG_ERROR,
 
-        sauceLabs: {
-            testName: 'Myra unit tests',
-            recordScreenshots: false,
-            connectOptions: {
-                port: 5757,
-                logfile: 'sauce_connect.log'
-            },
-            // startConnect: false,
-            // public: 'public'
-        },
-        captureTimeout: 120000,
+        // sauceLabs: {
+        //     testName: 'Myra unit tests',            
+        //     recordScreenshots: false,
+        //     connectOptions: {
+        //         port: 5757,
+        //         logfile: 'sauce_connect.log'
+        //     },
+        //     retryLimit: 2,
+        //     // startConnect: false,
+        //     // public: 'public'
+        // },
+        // captureTimeout: 200000,
         customLaunchers: customLaunchers,
 
-        browserDisconnectTimeout: 30000,
-        browserDisconnectTolerance: 1,
-        browserNoActivityTimeout: 120000,
+        // browserDisconnectTimeout: 30000,
+        // browserDisconnectTolerance: 1,
+        // browserNoActivityTimeout: 200000,
 
         // Karma plugins loaded
         plugins: [
             'karma-jasmine',
             'karma-chrome-launcher',
-            'karma-sauce-launcher',
+            // 'karma-sauce-launcher',
             'karma-coverage'
         ],
 
