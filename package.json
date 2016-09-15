@@ -1,8 +1,10 @@
 {
   "name": "myra-dev",
-  "version": "1.0.0-alpha.20160906",
+  "version": "1.0.0-alpha.20160915",
   "private": true,
-  "dependencies": {},
+  "dependencies": {
+    "karma-phantomjs-launcher": "^1.0.2"
+  },
   "devDependencies": {
     "@types/jasmine": "^2.2.29",
     "codecov": "^1.0.1",
