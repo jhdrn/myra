@@ -1,11 +1,6 @@
 import { defineComponent, evolve, FormValidationResult } from 'myra/core'
 import { nothing } from 'myra/html'
-import { section, div, h2, h3, form, p, dl, dt, dd, label, input, select, option, button } from 'myra/html/elements'
-
-const required = (label: string) => (value: string) => ({ 
-    valid: !!value,
-    errors: [`'${label}' is required`]
-})
+import { section, div, h2, h3, form, p, dl, dt, dd, label, input, textarea, select, option, button } from 'myra/html/elements'
 
 /**
  * Model
@@ -41,6 +36,15 @@ const onchangeUpdate = (model: Model, value: string) =>
 
 
 /**
+ * Validation
+ */
+const required = (label: string) => (value: string) => ({ 
+    valid: !!value,
+    errors: [`'${label}' is required`]
+})
+
+
+/**
  * View
  */
 const view = (m: Model) =>
@@ -56,10 +60,7 @@ const view = (m: Model) =>
             ))
         ),
         m.formValidationResult ?
-            div(
-                h3('The form is ' + (m.formValidationResult.valid ? 'valid' : 'invalid')),
-                ...m.formValidationResult.errors
-            ) 
+            p('The form is ' + (m.formValidationResult.valid ? 'valid' : 'invalid'))
             : nothing(),
         form({ onsubmit: { listener: onFormSubmitUpdate, preventDefault: true } },
             div({ 'class': !m.formValidationResult || m.formValidationResult.fields['formField'].valid ? 'form-group' : 'form-group has-error' },
@@ -75,11 +76,10 @@ const view = (m: Model) =>
             ),
             div({ 'class': 'form-group' },
                 label({ for: 'oninputDemo' }, 'Oninput demo'),
-                input({ type: 'text',
-                        id: 'oninputDemo',
-                        name: 'oninputDemo',
-                        'class': 'form-control',
-                        oninput: oninputUpdate }),
+                textarea({ id: 'oninputDemo',
+                           name: 'oninputDemo',
+                           'class': 'form-control',
+                           oninput: oninputUpdate }),
                 p({ 'class': 'help-text' }, `The value of this field is: ${m.formData.oninputDemo}`)
             ),
             div({ 'class': 'form-group' },

@@ -62,7 +62,7 @@ const view: View<Model> = (_) =>
             // <!-- Remove the below line ↓ -->
             // <p>Template by <a href="http://sindresorhus.com">Sindre Sorhus</a></p>
             // <!-- Change this out with your name and url ↓ -->
-            p(text('Created by'), a({ href: 'https://github.com/jonathanhedren' }, text('Jonathan Hedrén'))),
+            p(text('Created by'), a({ href: 'https://github.com/jhdrn/myra' }, text('Jonathan Hedrén'))),
             p(text('Part of'), a({ href: 'http://todomvc.com' }, text('TodoMVC')))
         )
     )
