@@ -1,29 +1,21 @@
 var path = require("path");
 
-function absolutePath(dir) {
-    return path.resolve(__dirname, dir)
-}
-
 module.exports = {
     entry: {
         app: './src/app.ts'
     },
     output: {
-        path: absolutePath('build'),
-        // publicPath: "/assets/",
-        filename: "bundle.js"
+        path: path.resolve(__dirname, 'build'),
+        publicPath: "/build/",
+        filename: "[name].bundle.js"
     },
     resolve: {
         root: path.resolve(__dirname),
-        // Add '.ts' as resolvable extensions.
-        extensions: ["", ".webpack.js", ".web.js", ".ts", ".js"]
+        // Add '.ts' and '.tsx' as resolvable extensions.
+        extensions: ["", ".webpack.js", ".web.js", ".ts", ".tsx", ".js"]
     },
     // Enable sourcemaps for debugging webpack's output.
     devtool: "source-map",
-  // Add minification
-//   plugins: [
-//     new webpack.optimize.UglifyJsPlugin()
-//   ],
     devServer: {
         historyApiFallback: true
     },
@@ -31,7 +23,7 @@ module.exports = {
         loaders: [
             // All files with a '.ts' extension will be handled by 'ts-loader'.
             { 
-                test: /\.ts$/, 
+                test: /\.tsx?$/, 
                 loader: "awesome-typescript-loader"
             }
         ],

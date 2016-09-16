@@ -5,21 +5,25 @@ module.exports = {
         app: './src/app.ts'
     },
     output: {
-        path: path.resolve(__dirname, "build"),
-        filename: "bundle.js"
+        path: path.resolve(__dirname, 'build'),
+        publicPath: "/build/",
+        filename: "[name].bundle.js"
     },
     resolve: {
-        root: __dirname,
-        // Add '.ts' as resolvable extensions.
-        extensions: ["", ".webpack.js", ".web.js", ".ts", ".js"]
+        root: path.resolve(__dirname),
+        // Add '.ts' and '.tsx' as resolvable extensions.
+        extensions: ["", ".webpack.js", ".web.js", ".ts", ".tsx", ".js"]
     },
     // Enable sourcemaps for debugging webpack's output.
     devtool: "source-map",
+    devServer: {
+        historyApiFallback: true
+    },
     module: {
         loaders: [
             // All files with a '.ts' extension will be handled by 'ts-loader'.
             { 
-                test: /\.ts$/, 
+                test: /\.tsx?$/, 
                 loader: "awesome-typescript-loader"
             }
         ],
@@ -29,4 +33,4 @@ module.exports = {
             { test: /\.js$/, loader: "source-map-loader" }
         ]
     }
-};
+}

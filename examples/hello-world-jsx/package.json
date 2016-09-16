@@ -1,18 +1,18 @@
 {
   "private": true,
   "scripts": {
+    "webpack": "webpack --config webpack.config.js",
+    "webpack-prod": "webpack --config webpack.prod.config.js",
     "start": "webpack-dev-server --inline --hot"
   },
   "devDependencies": {
-    "awesome-typescript-loader": "^2.2.1",
+    "awesome-typescript-loader": "^2.2.3",
     "source-map-loader": "^0.1.5",
-    "typescript": "^2.0.0",
-    "webpack": "^1.13.1",
-    "webpack-dev-server": "^1.14.1"
+    "typescript": "^2.0.2",
+    "webpack": "^2.1.0-beta.21",
+    "webpack-dev-server": "^2.1.0-beta.4"
   },
   "dependencies": {
-    "awesome-typescript-loader": "^2.2.4",
-    "myra": "^1.0.0-alpha.20160915",
-    "webpack-dev-server": "^1.15.2"
+    "myra": "^1.0.0-alpha.20160915"
   }
 }

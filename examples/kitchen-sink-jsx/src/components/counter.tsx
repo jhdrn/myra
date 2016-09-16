@@ -35,7 +35,7 @@ const view = (model: Model) =>
 
 
 /**
- * component
+ * Component
  */
 export const CounterComponent = defineComponent({
     // The name of the component. Used for debugging purposes.

@@ -75,7 +75,7 @@ const view = (m: Model) =>
                     : nothing()
             ),
             div({ 'class': 'form-group' },
-                label({ for: 'oninputDemo' }, 'Oninput demo'),
+                label({ for: 'oninputDemo' }, 'Oninput demo (optional)'),
                 textarea({ id: 'oninputDemo',
                            name: 'oninputDemo',
                            'class': 'form-control',
@@ -83,7 +83,7 @@ const view = (m: Model) =>
                 p({ 'class': 'help-text' }, `The value of this field is: ${m.formData.oninputDemo}`)
             ),
             div({ 'class': 'form-group' },
-                label({ for: 'onchangeDemo' }, 'Onchange demo'),
+                label({ for: 'onchangeDemo' }, 'Onchange demo (optional)'),
                 select({ id: 'onchangeDemo',
                          name: 'onchangeDemo',
                          'class': 'form-control',

@@ -81,7 +81,7 @@ const view = (m: Model) =>
                     : <nothing />}
             </div>
             <div class="form-group">
-                <label for="oninputDemo">Oninput demo</label>
+                <label for="oninputDemo">Oninput demo (optional)</label>
                 <textarea id="oninputDemo"
                           name="oninputDemo"
                           class="form-control"
@@ -89,7 +89,7 @@ const view = (m: Model) =>
                 <p class="help-text">The value of this field is: { m.formData.oninputDemo }</p>
             </div>
             <div class="form-group">
-                <label for="onchangeDemo">Onchange demo</label>
+                <label for="onchangeDemo">Onchange demo (optional)</label>
                 <select name="onchangeDemo"
                         id="onchangeDemo"
                         class="form-control"
