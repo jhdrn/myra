@@ -85,7 +85,7 @@ const view = (m: Model) =>
                 <textarea id="oninputDemo"
                           name="oninputDemo"
                           class="form-control"
-                           oninput={ oninputUpdate } />
+                          oninput={ oninputUpdate } />
                 <p class="help-text">The value of this field is: { m.formData.oninputDemo }</p>
             </div>
             <div class="form-group">

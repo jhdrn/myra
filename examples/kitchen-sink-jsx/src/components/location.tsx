@@ -41,8 +41,8 @@ const view = (m: Model) =>
         <ul class="list-group">
             <li class="list-group-item">
                 <a href="" onclick={{ listener: updateLocation('/test1'), preventDefault: true }}>
-                Update location to '/test1'
-            </a>
+                    Update location to '/test1'
+                </a>
             </li>
             <li class="list-group-item">
                 <a href="" onclick={{ listener: updateLocation('/test1/test2'), preventDefault: true }}>

@@ -2,14 +2,11 @@
   "name": "myra-dev",
   "version": "1.0.0-alpha.20160915",
   "private": true,
-  "dependencies": {
-    "karma-phantomjs-launcher": "^1.0.2"
-  },
   "devDependencies": {
-    "@types/jasmine": "^2.2.29",
+    "@types/jasmine": "^2.2.34",
     "codecov": "^1.0.1",
     "copyfiles": "^1.0.0",
-    "jasmine-core": "^2.4.1",
+    "jasmine-core": "^2.5.2",
     "karma": "^1.1.1",
     "karma-chrome-launcher": "^1.0.1",
     "karma-coverage": "^1.1.0",
@@ -21,7 +18,7 @@
     "remap-istanbul": "^0.6.4",
     "rimraf": "^2.5.3",
     "systemjs": "^0.19.31",
-    "typescript": "^2.0.2"
+    "typescript": "^2.0.3"
   },
   "scripts": {
     "build": "rimraf build && tsc",
