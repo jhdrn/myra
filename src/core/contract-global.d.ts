@@ -125,16 +125,16 @@ declare namespace myra.core.contract {
     interface GlobalAttributes {
         accesskey?: string
         'class'?: string
-        contenteditable?: boolean | ''
+        contenteditable?: boolean | '' | 'true' | 'false'
         contextmenu?: string
         dir?: 'ltr' | 'rtl' | 'auto'
-        draggable?: boolean
-        hidden?: boolean
+        draggable?: boolean | 'true' | 'false'
+        hidden?: boolean | 'true' | 'false'
         id?: string
         lang?: string
-        spellcheck?: boolean | 'default'
+        spellcheck?: boolean | 'default' | 'true' | 'false'
         style?: string
-        tabindex?: number
+        tabindex?: number | string
         title?: string
         translate?: '' | 'yes' | 'no'
 
@@ -180,54 +180,54 @@ declare namespace myra.core.contract {
         type?: string
     }
     interface AudioAttributes extends GlobalAttributes {
-        autoplay?: boolean
+        autoplay?: boolean | 'true' | 'false'
         buffered?: any
         controls?: any
-        loop?: boolean
-        muted?: boolean
+        loop?: boolean | 'true' | 'false'
+        muted?: boolean | 'true' | 'false'
         played?: any
         preload?: '' | 'none' | 'metadata' | 'auto'
         src?: string
-        volume?: number
+        volume?: number | string
     }
     interface ButtonAttributes extends GlobalAttributes {
-        autofocus?: boolean
-        disabled?: boolean
+        autofocus?: boolean | 'true' | 'false'
+        disabled?: boolean | 'true' | 'false'
         form?: string
         formaction?: string
         formenctype?: 'application/x-www-form-urlencoded' | 'multipart/form-data' | 'text/plain'
         formmethod?: 'post' | 'get'
-        formnovalidate?: boolean
+        formnovalidate?: boolean | 'true' | 'false'
         formtarget?: string
         name?: string
         type?: 'submit' | 'reset' | 'button'
         value?: string | number 
     }
     interface CanvasAttributes extends GlobalAttributes {
-        height?: number
-        width?: number
+        height?: number | string
+        width?: number | string
     }
     interface ColAttributes extends GlobalAttributes {
-        span?: number
+        span?: number | string
     }
     interface ColGroupAttributes extends GlobalAttributes {
-        span?: number
+        span?: number | string
     }
     interface DelAttributes extends GlobalAttributes {
         cite?: string
         datetime?: string
     }
     interface DetailsAttributes extends GlobalAttributes {
-        open?: boolean
+        open?: boolean | 'true' | 'false'
     }
     interface EmbedAttributes extends GlobalAttributes {
-        height?: number
+        height?: number | string
         src?: string
         type?: string
-        width?: number
+        width?: number | string
     }
     interface FieldsetAttributes extends GlobalAttributes {
-        disabled?: boolean
+        disabled?: boolean | 'true' | 'false'
         form?: string
         name?: string
     }
@@ -239,7 +239,7 @@ declare namespace myra.core.contract {
         enctype?: 'application/x-www-form-urlencoded' | 'multipart/form-data' | 'text/plain'
         method?: 'post' | 'get'
         name?: string
-        novalidate?: boolean
+        novalidate?: boolean | 'true' | 'false'
         target?: string
         
         onreset?: ElementEventAttributeArguments
@@ -249,60 +249,60 @@ declare namespace myra.core.contract {
         validate?: FormValidator | FormValidator[]
     }
     interface IframeAttributes extends GlobalAttributes {
-        allowfullscreen?: boolean
-        height?: number
+        allowfullscreen?: boolean | 'true' | 'false'
+        height?: number | string
         name?: string
         sandbox?: string
         src?: string
         srcdoc?: string
-        width?: number
+        width?: number | string
     }
     interface ImgAttributes extends GlobalAttributes {
         alt?: string
         crossorigin?: 'anonymous' | 'use-credentials'
-        height?: number
-        ismap?: boolean
+        height?: number | string
+        ismap?: boolean | 'true' | 'false'
         longdesc?: string
         sizes?: string
         src: string
         srcset?: string
-        width?: number
+        width?: number | string
         usemap?: string
     }
     interface InputAttributes extends GlobalAttributes {
         type?: 'button' | 'checkbox' | 'color' | 'date' | 'datetime' | 'datetime-local' | 'email' | 'file' | 'hidden' | 'image' | 'month' | 'number' | 'password' | 'radio' | 'range' | 'reset' | 'search' | 'submit' | 'tel' | 'text' | 'time' | 'url' | 'week'
         accept?: string
         autocomplete?: string
-        autofocus?: boolean
-        capture?: boolean
-        checked?: boolean
-        disabled?: boolean
+        autofocus?: boolean | 'true' | 'false'
+        capture?: boolean | 'true' | 'false'
+        checked?: boolean | 'true' | 'false'
+        disabled?: boolean | 'true' | 'false'
         form?: string
         formaction?: string
         formenctype?: 'application/x-www-form-urlencoded' | 'multipart/form-data' | 'text/plain'
         formmethod?: 'post' | 'get'
-        formnovalidate?: boolean
+        formnovalidate?: boolean | 'true' | 'false'
         formtarget?: string
-        height?: number
+        height?: number | string
         inputmode?: string
         list?: string
         max?: number | string
-        maxlength?: number
+        maxlength?: number | string
         min?: number | string
-        minlength?: number
-        muliple?: boolean
+        minlength?: number | string
+        muliple?: boolean | 'true' | 'false'
         name?: string
         pattern?: string
         placeholder?: string
-        readonly?: boolean
-        required?: boolean
+        readonly?: boolean | 'true' | 'false'
+        required?: boolean | 'true' | 'false'
         selectionDirection?: string
-        size?: number
-        spellcheck?: boolean
+        size?: number | string
+        spellcheck?: boolean | 'true' | 'false'
         src?: string
         step?: number | string
         value?: string | number
-        width?: number
+        width?: number | string
         
         onchange?: FieldElementEventAttributeArguments
         oninput?: FieldElementEventAttributeArguments
@@ -318,36 +318,36 @@ declare namespace myra.core.contract {
         form?: string
     }
     interface LiAttributes extends GlobalAttributes {
-        value?: number
+        value?: number | string
     }
     interface MapAttributes extends GlobalAttributes {
         name?: string
     }
     interface MeterAttributes extends GlobalAttributes {
-        value?: number
-        min?: number
-        max?: number
-        low?: number
-        high?: number
-        optimum?: number
+        value?: number | string
+        min?: number | string
+        max?: number | string
+        low?: number | string
+        high?: number | string
+        optimum?: number | string
         form?: string
     }
     interface ObjectAttributes extends GlobalAttributes {
         data?: string
-        height?: number
+        height?: number | string
         name?: string
         type?: string
         usemap?: string
-        width?: number
+        width?: number | string
     }
     interface OptgroupAttributes extends GlobalAttributes {
-        disabled?: boolean
+        disabled?: boolean | 'true' | 'false'
         label?: string
     }
     interface OptionAttributes extends GlobalAttributes {
-        disabled?: boolean
+        disabled?: boolean | 'true' | 'false'
         label?: string
-        selected?: boolean
+        selected?: boolean | 'true' | 'false'
         value?: string | number
     }
     interface ParamAttributes extends GlobalAttributes {
@@ -355,20 +355,20 @@ declare namespace myra.core.contract {
         value?: string
     }
     interface ProgressAttributes extends GlobalAttributes {
-        max?: number
-        value?: number
+        max?: number | string
+        value?: number | string
     }
     interface QAttributes extends GlobalAttributes {
         cite?: string
     }
     interface SelectAttributes extends GlobalAttributes {
-        autofocus?: boolean
-        disabled?: boolean
+        autofocus?: boolean | 'true' | 'false'
+        disabled?: boolean | 'true' | 'false'
         form?: string
-        multiple?: boolean
+        multiple?: boolean | 'true' | 'false'
         name?: string
-        required?: boolean
-        size?: number
+        required?: boolean | 'true' | 'false'
+        size?: number | string
 
         onchange?: FieldElementEventAttributeArguments
         
@@ -379,24 +379,24 @@ declare namespace myra.core.contract {
         type?: string
     }
     interface TdAttributes extends GlobalAttributes {
-        colspan?: number
+        colspan?: number | string
         headers?: string
-        rowspan?: number
+        rowspan?: number | string
     }
     interface TextareaAttributes extends GlobalAttributes {
         autocomplete?: 'on' | 'off'
-        autofocus?: boolean
-        cols?: number
-        disabled?: boolean
+        autofocus?: boolean | 'true' | 'false'
+        cols?: number | string
+        disabled?: boolean | 'true' | 'false'
         form?: string
-        maxlength?: number
-        minlength?: number
+        maxlength?: number | string
+        minlength?: number | string
         name?: string
         placeholder?: string
-        required?: boolean
+        required?: boolean | 'true' | 'false'
         selectionDirection?: string
-        selectionEnd?: number
-        selectionStart?: number
+        selectionEnd?: number | string
+        selectionStart?: number | string
         wrap?: 'soft' | 'hard'
 
         onchange?: FieldElementEventAttributeArguments
@@ -405,33 +405,33 @@ declare namespace myra.core.contract {
         validate?: FieldValidator | FieldValidator[]
     }
     interface ThAttributes extends GlobalAttributes {
-        colspan?: number
+        colspan?: number | string
         headers?: string
-        rowspan?: number
+        rowspan?: number | string
         scope?: 'row' | 'col' | 'rowgroup' | 'colgroup' | 'auto'
     }
     interface TimeAttributes extends GlobalAttributes {
         datetime?: string
     }
     interface TrackAttributes extends GlobalAttributes {
-        default?: boolean
+        default?: boolean | 'true' | 'false'
         kind?: 'subtitles' | 'captions' | 'descriptions' | 'chapters' | 'metadata'
         label?: string
         src?: string
         srclang?: string
     }
     interface VideoAttributes extends GlobalAttributes {
-        autoplay?: boolean
+        autoplay?: boolean | 'true' | 'false'
         buffered?: any
-        controls?: boolean
+        controls?: boolean | 'true' | 'false'
         crossorigin?: 'anonymous' | 'use-credentials'
-        height?: number
-        loop?: boolean
-        muted?: boolean
+        height?: number | string
+        loop?: boolean | 'true' | 'false'
+        muted?: boolean | 'true' | 'false'
         played?: any
         preload?: 'none' | 'metadata' | 'auto' | ''
         poster?: string
         src?: string
-        width?: number
+        width?: number | string
     }
 }
