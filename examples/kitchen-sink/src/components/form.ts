@@ -29,10 +29,10 @@ const onFormSubmitUpdate = (model: Model, formData: FormData, validationResult: 
     })
 
 const oninputUpdate = (model: Model, value: string) => 
-    evolve(model, m => m.formData = evolve(m.formData, x => x.oninputDemo = value))
+    evolve(model, x => x.formData.oninputDemo = value)
 
 const onchangeUpdate = (model: Model, value: string) => 
-    evolve(model, m => m.formData = evolve(m.formData, x => x.onchangeDemo = value))
+    evolve(model, x => x.formData.onchangeDemo = value)
 
 
 /**
