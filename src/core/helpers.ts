@@ -7,6 +7,7 @@ export function typeOf(obj: any): Type {
 	if (typeof obj === 'string') return 'string'
 	if (typeof obj === 'number') return 'number'
 	if (typeof obj === 'boolean') return 'boolean'
+	if (typeof obj === 'function') return 'function'
 	if (typeof obj === 'undefined') return 'undefined'
 	if (typeof obj === 'null') return 'null'
     return ({}).toString.call(obj).slice(8, -1).toLowerCase()
