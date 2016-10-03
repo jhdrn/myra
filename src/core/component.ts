@@ -63,7 +63,8 @@ class ComponentContextImpl<M, T> implements ComponentContext<M, T> {
     constructor(readonly parentNode: Element,
                 readonly name: string,
                 readonly view: View<M>,
-                public mountArg: T | undefined) {
+                readonly mountArg: T | undefined,
+                readonly childNodes?: NodeDescriptor[]) {
     }
 
     private _mounted = false
@@ -85,14 +86,14 @@ class ComponentContextImpl<M, T> implements ComponentContext<M, T> {
 
 /** Defines a component. */
 export function defineComponent<M, A>(args: ComponentArgs<M, A>, subscribe: Subscribe): InitializeComponent {        
-    return (mountArgs?: A, forceMount?: boolean) => ({
+    return (mountArgs?: A, forceMount?: boolean, childNodes?: NodeDescriptor[]) => ({
         __type: 'component',
         name: args.name,
         props: mountArgs,
         forceMount: forceMount,
         mount: (parentNode: Element, mountArgs?: A): ComponentInstance<A> => {
 
-            const context = new ComponentContextImpl<M, A>(parentNode, args.name, args.view, mountArgs)
+            const context = new ComponentContextImpl<M, A>(parentNode, args.name, args.view, mountArgs, childNodes)
             
             if (args.subscriptions) {
                 Object.keys(args.subscriptions).forEach(k => {

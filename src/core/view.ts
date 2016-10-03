@@ -157,7 +157,7 @@ function tryCreateEventListener(attributeName: string, eventArgs: ElementEventAt
         const eventArgsType = typeOf(eventArgs)
 
         if ((eventArgs as Task).execute) {
-            (eventArgs as Task).execute(dispatch)
+            (eventArgs as Task).execute((eventArgs as any).__dispatch || dispatch)
             return
         } 
         else if (eventArgsType === 'object') {
@@ -169,7 +169,7 @@ function tryCreateEventListener(attributeName: string, eventArgs: ElementEventAt
             }
             if ((eventArgs as ListenerWithEventOptions).listener) {
                 if (((eventArgs as ListenerWithEventOptions).listener as Task).execute) {
-                    ((eventArgs as ListenerWithEventOptions).listener as Task).execute(dispatch)
+                    ((eventArgs as ListenerWithEventOptions).listener as Task).execute(((eventArgs as ListenerWithEventOptions).listener as any).__dispatch || dispatch)
                     return
                 }
                 else {
@@ -179,22 +179,46 @@ function tryCreateEventListener(attributeName: string, eventArgs: ElementEventAt
         }
         
         const intercepted = eventInterceptors.reduce((stop, interceptor) => 
-            stop ? stop : interceptor(nodeDescriptor, node as Element, ev, eventArgs as UpdateAny, dispatch), false)
+            stop ? stop : interceptor(nodeDescriptor, node as Element, ev, eventArgs as UpdateAny, (eventArgs as any).__dispatch || dispatch), false)
         
         if (!intercepted) {
-            dispatch(eventArgs as UpdateAny)
+            if ((eventArgs as any).__dispatch) {
+                (eventArgs as any).__dispatch(eventArgs as UpdateAny)
+            }
+            else {
+                dispatch(eventArgs as UpdateAny)
+            }
         }
     }
 }
 
+/** 
+ * Finds functions and decorates them with a __dispatch property which can be
+ * used if the function is to be used as an event listener when passed from a 
+ * parent component.
+ */
+function decorateFnsWithDispatch(props: any, dispatch: Dispatch) {
+    const propsType = typeOf(props)
+    if (propsType === 'function') {
+        props.__dispatch = dispatch
+    }
+    else if (propsType === 'object') {
+        Object.keys(props).forEach(k => decorateFnsWithDispatch(props[k], dispatch))
+    }
+    else if (propsType === 'array') {
+        props.foreach((p: any) => decorateFnsWithDispatch(p, dispatch))
+    }
+}
+
 /** Creates a Node from a NodeDescriptor. */
-function createNode(descriptor: NodeDescriptor, parentNode: Element): Node {
+function createNode(descriptor: NodeDescriptor, parentNode: Element, dispatch: Dispatch): Node {
     switch(descriptor.__type) {
         case 'element':  
             return document.createElement(descriptor.tagName)
         case 'text':
             return document.createTextNode(descriptor.value)
         case 'component':
+            decorateFnsWithDispatch(descriptor.props, dispatch)
             descriptor.componentInstance = descriptor.mount(parentNode, descriptor.props) 
             return descriptor.componentInstance.rootNode
         case 'nothing':
@@ -237,7 +261,7 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
     const replaceNode = shouldReplaceNode(newDescriptor, oldDescriptor)
     if (typeof existingNode === 'undefined' || existingNode === null || replaceNode) {
         // if no existing node, create one
-        const newNode = createNode(newDescriptor, parentNode)
+        const newNode = createNode(newDescriptor, parentNode, dispatch)
 
         newDescriptor.node = newNode
 

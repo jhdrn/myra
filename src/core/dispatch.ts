@@ -9,13 +9,13 @@ export function dispatch<M, A>(context: ComponentContext<M, A>, render: Render, 
     if (context.isUpdating) {
         throw `${context.name}: Dispatch error - the dispatch function may not be called during an update. Doing so would most likely corrupt the model state.`
     }
-    
+
     context.dispatchLevel++
 
     context.isUpdating = true
 
     const result = fn(context.model!, ...args)
-    
+
     context.isUpdating = false
 
     const dispatchFn = (fn: Update<M, A>, ...args: any[]) => dispatch(context, render, fn, ...args)
@@ -35,16 +35,16 @@ export function dispatch<M, A>(context: ComponentContext<M, A>, render: Render, 
     else {
         context.model = result
     }
-    
+
     // Update view if the component was already mounted and the dispatchLevel
     // is at "lowest" level (i.e. 1).
     if (context.mounted && context.dispatchLevel === 1) {
-        
-        const newView = context.view(context.model!)
+
+        const newView = context.view(context.model!, context.childNodes)
 
         context.rootNode = render(context.parentNode, newView, context.oldView, context.rootNode, dispatchFn)
         context.oldView = newView
     }
-    
+
     context.dispatchLevel--
 }

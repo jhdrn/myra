@@ -35,9 +35,10 @@ declare namespace myra.core.contract {
         model: M | undefined
         oldView: NodeDescriptor | undefined
         rootNode: Node
+        childNodes?: NodeDescriptor[]
     }
 
-    type InitializeComponent = <A>(mountArgs?: A, forceMount?: boolean) => ComponentNodeDescriptor
+    type InitializeComponent = <A>(mountArgs?: A, forceMount?: boolean, children?: NodeDescriptor[]) => ComponentNodeDescriptor
     
     /**
      * Update/Dispatch types
@@ -57,7 +58,7 @@ declare namespace myra.core.contract {
      * View types
      */
     interface View<M> {
-        (model: M): NodeDescriptor
+        (model: M, children?: NodeDescriptor[]): NodeDescriptor
     }
 
     interface AttributeMap { [name: string]: string }
