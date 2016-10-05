@@ -1,5 +1,5 @@
-import * as core from 'core'
-import { div } from 'html/elements' 
+import { defineComponent, mountComponent } from 'core'
+import { div, button } from 'html/elements' 
 
 const q = (x: string) => document.querySelector(x)
 
@@ -7,7 +7,7 @@ const q = (x: string) => document.querySelector(x)
  * defineComponent
  */
 describe('core.defineComponent', () => {
-    const component1 = core.defineComponent({
+    const component1 = defineComponent({
         name: 'TestComponent',
         init: undefined,
         view: () => div()
@@ -19,13 +19,13 @@ describe('core.defineComponent', () => {
 })
 
 /**
- * component.mount
+ * mountComponent
  */
-describe('mount', () => {
+describe('mountComponent', () => {
 
     it('mounts the compontent', () => {
 
-        const component = core.defineComponent({
+        const component = defineComponent({
             name: 'TestComponent',
             init: undefined,
             view: () => div({
@@ -33,7 +33,7 @@ describe('mount', () => {
             })
         })
 
-        core.mount(component, document.body)
+        mountComponent(component, document.body)
 
         const rootNode = q('#root')
         
@@ -47,14 +47,14 @@ describe('mount', () => {
 
         spyOn(mountMock, 'mount')
 
-        const component = core.defineComponent({
+        const component = defineComponent({
             name: 'TestComponent',
             init: 0,
             mount: mountMock.mount,
             view: () => div()
         })
 
-        core.mount(component, document.body)
+        mountComponent(component, document.body)
 
         expect(mountMock.mount).toHaveBeenCalled()
     })
@@ -67,7 +67,7 @@ describe('mount', () => {
 
         spyOn(mountMock, 'mount')
 
-        const component = core.defineComponent({
+        const component = defineComponent({
             name: 'TestComponent',
             init: 0,
             mount: mountMock.mount,
@@ -78,9 +78,69 @@ describe('mount', () => {
             view: () => div()
         })
 
-        core.mount(component, document.body)
+        mountComponent(component, document.body)
 
         expect(mountMock.mount).toHaveBeenCalled()
+    })
+
+    it(`calls the parent's dispatch function if an update function is passed to and called from a child`, () => {
+        
+        const updateMock = {
+            update: (x: number) => {
+                expect(x).toBe(22)
+                return x
+            }
+        }
+
+        spyOn(updateMock, 'update').and.callThrough()
+
+        const component = defineComponent<any, any>({
+            name: 'TestComponent',
+            init: undefined,
+            mount: (_m, a) => a,
+            view: (m) => button({ onclick: m.onclick, id: 'childBtn'})
+        })
+
+        const parent = defineComponent({
+            name: 'ParentComponent',
+            init: 22,
+            view: () => component({ onclick: updateMock.update })
+        })
+
+        mountComponent(parent, document.body)
+
+        ;(q('#childBtn') as HTMLButtonElement).click()
+
+        expect(updateMock.update).toHaveBeenCalledTimes(1)
+    })
+
+    it(`passes the children of a component to it view`, () => {
+        const viewMock = {
+            view: (_: any, children: any) => {
+                expect(Array.isArray(children)).toBe(true)
+                return div(children)
+            }
+        }
+
+        spyOn(viewMock, 'view').and.callThrough()
+
+        const component = defineComponent<any, any>({
+            name: 'TestComponent',
+            init: undefined,
+            view: viewMock.view
+        })
+
+        const parent = defineComponent({
+            name: 'ParentComponent',
+            init: 22,
+            view: () => component(undefined, undefined, [div({ id: 'divTestId' })])
+        })
+
+        mountComponent(parent, document.body)
+
+        expect(q('#divTestId')).not.toBeNull()
+
+        expect(viewMock.view).toHaveBeenCalledTimes(1)
     })
 })
 
@@ -96,7 +156,7 @@ describe('updateComponent', () => {
 
         spyOn(mountMock, 'mount')
 
-        const component = core.defineComponent({
+        const component = defineComponent({
             name: 'TestComponent',
             init: 0,
             mount: mountMock.mount,
@@ -117,7 +177,7 @@ describe('updateComponent', () => {
 
         spyOn(mountMock, 'mount')
 
-        const component = core.defineComponent({
+        const component = defineComponent({
             name: 'TestComponent',
             init: 0,
             mount: mountMock.mount,
@@ -141,7 +201,7 @@ describe('updateComponent', () => {
 
         spyOn(mountMock, 'mount').and.callThrough()
         
-        const component = core.defineComponent({
+        const component = defineComponent({
             name: 'Test',
             init: 0,
             mount: mountMock.mount,

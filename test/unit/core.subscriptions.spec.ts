@@ -1,4 +1,4 @@
-import { defineComponent, broadcast, mount } from 'core'
+import { defineComponent, broadcast, mountComponent } from 'core'
 import { div } from 'html/elements' 
 
 /**
@@ -26,7 +26,7 @@ describe('core.subscriptions.broadcast', () => {
             view: () => div()
         })
 
-        mount(component, document.body)
+        mountComponent(component, document.body)
 
         broadcast('test1', 'testdata1').execute((_: any) => {
         })

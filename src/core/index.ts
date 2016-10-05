@@ -25,6 +25,6 @@ export function defineComponent<M, A>(args: ComponentArgs<M, A>): InitializeComp
 }
 
 /** Mounts the component onto the supplied element. */
-export function mount(component: InitializeComponent, element: Element) {
+export function mountComponent(component: InitializeComponent, element: Element) {
     component().initComponent(element, undefined as any)
 }
