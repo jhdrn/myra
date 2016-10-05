@@ -91,20 +91,18 @@ describe('jsxFactory', () => {
         } as core.ElementNodeDescriptor)
     })
 
-    it('mount element mounts a ComponentNodeDescriptor', () => {
+    it('Object element creates a ComponentNodeDescriptor', () => {
         const TestComponent = core.defineComponent({
             name: 'TestComponent',
             init: undefined,
             view: () => <div></div>
         })
 
-        const view = <TestComponent test="test" />
+        const view = <TestComponent test="test" /> as any as core.ComponentNodeDescriptor
 
-        expect(JSON.stringify(view)).toEqual(JSON.stringify({
-            __type: 'component',
-            name: 'TestComponent',
-            props: { test: 'test' },
-            forceMount: undefined
-        }))
+        expect(view.__type).toBe('component')
+        expect(view.name).toBe('TestComponent')
+        expect(view.props).toEqual({ test: 'test' })
+        expect(view.forceMount).toBe(false)
     })
 })

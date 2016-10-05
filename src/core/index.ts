@@ -23,3 +23,8 @@ export function broadcast(type: string, data: any): Task {
 export function defineComponent<M, A>(args: ComponentArgs<M, A>): InitializeComponent {
     return defineComponentInternal(args, subscribe)
 }
+
+/** Mounts the component onto the supplied element. */
+export function mount(component: InitializeComponent, element: Element) {
+    component().initComponent(element, undefined as any)
+}

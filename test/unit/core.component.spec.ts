@@ -1,152 +1,159 @@
-// import * as core from 'core'
-// import { div } from 'html/elements' 
+import * as core from 'core'
+import { div } from 'html/elements' 
 
-// const q = (x: string) => document.querySelector(x)
+const q = (x: string) => document.querySelector(x)
 
-// /**
-//  * defineComponent
-//  */
-// describe('core.defineComponent', () => {
-//     const component1 = core.defineComponent({
-//         name: 'TestComponent',
-//         init: undefined,
-//         view: () => div()
-//     })
+/**
+ * defineComponent
+ */
+describe('core.defineComponent', () => {
+    const component1 = core.defineComponent({
+        name: 'TestComponent',
+        init: undefined,
+        view: () => div()
+    })
 
-//     it('has a name', () => {
-//         expect(component1().name).toBe('TestComponent')
-//     })
-// })
+    it('has a name', () => {
+        expect(component1().name).toBe('TestComponent')
+    })
+})
 
-// /**
-//  * component.mount
-//  */
-// describe('component.mount', () => {
+/**
+ * component.mount
+ */
+describe('mount', () => {
 
-//     it('mounts the compontent', () => {
+    it('mounts the compontent', () => {
 
-//         const component = core.defineComponent({
-//             name: 'TestComponent',
-//             init: undefined,
-//             view: () => div({
-//                 id: 'root'
-//             })
-//         })
+        const component = core.defineComponent({
+            name: 'TestComponent',
+            init: undefined,
+            view: () => div({
+                id: 'root'
+            })
+        })
 
-//         component().mount(document.body)
+        core.mount(component, document.body)
 
-//         const rootNode = q('#root')
+        const rootNode = q('#root')
         
-//         expect(rootNode).not.toBeNull()
-//     })
+        expect(rootNode).not.toBeNull()
+    })
 
-//     it('calls the mount function', () => {
-//         const mountMock = {
-//             mount: (x: number) => x
-//         }
+    it('calls the mount function', () => {
+        const mountMock = {
+            mount: (x: number) => x
+        }
 
-//         spyOn(mountMock, 'mount')
+        spyOn(mountMock, 'mount')
 
-//         const component = core.defineComponent({
-//             name: 'TestComponent',
-//             init: 0,
-//             mount: mountMock.mount,
-//             view: () => div()
-//         })
+        const component = core.defineComponent({
+            name: 'TestComponent',
+            init: 0,
+            mount: mountMock.mount,
+            view: () => div()
+        })
 
-//         component().mount(document.body)
+        core.mount(component, document.body)
 
-//         expect(mountMock.mount).toHaveBeenCalled()
-//     })
-
-    
-//     it('calls the subscribe function if supplied with subscriptions', () => {
-//         const mountMock = {
-//             mount: (x: number) => x
-//         }
-
-//         spyOn(mountMock, 'mount')
-
-//         const component = core.defineComponent({
-//             name: 'TestComponent',
-//             init: 0,
-//             mount: mountMock.mount,
-//             subscriptions: {
-//                 'test1': x => x,
-//                 'test2': x => x
-//             },
-//             view: () => div()
-//         })
-
-//         component().mount(document.body)
-
-//         expect(mountMock.mount).toHaveBeenCalled()
-//     })
-// })
-
-// /**
-//  * componentInstance.remount
-//  */
-// describe('componentInstance.remount', () => {
-
-//     it('does not call the mount function if the arguments has not changed', () => {
-//         const mountMock = {
-//             mount: (x: number) => x
-//         }
-
-//         spyOn(mountMock, 'mount')
-
-//         const component = core.defineComponent({
-//             name: 'TestComponent',
-//             init: 0,
-//             mount: mountMock.mount,
-//             view: () => div()
-//         })
-
-//         const componentInstance = component().mount(document.body, 75)
-//         componentInstance.remount(75)
-
-//         expect(mountMock.mount).toHaveBeenCalledTimes(1)
-//     })
-
-//     it('calls the mount function if forceMount is true', () => {
-//         const mountMock = {
-//             mount: (x: number) => x
-//         }
-
-//         spyOn(mountMock, 'mount')
-
-//         const component = core.defineComponent({
-//             name: 'TestComponent',
-//             init: 0,
-//             mount: mountMock.mount,
-//             view: () => div()
-//         })
-
-//         const componentInstance = component().mount(document.body)
-//         componentInstance.remount(undefined, true)
-
-//         expect(mountMock.mount).toHaveBeenCalledTimes(2)
-//     })
+        expect(mountMock.mount).toHaveBeenCalled()
+    })
 
     
-//     it('calls the mount function if the supplied arguments is not equal to the previous arguments', () => {
-//         const mountMock = {
-//             mount: (x: number) => x
-//         }
+    it('calls the subscribe function if supplied with subscriptions', () => {
+        const mountMock = {
+            mount: (x: number) => x
+        }
 
-//         spyOn(mountMock, 'mount')
+        spyOn(mountMock, 'mount')
 
-//         const component = core.defineComponent({
-//             name: 'TestComponent',
-//             init: 0,
-//             mount: mountMock.mount,
-//             view: () => div()
-//         })
+        const component = core.defineComponent({
+            name: 'TestComponent',
+            init: 0,
+            mount: mountMock.mount,
+            subscriptions: {
+                'test1': x => x,
+                'test2': x => x
+            },
+            view: () => div()
+        })
 
-//         const componentInstance = component().mount(document.body, { prop: 'value' })
-//         componentInstance.remount({ prop: 'new value' }, true)
+        core.mount(component, document.body)
 
-//         expect(mountMock.mount).toHaveBeenCalledTimes(2)
-//     })
-// })
+        expect(mountMock.mount).toHaveBeenCalled()
+    })
+})
+
+/**
+ * updateComponent
+ */
+describe('updateComponent', () => {
+
+    it('does not call the mount function if the arguments has not changed', () => {
+        const mountMock = {
+            mount: (x: number) => x
+        }
+
+        spyOn(mountMock, 'mount')
+
+        const component = core.defineComponent({
+            name: 'TestComponent',
+            init: 0,
+            mount: mountMock.mount,
+            view: () => div()
+        })
+
+        const componentDescriptor = component(45)
+        componentDescriptor.initComponent(document.body, undefined as any)
+        componentDescriptor.updateComponent(componentDescriptor)
+
+        expect(mountMock.mount).toHaveBeenCalledTimes(1)
+    })
+
+    it('calls the mount function if forceMount is true', () => {
+        const mountMock = {
+            mount: (x: number) => x
+        }
+
+        spyOn(mountMock, 'mount')
+
+        const component = core.defineComponent({
+            name: 'TestComponent',
+            init: 0,
+            mount: mountMock.mount,
+            view: () => div()
+        })
+
+        const componentDescriptor = component()
+        componentDescriptor.initComponent(document.body, undefined as any)
+
+        const newDescriptor = component(undefined, true)
+        newDescriptor.updateComponent(componentDescriptor)
+
+        expect(mountMock.mount).toHaveBeenCalledTimes(2)
+    })
+
+    
+    it('calls the mount function if the supplied arguments is not equal to the previous arguments', () => {
+        const mountMock = {
+            mount: (x: number) => x
+        }
+
+        spyOn(mountMock, 'mount').and.callThrough()
+        
+        const component = core.defineComponent({
+            name: 'Test',
+            init: 0,
+            mount: mountMock.mount,
+            view: () => div()
+        })
+
+        const componentDescriptor = component({ prop: 'a value' })
+        componentDescriptor.initComponent(document.body, undefined as any)
+
+        const newDescriptor = component({ prop: 'a new value' })
+        newDescriptor.updateComponent(componentDescriptor)
+
+        expect(mountMock.mount).toHaveBeenCalledTimes(2)
+    })
+})
