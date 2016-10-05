@@ -1,4 +1,4 @@
 
 import { mainComponent } from './components/main'
 
-mainComponent().mount(document.body)
+mainComponent().initComponent(document.body, undefined as any)

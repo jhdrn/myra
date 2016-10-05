@@ -6,7 +6,7 @@ export type Map<T> = myra.core.contract.Map<T>
  * Component types
  */
 export interface ComponentArgs<M, A> extends myra.core.contract.ComponentArgs<M, A> { }
-export interface ComponentInstance<T> extends myra.core.contract.ComponentInstance<T> { }
+// export interface ComponentInstance<T> extends myra.core.contract.ComponentInstance<T> { }
 export interface ComponentContext<M, T> extends myra.core.contract.ComponentContext<M, T> { }
 export type InitializeComponent = myra.core.contract.InitializeComponent
 

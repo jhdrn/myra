@@ -192,23 +192,6 @@ function tryCreateEventListener(attributeName: string, eventArgs: ElementEventAt
     }
 }
 
-/** 
- * Finds functions and decorates them with a __dispatch property which can be
- * used if the function is to be used as an event listener when passed from a 
- * parent component.
- */
-function decorateFnsWithDispatch(props: any, dispatch: Dispatch) {
-    const propsType = typeOf(props)
-    if (propsType === 'function') {
-        props.__dispatch = dispatch
-    }
-    else if (propsType === 'object') {
-        Object.keys(props).forEach(k => decorateFnsWithDispatch(props[k], dispatch))
-    }
-    else if (propsType === 'array') {
-        props.foreach((p: any) => decorateFnsWithDispatch(p, dispatch))
-    }
-}
 
 /** Creates a Node from a NodeDescriptor. */
 function createNode(descriptor: NodeDescriptor, parentNode: Element, dispatch: Dispatch): Node {
@@ -218,9 +201,8 @@ function createNode(descriptor: NodeDescriptor, parentNode: Element, dispatch: D
         case 'text':
             return document.createTextNode(descriptor.value)
         case 'component':
-            decorateFnsWithDispatch(descriptor.props, dispatch)
-            descriptor.componentInstance = descriptor.mount(parentNode, descriptor.props) 
-            return descriptor.componentInstance.rootNode
+            descriptor.initComponent(parentNode, dispatch)
+            return descriptor.node!
         case 'nothing':
             return document.createComment('Nothing')
     }
@@ -257,7 +239,7 @@ function getAttributesToRemove(newDescriptor: ElementNodeDescriptor, oldDescript
 }
 
 /** Renders the view by walking the node descriptor tree recursively */
-export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor, existingNode: Node | undefined, dispatch: Dispatch): Node {
+export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor, existingNode: Node | undefined, dispatch: Dispatch): void {
     const replaceNode = shouldReplaceNode(newDescriptor, oldDescriptor)
     if (typeof existingNode === 'undefined' || existingNode === null || replaceNode) {
         // if no existing node, create one
@@ -299,7 +281,6 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
                             newNode.appendChild(document.createTextNode('\r\n'))
                         })
         }
-        return newNode
     }
     else { // reuse the old node
 
@@ -389,9 +370,11 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
                 existingNode.textContent = newDescriptor.value
                 break
             case 'component':
-                newDescriptor.componentInstance = (oldDescriptor as ComponentNodeDescriptor).componentInstance
-                ;(oldDescriptor as ComponentNodeDescriptor).componentInstance = undefined
-                newDescriptor.componentInstance!.remount(newDescriptor.props, newDescriptor.forceMount)
+                // newDescriptor.componentInstance = (oldDescriptor as ComponentNodeDescriptor).componentInstance
+                // ;(oldDescriptor as ComponentNodeDescriptor).componentInstance = undefined
+                // newDescriptor.componentInstance!.remount(newDescriptor.props, newDescriptor.forceMount)
+                
+                newDescriptor.updateComponent(oldDescriptor as ComponentNodeDescriptor)
                 break
         }
 
@@ -403,5 +386,4 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
             oldDescriptor.node = undefined
         }
     }
-    return existingNode
 }

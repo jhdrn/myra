@@ -1,7 +1,7 @@
 import { Update, Dispatch, NodeDescriptor, ComponentContext, Task } from './contract'
 
 export interface Render {
-    (parentNode: Element, view: NodeDescriptor, oldView: NodeDescriptor | undefined, oldRootNode: Node, dispatch: Dispatch): Node
+    (parentNode: Element, view: NodeDescriptor, oldView: NodeDescriptor | undefined, oldRootNode: Node | undefined, dispatch: Dispatch): void
 }
 
 export function dispatch<M, A>(context: ComponentContext<M, A>, render: Render, fn: (model: M, ...args: any[]) => M | [M, Task | Task[]], ...args: any[]) {
@@ -41,8 +41,8 @@ export function dispatch<M, A>(context: ComponentContext<M, A>, render: Render, 
     if (context.mounted && context.dispatchLevel === 1) {
 
         const newView = context.view(context.model!, context.childNodes)
-
-        context.rootNode = render(context.parentNode, newView, context.oldView, context.rootNode, dispatchFn)
+        const oldNode = context.oldView ? context.oldView.node : undefined
+        render(context.parentNode, newView, context.oldView, oldNode, dispatchFn)
         context.oldView = newView
     }
 
