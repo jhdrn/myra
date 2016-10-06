@@ -68,7 +68,7 @@ describe('core.view.render', () => {
 
     it('mounts a component from a component node descriptor', (done) => {
         const testComponent = defineComponent({
-            name: 'TestComponent',
+            name: 'TestComponent1',
             init: undefined,
             view: (_) => div({ id: 'testComponent' })
         })
@@ -90,7 +90,7 @@ describe('core.view.render', () => {
         spyOn(mocks, 'mount')
 
         const testComponent = defineComponent({
-            name: 'TestComponent',
+            name: 'TestComponent2',
             init: undefined,
             mount: mocks.mount,
             view: (_) => div({ id: 'testComponent' })

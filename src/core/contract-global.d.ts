@@ -25,7 +25,7 @@ declare namespace myra.core.contract {
         dispatchLevel: number
         isUpdating: boolean
         model: M | undefined
-        oldView: NodeDescriptor | undefined
+        rendition?: NodeDescriptor
         childNodes?: NodeDescriptor[]
     }
 
@@ -92,11 +92,10 @@ declare namespace myra.core.contract {
     interface ComponentNodeDescriptor extends NodeDescriptorBase {
         readonly __type: 'component'
         readonly name: string
-        readonly id: number;
-        initComponent<A>(parentNode: Element, dispatch: Dispatch): void
-        updateComponent(oldDescriptor: ComponentNodeDescriptor): void
-        forceMount?: boolean
+        id: number;
+        forceMount: boolean
         children: NodeDescriptor[]
+        rendition?: NodeDescriptor
         props?: any
     }
     interface NothingNodeDescriptor extends NodeDescriptorBase {

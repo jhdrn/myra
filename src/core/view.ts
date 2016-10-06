@@ -1,3 +1,4 @@
+import { initComponent, updateComponent } from './component'
 import { typeOf, max } from './helpers'
 import { Dispatch, Task, UpdateAny, FieldValidator, ElementEventAttributeArguments, NodeDescriptor, TextNodeDescriptor, ElementNodeDescriptor, ComponentNodeDescriptor, ListenerWithEventOptions, FormAttributes, InputAttributes } from './contract'
 import { validateField, validateForm } from './validation'
@@ -25,12 +26,15 @@ eventInterceptors.push((_nodeDescriptor, element, _, update, dispatch) => {
 function findFieldValidatorsRec(nodeDescriptors: NodeDescriptor[], fields: { [name: string]: FieldValidator[]}) {
     return nodeDescriptors.reduce((acc, descriptor) => {
         if (descriptor.__type === 'element') {
-            const fieldName = ((descriptor as ElementNodeDescriptor).attributes as InputAttributes).name
-            const validators = ((descriptor as ElementNodeDescriptor).attributes as InputAttributes).validate
+            const fieldName = (descriptor.attributes as InputAttributes).name
+            const validators = (descriptor.attributes as InputAttributes).validate
             if (fieldName && validators) {
                 acc[fieldName] = Array.isArray(validators) ? validators : [validators]
             }
-            findFieldValidatorsRec((descriptor as ElementNodeDescriptor).children, acc)
+            findFieldValidatorsRec(descriptor.children, acc)
+        }
+        else if (descriptor.__type === 'component' && descriptor.rendition) {
+            findFieldValidatorsRec([descriptor.rendition], acc)
         }
         return acc
     }, fields)
@@ -201,7 +205,7 @@ function createNode(descriptor: NodeDescriptor, parentNode: Element, dispatch: D
         case 'text':
             return document.createTextNode(descriptor.value)
         case 'component':
-            descriptor.initComponent(parentNode, dispatch)
+            initComponent(descriptor, parentNode, dispatch)
             return descriptor.node!
         case 'nothing':
             return document.createComment('Nothing')
@@ -370,11 +374,7 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
                 existingNode.textContent = newDescriptor.value
                 break
             case 'component':
-                // newDescriptor.componentInstance = (oldDescriptor as ComponentNodeDescriptor).componentInstance
-                // ;(oldDescriptor as ComponentNodeDescriptor).componentInstance = undefined
-                // newDescriptor.componentInstance!.remount(newDescriptor.props, newDescriptor.forceMount)
-                
-                newDescriptor.updateComponent(oldDescriptor as ComponentNodeDescriptor)
+                updateComponent(newDescriptor, oldDescriptor as ComponentNodeDescriptor)
                 break
         }
 

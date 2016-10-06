@@ -1,20 +1,32 @@
 import { defineComponent, mountComponent } from 'core'
+import { initComponent, updateComponent } from 'core/component'
 import { div, button } from 'html/elements' 
 
 const q = (x: string) => document.querySelector(x)
+
+const randomName = () => Math.random().toString()
 
 /**
  * defineComponent
  */
 describe('core.defineComponent', () => {
+    const componentName = randomName()
     const component1 = defineComponent({
-        name: 'TestComponent',
+        name: componentName,
         init: undefined,
         view: () => div()
     })
 
     it('has a name', () => {
-        expect(component1().name).toBe('TestComponent')
+        expect(component1().name).toBe(componentName)
+    })
+
+    it('throws if a component with the same name is already defined', () => {
+        expect(() => defineComponent({
+            name: componentName,
+            init: undefined,
+            view: () => div()
+        })).toThrow()
     })
 })
 
@@ -26,7 +38,7 @@ describe('mountComponent', () => {
     it('mounts the compontent', () => {
 
         const component = defineComponent({
-            name: 'TestComponent',
+            name: randomName(),
             init: undefined,
             view: () => div({
                 id: 'root'
@@ -48,7 +60,7 @@ describe('mountComponent', () => {
         spyOn(mountMock, 'mount')
 
         const component = defineComponent({
-            name: 'TestComponent',
+            name: randomName(),
             init: 0,
             mount: mountMock.mount,
             view: () => div()
@@ -68,7 +80,7 @@ describe('mountComponent', () => {
         spyOn(mountMock, 'mount')
 
         const component = defineComponent({
-            name: 'TestComponent',
+            name: randomName(),
             init: 0,
             mount: mountMock.mount,
             subscriptions: {
@@ -95,14 +107,14 @@ describe('mountComponent', () => {
         spyOn(updateMock, 'update').and.callThrough()
 
         const component = defineComponent<any, any>({
-            name: 'TestComponent',
+            name: randomName(),
             init: undefined,
             mount: (_m, a) => a,
             view: (m) => button({ onclick: m.onclick, id: 'childBtn'})
         })
 
         const parent = defineComponent({
-            name: 'ParentComponent',
+            name: randomName(),
             init: 22,
             view: () => component({ onclick: updateMock.update })
         })
@@ -125,13 +137,13 @@ describe('mountComponent', () => {
         spyOn(viewMock, 'view').and.callThrough()
 
         const component = defineComponent<any, any>({
-            name: 'TestComponent',
+            name: randomName(),
             init: undefined,
             view: viewMock.view
         })
 
         const parent = defineComponent({
-            name: 'ParentComponent',
+            name: randomName(),
             init: 22,
             view: () => component(undefined, undefined, [div({ id: 'divTestId' })])
         })
@@ -157,15 +169,15 @@ describe('updateComponent', () => {
         spyOn(mountMock, 'mount')
 
         const component = defineComponent({
-            name: 'TestComponent',
+            name: randomName(),
             init: 0,
             mount: mountMock.mount,
             view: () => div()
         })
 
         const componentDescriptor = component(45)
-        componentDescriptor.initComponent(document.body, undefined as any)
-        componentDescriptor.updateComponent(componentDescriptor)
+        initComponent(componentDescriptor, document.body, undefined as any)
+        updateComponent(component(45), componentDescriptor)
 
         expect(mountMock.mount).toHaveBeenCalledTimes(1)
     })
@@ -178,17 +190,17 @@ describe('updateComponent', () => {
         spyOn(mountMock, 'mount')
 
         const component = defineComponent({
-            name: 'TestComponent',
+            name: randomName(),
             init: 0,
             mount: mountMock.mount,
             view: () => div()
         })
 
         const componentDescriptor = component()
-        componentDescriptor.initComponent(document.body, undefined as any)
+        initComponent(componentDescriptor, document.body, undefined as any)
 
         const newDescriptor = component(undefined, true)
-        newDescriptor.updateComponent(componentDescriptor)
+        updateComponent(newDescriptor, componentDescriptor)
 
         expect(mountMock.mount).toHaveBeenCalledTimes(2)
     })
@@ -209,10 +221,10 @@ describe('updateComponent', () => {
         })
 
         const componentDescriptor = component({ prop: 'a value' })
-        componentDescriptor.initComponent(document.body, undefined as any)
+        initComponent(componentDescriptor, document.body, undefined as any)
 
         const newDescriptor = component({ prop: 'a new value' })
-        newDescriptor.updateComponent(componentDescriptor)
+        updateComponent(newDescriptor, componentDescriptor)
 
         expect(mountMock.mount).toHaveBeenCalledTimes(2)
     })

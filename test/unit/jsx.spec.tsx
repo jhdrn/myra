@@ -93,7 +93,7 @@ describe('jsxFactory', () => {
 
     it('Object element creates a ComponentNodeDescriptor', () => {
         const TestComponent = core.defineComponent({
-            name: 'TestComponent',
+            name: 'JsxComponent',
             init: undefined,
             view: () => <div></div>
         })
@@ -101,7 +101,7 @@ describe('jsxFactory', () => {
         const view = <TestComponent test="test" /> as any as core.ComponentNodeDescriptor
 
         expect(view.__type).toBe('component')
-        expect(view.name).toBe('TestComponent')
+        expect(view.name).toBe('JsxComponent')
         expect(view.props).toEqual({ test: 'test' })
         expect(view.forceMount).toBe(false)
     })

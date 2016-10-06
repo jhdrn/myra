@@ -41,9 +41,9 @@ export function dispatch<M, A>(context: ComponentContext<M, A>, render: Render, 
     if (context.mounted && context.dispatchLevel === 1) {
 
         const newView = context.view(context.model!, context.childNodes)
-        const oldNode = context.oldView ? context.oldView.node : undefined
-        render(context.parentNode, newView, context.oldView, oldNode, dispatchFn)
-        context.oldView = newView
+        const oldNode = context.rendition ? context.rendition.node : undefined
+        render(context.parentNode, newView, context.rendition, oldNode, dispatchFn)
+        context.rendition = newView
     }
 
     context.dispatchLevel--

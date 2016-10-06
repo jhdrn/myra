@@ -15,6 +15,7 @@ System.config({
             format: 'cjs',
             map: {
                 'core': './src/core/index',
+                'core/component': './src/core/component',
                 'core/contract': './src/core/contract',
                 'core/dispatch': './src/core/dispatch',
                 'core/helpers': './src/core/helpers',
