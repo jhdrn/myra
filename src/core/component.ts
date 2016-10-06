@@ -113,7 +113,7 @@ function decorateFnsWithDispatch(props: any, dispatch: Dispatch) {
         Object.keys(props).forEach(k => decorateFnsWithDispatch(props[k], dispatch))
     }
     else if (propsType === 'array') {
-        props.foreach((p: any) => decorateFnsWithDispatch(p, dispatch))
+        props.forEach((p: any) => decorateFnsWithDispatch(p, dispatch))
     }
 }
 

@@ -84,6 +84,7 @@ const view = (m: Model) =>
                                  name="oninputDemo1" 
                                  label="Oninput demo 1" 
                                  type="email" 
+                                 validate={[required('Oninput demo 1')]}
                                  class="foobar"
                                  oninput={oninputUpdate}>
                 <span>Some value</span>

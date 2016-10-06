@@ -66,7 +66,9 @@ A component will be defined with `defineComponent`:
 The "main" component should be mounted to a HTML element:
 
 ```typescript
-    myComponent().mount(document.body)
+    import { mountComponent } from 'myra/core'
+
+    mountComponent(myComponent, document.body)
 ```
 
 ### Model
