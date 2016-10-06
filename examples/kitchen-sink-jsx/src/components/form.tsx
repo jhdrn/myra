@@ -82,13 +82,14 @@ const view = (m: Model) =>
             </div>
             <InputGroupComponent id="oninputDemo1" 
                                  name="oninputDemo1" 
+                                 class={!m.formValidationResult || m.formValidationResult.fields['formField'].valid ? 'form-group' : 'form-group has-error'}
                                  label="Oninput demo 1" 
                                  type="email" 
                                  validate={[required('Oninput demo 1')]}
-                                 class="foobar"
                                  oninput={oninputUpdate}>
-                <span>Some value</span>
-                <b>And another</b>
+                {m.formValidationResult ? 
+                    <p class="help-text"> {(m.formValidationResult!.fields as any)['oninputDemo1'].errors}</p>
+                    : <nothing />}
             </InputGroupComponent>
             <div class="form-group">
                 <label for="oninputDemo">Oninput demo (optional)</label>

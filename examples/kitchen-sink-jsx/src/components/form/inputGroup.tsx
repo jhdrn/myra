@@ -6,16 +6,18 @@ import * as jsxFactory from 'myra/html/jsxFactory'
  * Model
  */
 type Model = {
-    label: string,
+    label: string
     type: 'text' | 'number' | 'email'
     id: string
     name: string
+    'class': string
 }
 const init: Model = {
     label: '',
     type: 'text',
     id: '',
-    name: ''
+    name: '',
+    'class': ''
 }
 
 
@@ -29,7 +31,7 @@ const mount = (_model: Model, args: Model) => args
  * View
  */
 const view = (model: Model, children?: NodeDescriptor[]) => 
-    <div class="form-group">
+    <div class={model.class}>
         <label for={model.id}>{model.label}</label>
         <input {...model}
                class="form-control" />
