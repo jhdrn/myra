@@ -1,6 +1,6 @@
 import { defineComponent, evolve, FormValidationResult } from 'myra/core'
 import * as jsxFactory from 'myra/html/jsxFactory'
-
+import { InputGroupComponent } from './form/inputGroup'
 
 /**
  * Model
@@ -80,12 +80,23 @@ const view = (m: Model) =>
                     <p class="help-text"> {(m.formValidationResult!.fields as any)['formField'].errors}</p>
                     : <nothing />}
             </div>
+            <InputGroupComponent id="oninputDemo1" 
+                                 name="oninputDemo1" 
+                                 class={!m.formValidationResult || m.formValidationResult.fields['formField'].valid ? 'form-group' : 'form-group has-error'}
+                                 label="Oninput demo 1" 
+                                 type="email" 
+                                 validate={[required('Oninput demo 1')]}
+                                 oninput={oninputUpdate}>
+                {m.formValidationResult ? 
+                    <p class="help-text"> {(m.formValidationResult!.fields as any)['oninputDemo1'].errors}</p>
+                    : <nothing />}
+            </InputGroupComponent>
             <div class="form-group">
                 <label for="oninputDemo">Oninput demo (optional)</label>
                 <textarea id="oninputDemo"
                           name="oninputDemo"
                           class="form-control"
-                          oninput={ oninputUpdate } />
+                          oninput={oninputUpdate} />
                 <p class="help-text">The value of this field is: { m.formData.oninputDemo }</p>
             </div>
             <div class="form-group">

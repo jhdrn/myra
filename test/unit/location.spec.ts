@@ -28,6 +28,12 @@ if (window.history && window.history.pushState) {
             expect(window.location.search).toBe('?foo=bar&baz=1')
         })
 
+        // it('trackLocationChanges broadcasts message for subscribers', () => {
+
+        //     location.trackLocationChanges()
+        //     expect(window.location.search).toBe('?foo=bar&baz=1')
+        // })
+
     })
 
 }

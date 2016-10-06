@@ -5,7 +5,7 @@ import { div, button, span, input, textarea, form } from 'html/elements'
 
 const keyPressEvent = (keyCode: number) => {
     const event = document.createEvent('Event')
-  
+
     event.initEvent('keyup', true, true)
 
     Object.defineProperty(event, 'keyCode', { value: keyCode })
@@ -32,10 +32,10 @@ describe('core.view.render', () => {
     it('creates and returns a text node from a text node descriptor', (done) => {
         const view = text('a text')
 
-        const node = render(document.body, view, view, undefined, () => {})
+        render(document.body, view, view, undefined, () => { })
 
-        expect(node.nodeType).toBe(Node.TEXT_NODE)
-        expect(node.nodeValue).toBe('a text')
+        expect(view.node!.nodeType).toBe(Node.TEXT_NODE)
+        expect(view.node!.nodeValue).toBe('a text')
 
         done()
     })
@@ -44,10 +44,12 @@ describe('core.view.render', () => {
         const view1 = text('a text')
         const view2 = text('a new text')
 
-        let node = render(document.body, view1, view1, undefined, () => {})
+        render(document.body, view1, view1, undefined, () => { })
+        let node = view1.node!
         expect(node.nodeValue).toBe('a text')
 
-        node = render(document.body, view2, view1, node, () => {})
+        render(document.body, view2, view1, node, () => { })
+        node = view2.node!
         expect(node.nodeValue).toBe('a new text')
 
         done()
@@ -56,8 +58,8 @@ describe('core.view.render', () => {
     it('creates and returns a "nothing" comment node from a nothing node descriptor', (done) => {
         const view = nothing()
 
-        const node = render(document.body, view, view, undefined, () => {})
-
+        render(document.body, view, view, undefined, () => { })
+        const node = view.node!
         expect(node.nodeType).toBe(Node.COMMENT_NODE)
         expect(node.nodeValue).toBe('Nothing')
 
@@ -66,15 +68,15 @@ describe('core.view.render', () => {
 
     it('mounts a component from a component node descriptor', (done) => {
         const testComponent = defineComponent({
-            name: 'TestComponent',
+            name: 'TestComponent1',
             init: undefined,
             view: (_) => div({ id: 'testComponent' })
         })
 
         const view = div(testComponent())
 
-        const node = render(document.body, view, view, undefined, () => {}) as HTMLDivElement
-
+        render(document.body, view, view, undefined, () => { })
+        const node = view.node as HTMLDivElement
         expect((node.childNodes.item(0) as HTMLDivElement).id).toBe('testComponent')
 
         done()
@@ -88,7 +90,7 @@ describe('core.view.render', () => {
         spyOn(mocks, 'mount')
 
         const testComponent = defineComponent({
-            name: 'TestComponent',
+            name: 'TestComponent2',
             init: undefined,
             mount: mocks.mount,
             view: (_) => div({ id: 'testComponent' })
@@ -97,13 +99,13 @@ describe('core.view.render', () => {
         const view1 = testComponent()
         const view2 = testComponent(undefined, true)
 
-        const node = render(document.body, view1, view1, undefined, () => {}) as HTMLDivElement
+        render(document.body, view1, view1, undefined, () => { })
+        const node = view1.node! as HTMLDivElement
+        const componentId = view1.id
 
-        const componentInstance = view1.componentInstance
+        render(document.body, view2, view1, node, () => { })
 
-        render(document.body, view2, view1, node, () => {}) as HTMLDivElement
-
-        expect(view2.componentInstance!.id).toBe(componentInstance!.id)
+        expect(view2.id).toBe(componentId)
         expect(mocks.mount).toHaveBeenCalledTimes(2)
 
         done()
@@ -119,11 +121,13 @@ describe('core.view.render', () => {
             viewItems2.map(item => div(text(item)))
         )
 
-        let node = render(document.body, view1, view1, undefined, () => {}) as HTMLDivElement
-        
+        render(document.body, view1, view1, undefined, () => { })
+        let node = view1.node as HTMLDivElement
+
         expect(node.childElementCount).toBe(viewItems1.length)
 
-        node = render(document.body, view2, view1, node, () => {}) as HTMLDivElement
+        render(document.body, view2, view1, node, () => { })
+        node = view2.node as HTMLDivElement
 
         expect(node.childElementCount).toBe(viewItems2.length)
 
@@ -139,12 +143,14 @@ describe('core.view.render', () => {
         const view2 = div(
             viewItems2.map(item => div(text(item)))
         )
+        render(document.body, view1, view1, undefined, () => { })
 
-        let node = render(document.body, view1, view1, undefined, () => {}) as HTMLDivElement
-        
+        let node = view1.node as HTMLDivElement
+
         expect(node.childElementCount).toBe(viewItems1.length)
 
-        node = render(document.body, view2, view1, node, () => {}) as HTMLDivElement
+        render(document.body, view2, view1, node, () => { })
+        node = view2.node as HTMLDivElement
 
         expect(node.childElementCount).toBe(viewItems2.length)
 
@@ -154,7 +160,8 @@ describe('core.view.render', () => {
     it('creates and returns an element node from an element node descriptor', (done) => {
         const view = div()
 
-        const node = render(document.body, view, view, undefined, () => {}) as Element
+        render(document.body, view, view, undefined, () => { })
+        const node = view.node as Element
 
         expect(node.nodeType).toBe(Node.ELEMENT_NODE)
         expect(node.tagName).toBe('DIV')
@@ -172,12 +179,14 @@ describe('core.view.render', () => {
             value: 5
         })
 
-        const node = render(document.body, view, view, undefined, () => {}) as HTMLInputElement
+        render(document.body, view, view, undefined, () => { })
+
+        const node = view.node as HTMLInputElement
 
         expect(node.id).toBe('testId')
         expect(node.className).toBe('testClass')
         expect(node.type).toBe('text')
-        expect(node.disabled).toBe(true)    
+        expect(node.disabled).toBe(true)
         expect(node.checked).toBe(true)
         expect(node.value).toBe('5')
 
@@ -196,7 +205,9 @@ describe('core.view.render', () => {
             onclick: mocks.onclickUpdate
         })
 
-        const node = render(document.body, view, view, undefined, dispatch) as HTMLButtonElement
+        render(document.body, view, view, undefined, dispatch)
+
+        const node = view.node as HTMLButtonElement
         expect(node.onclick).not.toBeNull()
 
         node.click()
@@ -211,7 +222,7 @@ describe('core.view.render', () => {
             onclickUpdate1: (m: any) => {
                 return m
             },
-            
+
             onclickUpdate2: (m: any) => {
                 return m
             }
@@ -227,9 +238,13 @@ describe('core.view.render', () => {
             onclick: mocks.onclickUpdate2
         })
 
-        let node = render(document.body, view1, view1, undefined, dispatch) as HTMLButtonElement
+        render(document.body, view1, view1, undefined, dispatch)
 
-        node = render(document.body, view2, view1, node, dispatch) as HTMLButtonElement
+        let node = view1.node as HTMLButtonElement
+
+        render(document.body, view2, view1, node, dispatch)
+
+        node = view2.node as HTMLButtonElement
 
         node.click()
 
@@ -254,7 +269,9 @@ describe('core.view.render', () => {
             onkeyup_49: mocks.onkeyupUpdate
         })
 
-        const node = render(document.body, view, view, undefined, dispatch) as HTMLDivElement
+        render(document.body, view, view, undefined, dispatch)
+
+        const node = view.node as HTMLDivElement
         expect(node.onkeyup).not.toBeNull()
 
         node.dispatchEvent(keyPressEvent(13))
@@ -279,7 +296,10 @@ describe('core.view.render', () => {
             value: 'a value'
         })
 
-        const node = render(document.body, view, view, undefined, dispatch) as HTMLTextAreaElement
+        render(document.body, view, view, undefined, dispatch)
+
+        const node = view.node as HTMLTextAreaElement
+
         expect(node.value).toBe('a value')
         expect(node.onkeyup).not.toBeNull()
 
@@ -296,7 +316,9 @@ describe('core.view.render', () => {
             focus: true
         })
 
-        const node = render(document.body, view, view, undefined, dispatch) as HTMLTextAreaElement
+        render(document.body, view, view, undefined, dispatch)
+
+        const node = view.node as HTMLTextAreaElement
 
         expect(node).toEqual(document.activeElement)
 
@@ -309,19 +331,23 @@ describe('core.view.render', () => {
             'class': 'foo',
             'id': 'bar'
         })
-        
+
         const view2 = div({
             'class': 'bar',
             'id': 'foo'
         })
-        
-        let node = render(document.body, view1, view1, undefined, () => {}) as HTMLDivElement
+
+        render(document.body, view1, view1, undefined, () => { })
+
+        let node = view1.node as HTMLDivElement
 
         expect(node.className).toBe('foo')
         expect(node.id).toBe('bar')
-        
-        node = render(document.body, view2, view1, node, () => {}) as HTMLDivElement
-        
+
+        render(document.body, view2, view1, node, () => { })
+
+        node = view2.node as HTMLDivElement
+
         expect(node.className).toBe('bar')
         expect(node.id).toBe('foo')
 
@@ -333,17 +359,21 @@ describe('core.view.render', () => {
             'class': 'foo',
             'id': 'bar'
         })
-        
+
         const view2 = div({
             'class': 'foo'
         })
-        
-        let node = render(document.body, view1, view1, undefined, () => {}) as HTMLDivElement
+
+        render(document.body, view1, view1, undefined, () => { })
+
+        let node = view1.node as HTMLDivElement
 
         expect(node.id).toBe('bar')
-        
-        node = render(document.body, view2, view1, node, () => {}) as HTMLDivElement
-        
+
+        render(document.body, view2, view1, node, () => { })
+
+        node = view2.node as HTMLDivElement
+
         expect(node.id).toBe('')
 
         done()
@@ -354,18 +384,22 @@ describe('core.view.render', () => {
             'class': 'foo',
             id: 'bar'
         })
-        
+
         const view2 = div({
             'class': 'foo',
             id: undefined
         })
-        
-        let node = render(document.body, view1, view1, undefined, () => {}) as HTMLDivElement
+
+        render(document.body, view1, view1, undefined, () => { })
+
+        let node = view1.node as HTMLDivElement
 
         expect(node.id).toBe('bar')
-        
-        node = render(document.body, view2, view1, node, () => {}) as HTMLDivElement
-        
+
+        render(document.body, view2, view1, node, () => { })
+
+        node = view2.node as HTMLDivElement
+
         expect(node.id).toBe('')
 
         done()
@@ -373,15 +407,20 @@ describe('core.view.render', () => {
 
     it('replaces the element if the tagName has changed', (done) => {
         const view1 = div()
-        
+
         const view2 = span()
-        
-        let node = render(document.body, view1, view1, undefined, () => {}) as HTMLDivElement
+
+        render(document.body, view1, view1, undefined, () => { })
+
+        let node = view1.node as HTMLDivElement
+
         (node as any)._id = 1
         expect(node.tagName).toBe('DIV')
-        
-        node = render(document.body, view2, view1, node, () => {}) as HTMLDivElement
-        
+
+        render(document.body, view2, view1, node, () => { })
+
+        node = view2.node as HTMLDivElement
+
         expect((node as any)._id).not.toBeDefined()
         expect(node.tagName).toBe('SPAN')
 
@@ -392,15 +431,17 @@ describe('core.view.render', () => {
         const view1 = button({
             onclick: (m: any) => m
         })
-        
+
         const view2 = nothing()
-        
-        const node = render(document.body, view1, view1, undefined, () => {}) as HTMLButtonElement
+
+        render(document.body, view1, view1, undefined, () => { })
+
+        const node = view1.node as HTMLButtonElement
 
         expect(node.onclick).not.toBeNull()
-        
-        render(document.body, view2, view1, node, () => {}) as HTMLButtonElement
-        
+
+        render(document.body, view2, view1, node, () => { })
+
         expect(node.onclick).toBeNull()
 
         done()
@@ -417,12 +458,14 @@ describe('core.view.render', () => {
         const view = button({
             onclick: task(mocks.testTask)
         })
-        
-        const node = render(document.body, view, view, undefined, () => {}) as HTMLButtonElement
+
+        render(document.body, view, view, undefined, () => { }) 
+
+        const node = view.node as HTMLButtonElement
         node.click()
 
         expect(mocks.testTask).toHaveBeenCalledTimes(1)
-        
+
         done()
     })
 
@@ -437,18 +480,20 @@ describe('core.view.render', () => {
         const view = button({
             onclick: { listener: task(mocks.testTask), stopPropagation: true }
         })
-        
-        const node = render(document.body, view, view, undefined, () => {}) as HTMLButtonElement
+
+        render(document.body, view, view, undefined, () => { })
+
+        const node = view.node as HTMLButtonElement
         node.click()
-        
+
         expect(mocks.testTask).toHaveBeenCalledTimes(1)
-        
+
         done()
     })
 
     it('collects form data and passes it as argument to the update function', (done) => {
 
-        type FormData = {  
+        type FormData = {
             test1: string
             test2: string
         }
@@ -465,12 +510,12 @@ describe('core.view.render', () => {
         spyOn(mocks, 'formSubmitted')
 
         const view = form({
-                onsubmit: { 
-                    listener: mocks.formSubmitted, 
-                    preventDefault: true,
-                    stopPropagation: true
-                }
-            },
+            onsubmit: {
+                listener: mocks.formSubmitted,
+                preventDefault: true,
+                stopPropagation: true
+            }
+        },
             input({
                 name: 'test1',
                 type: 'text',
@@ -483,7 +528,9 @@ describe('core.view.render', () => {
             })
         )
 
-        const node = render(document.body, view, view, undefined, dispatch) as HTMLFormElement
+        render(document.body, view, view, undefined, dispatch)
+
+        const node = view.node as HTMLFormElement
 
         const event = document.createEvent('Event')
         event.initEvent('submit', true, true)
@@ -495,10 +542,10 @@ describe('core.view.render', () => {
         done()
     })
 
-    
+
     it('onchange propagates event from child to form, resulting in a call to the update function', (done) => {
 
-        type FormData = {  
+        type FormData = {
             test1: string
             test2: string
         }
@@ -515,11 +562,11 @@ describe('core.view.render', () => {
         spyOn(mocks, 'update')
 
         const view = form({
-                onchange: { 
-                    listener: mocks.update, 
-                    preventDefault: true
-                }
-            },
+            onchange: {
+                listener: mocks.update,
+                preventDefault: true
+            }
+        },
             input({
                 name: 'test1',
                 id: 'test1',
@@ -533,7 +580,9 @@ describe('core.view.render', () => {
             })
         )
 
-        const node = render(document.body, view, view, undefined, dispatch) as HTMLFormElement
+        render(document.body, view, view, undefined, dispatch)
+
+        const node = view.node as HTMLFormElement
 
         const event = document.createEvent('Event')
         event.initEvent('change', true, true)
@@ -562,7 +611,7 @@ describe('core.view.render', () => {
     //     view1.node = el
 
     //     setTimeout(() => {
-            
+
     //         const view2 = input({
     //             focus: true,
     //             blur: true

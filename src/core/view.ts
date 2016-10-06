@@ -1,3 +1,4 @@
+import { initComponent, updateComponent } from './component'
 import { typeOf, max } from './helpers'
 import { Dispatch, Task, UpdateAny, FieldValidator, ElementEventAttributeArguments, NodeDescriptor, TextNodeDescriptor, ElementNodeDescriptor, ComponentNodeDescriptor, ListenerWithEventOptions, FormAttributes, InputAttributes } from './contract'
 import { validateField, validateForm } from './validation'
@@ -25,12 +26,15 @@ eventInterceptors.push((_nodeDescriptor, element, _, update, dispatch) => {
 function findFieldValidatorsRec(nodeDescriptors: NodeDescriptor[], fields: { [name: string]: FieldValidator[]}) {
     return nodeDescriptors.reduce((acc, descriptor) => {
         if (descriptor.__type === 'element') {
-            const fieldName = ((descriptor as ElementNodeDescriptor).attributes as InputAttributes).name
-            const validators = ((descriptor as ElementNodeDescriptor).attributes as InputAttributes).validate
+            const fieldName = (descriptor.attributes as InputAttributes).name
+            const validators = (descriptor.attributes as InputAttributes).validate
             if (fieldName && validators) {
                 acc[fieldName] = Array.isArray(validators) ? validators : [validators]
             }
-            findFieldValidatorsRec((descriptor as ElementNodeDescriptor).children, acc)
+            findFieldValidatorsRec(descriptor.children, acc)
+        }
+        else if (descriptor.__type === 'component' && descriptor.rendition) {
+            findFieldValidatorsRec([descriptor.rendition], acc)
         }
         return acc
     }, fields)
@@ -157,7 +161,7 @@ function tryCreateEventListener(attributeName: string, eventArgs: ElementEventAt
         const eventArgsType = typeOf(eventArgs)
 
         if ((eventArgs as Task).execute) {
-            (eventArgs as Task).execute(dispatch)
+            (eventArgs as Task).execute((eventArgs as any).__dispatch || dispatch)
             return
         } 
         else if (eventArgsType === 'object') {
@@ -169,7 +173,7 @@ function tryCreateEventListener(attributeName: string, eventArgs: ElementEventAt
             }
             if ((eventArgs as ListenerWithEventOptions).listener) {
                 if (((eventArgs as ListenerWithEventOptions).listener as Task).execute) {
-                    ((eventArgs as ListenerWithEventOptions).listener as Task).execute(dispatch)
+                    ((eventArgs as ListenerWithEventOptions).listener as Task).execute(((eventArgs as ListenerWithEventOptions).listener as any).__dispatch || dispatch)
                     return
                 }
                 else {
@@ -179,24 +183,30 @@ function tryCreateEventListener(attributeName: string, eventArgs: ElementEventAt
         }
         
         const intercepted = eventInterceptors.reduce((stop, interceptor) => 
-            stop ? stop : interceptor(nodeDescriptor, node as Element, ev, eventArgs as UpdateAny, dispatch), false)
+            stop ? stop : interceptor(nodeDescriptor, node as Element, ev, eventArgs as UpdateAny, (eventArgs as any).__dispatch || dispatch), false)
         
         if (!intercepted) {
-            dispatch(eventArgs as UpdateAny)
+            if ((eventArgs as any).__dispatch) {
+                (eventArgs as any).__dispatch(eventArgs as UpdateAny)
+            }
+            else {
+                dispatch(eventArgs as UpdateAny)
+            }
         }
     }
 }
 
+
 /** Creates a Node from a NodeDescriptor. */
-function createNode(descriptor: NodeDescriptor, parentNode: Element): Node {
+function createNode(descriptor: NodeDescriptor, parentNode: Element, dispatch: Dispatch): Node {
     switch(descriptor.__type) {
         case 'element':  
             return document.createElement(descriptor.tagName)
         case 'text':
             return document.createTextNode(descriptor.value)
         case 'component':
-            descriptor.componentInstance = descriptor.mount(parentNode, descriptor.props) 
-            return descriptor.componentInstance.rootNode
+            initComponent(descriptor, parentNode, dispatch)
+            return descriptor.node!
         case 'nothing':
             return document.createComment('Nothing')
     }
@@ -233,11 +243,11 @@ function getAttributesToRemove(newDescriptor: ElementNodeDescriptor, oldDescript
 }
 
 /** Renders the view by walking the node descriptor tree recursively */
-export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor, existingNode: Node | undefined, dispatch: Dispatch): Node {
+export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor, existingNode: Node | undefined, dispatch: Dispatch): void {
     const replaceNode = shouldReplaceNode(newDescriptor, oldDescriptor)
     if (typeof existingNode === 'undefined' || existingNode === null || replaceNode) {
         // if no existing node, create one
-        const newNode = createNode(newDescriptor, parentNode)
+        const newNode = createNode(newDescriptor, parentNode, dispatch)
 
         newDescriptor.node = newNode
 
@@ -275,7 +285,6 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
                             newNode.appendChild(document.createTextNode('\r\n'))
                         })
         }
-        return newNode
     }
     else { // reuse the old node
 
@@ -365,9 +374,7 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
                 existingNode.textContent = newDescriptor.value
                 break
             case 'component':
-                newDescriptor.componentInstance = (oldDescriptor as ComponentNodeDescriptor).componentInstance
-                ;(oldDescriptor as ComponentNodeDescriptor).componentInstance = undefined
-                newDescriptor.componentInstance!.remount(newDescriptor.props, newDescriptor.forceMount)
+                updateComponent(newDescriptor, oldDescriptor as ComponentNodeDescriptor)
                 break
         }
 
@@ -379,5 +386,4 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
             oldDescriptor.node = undefined
         }
     }
-    return existingNode
 }

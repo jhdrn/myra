@@ -1,4 +1,4 @@
-import { Update, View, defineComponent } from 'myra/core'
+import { Update, View, defineComponent, mountComponent } from 'myra/core'
 import { p } from 'myra/html/elements'
 
 
@@ -35,4 +35,4 @@ const appComponent = defineComponent({
 /**
  * Mount the component
  */
-appComponent().mount(document.body)
+mountComponent(appComponent, document.body)

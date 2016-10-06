@@ -5,7 +5,10 @@ import { render } from './view'
 
 export type Subscriptions = { [type: string]: [UpdateAny, ComponentContext<any, any>][] }
 
-export function broadcast(type: string, data: any, subscriptions: Subscriptions): Task {
+export const subscriptions: Subscriptions = {}
+
+/** Broadcasts a message with the given data. */
+export function broadcast(type: string, data: any): Task {
     return task((_) => {
         if (subscriptions[type]) {
             subscriptions[type].forEach(([fn, context]) => dispatch(context, render, fn, data))

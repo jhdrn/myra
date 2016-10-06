@@ -16,28 +16,20 @@ declare namespace myra.core.contract {
         view: View<M>
     }
 
-    interface ComponentInstance<T> {
-        readonly name: string
-        readonly id: number
-        readonly rootNode: Node
-        remount(arg?: T, forceMount?: boolean): void
-    }
-
     /** "Component state holder" interface */
     interface ComponentContext<M, T> {
         readonly name: string
         readonly view: View<M>
         readonly parentNode: Element
         mounted: boolean
-        mountArg: T | undefined
         dispatchLevel: number
         isUpdating: boolean
         model: M | undefined
-        oldView: NodeDescriptor | undefined
-        rootNode: Node
+        rendition?: NodeDescriptor
+        childNodes?: NodeDescriptor[]
     }
 
-    type InitializeComponent = <A>(mountArgs?: A, forceMount?: boolean) => ComponentNodeDescriptor
+    type InitializeComponent = <A>(mountArgs?: A, forceMount?: boolean, children?: NodeDescriptor[]) => ComponentNodeDescriptor
     
     /**
      * Update/Dispatch types
@@ -57,7 +49,7 @@ declare namespace myra.core.contract {
      * View types
      */
     interface View<M> {
-        (model: M): NodeDescriptor
+        (model: M, children?: NodeDescriptor[]): NodeDescriptor
     }
 
     interface AttributeMap { [name: string]: string }
@@ -100,9 +92,10 @@ declare namespace myra.core.contract {
     interface ComponentNodeDescriptor extends NodeDescriptorBase {
         readonly __type: 'component'
         readonly name: string
-        mount<A>(parentNode: Element, arg?: A): ComponentInstance<A>
-        componentInstance?: ComponentInstance<any>
-        forceMount?: boolean
+        id: number;
+        forceMount: boolean
+        children: NodeDescriptor[]
+        rendition?: NodeDescriptor
         props?: any
     }
     interface NothingNodeDescriptor extends NodeDescriptorBase {
