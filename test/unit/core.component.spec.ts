@@ -9,7 +9,7 @@ const randomName = () => Math.random().toString()
 /**
  * defineComponent
  */
-describe('core.defineComponent', () => {
+describe('defineComponent', () => {
     const componentName = randomName()
     const component1 = defineComponent({
         name: componentName,
@@ -62,7 +62,7 @@ describe('mountComponent', () => {
         const component = defineComponent({
             name: randomName(),
             init: evolve(0),
-            mount: mountMock.mount,
+            onMount: mountMock.mount,
             view: () => div()
         })
 
@@ -82,7 +82,7 @@ describe('mountComponent', () => {
         const component = defineComponent({
             name: randomName(),
             init: evolve(0),
-            mount: mountMock.mount,
+            onMount: mountMock.mount,
             subscriptions: {
                 'test1': x => evolve(x),
                 'test2': x => evolve(x)
@@ -100,7 +100,7 @@ describe('mountComponent', () => {
         const updateMock = {
             update: (x: number) => {
                 expect(x).toBe(22)
-                return x
+                return evolve(x)
             }
         }
 
@@ -109,7 +109,7 @@ describe('mountComponent', () => {
         const component = defineComponent<any, any>({
             name: randomName(),
             init: evolve(undefined),
-            mount: (_m, a) => a,
+            onMount: (_m, a) => evolve(a),
             view: (m) => button({ onclick: m.onclick, id: 'childBtn' })
         })
 
@@ -166,12 +166,12 @@ describe('updateComponent', () => {
             mount: (x: number) => evolve(x)
         }
 
-        spyOn(mountMock, 'mount')
+        spyOn(mountMock, 'mount').and.callThrough()
 
         const component = defineComponent({
             name: randomName(),
             init: evolve(0),
-            mount: mountMock.mount,
+            onMount: mountMock.mount,
             view: () => div()
         })
 
@@ -187,12 +187,12 @@ describe('updateComponent', () => {
             mount: (x: number) => evolve(x)
         }
 
-        spyOn(mountMock, 'mount')
+        spyOn(mountMock, 'mount').and.callThrough()
 
         const component = defineComponent({
             name: randomName(),
             init: evolve(0),
-            mount: mountMock.mount,
+            onMount: mountMock.mount,
             view: () => div()
         })
 
@@ -216,7 +216,7 @@ describe('updateComponent', () => {
         const component = defineComponent({
             name: 'Test',
             init: evolve(0),
-            mount: mountMock.mount,
+            onMount: mountMock.mount,
             view: () => div()
         })
 

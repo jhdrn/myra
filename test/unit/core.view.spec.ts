@@ -84,15 +84,15 @@ describe('core.view.render', () => {
 
     it('remounts a component', (done) => {
         const mocks = {
-            mount: (m: any) => m
+            mount: (m: any) => evolve(m)
         }
 
-        spyOn(mocks, 'mount')
+        spyOn(mocks, 'mount').and.callThrough()
 
         const testComponent = defineComponent({
             name: 'TestComponent2',
             init: evolve(undefined),
-            mount: mocks.mount,
+            onMount: mocks.mount,
             view: (_) => div({ id: 'testComponent' })
         })
 

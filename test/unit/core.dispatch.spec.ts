@@ -5,7 +5,7 @@ import { text } from 'html'
  * evolve
  */
 describe('core.dispatch', () => {
-    it('updates model and calls render', () => {
+    it('updates state and calls render', () => {
         const update = (x: number, arg: number) => evolve(x + arg)
         const context = {
             name: '',
@@ -15,12 +15,12 @@ describe('core.dispatch', () => {
             mountArg: undefined,
             dispatchLevel: 0,
             isUpdating: false,
-            model: 1,
+            state: 1,
             oldView: undefined,
             rootNode: document.body
         }
         const render = () => {
-            expect(context.model).toBe(2)
+            expect(context.state).toBe(2)
             return null as any as Node
         }
         dispatch(context, render, update, 2)
@@ -36,7 +36,7 @@ describe('core.dispatch', () => {
             mountArg: undefined,
             dispatchLevel: 1,
             isUpdating: false,
-            model: undefined,
+            state: undefined,
             oldView: undefined,
             rootNode: document.body
         }
@@ -63,7 +63,7 @@ describe('core.dispatch', () => {
             mountArg: undefined,
             dispatchLevel: 0,
             isUpdating: true,
-            model: 1,
+            state: 1,
             oldView: undefined,
             rootNode: document.body
         }
@@ -74,7 +74,7 @@ describe('core.dispatch', () => {
         expect(() => dispatch(context, render, update, 2)).toThrow()
     })
 
-    it('updates model and executes task', () => {
+    it('updates state and executes task', () => {
         const testTask = task(dispatch => {
             expect(dispatch).toBeDefined()
         })
@@ -88,19 +88,19 @@ describe('core.dispatch', () => {
             mountArg: undefined,
             dispatchLevel: 0,
             isUpdating: false,
-            model: 1,
+            state: 1,
             oldView: undefined,
             rootNode: document.body
         }
         const render = () => {
-            expect(context.model).toBe(2)
+            expect(context.state).toBe(2)
             return null as any as Node
         }
         dispatch(context, render, update, 2)
     })
 
 
-    it('updates model and executes array of tasks', () => {
+    it('updates state and executes array of tasks', () => {
         const testTask1 = task(dispatch => {
             expect(dispatch).toBeDefined()
         })
@@ -116,12 +116,12 @@ describe('core.dispatch', () => {
             mountArg: undefined,
             dispatchLevel: 0,
             isUpdating: false,
-            model: 1,
+            state: 1,
             oldView: undefined,
             rootNode: document.body
         }
         const render = () => {
-            expect(context.model).toBe(2)
+            expect(context.state).toBe(2)
             return null as any as Node
         }
         dispatch(context, render, update, 2)

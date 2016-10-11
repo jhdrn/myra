@@ -1,4 +1,4 @@
-import { defineComponent, evolve, Task, NodeDescriptor } from 'myra/core'
+import { defineComponent, evolve, NodeDescriptor } from 'myra/core'
 import { updateLocation, trackLocationChanges, goBack, goForward, LocationContext } from 'myra/location'
 import { nothing } from 'myra/html'
 import { section, h2, p, ul, li, a } from 'myra/html/elements'
@@ -11,14 +11,14 @@ import { routeComponent } from './route-component'
 type Model = {
     location: LocationContext
 }
-const init = [{}, trackLocationChanges()] as [Model, Task]
+const init = {}
 
 
 /**
  * Subscriptions
  */
 const subscriptions = {
-    '__locationChanged': (m: Model, location: LocationContext) => 
+    '__locationChanged': (m: Model, location: LocationContext) =>
         evolve(m, x => x.location = location)
 }
 
@@ -26,15 +26,15 @@ const subscriptions = {
 /**
  * View
  */
-const view = (m: Model) => 
+const view = (m: Model) =>
     section(
         h2('Location examples'),
         m.location.matchAny<NodeDescriptor>({
             'test1': p(`Route to '/test1'.`),
             'test1/:param': (params: any) => routeComponent(params)
         }, nothing()),
-        
-        m.location.match('test1/:param') ? 
+
+        m.location.match('test1/:param') ?
             p(`Location '/test2/:param' matched.`) : nothing(),
         ul({ 'class': 'list-group' },
             li({ class: 'list-group-item' },
@@ -70,7 +70,7 @@ export const locationComponent = defineComponent({
 
     // Init takes either an initial model or a tuple of an initial model 
     // and one or more tasks to execute when the component is initialized.
-    init: init,
+    init: evolve(init, trackLocationChanges()),
 
     subscriptions: subscriptions,
 

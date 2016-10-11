@@ -213,7 +213,7 @@ describe('core.helpers.evolve', () => {
             x.a = 'An updated string'
         })
 
-        expect(result.model).toEqual({
+        expect(result.state).toEqual({
             a: 'An updated string',
             b: 6,
             c: [],

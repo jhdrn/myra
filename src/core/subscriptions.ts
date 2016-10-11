@@ -3,7 +3,7 @@ import { task } from './task'
 import { dispatch } from './dispatch'
 import { render } from './view'
 
-export type Subscriptions = { [type: string]: [UpdateAny, ComponentContext<any, any>][] }
+export type Subscriptions = { [type: string]: [UpdateAny, ComponentContext<any>][] }
 
 export const subscriptions: Subscriptions = {}
 

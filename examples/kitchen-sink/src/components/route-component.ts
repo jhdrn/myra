@@ -1,4 +1,4 @@
-import { defineComponent } from 'myra/core'
+import { defineComponent, evolve } from 'myra/core'
 import { p } from 'myra/html/elements'
 
 
@@ -12,7 +12,7 @@ type Model = string | undefined
  * Updates
  */
 const mount = (_: Model, paramsFromRoute: { param: string }) =>
-    paramsFromRoute.param
+    evolve(paramsFromRoute.param)
 
 
 /**
@@ -30,12 +30,12 @@ export const routeComponent = defineComponent({
 
     // Init takes either an initial model or a tuple of an initial model 
     // and one or more tasks to execute when the component is initialized.
-    init: undefined,
+    init: evolve(undefined),
 
     // The mount update function is called when the component is mounted.
     // It will not be called again unless it's arguments has changed or 
     // the "forceMount" parameter was set to true when mounting the component.
-    mount: mount,
+    onMount: mount,
 
     // The view function is called after update. 
     view: view

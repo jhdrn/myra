@@ -5,23 +5,23 @@ export type Map<T> = myra.Map<T>
 /**
  * Component types
  */
-export interface ComponentArgs<M, A> extends myra.ComponentArgs<M, A> { }
-export interface ComponentContext<M, T> extends myra.ComponentContext<M, T> { }
+export interface ComponentArgs<S, A> extends myra.ComponentArgs<S, A> { }
+export interface ComponentContext<S> extends myra.ComponentContext<S> { }
 export type InitializeComponent = myra.InitializeComponent
 
 /**
  * Update/Dispatch types
  */
-export interface UpdateResult<M> extends myra.UpdateResult<M> { }
-export interface Update<M, A> extends myra.Update<M, A> { }
+export interface Result<S> extends myra.Result<S> { }
+export interface Update<S, A> extends myra.Update<S, A> { }
 export interface UpdateAny extends Update<any, any> { }
-export type Dispatch = <M, A>(fn: Update<M, A>, ...args: any[]) => void
+export type Dispatch = <S, A>(fn: Update<S, A>, ...args: any[]) => void
 export interface Task extends myra.Task { }
 
 /**
  * View types
  */
-export interface View<M> extends myra.View<M> { }
+export interface View<S> extends myra.View<S> { }
 
 export interface ListenerWithEventOptions extends myra.ListenerWithEventOptions { }
 export type ElementEventAttributeArguments = Update<any, any> | Task | ListenerWithEventOptions

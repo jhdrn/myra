@@ -4,8 +4,8 @@ import { dispatch } from './dispatch'
 import { render } from './view'
 import { subscriptions } from './subscriptions'
 
-type Subscribe = <M, A>(msg: string, update: Update<M, A>, context: ComponentContext<M, any>) => void
-const subscribe: Subscribe = <M, A>(msg: string, update: Update<M, A>, context: ComponentContext<M, any>) => {
+type Subscribe = <S, A>(msg: string, update: Update<S, A>, context: ComponentContext<S>) => void
+const subscribe: Subscribe = <S, A>(msg: string, update: Update<S, A>, context: ComponentContext<S>) => {
     if (!subscriptions[msg]) {
         subscriptions[msg] = []
     }
@@ -17,14 +17,14 @@ type ComponentDefinitions = {
 }
 
 const componentDefinitions = {} as ComponentDefinitions
-const contexts: { [key: number]: ComponentContext<any, any> } = {}
+const contexts: { [key: number]: ComponentContext<any> } = {}
 let nextId = 1
 
 /** Internal class that holds component state. */
-class ComponentContextImpl<M, T> implements ComponentContext<M, T> {
+class ComponentContextImpl<S> implements ComponentContext<S> {
     constructor(readonly parentNode: Element,
         readonly name: string,
-        readonly view: View<M>,
+        readonly view: View<S>,
         public childNodes?: NodeDescriptor[]) {
     }
 
@@ -40,7 +40,7 @@ class ComponentContextImpl<M, T> implements ComponentContext<M, T> {
 
     dispatchLevel = 0
     isUpdating = false
-    model: M | undefined
+    state: S | undefined
     rendition: NodeDescriptor | undefined
     rootNode: Node
 }
@@ -50,7 +50,7 @@ export function initComponent(descriptor: ComponentNodeDescriptor, parentNode: E
     decorateFnsWithDispatch(descriptor.props, parentDispatch)
 
     const args = componentDefinitions[descriptor.name]
-    const context = new ComponentContextImpl<any, any>(
+    const context = new ComponentContextImpl<any>(
         parentNode,
         args.name,
         args.view,
@@ -67,12 +67,12 @@ export function initComponent(descriptor: ComponentNodeDescriptor, parentNode: E
     }
 
     // Dispatch once with init. The view won't be rendered.
-    dispatch(context, render, (_) => args.init, undefined)
+    dispatch(context, render, () => args.init, undefined)
 
     context.mounted = true
 
     // Dispatch again to render the view. 
-    dispatch(context, render, args.mount || (<M>(m: M) => m), descriptor.props)
+    dispatch(context, render, args.onMount || (<S>(m: S) => ({ state: m, tasks: [] })), descriptor.props)
 
     if (context.rendition) {
         descriptor.node = context.rendition.node
@@ -92,7 +92,7 @@ export function updateComponent(newDescriptor: ComponentNodeDescriptor, oldDescr
     if (newDescriptor.forceMount || !equal(oldDescriptor.props, newDescriptor.props)) {
         context.childNodes = newDescriptor.children
 
-        dispatch(context, render, args.mount || (<M>(m: M) => m), newDescriptor.props)
+        dispatch(context, render, args.onMount || (<S>(m: S) => ({ state: m, tasks: [] })), newDescriptor.props)
 
         newDescriptor.node = context.rendition!.node
         newDescriptor.rendition = context.rendition
@@ -122,7 +122,7 @@ function decorateFnsWithDispatch(props: any, dispatch: Dispatch) {
 }
 
 /** Defines a component. */
-export function defineComponent<M, A>(args: ComponentArgs<M, A>): InitializeComponent {
+export function defineComponent<S, A>(args: ComponentArgs<S, A>): InitializeComponent {
     if (componentDefinitions[args.name]) {
         throw `A component with name '${args.name}' is already defined!`
     }

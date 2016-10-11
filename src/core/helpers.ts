@@ -1,4 +1,4 @@
-import { UpdateResult, Task } from './contract'
+import { Result, Task } from './contract'
 
 export const isIE9 = document.all && !window.atob
 
@@ -96,7 +96,7 @@ export function deepCopy<T>(value: T): T {
  * Creates a new object by deep copying "original". The evolve function is used 
  * to update the copy with new data.
  */
-export function evolve<T>(original: T, evolve?: ((obj: T) => void) | Task, ...tasks: Task[]): UpdateResult<T> {
+export function evolve<T>(original: T, evolve?: ((obj: T) => void) | Task, ...tasks: Task[]): Result<T> {
     const copy = deepCopy(original)
 
     if (evolve) {
@@ -108,7 +108,7 @@ export function evolve<T>(original: T, evolve?: ((obj: T) => void) | Task, ...ta
         }
     }
     return {
-        model: copy,
+        state: copy,
         tasks: tasks
     }
 }

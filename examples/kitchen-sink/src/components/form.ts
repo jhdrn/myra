@@ -22,23 +22,23 @@ const init: Model = {
 /**
  * Updates
  */
-const onFormSubmitUpdate = (model: Model, formData: FormData, validationResult: FormValidationResult) => 
+const onFormSubmitUpdate = (model: Model, formData: FormData, validationResult: FormValidationResult) =>
     evolve(model, m => {
         m.formData = formData
         m.formValidationResult = validationResult
     })
 
-const oninputUpdate = (model: Model, value: string) => 
+const oninputUpdate = (model: Model, value: string) =>
     evolve(model, x => x.formData.oninputDemo = value)
 
-const onchangeUpdate = (model: Model, value: string) => 
+const onchangeUpdate = (model: Model, value: string) =>
     evolve(model, x => x.formData.onchangeDemo = value)
 
 
 /**
  * Validation
  */
-const required = (label: string) => (value: string) => ({ 
+const required = (label: string) => (value: string) => ({
     valid: !!value,
     errors: [`'${label}' is required`]
 })
@@ -49,12 +49,12 @@ const required = (label: string) => (value: string) => ({
  */
 const view = (m: Model) =>
     section(
-        h2('Form example'),    
+        h2('Form example'),
         div(
             h3('Form data:'),
-            dl(Object.keys(m.formData).map(name => 
+            dl(Object.keys(m.formData).map(name =>
                 [
-                    dt(name), 
+                    dt(name),
                     dd((m.formData as any)[name])
                 ]
             ))
@@ -65,30 +65,36 @@ const view = (m: Model) =>
         form({ onsubmit: { listener: onFormSubmitUpdate, preventDefault: true } },
             div({ 'class': !m.formValidationResult || m.formValidationResult.fields['formField'].valid ? 'form-group' : 'form-group has-error' },
                 label({ for: 'formField' }, 'Just a form field'),
-                input({ type: 'text',
-                        id: 'formField',
-                        name: 'formField',
-                        validate: [required('Just a form field')],
-                        'class': 'form-control' }),
-                m.formValidationResult ? 
-                    p({ 'class': 'help-text'}, (m.formValidationResult!.fields as any)['formField'].errors) 
+                input({
+                    type: 'text',
+                    id: 'formField',
+                    name: 'formField',
+                    validate: [required('Just a form field')],
+                    'class': 'form-control'
+                }),
+                m.formValidationResult ?
+                    p({ 'class': 'help-text' }, (m.formValidationResult!.fields as any)['formField'].errors)
                     : nothing()
             ),
             div({ 'class': 'form-group' },
                 label({ for: 'oninputDemo' }, 'Oninput demo (optional)'),
-                textarea({ id: 'oninputDemo',
-                           name: 'oninputDemo',
-                           'class': 'form-control',
-                           oninput: oninputUpdate }),
+                textarea({
+                    id: 'oninputDemo',
+                    name: 'oninputDemo',
+                    'class': 'form-control',
+                    oninput: oninputUpdate
+                }),
                 p({ 'class': 'help-text' }, `The value of this field is: ${m.formData.oninputDemo}`)
             ),
             div({ 'class': 'form-group' },
                 label({ for: 'onchangeDemo' }, 'Onchange demo (optional)'),
-                select({ id: 'onchangeDemo',
-                         name: 'onchangeDemo',
-                         'class': 'form-control',
-                         onchange: onchangeUpdate },
-                    ...['Choice A', 'Choice B', 'Choice C'].map(c => option(c)) 
+                select({
+                    id: 'onchangeDemo',
+                    name: 'onchangeDemo',
+                    'class': 'form-control',
+                    onchange: onchangeUpdate
+                },
+                    ...['Choice A', 'Choice B', 'Choice C'].map(c => option(c))
                 )
             ),
             div(
@@ -105,6 +111,6 @@ const view = (m: Model) =>
  */
 export const formComponent = defineComponent({
     name: 'FormComponent',
-    init: init,
+    init: evolve(init),
     view: view
 })

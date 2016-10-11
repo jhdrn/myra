@@ -15,7 +15,7 @@ describe('core.task', () => {
 
         t.execute((fn: Update<number, any>) => {
             const result = fn(1)
-            expect(result).toEqual({ model: 2, tasks: [] })
+            expect(result).toEqual({ state: 2, tasks: [] })
         })
     })
 

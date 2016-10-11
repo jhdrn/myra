@@ -8,23 +8,23 @@ declare namespace myra {
     /**
      * Component types
      */
-    interface ComponentArgs<M, A> {
+    interface ComponentArgs<S, A> {
         name: string
-        init: UpdateResult<M>
-        mount?: Update<M, A>
-        subscriptions?: { [type: string]: Update<M, any> }
-        view: View<M>
+        init: Result<S>
+        onMount?: Update<S, A>
+        subscriptions?: { [type: string]: Update<S, any> }
+        view: View<S>
     }
 
     /** "Component state holder" interface */
-    interface ComponentContext<M, T> {
+    interface ComponentContext<S> {
         readonly name: string
-        readonly view: View<M>
+        readonly view: View<S>
         readonly parentNode: Element
         mounted: boolean
         dispatchLevel: number
         isUpdating: boolean
-        model: M | undefined
+        state: S | undefined
         rendition?: NodeDescriptor
         childNodes?: NodeDescriptor[]
     }
@@ -34,17 +34,17 @@ declare namespace myra {
     /**
      * Update/Dispatch types
      */
-    interface UpdateResult<M> {
-        readonly model: M
+    interface Result<S> {
+        readonly state: S
         readonly tasks: Task[]
     }
 
-    interface Update<M, A> {
-        (model: M, arg?: A): UpdateResult<M>
+    interface Update<S, A> {
+        (state: S, arg?: A): Result<S>
     }
     interface UpdateAny extends Update<any, any> { }
 
-    type Dispatch = <M, A>(fn: Update<M, A>, arg: A) => void
+    type Dispatch = <S, A>(fn: Update<S, A>, arg: A) => void
 
     interface Task {
         execute(dispatch: Dispatch): void
@@ -53,8 +53,8 @@ declare namespace myra {
     /**
      * View types
      */
-    interface View<M> {
-        (model: M, children?: NodeDescriptor[]): NodeDescriptor
+    interface View<S> {
+        (state: S, children?: NodeDescriptor[]): NodeDescriptor
     }
 
     interface AttributeMap { [name: string]: string }
@@ -70,7 +70,7 @@ declare namespace myra {
         preventDefault?: boolean
         stopPropagation?: boolean
     }
-    type UpdateWithFormValidation = <M>(model: M, formData: Map<string>, formValidationResult: FormValidationResult) => M | [M, Task | Task[]]
+    type UpdateWithFormValidation = <S>(state: S, formData: Map<string>, formValidationResult: FormValidationResult) => Result<S>
     type FormElementEventAttributeArguments = UpdateWithFormValidation | Task | FormElementListenerWithEventOptions
 
     interface FieldElementListenerWithEventOptions {
@@ -78,7 +78,7 @@ declare namespace myra {
         preventDefault?: boolean
         stopPropagation?: boolean
     }
-    type UpdateWithFieldValidation = <M>(model: M, value: string, validationResult: FieldValidationResult) => M | [M, Task | Task[]]
+    type UpdateWithFieldValidation = <S>(state: S, value: string, validationResult: FieldValidationResult) => Result<S>
     type FieldElementEventAttributeArguments = UpdateWithFieldValidation | Task | FieldElementListenerWithEventOptions
 
     interface NodeDescriptorBase {

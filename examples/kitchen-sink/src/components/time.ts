@@ -50,33 +50,41 @@ const cancelIntervalTask = (handle: number) => cancelInterval(handle, intervalCa
 /**
  * View
  */
-const view = (model: Model) => 
+const view = (model: Model) =>
     section(
         h2('Time examples'),
         p(
-            model.timeoutHandle ? 
-                button({ type: 'button',
-                         'class': 'btn btn-sm btn-default',
-                         onclick: cancelTimeoutTask(model.timeoutHandle) },
+            model.timeoutHandle ?
+                button({
+                    type: 'button',
+                    'class': 'btn btn-sm btn-default',
+                    onclick: cancelTimeoutTask(model.timeoutHandle)
+                },
                     'Cancel timeout'
                 )
-                : button({ type: 'button',
-                           'class': 'btn btn-sm btn-default',
-                           onclick: startTimeoutTask },
+                : button({
+                    type: 'button',
+                    'class': 'btn btn-sm btn-default',
+                    onclick: startTimeoutTask
+                },
                     'Set a timeout of 5 seconds'
                 )
         ),
         p(
-            model.intervalHandle ? 
-                button({ type: 'button',
-                         'class': 'btn btn-sm btn-default',
-                         onclick: cancelIntervalTask(model.intervalHandle) },
-                        'Cancel interval'
+            model.intervalHandle ?
+                button({
+                    type: 'button',
+                    'class': 'btn btn-sm btn-default',
+                    onclick: cancelIntervalTask(model.intervalHandle)
+                },
+                    'Cancel interval'
                 )
-                : button({ type: 'button',
-                           'class': 'btn btn-sm btn-default',
-                           onclick: startIntervalTask },
-                        'Start interval'
+                : button({
+                    type: 'button',
+                    'class': 'btn btn-sm btn-default',
+                    onclick: startIntervalTask
+                },
+                    'Start interval'
                 )
         ),
         p(`Milliseconds since interval started: ${model.intervalTickValue}`)
@@ -92,7 +100,7 @@ export const timeComponent = defineComponent({
 
     // Init takes either an initial model or a tuple of an initial model 
     // and one or more tasks to execute when the component is initialized.
-    init: init,
+    init: evolve(init),
 
     // The view function is called after update. 
     view: view
