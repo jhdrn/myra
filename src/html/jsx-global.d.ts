@@ -1,18 +1,18 @@
 /// <reference path="../core/contract-global.d.ts" />
 
-declare namespace myra.core.contract {
+declare namespace myra {
     interface ComponentNodeDescriptor {
         (): ComponentNodeDescriptor
     }
 }
 
-type GlobalAttributes = myra.core.contract.GlobalAttributes
+type GlobalAttributes = myra.GlobalAttributes
 declare namespace JSX {
-    
-    export interface Element extends myra.core.contract.ElementNodeDescriptor {
+
+    export interface Element extends myra.ElementNodeDescriptor {
     }
     interface ElementClass {
-        <A>(mountArgs?: A, forceMount?: boolean): myra.core.contract.ComponentNodeDescriptor
+        <A>(mountArgs?: A, forceMount?: boolean): myra.ComponentNodeDescriptor
     }
     interface ElementAttributesProperty {
         props: any
@@ -21,46 +21,46 @@ declare namespace JSX {
     export interface IntrinsicElements {
         nothing: never
 
-        a: myra.core.contract.AAttributes
+        a: myra.AAttributes
         attr: GlobalAttributes
         address: GlobalAttributes
-        area: myra.core.contract.AreaAttributes
+        area: myra.AreaAttributes
         article: GlobalAttributes
         aside: GlobalAttributes
-        audio: myra.core.contract.AudioAttributes
+        audio: myra.AudioAttributes
 
         b: GlobalAttributes
         bdi: GlobalAttributes
         bdo: GlobalAttributes
         blockquote: GlobalAttributes
         br: GlobalAttributes
-        button: myra.core.contract.ButtonAttributes
+        button: myra.ButtonAttributes
 
-        canvas: myra.core.contract.CanvasAttributes
+        canvas: myra.CanvasAttributes
         caption: GlobalAttributes
         cite: GlobalAttributes
         code: GlobalAttributes
-        col: myra.core.contract.ColAttributes
-        colgroup: myra.core.contract.ColGroupAttributes
-        
+        col: myra.ColAttributes
+        colgroup: myra.ColGroupAttributes
+
         data: GlobalAttributes
         datalist: GlobalAttributes
         dd: GlobalAttributes
-        del: myra.core.contract.DelAttributes
-        details: myra.core.contract.DetailsAttributes
+        del: myra.DelAttributes
+        details: myra.DetailsAttributes
         dfn: GlobalAttributes
         div: GlobalAttributes
         dl: GlobalAttributes
         dt: GlobalAttributes
 
         em: GlobalAttributes
-        embed: myra.core.contract.EmbedAttributes
+        embed: myra.EmbedAttributes
 
-        fieldset: myra.core.contract.FieldsetAttributes
+        fieldset: myra.FieldsetAttributes
         figcaption: GlobalAttributes
         figure: GlobalAttributes
         footer: GlobalAttributes
-        form: myra.core.contract.FormAttributes
+        form: myra.FormAttributes
 
         h1: GlobalAttributes
         h2: GlobalAttributes
@@ -72,36 +72,36 @@ declare namespace JSX {
         hr: GlobalAttributes
 
         i: GlobalAttributes
-        iframe: myra.core.contract.IframeAttributes
-        img: myra.core.contract.ImgAttributes
-        input: myra.core.contract.InputAttributes
-        ins: myra.core.contract.InsAttributes
+        iframe: myra.IframeAttributes
+        img: myra.ImgAttributes
+        input: myra.InputAttributes
+        ins: myra.InsAttributes
 
         kbd: GlobalAttributes
-        
-        label: myra.core.contract.LabelAttributes
+
+        label: myra.LabelAttributes
         legend: GlobalAttributes
-        li: myra.core.contract.LiAttributes
+        li: myra.LiAttributes
 
         main: GlobalAttributes
-        map: myra.core.contract.MapAttributes
+        map: myra.MapAttributes
         mark: GlobalAttributes
-        meter: myra.core.contract.MeterAttributes
+        meter: myra.MeterAttributes
 
         nav: GlobalAttributes
 
-        object: myra.core.contract.ObjectAttributes
+        object: myra.ObjectAttributes
         ol: GlobalAttributes
-        optgroup: myra.core.contract.OptgroupAttributes
-        option: myra.core.contract.OptionAttributes
+        optgroup: myra.OptgroupAttributes
+        option: myra.OptionAttributes
         output: GlobalAttributes
 
         p: GlobalAttributes
-        param: myra.core.contract.ParamAttributes
+        param: myra.ParamAttributes
         pre: GlobalAttributes
-        progress: myra.core.contract.ProgressAttributes
+        progress: myra.ProgressAttributes
 
-        q: myra.core.contract.QAttributes
+        q: myra.QAttributes
 
         rp: GlobalAttributes
         rt: GlobalAttributes
@@ -110,9 +110,9 @@ declare namespace JSX {
         s: GlobalAttributes
         samp: GlobalAttributes
         section: GlobalAttributes
-        select: myra.core.contract.SelectAttributes
+        select: myra.SelectAttributes
         small: GlobalAttributes
-        source: myra.core.contract.SourceAttributes
+        source: myra.SourceAttributes
         span: GlobalAttributes
         strong: GlobalAttributes
         sub: GlobalAttributes
@@ -121,20 +121,20 @@ declare namespace JSX {
 
         table: GlobalAttributes
         tbody: GlobalAttributes
-        td: myra.core.contract.TdAttributes
-        textarea: myra.core.contract.TextareaAttributes
+        td: myra.TdAttributes
+        textarea: myra.TextareaAttributes
         tfoot: GlobalAttributes
-        th: myra.core.contract.ThAttributes
+        th: myra.ThAttributes
         thead: GlobalAttributes
-        time: myra.core.contract.TimeAttributes
+        time: myra.TimeAttributes
         tr: GlobalAttributes
-        track: myra.core.contract.TrackAttributes
+        track: myra.TrackAttributes
 
         u: GlobalAttributes
         ul: GlobalAttributes
 
         var: GlobalAttributes
-        video: myra.core.contract.VideoAttributes
+        video: myra.VideoAttributes
 
         wbr: GlobalAttributes
 

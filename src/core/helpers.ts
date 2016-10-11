@@ -1,21 +1,22 @@
+import { UpdateResult, Task } from './contract'
 
 export const isIE9 = document.all && !window.atob
 
 export type Type = 'array' | 'object' | 'string' | 'date' | 'regexp' | 'function' | 'boolean' | 'number' | 'null' | 'undefined'
 
 export function typeOf(obj: any): Type {
-	if (typeof obj === 'string') return 'string'
-	if (typeof obj === 'number') return 'number'
-	if (typeof obj === 'boolean') return 'boolean'
-	if (typeof obj === 'function') return 'function'
-	if (typeof obj === 'undefined') return 'undefined'
-	if (typeof obj === 'null') return 'null'
+    if (typeof obj === 'string') return 'string'
+    if (typeof obj === 'number') return 'number'
+    if (typeof obj === 'boolean') return 'boolean'
+    if (typeof obj === 'function') return 'function'
+    if (typeof obj === 'undefined') return 'undefined'
+    if (typeof obj === 'null') return 'null'
     return ({}).toString.call(obj).slice(8, -1).toLowerCase()
-} 
+}
 
-export function max(a: number, b: number): number { 
+export function max(a: number, b: number): number {
     return a > b ? a : b
-} 
+}
 
 export function equal<T>(a: T, b: T): boolean {
     const typeOfA = typeOf(a)
@@ -95,8 +96,19 @@ export function deepCopy<T>(value: T): T {
  * Creates a new object by deep copying "original". The evolve function is used 
  * to update the copy with new data.
  */
-export function evolve<T>(original: T, evolve: (obj: T) => void): T {
+export function evolve<T>(original: T, evolve?: ((obj: T) => void) | Task, ...tasks: Task[]): UpdateResult<T> {
     const copy = deepCopy(original)
-    evolve(copy)
-    return copy
+
+    if (evolve) {
+        if ((evolve as Task).execute) {
+            tasks = [evolve as Task].concat(tasks)
+        }
+        else if (typeof evolve === 'function') {
+            evolve(copy)
+        }
+    }
+    return {
+        model: copy,
+        tasks: tasks
+    }
 }

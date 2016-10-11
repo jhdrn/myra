@@ -1,5 +1,5 @@
 
-declare namespace myra.core.contract {
+declare namespace myra {
 
     type Map<T> = {
         [key: string]: T
@@ -10,7 +10,7 @@ declare namespace myra.core.contract {
      */
     interface ComponentArgs<M, A> {
         name: string
-        init: M | [M, Task | Task[]]
+        init: UpdateResult<M>
         mount?: Update<M, A>
         subscriptions?: { [type: string]: Update<M, any> }
         view: View<M>
@@ -30,12 +30,17 @@ declare namespace myra.core.contract {
     }
 
     type InitializeComponent = <A>(mountArgs?: A, forceMount?: boolean, children?: NodeDescriptor[]) => ComponentNodeDescriptor
-    
+
     /**
      * Update/Dispatch types
      */
+    interface UpdateResult<M> {
+        readonly model: M
+        readonly tasks: Task[]
+    }
+
     interface Update<M, A> {
-        (model: M, arg?: A): M | [M, Task | Task[]]
+        (model: M, arg?: A): UpdateResult<M>
     }
     interface UpdateAny extends Update<any, any> { }
 
@@ -56,25 +61,25 @@ declare namespace myra.core.contract {
     interface ListenerWithEventOptions {
         listener: Task | UpdateAny
         preventDefault?: boolean
-        stopPropagation?: boolean 
+        stopPropagation?: boolean
     }
     type ElementEventAttributeArguments = UpdateAny | Task | ListenerWithEventOptions
 
     interface FormElementListenerWithEventOptions {
         listener: Task | UpdateWithFormValidation
         preventDefault?: boolean
-        stopPropagation?: boolean 
+        stopPropagation?: boolean
     }
     type UpdateWithFormValidation = <M>(model: M, formData: Map<string>, formValidationResult: FormValidationResult) => M | [M, Task | Task[]]
-    type FormElementEventAttributeArguments =  UpdateWithFormValidation | Task | FormElementListenerWithEventOptions
-    
+    type FormElementEventAttributeArguments = UpdateWithFormValidation | Task | FormElementListenerWithEventOptions
+
     interface FieldElementListenerWithEventOptions {
         listener: Task | UpdateWithFieldValidation
         preventDefault?: boolean
-        stopPropagation?: boolean 
+        stopPropagation?: boolean
     }
     type UpdateWithFieldValidation = <M>(model: M, value: string, validationResult: FieldValidationResult) => M | [M, Task | Task[]]
-    type FieldElementEventAttributeArguments =  UpdateWithFieldValidation | Task | FieldElementListenerWithEventOptions
+    type FieldElementEventAttributeArguments = UpdateWithFieldValidation | Task | FieldElementListenerWithEventOptions
 
     interface NodeDescriptorBase {
         node?: Node
@@ -114,7 +119,7 @@ declare namespace myra.core.contract {
     }
     type FieldValidator = (value: string) => FieldValidationResult
     type FormValidator = (value: Map<string>) => FormValidationResult
-    
+
     interface GlobalAttributes {
         accesskey?: string
         'class'?: string
@@ -194,7 +199,7 @@ declare namespace myra.core.contract {
         formtarget?: string
         name?: string
         type?: 'submit' | 'reset' | 'button'
-        value?: string | number 
+        value?: string | number
     }
     interface CanvasAttributes extends GlobalAttributes {
         height?: number | string
@@ -234,11 +239,11 @@ declare namespace myra.core.contract {
         name?: string
         novalidate?: boolean | 'true' | 'false'
         target?: string
-        
+
         onreset?: ElementEventAttributeArguments
         onsubmit?: FormElementEventAttributeArguments
         onchange?: FormElementEventAttributeArguments
-        
+
         validate?: FormValidator | FormValidator[]
     }
     interface IframeAttributes extends GlobalAttributes {
@@ -296,10 +301,10 @@ declare namespace myra.core.contract {
         step?: number | string
         value?: string | number
         width?: number | string
-        
+
         onchange?: FieldElementEventAttributeArguments
         oninput?: FieldElementEventAttributeArguments
-        
+
         validate?: FieldValidator | FieldValidator[]
     }
     interface InsAttributes extends GlobalAttributes {
@@ -364,7 +369,7 @@ declare namespace myra.core.contract {
         size?: number | string
 
         onchange?: FieldElementEventAttributeArguments
-        
+
         validate?: FieldValidator | FieldValidator[]
     }
     interface SourceAttributes extends GlobalAttributes {

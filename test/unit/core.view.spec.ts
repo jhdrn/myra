@@ -1,4 +1,4 @@
-import { defineComponent, task } from 'core'
+import { defineComponent, task, evolve } from 'core'
 import { render } from 'core/view'
 import { text, nothing } from 'html'
 import { div, button, span, input, textarea, form } from 'html/elements'
@@ -69,7 +69,7 @@ describe('core.view.render', () => {
     it('mounts a component from a component node descriptor', (done) => {
         const testComponent = defineComponent({
             name: 'TestComponent1',
-            init: undefined,
+            init: evolve(undefined),
             view: (_) => div({ id: 'testComponent' })
         })
 
@@ -91,7 +91,7 @@ describe('core.view.render', () => {
 
         const testComponent = defineComponent({
             name: 'TestComponent2',
-            init: undefined,
+            init: evolve(undefined),
             mount: mocks.mount,
             view: (_) => div({ id: 'testComponent' })
         })
@@ -459,7 +459,7 @@ describe('core.view.render', () => {
             onclick: task(mocks.testTask)
         })
 
-        render(document.body, view, view, undefined, () => { }) 
+        render(document.body, view, view, undefined, () => { })
 
         const node = view.node as HTMLButtonElement
         node.click()

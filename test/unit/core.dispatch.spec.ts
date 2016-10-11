@@ -1,12 +1,12 @@
 import { dispatch } from 'core/dispatch'
-import { task, Task } from 'core'
+import { task, evolve } from 'core'
 import { text } from 'html'
 /**
  * evolve
  */
 describe('core.dispatch', () => {
     it('updates model and calls render', () => {
-        const update = (x: number, arg: number) => x + arg
+        const update = (x: number, arg: number) => evolve(x + arg)
         const context = {
             name: '',
             view: () => text('a text'),
@@ -27,7 +27,7 @@ describe('core.dispatch', () => {
     })
 
     it('does not call render if dispatchLevel > 1', () => {
-        const update = (x: number, arg: number) => x + arg
+        const update = (x: number, arg: number) => evolve(x + arg)
         const context = {
             name: '',
             view: () => text('a text'),
@@ -41,20 +41,20 @@ describe('core.dispatch', () => {
             rootNode: document.body
         }
         const renderMock = {
-            render: () => { 
+            render: () => {
                 return null as any as Node
             }
-        } 
+        }
 
         spyOn(renderMock, 'render')
 
         dispatch(context, renderMock.render, update, 2)
-        
+
         expect(renderMock.render).not.toHaveBeenCalled()
     })
 
     it('throws if already updating', () => {
-        const update = (x: number, arg: number) => x + arg
+        const update = (x: number, arg: number) => evolve(x + arg)
         const context = {
             name: '',
             view: () => text('a text'),
@@ -79,7 +79,7 @@ describe('core.dispatch', () => {
             expect(dispatch).toBeDefined()
         })
 
-        const update = (x: number, arg: number) => [x + arg, testTask] as [number, Task]
+        const update = (x: number, arg: number) => evolve(x + arg, testTask)
         const context = {
             name: '',
             view: () => text('a text'),
@@ -99,7 +99,7 @@ describe('core.dispatch', () => {
         dispatch(context, render, update, 2)
     })
 
-    
+
     it('updates model and executes array of tasks', () => {
         const testTask1 = task(dispatch => {
             expect(dispatch).toBeDefined()
@@ -107,7 +107,7 @@ describe('core.dispatch', () => {
         const testTask2 = task(dispatch => {
             expect(dispatch).toBeDefined()
         })
-        const update = (x: number, arg: number) => [x + arg, [testTask1, testTask2]] as [number, Task[]]
+        const update = (x: number, arg: number) => evolve(x + arg, testTask1, testTask2)
         const context = {
             name: '',
             view: () => text('a text'),

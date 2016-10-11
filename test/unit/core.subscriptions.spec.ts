@@ -1,5 +1,5 @@
-import { defineComponent, broadcast, mountComponent } from 'core'
-import { div } from 'html/elements' 
+import { defineComponent, broadcast, mountComponent, evolve } from 'core'
+import { div } from 'html/elements'
 
 /**
  * defineComponent
@@ -11,9 +11,9 @@ describe('core.subscriptions.broadcast', () => {
             test1: (x: number, arg: string) => {
                 console.log('wtf')
                 expect(arg).toBe('testdata1')
-                return x
+                return evolve(x)
             },
-            test2: (x: number) => x
+            test2: (x: number) => evolve(x)
         }
 
         spyOn(subscriptions, 'test1')
@@ -21,7 +21,7 @@ describe('core.subscriptions.broadcast', () => {
 
         const component = defineComponent({
             name: 'TestComponent',
-            init: 0,
+            init: evolve(0),
             subscriptions: subscriptions,
             view: () => div()
         })

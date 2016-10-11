@@ -36,7 +36,7 @@ describe('jsxFactory', () => {
 
     it('creates an ElementNodeDescriptor and sets attributes', () => {
 
-        const fn = () => 0
+        const fn = () => core.evolve(0)
         const view = <div class="test" id="test" onclick={fn}></div>
 
         expect(view).toEqual({
@@ -51,7 +51,7 @@ describe('jsxFactory', () => {
         } as core.ElementNodeDescriptor)
     })
 
-     const childNodeDescriptor = {
+    const childNodeDescriptor = {
         __type: 'element',
         tagName: 'div',
         attributes: {},
@@ -59,7 +59,7 @@ describe('jsxFactory', () => {
     } as core.ElementNodeDescriptor
 
     it('creates an ElementNodeDescriptor and appends a single child', () => {
-        
+
         const view = <div><div></div></div>
 
         expect(view).toEqual({
@@ -71,7 +71,7 @@ describe('jsxFactory', () => {
             ]
         } as core.ElementNodeDescriptor)
     })
-    
+
     it('creates an ElementNodeDescriptor and appends multiple children with a single argument', () => {
 
         const view = <div><div></div><div></div>abc</div>
@@ -94,7 +94,7 @@ describe('jsxFactory', () => {
     it('Object element creates a ComponentNodeDescriptor', () => {
         const TestComponent = core.defineComponent({
             name: 'JsxComponent',
-            init: undefined,
+            init: core.evolve(undefined),
             view: () => <div></div>
         })
 

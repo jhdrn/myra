@@ -1,6 +1,6 @@
-import { defineComponent, mountComponent } from 'core'
+import { defineComponent, mountComponent, evolve } from 'core'
 import { initComponent, updateComponent } from 'core/component'
-import { div, button } from 'html/elements' 
+import { div, button } from 'html/elements'
 
 const q = (x: string) => document.querySelector(x)
 
@@ -13,7 +13,7 @@ describe('core.defineComponent', () => {
     const componentName = randomName()
     const component1 = defineComponent({
         name: componentName,
-        init: undefined,
+        init: evolve(undefined),
         view: () => div()
     })
 
@@ -24,7 +24,7 @@ describe('core.defineComponent', () => {
     it('throws if a component with the same name is already defined', () => {
         expect(() => defineComponent({
             name: componentName,
-            init: undefined,
+            init: evolve(undefined),
             view: () => div()
         })).toThrow()
     })
@@ -39,7 +39,7 @@ describe('mountComponent', () => {
 
         const component = defineComponent({
             name: randomName(),
-            init: undefined,
+            init: evolve(undefined),
             view: () => div({
                 id: 'root'
             })
@@ -48,20 +48,20 @@ describe('mountComponent', () => {
         mountComponent(component, document.body)
 
         const rootNode = q('#root')
-        
+
         expect(rootNode).not.toBeNull()
     })
 
     it('calls the mount function', () => {
         const mountMock = {
-            mount: (x: number) => x
+            mount: (x: number) => evolve(x)
         }
 
         spyOn(mountMock, 'mount')
 
         const component = defineComponent({
             name: randomName(),
-            init: 0,
+            init: evolve(0),
             mount: mountMock.mount,
             view: () => div()
         })
@@ -71,21 +71,21 @@ describe('mountComponent', () => {
         expect(mountMock.mount).toHaveBeenCalled()
     })
 
-    
+
     it('calls the subscribe function if supplied with subscriptions', () => {
         const mountMock = {
-            mount: (x: number) => x
+            mount: (x: number) => evolve(x)
         }
 
         spyOn(mountMock, 'mount')
 
         const component = defineComponent({
             name: randomName(),
-            init: 0,
+            init: evolve(0),
             mount: mountMock.mount,
             subscriptions: {
-                'test1': x => x,
-                'test2': x => x
+                'test1': x => evolve(x),
+                'test2': x => evolve(x)
             },
             view: () => div()
         })
@@ -96,7 +96,7 @@ describe('mountComponent', () => {
     })
 
     it(`calls the parent's dispatch function if an update function is passed to and called from a child`, () => {
-        
+
         const updateMock = {
             update: (x: number) => {
                 expect(x).toBe(22)
@@ -108,20 +108,20 @@ describe('mountComponent', () => {
 
         const component = defineComponent<any, any>({
             name: randomName(),
-            init: undefined,
+            init: evolve(undefined),
             mount: (_m, a) => a,
-            view: (m) => button({ onclick: m.onclick, id: 'childBtn'})
+            view: (m) => button({ onclick: m.onclick, id: 'childBtn' })
         })
 
         const parent = defineComponent({
             name: randomName(),
-            init: 22,
+            init: evolve(22),
             view: () => component({ onclick: updateMock.update })
         })
 
         mountComponent(parent, document.body)
 
-        ;(q('#childBtn') as HTMLButtonElement).click()
+            ; (q('#childBtn') as HTMLButtonElement).click()
 
         expect(updateMock.update).toHaveBeenCalledTimes(1)
     })
@@ -138,13 +138,13 @@ describe('mountComponent', () => {
 
         const component = defineComponent<any, any>({
             name: randomName(),
-            init: undefined,
+            init: evolve(undefined),
             view: viewMock.view
         })
 
         const parent = defineComponent({
             name: randomName(),
-            init: 22,
+            init: evolve(22),
             view: () => component(undefined, undefined, [div({ id: 'divTestId' })])
         })
 
@@ -163,14 +163,14 @@ describe('updateComponent', () => {
 
     it('does not call the mount function if the arguments has not changed', () => {
         const mountMock = {
-            mount: (x: number) => x
+            mount: (x: number) => evolve(x)
         }
 
         spyOn(mountMock, 'mount')
 
         const component = defineComponent({
             name: randomName(),
-            init: 0,
+            init: evolve(0),
             mount: mountMock.mount,
             view: () => div()
         })
@@ -184,14 +184,14 @@ describe('updateComponent', () => {
 
     it('calls the mount function if forceMount is true', () => {
         const mountMock = {
-            mount: (x: number) => x
+            mount: (x: number) => evolve(x)
         }
 
         spyOn(mountMock, 'mount')
 
         const component = defineComponent({
             name: randomName(),
-            init: 0,
+            init: evolve(0),
             mount: mountMock.mount,
             view: () => div()
         })
@@ -205,17 +205,17 @@ describe('updateComponent', () => {
         expect(mountMock.mount).toHaveBeenCalledTimes(2)
     })
 
-    
+
     it('calls the mount function if the supplied arguments is not equal to the previous arguments', () => {
         const mountMock = {
-            mount: (x: number) => x
+            mount: (x: number) => evolve(x)
         }
 
         spyOn(mountMock, 'mount').and.callThrough()
-        
+
         const component = defineComponent({
             name: 'Test',
-            init: 0,
+            init: evolve(0),
             mount: mountMock.mount,
             view: () => div()
         })

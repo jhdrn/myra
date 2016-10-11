@@ -91,7 +91,7 @@ export function updateComponent(newDescriptor: ComponentNodeDescriptor, oldDescr
 
     if (newDescriptor.forceMount || !equal(oldDescriptor.props, newDescriptor.props)) {
         context.childNodes = newDescriptor.children
-        
+
         dispatch(context, render, args.mount || (<M>(m: M) => m), newDescriptor.props)
 
         newDescriptor.node = context.rendition!.node
