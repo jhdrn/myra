@@ -114,7 +114,7 @@ const view: View<Model> = (model) =>
             <footer class="footer">
                 <span class="todo-count"> 
                     <strong>{ model.itemsLeft }</strong> 
-                    { model.itemsLeft === 1 ? 'item left' : 'items left' }
+                    { model.itemsLeft === 1 ? ' item left' : ' items left' }
                 </span>
                 <ul class="filters">
                     <li>
