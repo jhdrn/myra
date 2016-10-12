@@ -14,31 +14,31 @@ type Model = {
     formData: FormData
     formValidationResult?: FormValidationResult
 }
-const init: Model = {
+const init = evolve({
     formData: {}
-}
+})
 
 
 /**
  * Updates
  */
-const onFormSubmitUpdate = (model: Model, formData: FormData, validationResult: FormValidationResult) => 
+const onFormSubmitUpdate = (model: Model, formData: FormData, validationResult: FormValidationResult) =>
     evolve(model, m => {
         m.formData = formData
         m.formValidationResult = validationResult
     })
 
-const oninputUpdate = (model: Model, value: string) => 
+const oninputUpdate = (model: Model, value: string) =>
     evolve(model, x => x.formData.oninputDemo = value)
 
-const onchangeUpdate = (model: Model, value: string) => 
+const onchangeUpdate = (model: Model, value: string) =>
     evolve(model, x => x.formData.onchangeDemo = value)
 
 
 /**
  * Validation
  */
-const required = (label: string) => (value: string) => ({ 
+const required = (label: string) => (value: string) => ({
     valid: !!value,
     errors: [`'${label}' is required`]
 })
@@ -53,13 +53,13 @@ const view = (m: Model) =>
         <div>
             <h3>Form data:</h3>
             <dl>
-                { 
-                    Object.keys(m.formData).map(name => 
+                {
+                    Object.keys(m.formData).map(name =>
                         [
-                            <dt>{ name }</dt>, 
-                            <dd>{ (m.formData as any)[name] }</dd>
+                            <dt>{name}</dt>,
+                            <dd>{(m.formData as any)[name]}</dd>
                         ]
-                    ) 
+                    )
                 }
             </dl>
         </div>
@@ -72,49 +72,49 @@ const view = (m: Model) =>
             <div class={!m.formValidationResult || m.formValidationResult.fields['formField'].valid ? 'form-group' : 'form-group has-error'}>
                 <label for="formField">Just a form field</label>
                 <input type="text"
-                       id="formField"
-                       name="formField"
-                       validate={[required('Just a form field')]}
-                       class="form-control" />
-                {m.formValidationResult ? 
+                    id="formField"
+                    name="formField"
+                    validate={[required('Just a form field')]}
+                    class="form-control" />
+                {m.formValidationResult ?
                     <p class="help-text"> {(m.formValidationResult!.fields as any)['formField'].errors}</p>
                     : <nothing />}
             </div>
-            <InputGroupComponent id="oninputDemo1" 
-                                 name="oninputDemo1" 
-                                 class={!m.formValidationResult || m.formValidationResult.fields['oninputDemo1'].valid ? 'form-group' : 'form-group has-error'}
-                                 label="Oninput demo 1" 
-                                 type="email" 
-                                 validate={[required('Oninput demo 1')]}
-                                 oninput={oninputUpdate}>
-                {m.formValidationResult ? 
+            <InputGroupComponent id="oninputDemo1"
+                name="oninputDemo1"
+                class={!m.formValidationResult || m.formValidationResult.fields['oninputDemo1'].valid ? 'form-group' : 'form-group has-error'}
+                label="Oninput demo 1"
+                type="email"
+                validate={[required('Oninput demo 1')]}
+                oninput={oninputUpdate}>
+                {m.formValidationResult ?
                     <p class="help-text"> {(m.formValidationResult!.fields as any)['oninputDemo1'].errors}</p>
                     : <nothing />}
             </InputGroupComponent>
             <div class="form-group">
                 <label for="oninputDemo">Oninput demo (optional)</label>
                 <textarea id="oninputDemo"
-                          name="oninputDemo"
-                          class="form-control"
-                          oninput={oninputUpdate} />
-                <p class="help-text">The value of this field is: { m.formData.oninputDemo }</p>
+                    name="oninputDemo"
+                    class="form-control"
+                    oninput={oninputUpdate} />
+                <p class="help-text">The value of this field is: {m.formData.oninputDemo}</p>
             </div>
             <div class="form-group">
                 <label for="onchangeDemo">Onchange demo (optional)</label>
                 <select name="onchangeDemo"
-                        id="onchangeDemo"
-                        class="form-control"
-                        onchange={ onchangeUpdate }>
-                    { 
+                    id="onchangeDemo"
+                    class="form-control"
+                    onchange={onchangeUpdate}>
+                    {
                         ['Choice A', 'Choice B', 'Choice C'].map(choice =>
-                            <option>{ choice }</option>
-                        ) 
+                            <option>{choice}</option>
+                        )
                     }
                 </select>
             </div>
             <div>
                 <button type="submit"
-                        class="btn btn-primary">
+                    class="btn btn-primary">
                     Submit
                 </button>
             </div>

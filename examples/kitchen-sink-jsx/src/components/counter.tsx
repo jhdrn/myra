@@ -1,4 +1,4 @@
-import { defineComponent } from 'myra/core'
+import { defineComponent, evolve } from 'myra/core'
 import * as jsxFactory from 'myra/html/jsxFactory'
 
 
@@ -6,31 +6,31 @@ import * as jsxFactory from 'myra/html/jsxFactory'
  * Model
  */
 type Model = number
-const init: Model = 0
+const init = evolve(0)
 
 
 /**
  * Updates
  */
-const increase = (model: Model) => model + 1
-const decrease = (model: Model) => model - 1
+const increase = (model: Model) => evolve(model + 1)
+const decrease = (model: Model) => evolve(model - 1)
 
 
 /**
  * View
  */
-const view = (model: Model) => 
+const view = (model: Model) =>
     <section>
         <h2>Counter example</h2>
         <button type="button"
-                class="btn btn-sm btn-default"
-                onclick={increase}>+</button>
-                
-        {model}
-        
+            class="btn btn-sm btn-default"
+            onclick={increase}>+</button>
+
+        <span> {model} </span>
+
         <button type="button"
-                class="btn btn-sm btn-default"
-                onclick={decrease}>-</button>
+            class="btn btn-sm btn-default"
+            onclick={decrease}>-</button>
     </section>
 
 

@@ -1,4 +1,4 @@
-import { defineComponent, evolve, Task, NodeDescriptor } from 'myra/core'
+import { defineComponent, evolve, NodeDescriptor } from 'myra/core'
 import { updateLocation, trackLocationChanges, goBack, goForward, LocationContext } from 'myra/location'
 import * as jsxFactory from 'myra/html/jsxFactory'
 import { RouteComponent } from './route-component'
@@ -10,15 +10,14 @@ import { RouteComponent } from './route-component'
 type Model = {
     location: LocationContext
 }
-const init = [{}, trackLocationChanges()] as [Model, Task]
-
+const init = evolve({}, trackLocationChanges())
 
 
 /**
  * Subscriptions
  */
 const subscriptions = {
-    '__locationChanged': (m: Model, location: LocationContext) => 
+    '__locationChanged': (m: Model, location: LocationContext) =>
         evolve(m, x => x.location = location)
 }
 
@@ -26,17 +25,17 @@ const subscriptions = {
 /**
  * View
  */
-const view = (m: Model) => 
+const view = (m: Model) =>
     <section>
         <h2>Location examples</h2>
-        
-        { m.location.matchAny<NodeDescriptor>({
-            'test1': <p>Route to '/test1'.</p>,
-            'test1/:param': (params: any) => <RouteComponent {...params} /> 
-        }, <nothing />) }
 
-        { m.location.match('test1/:param') ? 
-            <p>Location '/test2/:param' matched.</p> : <nothing /> }
+        {m.location.matchAny<NodeDescriptor>({
+            'test1': <p>Route to '/test1'.</p>,
+            'test1/:param': (params: any) => <RouteComponent {...params} />
+        }, <nothing />)}
+
+        {m.location.match('test1/:param') ?
+            <p>Location '/test2/:param' matched.</p> : <nothing />}
 
         <ul class="list-group">
             <li class="list-group-item">

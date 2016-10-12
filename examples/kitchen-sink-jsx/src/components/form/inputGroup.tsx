@@ -1,4 +1,4 @@
-import { defineComponent, NodeDescriptor } from 'myra/core'
+import { defineComponent, evolve, NodeDescriptor } from 'myra/core'
 import * as jsxFactory from 'myra/html/jsxFactory'
 
 
@@ -12,30 +12,30 @@ type Model = {
     name: string
     'class': string
 }
-const init: Model = {
+const init = evolve({
     label: '',
     type: 'text',
     id: '',
     name: '',
     'class': ''
-}
+})
 
 
 /**
  * Updates
  */
-const mount = (_model: Model, args: Model) => args
+const mount = (_model: Model, args: Model) => evolve(args)
 
 
 /**
  * View
  */
-const view = (model: Model, children?: NodeDescriptor[]) => 
+const view = (model: Model, children?: NodeDescriptor[]) =>
     <div class={model.class}>
         <label for={model.id}>{model.label}</label>
         <input {...model}
-               class="form-control" />
-        { children ? children : <nothing /> }
+            class="form-control" />
+        {children ? children : <nothing />}
     </div>
 
 
@@ -50,7 +50,7 @@ export const InputGroupComponent = defineComponent({
     // and one or more tasks to execute when the component is initialized.
     init: init,
 
-    mount: mount,
+    onMount: mount,
 
     // The view function is called after update. 
     view: view

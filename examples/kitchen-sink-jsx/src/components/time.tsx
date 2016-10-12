@@ -11,9 +11,9 @@ type Model = {
     intervalHandle?: number
     intervalTickValue: number
 }
-const init: Model = {
+const init = evolve({
     intervalTickValue: 0
-}
+})
 
 
 /**
@@ -50,34 +50,34 @@ const cancelIntervalTask = (handle: number) => cancelInterval(handle, intervalCa
 /**
  * View
  */
-const view = (model: Model) => 
+const view = (model: Model) =>
     <section>
         <h2>Time examples</h2>
         <p>
-        { model.timeoutHandle ? 
-            <button type="button"
+            {model.timeoutHandle ?
+                <button type="button"
                     class="btn btn-sm btn-default"
                     onclick={cancelTimeoutTask(model.timeoutHandle)}>
                     Cancel timeout
             </button>
-            : <button type="button"
+                : <button type="button"
                     class="btn btn-sm btn-default"
                     onclick={startTimeoutTask}>
                     Set a timeout of 5 seconds
             </button>
-        }
+            }
         </p>
         <p>
-            { model.intervalHandle ? 
+            {model.intervalHandle ?
                 <button type="button"
-                        class="btn btn-sm btn-default"
-                        onclick={cancelIntervalTask(model.intervalHandle)}>
-                        Cancel interval
+                    class="btn btn-sm btn-default"
+                    onclick={cancelIntervalTask(model.intervalHandle)}>
+                    Cancel interval
                 </button>
                 : <button type="button"
-                        class="btn btn-sm btn-default"
-                        onclick={startIntervalTask}>
-                        Start interval
+                    class="btn btn-sm btn-default"
+                    onclick={startIntervalTask}>
+                    Start interval
                 </button>
             }
         </p>

@@ -11,27 +11,27 @@ type Model = {
     responseStatus: ResponseStatus
     response?: HttpResponse
 }
-const init: Model = {
+const init = evolve({
     responseStatus: 'init'
-}
+})
 
 
 /**
  * Updates
  */
-const httpSuccess = (model: Model, response: HttpResponse) => 
+const httpSuccess = (model: Model, response: HttpResponse) =>
     evolve(model, m => {
         m.responseStatus = 'success'
         m.response = response
     })
 
-const httpFailure = (model: Model, response: HttpResponse) => 
+const httpFailure = (model: Model, response: HttpResponse) =>
     evolve(model, m => {
         m.responseStatus = 'failure'
         m.response = response
     })
 
-const httpRequestTask = 
+const httpRequestTask =
     httpRequest(httpSuccess, httpFailure, {
         method: 'GET',
         url: 'https://api.github.com/repos/jhdrn/myra'
@@ -41,28 +41,28 @@ const httpRequestTask =
 /**
  * View
  */
-const view = (model: Model) => 
+const view = (model: Model) =>
     <section>
         <h2>HTTP example</h2>
         <button type="button"
-                class="btn btn-sm btn-default"
-                onclick={httpRequestTask}>
+            class="btn btn-sm btn-default"
+            onclick={httpRequestTask}>
             Make HTTP request
         </button>
 
         <p>Response status:{model.responseStatus}</p>
-        {model.response ? 
+        {model.response ?
             <div>
                 {model.response.status}
                 {model.response.statusText}
-                {model.responseStatus === 'success' ? 
-                    <p><strong>Response text:</strong>{model.response.data}</p> 
+                {model.responseStatus === 'success' ?
+                    <p><strong>Response text:</strong>{model.response.data}</p>
                     : <nothing />
                 }
-            </div> 
-            : <nothing /> 
+            </div>
+            : <nothing />
         }
-        
+
     </section>
 
 
