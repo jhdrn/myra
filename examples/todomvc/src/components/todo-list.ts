@@ -121,7 +121,7 @@ const view: View<Model> = (model) =>
             span(
                 { 'class': 'todo-count' }, 
                 strong(text(model.itemsLeft)), 
-                text(model.itemsLeft === 1 ? 'item left' : 'items left')
+                text(model.itemsLeft === 1 ? ' item left' : ' items left')
             ),
             ul({ 'class': 'filters' },
                 li(
