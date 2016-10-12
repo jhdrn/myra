@@ -57,7 +57,7 @@ describe('mountComponent', () => {
             mount: (x: number) => evolve(x)
         }
 
-        spyOn(mountMock, 'mount')
+        spyOn(mountMock, 'mount').and.callThrough()
 
         const component = defineComponent({
             name: randomName(),
@@ -77,7 +77,7 @@ describe('mountComponent', () => {
             mount: (x: number) => evolve(x)
         }
 
-        spyOn(mountMock, 'mount')
+        spyOn(mountMock, 'mount').and.callThrough()
 
         const component = defineComponent({
             name: randomName(),

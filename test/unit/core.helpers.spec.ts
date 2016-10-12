@@ -213,15 +213,14 @@ describe('core.helpers.evolve', () => {
             x.a = 'An updated string'
         })
 
-        expect(result.state).toEqual({
+        expect(JSON.stringify(result.state)).toEqual(JSON.stringify({
             a: 'An updated string',
             b: 6,
             c: [],
             d: {
                 e: 'Another string'
-            },
-            tasks: []
-        })
+            }
+        }))
     })
 })
 

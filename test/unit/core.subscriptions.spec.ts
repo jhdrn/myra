@@ -16,8 +16,8 @@ describe('core.subscriptions.broadcast', () => {
             test2: (x: number) => evolve(x)
         }
 
-        spyOn(subscriptions, 'test1')
-        spyOn(subscriptions, 'test2')
+        spyOn(subscriptions, 'test1').and.callThrough()
+        spyOn(subscriptions, 'test2').and.callThrough()
 
         const component = defineComponent({
             name: 'TestComponent',
