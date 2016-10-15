@@ -1,4 +1,4 @@
-import { task, evolve, Update, Dispatch } from 'core'
+import { task, Update, Dispatch } from 'core'
 
 /**
  * evolve
@@ -10,7 +10,7 @@ describe('core.task', () => {
 
     it('executes correctly', () => {
         const t = task((dispatch: Dispatch) => {
-            dispatch((x: number) => evolve(x + 1))
+            dispatch((x: number) => ({ state: x + 1, tasks: [] }))
         })
 
         t.execute((fn: Update<number, any>) => {

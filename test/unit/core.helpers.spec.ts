@@ -1,3 +1,4 @@
+import { task } from 'core'
 import { equal, max, typeOf, evolve, deepCopy, flatten } from 'core/helpers'
 
 
@@ -221,6 +222,26 @@ describe('core.helpers.evolve', () => {
                 e: 'Another string'
             }
         }))
+    })
+
+    it('adds a task to the task array', () => {
+        const mockTask = task((_) => { })
+        const result = evolve(53).then(mockTask)
+
+        expect(result.state).toBe(53)
+        expect(result.tasks.length).toBe(1)
+        expect(result.tasks[0]).toEqual(mockTask)
+        expect(result.then).toBeDefined()
+    })
+
+    it('adds multiple tasks to the task array', () => {
+        const mockTask1 = task((_) => { })
+        const mockTask2 = task((_) => { })
+        const result = evolve(53).then(mockTask1).then(mockTask2)
+
+        expect(result.tasks.length).toBe(2)
+        expect(result.tasks[0]).toEqual(mockTask1)
+        expect(result.tasks[1]).toEqual(mockTask2)
     })
 })
 
