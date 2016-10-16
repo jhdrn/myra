@@ -36,7 +36,7 @@ declare namespace myra {
      */
     interface Result<S> {
         readonly state: S
-        readonly tasks: Task[]
+        readonly tasks?: Task[]
     }
 
     interface Update<S, A> {

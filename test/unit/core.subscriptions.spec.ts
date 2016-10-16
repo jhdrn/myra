@@ -9,7 +9,6 @@ describe('core.subscriptions.broadcast', () => {
 
         const subscriptions = {
             test1: (x: number, arg: string) => {
-                console.log('wtf')
                 expect(arg).toBe('testdata1')
                 return evolve(x)
             },

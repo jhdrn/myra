@@ -92,15 +92,15 @@ export function deepCopy<T>(value: T): T {
     }
 }
 
-export interface Evolve<T> extends Result<T> {
-    then: (task: Task) => Evolve<T>
+export interface Evolved<T> extends Result<T> {
+    and: (task: Task, ...tasks: Task[]) => Evolved<T>
 }
 
 /**
  * Creates a new object by deep copying "original". The evolve function is used 
  * to update the copy with new data.
  */
-export function evolve<T>(original: T, evolve?: ((obj: T) => void)): Evolve<T> {
+export function evolve<T>(original: T, evolve?: ((obj: T) => void)): Evolved<T> {
     const copy = deepCopy(original)
 
     if (evolve) {
@@ -110,12 +110,15 @@ export function evolve<T>(original: T, evolve?: ((obj: T) => void)): Evolve<T> {
     const result = {
         state: copy,
         tasks: [] as Task[]
-    } as Evolve<T>
+    } as Result<T>
 
-    result.then = (task: Task) => {
-        result.tasks.push(task)
-        return result
+    (result as Evolved<T>).and = (task: Task, ...tasks: Task[]) => {
+        result.tasks!.push(task)
+        if (tasks) {
+            tasks.forEach(t => result.tasks!.push(t))
+        }
+        return result as Evolved<T>
     }
 
-    return result
+    return result as Evolved<T>
 }

@@ -226,22 +226,24 @@ describe('core.helpers.evolve', () => {
 
     it('adds a task to the task array', () => {
         const mockTask = task((_) => { })
-        const result = evolve(53).then(mockTask)
+        const result = evolve(53).and(mockTask)
 
         expect(result.state).toBe(53)
-        expect(result.tasks.length).toBe(1)
-        expect(result.tasks[0]).toEqual(mockTask)
-        expect(result.then).toBeDefined()
+        expect(result.tasks!.length).toBe(1)
+        expect(result.tasks![0]).toEqual(mockTask)
+        expect(result.and).toBeDefined()
     })
 
     it('adds multiple tasks to the task array', () => {
         const mockTask1 = task((_) => { })
         const mockTask2 = task((_) => { })
-        const result = evolve(53).then(mockTask1).then(mockTask2)
+        const mockTask3 = task((_) => { })
+        const result = evolve(53).and(mockTask1).and(mockTask2, mockTask3)
 
-        expect(result.tasks.length).toBe(2)
-        expect(result.tasks[0]).toEqual(mockTask1)
-        expect(result.tasks[1]).toEqual(mockTask2)
+        expect(result.tasks!.length).toBe(3)
+        expect(result.tasks![0]).toEqual(mockTask1)
+        expect(result.tasks![1]).toEqual(mockTask2)
+        expect(result.tasks![2]).toEqual(mockTask3)
     })
 })
 

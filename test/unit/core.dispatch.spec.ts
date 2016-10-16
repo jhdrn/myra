@@ -79,7 +79,7 @@ describe('core.dispatch', () => {
             expect(dispatch).toBeDefined()
         })
 
-        const update = (x: number, arg: number) => evolve(x + arg).then(testTask)
+        const update = (x: number, arg: number) => evolve(x + arg).and(testTask)
         const context = {
             name: '',
             view: () => text('a text'),
@@ -107,7 +107,7 @@ describe('core.dispatch', () => {
         const testTask2 = task(dispatch => {
             expect(dispatch).toBeDefined()
         })
-        const update = (x: number, arg: number) => evolve(x + arg).then(testTask1).then(testTask2)
+        const update = (x: number, arg: number) => evolve(x + arg).and(testTask1).and(testTask2)
         const context = {
             name: '',
             view: () => text('a text'),
