@@ -1,6 +1,5 @@
 import * as core from 'core'
-import { nothing, text } from 'html'
-import * as html from 'html/elements'
+import { nothing, text, el } from 'html'
 
 describe('Node descriptor helpers', () => {
 
@@ -39,7 +38,7 @@ describe('Node descriptor helpers', () => {
     })
 
     it('creates an ElementNodeDescriptor with the supplied tagName', () => {
-        expect(html.el('div')).toEqual({
+        expect(el('div')).toEqual({
             __type: 'element',
             tagName: 'div',
             attributes: {},
@@ -48,7 +47,7 @@ describe('Node descriptor helpers', () => {
     })
 
     it('creates an ElementNodeDescriptor and sets attributes', () => {
-        expect(html.el('div', { 'class': 'test', id: 'test' })).toEqual({
+        expect(el('div', { 'class': 'test', id: 'test' })).toEqual({
             __type: 'element',
             tagName: 'div',
             attributes: {
@@ -60,7 +59,7 @@ describe('Node descriptor helpers', () => {
     })
 
     it('creates an ElementNodeDescriptor and adds a TextNodeDescriptor child', () => {
-        expect(JSON.stringify(html.el('div', 'A text'))).toEqual(JSON.stringify({
+        expect(JSON.stringify(el('div', 'A text'))).toEqual(JSON.stringify({
             __type: 'element',
             tagName: 'div',
             attributes: {},
@@ -70,9 +69,9 @@ describe('Node descriptor helpers', () => {
             } as core.TextNodeDescriptor]
         } as core.ElementNodeDescriptor))
     })
-    
+
     it('creates an ElementNodeDescriptor and adds a TextNodeDescriptor child from a number', () => {
-        expect(JSON.stringify(html.el('div', 5 as any))).toEqual(JSON.stringify({
+        expect(JSON.stringify(el('div', 5 as any))).toEqual(JSON.stringify({
             __type: 'element',
             tagName: 'div',
             attributes: {},
@@ -84,7 +83,7 @@ describe('Node descriptor helpers', () => {
     })
 
     it('creates an ElementNodeDescriptor and adds a TextNodeDescriptor children and attributes', () => {
-        expect(JSON.stringify(html.el('div', { id: 'anId' }, 'Text A', 'Text B'))).toEqual(JSON.stringify({
+        expect(JSON.stringify(el('div', { id: 'anId' }, 'Text A', 'Text B'))).toEqual(JSON.stringify({
             __type: 'element',
             tagName: 'div',
             attributes: { id: 'anId' },
@@ -100,7 +99,7 @@ describe('Node descriptor helpers', () => {
     })
 
     it('creates an ElementNodeDescriptor and flattens children', () => {
-        expect(JSON.stringify(html.el('div', ['Text A', 'Text B'], 'Text C', ...['Text D', 'Text E']))).toEqual(JSON.stringify({
+        expect(JSON.stringify(el('div', ['Text A', 'Text B'], 'Text C', ...['Text D', 'Text E']))).toEqual(JSON.stringify({
             __type: 'element',
             tagName: 'div',
             attributes: {},
@@ -115,7 +114,7 @@ describe('Node descriptor helpers', () => {
     })
 
     it('creates a TextNodeDescriptor from a supplied non-NodeDescriptor object', () => {
-        expect(JSON.stringify(html.el('div', [{ someKey: 'A text' }]))).toEqual(JSON.stringify({
+        expect(JSON.stringify(el('div', [{ someKey: 'A text' }]))).toEqual(JSON.stringify({
             __type: 'element',
             tagName: 'div',
             attributes: {},
@@ -135,7 +134,7 @@ describe('Node descriptor helpers', () => {
 
     it('creates an ElementNodeDescriptor and appends a single child', () => {
 
-        expect(html.el('div', html.el('div'))).toEqual({
+        expect(el('div', el('div'))).toEqual({
             __type: 'element',
             tagName: 'div',
             attributes: {},
@@ -144,9 +143,9 @@ describe('Node descriptor helpers', () => {
             ]
         } as core.ElementNodeDescriptor)
     })
-    
+
     it('creates an ElementNodeDescriptor and appends multiple children with a single argument', () => {
-        expect(html.el('div', [html.el('div'), html.el('div')])).toEqual({
+        expect(el('div', [el('div'), el('div')])).toEqual({
             __type: 'element',
             tagName: 'div',
             attributes: {},
@@ -159,7 +158,7 @@ describe('Node descriptor helpers', () => {
 
     it('creates an ElementNodeDescriptor and appends children with multiple child arguments', () => {
 
-        expect(html.el('div', html.el('div'), ...[html.el('div')])).toEqual({
+        expect(el('div', el('div'), ...[el('div')])).toEqual({
             __type: 'element',
             tagName: 'div',
             attributes: {},

@@ -22,13 +22,14 @@ that the compiler options `strictNullChecks`, `noImplicitReturns` and
 * **Small API:** 
   Myra should be easy to learn as it's API and concepts are limited.
 * **Statically typed views:** 
-  Myra does not use HTML templates but uses functions or 
+  Myra does not use HTML templates but uses 
   [JSX](https://facebook.github.io/react/docs/jsx-in-depth.html) to build up 
-  view hierarchies. This reduces run time errors and increases performance.
+  view hierarchies. Together with Typescript's type checking, this reduces run 
+  time errors.
 * **No dependencies:** 
   Myra does not depend on any external libraries.
 * **Small code base/size:** 
-  ~48kb/~17kb minified/~5kb minified and gzipped
+  ~17kb minified/~5kb minified and gzipped
 
 ## Getting started
 Clone the repository and check the [examples](https://github.com/jhdrn/myra/tree/master/examples) folder. Open any example's folder
@@ -37,7 +38,7 @@ your favorite browser and point it to `localhost:8080`.
 
 ## Components
 Myra is all about components and there is always at least one component in a 
-Myra application. A component will have it's own state (the 'Model') and view.
+Myra application. A component will have it's own state (the 'State') and view.
 
 A component will be defined with `defineComponent`:
     
@@ -48,7 +49,7 @@ A component will be defined with `defineComponent`:
         // The name of the component
         name: 'MyComponent', 
         
-        // The initial model (see 'Model' below)
+        // The initial state and optional tasks (see 'State' and 'Task' below)
         init: ..., 
 
         // An optional Update function to call when the component is mounted.
@@ -71,28 +72,9 @@ The "main" component should be mounted to a HTML element:
     mountComponent(myComponent, document.body)
 ```
 
-### Model
+### State
 Represents the state of the component. Can be anything but a function, even 
 undefined or null.
-
-### Update
-One or more functions that updates the model. Update functions should always be 
-pure and should also always copy the model if any changes are made to it.
-The `evolve` function helps with copying the model.
-
-```typescript
-    import { evolve } from 'myra/core'
-
-    type Model = {
-        foo: string
-    }
-
-    const updateFoo = (model: Model, newFoo: string) => 
-        evolve(model, x => x.foo = newFoo)
-```
-
-Update functions can either return just the model or a tuple 
-`[Model, Task | Task[]]` to do side effects.
 
 ### Task
 A `Task` represents some kind of side effect. It receives a dispatch function
@@ -108,26 +90,34 @@ that may be used to dispatch an `Update` function with any given arguments.
     })
 ```
 
-### View
-Myra does not use HTML templates but creates it's views with functions or JSX 
-returning `NodeDescriptor` which is a union type of the following types:
-
-#### ElementNodeDescriptor
-Renders as an HTML element. Most HTML elements are represented as functions in
-`myra/html/elements` module (there is also an `el` function to create custom elements). 
+### Update
+One or more functions that updates the state. Update functions should always be 
+pure and should also always copy the state if any changes are made to it.
+The `evolve` function helps with copying the state.
 
 ```typescript
-    import { div, ul, li, el } from 'myra/html/elements'
+    import { evolve } from 'myra/core'
 
-    const view = (_) => 
-        div(
-            ul(
-                li('A list item')
-            ),
-            el('custom')
-        )
+    type State = {
+        foo: string
+    }
+
+    const updateFoo = (state: State, newFoo: string) => 
+        evolve(state, x => x.foo = newFoo)
 ```
-JSX can also be used:
+
+Update functions must return a `Result<T>` which is basically an object with the
+following definition: 
+
+``` typescript
+    {
+        state: T
+        tasks?: Task[]
+    }
+```
+
+### View
+Myra does not use HTML templates but creates it's views with JSX.
 
 ```JSX
     import * as jsxFactory from 'myra/html/jsxFactory'
@@ -144,35 +134,18 @@ JSX can also be used:
 ```
 
 ##### Attributes and event listeners
-Most functions returning an `ElementNodeDescriptor` takes an anonymous object as 
-first argument. The keys and values of the supplied object will be mapped to
-attributes and event listeners on the element. Event listeners can be either an
-`Update` function or a `Task`.
+Event listeners can be either an `Update` function or a `Task`.
 
-```typescript
-    import { div } from 'myra/html/elements'
-    
-    const myUpdate = (m: Model) => {
+```JSX
+    import * as jsxFactory from 'myra/html/jsxFactory'
+
+    const myUpdate = (m: State) => {
         ...
         return m
     }
 
     const view = (_) => 
-        div({
-            'class': 'className',
-            onclick: myUpdate,
-        })
-```
-
-JSX:
-
-```JSX
-    import * as jsxFactory from 'myra/html/jsxFactory'
-
-    ...
-
-    const view = (_) => 
-        <div class="className" onclick={ myUpdate }></div>
+        <div class="className" onclick={myUpdate}></div>
 
 ```
 
@@ -204,9 +177,8 @@ Some attributes and events has special behavior associated with them.
 * The `value` attribute will set element.value if it is either an `input`, 
   `select` or `textarea` element.
 
-
-```typescript
-    import { form, div, input, button } from 'myra/html/elements'
+```JSX
+    import * as jsxFactory from 'myra/html/jsxFactory'
 
     type FormData = { 
         foo: string
@@ -215,44 +187,15 @@ Some attributes and events has special behavior associated with them.
 
     // Example of update function that will receive form data as 
     // argument when the event is triggered.
-    const handleFormSubmit = (m: Model, formData: FormData) => {
+    const handleFormSubmit = (s: State, formData: FormData) => {
         ...
-        return m
+        return evolve(s)
     }
 
     // Example of update function that will receive an input elements value as 
     // argument when the event is triggered.
-    const updateNothing = (m: Model, value: string) => {
-        return m
-    } 
-
-    const view = (_) =>
-        form({ onsubmit: { listener: handleFormSubmit, preventDefault: true } },
-            div(
-                input({
-                    focus: true,
-                    name: 'foo',
-                    type: 'text',
-                    onkeyup_escape: updateNothing
-                }),
-                input({
-                    type: 'checkbox',
-                    checked: true,
-                    name: 'bar'
-                }),
-                button({
-                    type: 'submit'
-                })
-            )
-        )
-```
-
-JSX:
-
-```JSX
-    import * as jsxFactory from 'myra/html/jsxFactory'
-
-    ...
+    const updateNothing = (s: State, value: string) => 
+        return evolve(s)
     
     const view = (_) =>
         <form onsubmit={{ listener: handleFormSubmit, preventDefault: true }}>
@@ -270,17 +213,9 @@ JSX:
         </form>
 ```
 
-#### ComponentNodeDescriptor
-Mounts a child component, rendering it's view hierarchy. It's possible to feed
+#### Child components
+To mount a child component................., rendering it's view hierarchy. It's possible to feed
 the child component with arguments.
-
-```typescript
-    import { myOtherComponent } from './myOtherComponent'
-
-    const view = (_) => myOtherComponent({ foo: 'an argument' })
-```
-
-JSX:
 
 ```JSX
     import * as jsxFactory from 'myra/html/jsxFactory'
@@ -292,46 +227,9 @@ JSX:
 
 ```
 
-#### TextNodeDescriptor
-Renders as a text node.
 
-There is a helper function 'text':
-
-```typescript
-    import { text } from 'myra/html'
-
-    const view = (_) => text('Hello world!')
-```
-
-Alternatively, you can pass a string to any element function:
-
-```typescript
-    import { p } from 'myra/html/elements'
-
-    const view = (_) => p('Hello world!')
-```
-
-With JSX you will have to wrap the text in an element:
-
-```JSX
-    import * as jsxFactory from 'myra/html/jsxFactory'
-
-    ...
-    
-    const view = (_) => <p>A text</p>
-
-```
-
-#### NothingNodeDescriptor
+#### Nothing
 Represents nothing, renders as a comment node with the comment "Nothing".
-
-```typescript
-    import { nothing } from 'myra/html'
-
-    const view = (_) => nothing()
-```
-
-JSX:
 
 ```JSX
     import * as jsxFactory from 'myra/html/jsxFactory'
@@ -353,14 +251,14 @@ function to call when a message is recieved:
 ```typescript
     import { defineComponent } from 'myra/core'
 
-    const onFooMessageRecieved = (m: Model, messageData: string) => {
+    const onFooMessageRecieved = (s: State, messageData: string) => {
         ...
-        return m
+        return s
     }
 
     const myComponent = defineComponent({
         name: 'MyComponent',
-        model: ...,
+        init: ...,
         subscriptions: {
             'fooMessage': onFooMessageRecieved
         },
@@ -372,11 +270,11 @@ To broadcast a message, use the `broadcast` function to create a "broadcast
 task":
 
 ```typescript
-    import { broadcast, Task } from 'myra/core'
+    import { broadcast } from 'myra/core'
 
     const broadcastTask = broadcast('messageType', 'an argument')
-    const someUpdateFn = (m: Model) => 
-        [m, broadcastTask] as [Model, Task]
+    const someUpdateFn = (s: State) => 
+        evolve(s).and(broadcastTask)
 ```
 
 ### HTTP requests

@@ -1,5 +1,5 @@
 import { defineComponent, broadcast, mountComponent, evolve } from 'core'
-import { div } from 'html/elements'
+import * as jsxFactory from 'html/jsxFactory'
 
 /**
  * defineComponent
@@ -22,7 +22,7 @@ describe('core.subscriptions.broadcast', () => {
             name: 'TestComponent',
             init: evolve(0),
             subscriptions: subscriptions,
-            view: () => div()
+            view: () => <div />
         })
 
         mountComponent(component, document.body)

@@ -16,9 +16,9 @@ export const text = (value: any): c.TextNodeDescriptor => {
     else if (typeof value !== 'string') {
         value = value.toString()
     }
-    return { 
-        __type: 'text', 
-        value: value 
+    return {
+        __type: 'text',
+        value: value
     }
 }
 
@@ -55,11 +55,11 @@ export function element<A extends c.GlobalAttributes>(tagName: string) {
                     flattenedChildren.push(arguments[i] as c.NodeDescriptor)
                 }
                 else {
-                    flattenedChildren.push(text(arguments[i]))    
+                    flattenedChildren.push(text(arguments[i]))
                 }
             }
             else {
-                flattenedChildren.push(arguments[i]) 
+                flattenedChildren.push(arguments[i])
             }
         }
 
@@ -76,3 +76,9 @@ export function element<A extends c.GlobalAttributes>(tagName: string) {
         }
     }
 }
+
+/**
+ * Creates an element descriptor
+ */
+export const el = (tagName: string, attributesOrNode?: c.GlobalAttributes | c.NodeDescriptor[] | c.NodeDescriptor | string, ...children: (c.NodeDescriptor | string)[]): c.ElementNodeDescriptor =>
+    element(tagName)(attributesOrNode, ...children)

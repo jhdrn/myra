@@ -1,7 +1,7 @@
 import { defineComponent, task, evolve } from 'core'
 import { render } from 'core/view'
 import { text, nothing } from 'html'
-import { div, button, span, input, textarea, form } from 'html/elements'
+import * as jsxFactory from 'html/jsxFactory'
 
 const keyPressEvent = (keyCode: number) => {
     const event = document.createEvent('Event')
@@ -67,13 +67,13 @@ describe('core.view.render', () => {
     })
 
     it('mounts a component from a component node descriptor', (done) => {
-        const testComponent = defineComponent({
+        const TestComponent = defineComponent({
             name: 'TestComponent1',
             init: evolve(undefined),
-            view: (_) => div({ id: 'testComponent' })
+            view: (_) => <div id="testComponent"></div>
         })
 
-        const view = div(testComponent())
+        const view = <div><TestComponent /></div>
 
         render(document.body, view, view, undefined, () => { })
         const node = view.node as HTMLDivElement
@@ -93,7 +93,7 @@ describe('core.view.render', () => {
             name: 'TestComponent2',
             init: evolve(undefined),
             onMount: mocks.mount,
-            view: (_) => div({ id: 'testComponent' })
+            view: (_) => <div id="testComponent"></div>
         })
 
         const view1 = testComponent()
@@ -114,12 +114,14 @@ describe('core.view.render', () => {
     it('removes excessive child nodes', (done) => {
         const viewItems1 = ['a', 'b', 'c', 'd']
         const viewItems2 = ['a', 'c']
-        const view1 = div(
-            viewItems1.map(item => div(text(item)))
-        )
-        const view2 = div(
-            viewItems2.map(item => div(text(item)))
-        )
+        const view1 =
+            <div>
+                {viewItems1.map(item => <div>{item}</div>)}
+            </div>
+        const view2 =
+            <div>
+                {viewItems2.map(item => <div>{item}</div>)}
+            </div>
 
         render(document.body, view1, view1, undefined, () => { })
         let node = view1.node as HTMLDivElement
@@ -137,12 +139,14 @@ describe('core.view.render', () => {
     it('adds child nodes if needed', (done) => {
         const viewItems1 = ['a', 'b']
         const viewItems2 = ['a', 'b', 'c', 'd']
-        const view1 = div(
-            viewItems1.map(item => div(text(item)))
-        )
-        const view2 = div(
-            viewItems2.map(item => div(text(item)))
-        )
+        const view1 =
+            <div>
+                {viewItems1.map(item => <div>{item}</div>)}
+            </div>
+        const view2 =
+            <div>
+                {viewItems2.map(item => <div>{item}</div>)}
+            </div>
         render(document.body, view1, view1, undefined, () => { })
 
         let node = view1.node as HTMLDivElement
@@ -158,7 +162,7 @@ describe('core.view.render', () => {
     })
 
     it('creates and returns an element node from an element node descriptor', (done) => {
-        const view = div()
+        const view = <div />
 
         render(document.body, view, view, undefined, () => { })
         const node = view.node as Element
@@ -170,14 +174,14 @@ describe('core.view.render', () => {
     })
 
     it('returns an element node with attributes set', (done) => {
-        const view = input({
-            'class': 'testClass',
-            id: 'testId',
-            type: 'text',
-            disabled: true,
-            checked: true,
-            value: 5
-        })
+        const view =
+            <input
+                class="testClass"
+                id="testId"
+                type="text"
+                disabled={true}
+                checked={true}
+                value="5" />
 
         render(document.body, view, view, undefined, () => { })
 
@@ -201,9 +205,9 @@ describe('core.view.render', () => {
         }
         spyOn(mocks, 'onclickUpdate')
 
-        const view = button({
-            onclick: mocks.onclickUpdate
-        })
+        const view =
+            <button onclick={mocks.onclickUpdate}></button>
+
 
         render(document.body, view, view, undefined, dispatch)
 
@@ -230,13 +234,9 @@ describe('core.view.render', () => {
         spyOn(mocks, 'onclickUpdate1')
         spyOn(mocks, 'onclickUpdate2')
 
-        const view1 = button({
-            onclick: mocks.onclickUpdate1
-        })
+        const view1 = <button onclick={mocks.onclickUpdate1}></button>
 
-        const view2 = button({
-            onclick: mocks.onclickUpdate2
-        })
+        const view2 = <button onclick={mocks.onclickUpdate2}></button>
 
         render(document.body, view1, view1, undefined, dispatch)
 
@@ -264,10 +264,10 @@ describe('core.view.render', () => {
         }
         spyOn(mocks, 'onkeyupUpdate')
 
-        const view = div({
-            onkeyup_enter: mocks.onkeyupUpdate,
-            onkeyup_49: mocks.onkeyupUpdate
-        })
+        const view =
+            <div
+                onkeyup_enter={mocks.onkeyupUpdate}
+                onkeyup_49={mocks.onkeyupUpdate} />
 
         render(document.body, view, view, undefined, dispatch)
 
@@ -291,10 +291,10 @@ describe('core.view.render', () => {
         }
         spyOn(mocks, 'update')
 
-        const view = textarea({
-            onkeyup_enter: mocks.update,
-            value: 'a value'
-        })
+        const view =
+            <textarea
+                onkeyup_enter={mocks.update}
+                value="a value"></textarea>
 
         render(document.body, view, view, undefined, dispatch)
 
@@ -312,9 +312,7 @@ describe('core.view.render', () => {
 
     it('calls element.focus() when focus attribute is set to true', (done) => {
 
-        const view = input({
-            focus: true
-        })
+        const view = <input focus={true} />
 
         render(document.body, view, view, undefined, dispatch)
 
@@ -327,15 +325,11 @@ describe('core.view.render', () => {
 
 
     it('updates attributes if they have changed', (done) => {
-        const view1 = div({
-            'class': 'foo',
-            'id': 'bar'
-        })
+        const view1 =
+            <div class="foo" id="bar"></div>
 
-        const view2 = div({
-            'class': 'bar',
-            'id': 'foo'
-        })
+        const view2 =
+            <div class="bar" id="foo"></div>
 
         render(document.body, view1, view1, undefined, () => { })
 
@@ -355,14 +349,11 @@ describe('core.view.render', () => {
     })
 
     it('removes attributes from existing element', (done) => {
-        const view1 = div({
-            'class': 'foo',
-            'id': 'bar'
-        })
+        const view1 =
+            <div class="foo" id="bar"></div>
 
-        const view2 = div({
-            'class': 'foo'
-        })
+        const view2 =
+            <div class="foo"></div>
 
         render(document.body, view1, view1, undefined, () => { })
 
@@ -380,15 +371,11 @@ describe('core.view.render', () => {
     })
 
     it('removes attributes from existing element if the attribute is undefined', (done) => {
-        const view1 = div({
-            'class': 'foo',
-            id: 'bar'
-        })
+        const view1 =
+            <div class="foo" id="bar"></div>
 
-        const view2 = div({
-            'class': 'foo',
-            id: undefined
-        })
+        const view2 =
+            <div class="foo" id={undefined}></div>
 
         render(document.body, view1, view1, undefined, () => { })
 
@@ -406,9 +393,9 @@ describe('core.view.render', () => {
     })
 
     it('replaces the element if the tagName has changed', (done) => {
-        const view1 = div()
+        const view1 = <div />
 
-        const view2 = span()
+        const view2 = <span />
 
         render(document.body, view1, view1, undefined, () => { })
 
@@ -428,11 +415,9 @@ describe('core.view.render', () => {
     })
 
     it('removes old event listeners when element is replaced', (done) => {
-        const view1 = button({
-            onclick: (m: any) => m
-        })
+        const view1 = <button onclick={(m: any) => m} />
 
-        const view2 = nothing()
+        const view2 = <nothing />
 
         render(document.body, view1, view1, undefined, () => { })
 
@@ -455,9 +440,7 @@ describe('core.view.render', () => {
 
         spyOn(mocks, 'testTask')
 
-        const view = button({
-            onclick: task(mocks.testTask)
-        })
+        const view = <button onclick={task(mocks.testTask)} />
 
         render(document.body, view, view, undefined, () => { })
 
@@ -477,9 +460,7 @@ describe('core.view.render', () => {
 
         spyOn(mocks, 'testTask')
 
-        const view = button({
-            onclick: { listener: task(mocks.testTask), stopPropagation: true }
-        })
+        const view = <button onclick={{ listener: task(mocks.testTask), stopPropagation: true }} />
 
         render(document.body, view, view, undefined, () => { })
 
@@ -509,24 +490,23 @@ describe('core.view.render', () => {
 
         spyOn(mocks, 'formSubmitted')
 
-        const view = form({
-            onsubmit: {
+        const view = <form
+            onsubmit={{
                 listener: mocks.formSubmitted,
                 preventDefault: true,
                 stopPropagation: true
-            }
-        },
-            input({
-                name: 'test1',
-                type: 'text',
-                value: 'testValue'
-            }),
-            input({
-                name: 'test2',
-                type: 'checkbox',
-                checked: true
-            })
-        )
+            }}>
+
+            <input
+                name="test1"
+                type="text"
+                value="testValue" />
+            <input
+                name="test2"
+                type="checkbox"
+                checked={true} />
+
+        </form>
 
         render(document.body, view, view, undefined, dispatch)
 
@@ -561,24 +541,22 @@ describe('core.view.render', () => {
 
         spyOn(mocks, 'update')
 
-        const view = form({
-            onchange: {
-                listener: mocks.update,
-                preventDefault: true
-            }
-        },
-            input({
-                name: 'test1',
-                id: 'test1',
-                type: 'text',
-                value: 'testValue'
-            }),
-            input({
-                name: 'test2',
-                type: 'checkbox',
-                checked: true
-            })
-        )
+        const view =
+            <form
+                onchange={{
+                    listener: mocks.update,
+                    preventDefault: true
+                }}>
+                <input
+                    name="test1"
+                    id="test1"
+                    type="text"
+                    value="testValue" />
+                <input
+                    name="test2"
+                    type="checkbox"
+                    checked={true} />
+            </form>
 
         render(document.body, view, view, undefined, dispatch)
 

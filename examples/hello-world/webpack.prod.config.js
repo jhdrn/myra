@@ -4,7 +4,7 @@ let path = require('path');
 
 module.exports = {
     entry: {
-        app: './src/app.ts'
+        app: './src/app.tsx'
     },
 
     output: {

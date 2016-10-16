@@ -1,6 +1,6 @@
 import { defineComponent, mountComponent, evolve } from 'core'
 import { initComponent, updateComponent } from 'core/component'
-import { div, button } from 'html/elements'
+import * as jsxFactory from 'html/jsxFactory'
 
 const q = (x: string) => document.querySelector(x)
 
@@ -14,7 +14,7 @@ describe('defineComponent', () => {
     const component1 = defineComponent({
         name: componentName,
         init: evolve(undefined),
-        view: () => div()
+        view: () => <div />
     })
 
     it('has a name', () => {
@@ -25,7 +25,7 @@ describe('defineComponent', () => {
         expect(() => defineComponent({
             name: componentName,
             init: evolve(undefined),
-            view: () => div()
+            view: () => <div />
         })).toThrow()
     })
 })
@@ -40,9 +40,7 @@ describe('mountComponent', () => {
         const component = defineComponent({
             name: randomName(),
             init: evolve(undefined),
-            view: () => div({
-                id: 'root'
-            })
+            view: () => <div id="root" />
         })
 
         mountComponent(component, document.body)
@@ -63,7 +61,7 @@ describe('mountComponent', () => {
             name: randomName(),
             init: evolve(0),
             onMount: mountMock.mount,
-            view: () => div()
+            view: () => <div />
         })
 
         mountComponent(component, document.body)
@@ -87,7 +85,7 @@ describe('mountComponent', () => {
                 'test1': x => evolve(x),
                 'test2': x => evolve(x)
             },
-            view: () => div()
+            view: () => <div />
         })
 
         mountComponent(component, document.body)
@@ -110,7 +108,7 @@ describe('mountComponent', () => {
             name: randomName(),
             init: evolve(undefined),
             onMount: (_m, a) => evolve(a),
-            view: (m) => button({ onclick: m.onclick, id: 'childBtn' })
+            view: (m) => <button onclick={m.onclick} id="childBtn" />
         })
 
         const parent = defineComponent({
@@ -130,7 +128,7 @@ describe('mountComponent', () => {
         const viewMock = {
             view: (_: any, children: any) => {
                 expect(Array.isArray(children)).toBe(true)
-                return div(children)
+                return <div>{children}</div>
             }
         }
 
@@ -145,7 +143,7 @@ describe('mountComponent', () => {
         const parent = defineComponent({
             name: randomName(),
             init: evolve(22),
-            view: () => component(undefined, undefined, [div({ id: 'divTestId' })])
+            view: () => component(undefined, undefined, [<div id="divTestId" />])
         })
 
         mountComponent(parent, document.body)
@@ -172,7 +170,7 @@ describe('updateComponent', () => {
             name: randomName(),
             init: evolve(0),
             onMount: mountMock.mount,
-            view: () => div()
+            view: () => <div />
         })
 
         const componentDescriptor = component(45)
@@ -193,7 +191,7 @@ describe('updateComponent', () => {
             name: randomName(),
             init: evolve(0),
             onMount: mountMock.mount,
-            view: () => div()
+            view: () => <div />
         })
 
         const componentDescriptor = component()
@@ -217,7 +215,7 @@ describe('updateComponent', () => {
             name: 'Test',
             init: evolve(0),
             onMount: mountMock.mount,
-            view: () => div()
+            view: () => <div />
         })
 
         const componentDescriptor = component({ prop: 'a value' })
