@@ -1,4 +1,4 @@
-import { defineComponent, evolve, View, Update, Task } from 'myra/core'
+import { defineComponent, evolve } from 'myra/core'
 import * as jsxFactory from 'myra/html/jsxFactory'
 import { replaceLocation, LocationContext } from 'myra/location'
 import { TodosFilter, saveFilter, loadFilter } from '../models/filter'
@@ -9,9 +9,9 @@ type Todo = todos.Todo
 
 
 /**
- * Model
+ * State
  */
-type Model = {
+type State = {
     todos: Todo[]
     itemsLeft: number
     filter: TodosFilter
@@ -22,40 +22,40 @@ type Model = {
 /**
  * Updates
  */
-const applySavedFilter = (m: Model, filter: TodosFilter): Model | [Model, Task] => 
-    [m, replaceLocation(`#/${filter === 'all' ? '' : filter || ''}`)]
- 
-const applyFilterFromLocation = (m: Model, location: LocationContext): Model | [Model, Task] => {
+const applySavedFilter = (state: State, filter: TodosFilter) =>
+    evolve(state).and(replaceLocation(`#/${filter === 'all' ? '' : filter || ''}`))
+
+const applyFilterFromLocation = (state: State, location: LocationContext) => {
 
     if (location.match('#/active')) {
-        return [evolve(m, x => {
-             x.filter = 'active'
-             x.location = location
-        }), saveFilter('active')]
+        return evolve(state, x => {
+            x.filter = 'active'
+            x.location = location
+        }).and(saveFilter('active'))
     }
     else if (location.match('#/completed')) {
-        return [evolve(m, x => { 
+        return evolve(state, x => {
             x.filter = 'completed'
             x.location = location
-        }), saveFilter('completed')]
+        }).and(saveFilter('completed'))
     }
     else if (location.match('#/') || location.match('')) {
-        return [evolve(m, x => {
+        return evolve(state, x => {
             x.filter = 'all'
             x.location = location
-        }), saveFilter('all')]
+        }).and(saveFilter('all'))
     }
-    return evolve(m, x => x.location = location)
+    return evolve(state, x => x.location = location)
 }
 
-const todosLoaded = (m: Model, todos: Todo[]) => 
-    evolve(m, x => {
-        x.todos = todos 
+const todosLoaded = (state: State, todos: Todo[]) =>
+    evolve(state, x => {
+        x.todos = todos
         x.itemsLeft = todos.filter(t => !t.completed).length
     })
 
 // Mount function: load all todos
-const mount: Update<Model, any> = (m: Model) => [m, todos.getAll(todosLoaded)]
+const mount = (m: State) => evolve(m).and(todos.getAll(todosLoaded))
 
 
 /**
@@ -69,18 +69,21 @@ const subscriptions = {
 /**
  * Init model
  */
-const init: [Model, Task] = [{
-    todos: [],
-    itemsLeft: 0,
-    filter: 'all',
-    location: {} as LocationContext
-}, loadFilter(applySavedFilter)]
+const init = {
+    state: {
+        todos: [],
+        itemsLeft: 0,
+        filter: 'all',
+        location: {} as LocationContext
+    } as State,
+    tasks: [loadFilter(applySavedFilter)]
+}
 
 /**
  * View
  */
-const filterTodos = (model: Model) => (todo: Todo) => {
-    switch (model.filter) {
+const filterTodos = (state: State) => (todo: Todo) => {
+    switch (state.filter) {
         case 'active':
             return !todo.completed
         case 'completed':
@@ -89,54 +92,54 @@ const filterTodos = (model: Model) => (todo: Todo) => {
     return true
 }
 
-const filterLink = (href: string, txt: string, location: LocationContext) => 
-    location.match(href) ? <a href={ href } class="selected">{ txt }</a>
-                        : <a href={ href }>{ txt }</a>
+const filterLink = (href: string, txt: string, location: LocationContext) =>
+    location.match(href) ? <a href={href} class="selected">{txt}</a>
+        : <a href={href}>{txt}</a>
 
-const view: View<Model> = (model) => 
-    model.todos.length ? 
+const view = (state: State) =>
+    state.todos.length ?
         <div>
             <section class="main">
                 <input class="toggle-all"
-                       type="checkbox"
-                       checked={ model.todos.every(t => t.completed) }
-                       onclick={ todos.toggleAll(!model.todos.every(t => t.completed)) } />
-                       
+                    type="checkbox"
+                    checked={state.todos.every(t => t.completed)}
+                    onclick={todos.toggleAll(!state.todos.every(t => t.completed))} />
+
                 <label for="toggle-all">Mark all as complete</label>
                 <ul class="todo-list">
-                    { 
-                        model.todos.filter(filterTodos(model)).map(todo => 
+                    {
+                        state.todos.filter(filterTodos(state)).map(todo =>
                             <TodoItemComponent { ...todo } />
-                        ) 
+                        )
                     }
                 </ul>
             </section>
             <footer class="footer">
-                <span class="todo-count"> 
-                    <strong>{ model.itemsLeft }</strong> 
-                    { model.itemsLeft === 1 ? ' item left' : ' items left' }
+                <span class="todo-count">
+                    <strong>{state.itemsLeft}</strong>
+                    {state.itemsLeft === 1 ? ' item left' : ' items left'}
                 </span>
                 <ul class="filters">
                     <li>
-                        { filterLink('#/', 'All', model.location) }
+                        {filterLink('#/', 'All', state.location)}
                     </li>
                     <li>
-                        { filterLink('#/active', 'Active', model.location) }
+                        {filterLink('#/active', 'Active', state.location)}
                     </li>
                     <li>
-                        { filterLink('#/completed', 'Completed', model.location) }
+                        {filterLink('#/completed', 'Completed', state.location)}
                     </li>
                 </ul>
-                { 
-                    model.todos.filter(t => t.completed).length ? 
+                {
+                    state.todos.filter(t => t.completed).length ?
                         <button class="clear-completed"
-                                onclick={ todos.removeCompleted }>
+                            onclick={todos.removeCompleted}>
                             Clear completed
-                        </button> : <nothing />    
+                        </button> : <nothing />
                 }
             </footer>
         </div>
-    : <nothing />
+        : <nothing />
 
 
 
@@ -146,7 +149,7 @@ const view: View<Model> = (model) =>
 export const TodoListComponent = defineComponent({
     name: 'TodoListComponent',
     init: init,
-    mount: mount,
+    onMount: mount,
     subscriptions: subscriptions,
     view: view
 })

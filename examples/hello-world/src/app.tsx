@@ -1,24 +1,24 @@
-import { Update, View, defineComponent, mountComponent } from 'myra/core'
+import { defineComponent, mountComponent, evolve } from 'myra/core'
 import * as jsxFactory from 'myra/html/jsxFactory'
 
 
 /**
  * Model
  */
-type Model = string | undefined
-const model: Model = undefined
+type State = string | undefined
+const init: State = undefined
 
 
 /**
  * Update 
  */
-const mount: Update<Model, any> = (_) => 'Hello world!'
+const mount = (_: State) => evolve('Hello world!')
 
 
 /**
  * View
  */
-const view: View<Model> = (model) => <p>{ model }</p>
+const view = (state: State) => <p>{state}</p>
 
 
 /**
@@ -26,8 +26,8 @@ const view: View<Model> = (model) => <p>{ model }</p>
  */
 const appComponent = defineComponent({
     name: 'HelloWorldApp',
-    init: model,
-    mount: mount,
+    init: { state: init },
+    onMount: mount,
     view: view
 })
 

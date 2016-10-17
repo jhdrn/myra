@@ -4,10 +4,10 @@ import * as jsxFactory from 'myra/html/jsxFactory'
 
 
 /**
- * Model
+ * State
  */
 type ResponseStatus = 'init' | 'success' | 'failure'
-type Model = {
+type State = {
     responseStatus: ResponseStatus
     response?: HttpResponse
 }
@@ -19,14 +19,14 @@ const init = evolve({
 /**
  * Updates
  */
-const httpSuccess = (model: Model, response: HttpResponse) =>
-    evolve(model, m => {
+const httpSuccess = (state: State, response: HttpResponse) =>
+    evolve(state, m => {
         m.responseStatus = 'success'
         m.response = response
     })
 
-const httpFailure = (model: Model, response: HttpResponse) =>
-    evolve(model, m => {
+const httpFailure = (state: State, response: HttpResponse) =>
+    evolve(state, m => {
         m.responseStatus = 'failure'
         m.response = response
     })
@@ -41,7 +41,7 @@ const httpRequestTask =
 /**
  * View
  */
-const view = (model: Model) =>
+const view = (state: State) =>
     <section>
         <h2>HTTP example</h2>
         <button type="button"
@@ -50,13 +50,13 @@ const view = (model: Model) =>
             Make HTTP request
         </button>
 
-        <p>Response status:{model.responseStatus}</p>
-        {model.response ?
+        <p>Response status:{state.responseStatus}</p>
+        {state.response ?
             <div>
-                {model.response.status}
-                {model.response.statusText}
-                {model.responseStatus === 'success' ?
-                    <p><strong>Response text:</strong>{model.response.data}</p>
+                {state.response.status}
+                {state.response.statusText}
+                {state.responseStatus === 'success' ?
+                    <p><strong>Response text:</strong>{state.response.data}</p>
                     : <nothing />
                 }
             </div>

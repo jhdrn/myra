@@ -1,4 +1,4 @@
-import { defineComponent, evolve } from 'myra/core'
+import { defineComponent } from 'myra/core'
 import * as jsxFactory from 'myra/html/jsxFactory'
 import { CounterComponent } from './counter'
 import { FormComponent } from './form'
@@ -35,7 +35,7 @@ export const mainComponent = defineComponent({
 
     // Init takes either an initial model or a tuple of an initial model 
     // and one or more tasks to execute when the component is initialized.
-    init: evolve(undefined),
+    init: { state: undefined },
 
     // The view function is called after update. 
     view: view

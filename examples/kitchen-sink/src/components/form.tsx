@@ -3,14 +3,14 @@ import * as jsxFactory from 'myra/html/jsxFactory'
 import { InputGroupComponent } from './form/inputGroup'
 
 /**
- * Model
+ * State
  */
 type FormData = {
     formField?: string
     oninputDemo?: string
     onchangeDemo?: string
 }
-type Model = {
+type State = {
     formData: FormData
     formValidationResult?: FormValidationResult
 }
@@ -22,17 +22,17 @@ const init = evolve({
 /**
  * Updates
  */
-const onFormSubmitUpdate = (model: Model, formData: FormData, validationResult: FormValidationResult) =>
-    evolve(model, m => {
+const onFormSubmitUpdate = (state: State, formData: FormData, validationResult: FormValidationResult) =>
+    evolve(state, m => {
         m.formData = formData
         m.formValidationResult = validationResult
     })
 
-const oninputUpdate = (model: Model, value: string) =>
-    evolve(model, x => x.formData.oninputDemo = value)
+const oninputUpdate = (state: State, value: string) =>
+    evolve(state, x => x.formData.oninputDemo = value)
 
-const onchangeUpdate = (model: Model, value: string) =>
-    evolve(model, x => x.formData.onchangeDemo = value)
+const onchangeUpdate = (state: State, value: string) =>
+    evolve(state, x => x.formData.onchangeDemo = value)
 
 
 /**
@@ -47,48 +47,48 @@ const required = (label: string) => (value: string) => ({
 /**
  * View
  */
-const view = (m: Model) =>
+const view = (state: State) =>
     <section>
         <h2>Form example</h2>
         <div>
             <h3>Form data:</h3>
             <dl>
                 {
-                    Object.keys(m.formData).map(name =>
+                    Object.keys(state.formData).map(name =>
                         [
                             <dt>{name}</dt>,
-                            <dd>{(m.formData as any)[name]}</dd>
+                            <dd>{(state.formData as any)[name]}</dd>
                         ]
                     )
                 }
             </dl>
         </div>
         {
-            m.formValidationResult ?
-                <p>The form is{(m.formValidationResult.valid ? 'valid' : 'invalid')}</p>
+            state.formValidationResult ?
+                <p>The form is{(state.formValidationResult.valid ? 'valid' : 'invalid')}</p>
                 : <nothing />
         }
         <form onsubmit={{ listener: onFormSubmitUpdate, preventDefault: true }}>
-            <div class={!m.formValidationResult || m.formValidationResult.fields['formField'].valid ? 'form-group' : 'form-group has-error'}>
+            <div class={!state.formValidationResult || state.formValidationResult.fields['formField'].valid ? 'form-group' : 'form-group has-error'}>
                 <label for="formField">Just a form field</label>
                 <input type="text"
                     id="formField"
                     name="formField"
                     validate={[required('Just a form field')]}
                     class="form-control" />
-                {m.formValidationResult ?
-                    <p class="help-text"> {(m.formValidationResult!.fields as any)['formField'].errors}</p>
+                {state.formValidationResult ?
+                    <p class="help-text"> {(state.formValidationResult!.fields as any)['formField'].errors}</p>
                     : <nothing />}
             </div>
             <InputGroupComponent id="oninputDemo1"
                 name="oninputDemo1"
-                class={!m.formValidationResult || m.formValidationResult.fields['oninputDemo1'].valid ? 'form-group' : 'form-group has-error'}
+                class={!state.formValidationResult || state.formValidationResult.fields['oninputDemo1'].valid ? 'form-group' : 'form-group has-error'}
                 label="Oninput demo 1"
                 type="email"
                 validate={[required('Oninput demo 1')]}
                 oninput={oninputUpdate}>
-                {m.formValidationResult ?
-                    <p class="help-text"> {(m.formValidationResult!.fields as any)['oninputDemo1'].errors}</p>
+                {state.formValidationResult ?
+                    <p class="help-text"> {(state.formValidationResult!.fields as any)['oninputDemo1'].errors}</p>
                     : <nothing />}
             </InputGroupComponent>
             <div class="form-group">
@@ -97,7 +97,7 @@ const view = (m: Model) =>
                     name="oninputDemo"
                     class="form-control"
                     oninput={oninputUpdate} />
-                <p class="help-text">The value of this field is: {m.formData.oninputDemo}</p>
+                <p class="help-text">The value of this field is: {state.formData.oninputDemo}</p>
             </div>
             <div class="form-group">
                 <label for="onchangeDemo">Onchange demo (optional)</label>

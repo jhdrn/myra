@@ -5,35 +5,35 @@ import * as jsxFactory from 'myra/html/jsxFactory'
 /**
  * Model
  */
-type Model = {
+type State = {
     label: string
     type: 'text' | 'number' | 'email'
     id: string
     name: string
     'class': string
 }
-const init = evolve({
+const init = {
     label: '',
     type: 'text',
     id: '',
     name: '',
     'class': ''
-})
+}
 
 
 /**
  * Updates
  */
-const mount = (_model: Model, args: Model) => evolve(args)
+const mount = (_model: State, args: State) => evolve(args)
 
 
 /**
  * View
  */
-const view = (model: Model, children?: NodeDescriptor[]) =>
-    <div class={model.class}>
-        <label for={model.id}>{model.label}</label>
-        <input {...model}
+const view = (state: State, children?: NodeDescriptor[]) =>
+    <div class={state.class}>
+        <label for={state.id}>{state.label}</label>
+        <input {...state}
             class="form-control" />
         {children ? children : <nothing />}
     </div>
@@ -48,7 +48,7 @@ export const InputGroupComponent = defineComponent({
 
     // Init takes either an initial model or a tuple of an initial model 
     // and one or more tasks to execute when the component is initialized.
-    init: init,
+    init: { state: init },
 
     onMount: mount,
 

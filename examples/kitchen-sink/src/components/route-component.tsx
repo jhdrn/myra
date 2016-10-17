@@ -3,22 +3,22 @@ import * as jsxFactory from 'myra/html/jsxFactory'
 
 
 /**
- * Model
+ * State
  */
-type Model = string | undefined
+type State = string | undefined
 
 
 /**
  * Updates
  */
-const mount = (_: Model, paramsFromRoute: { param: string }) =>
+const mount = (_: State, paramsFromRoute: { param: string }) =>
     evolve(paramsFromRoute.param)
 
 
 /**
  * View
  */
-const view = (m: Model) => <p>Hello route, with param: {m}</p>
+const view = (state: State) => <p>Hello route, with param: {state}</p>
 
 
 /**
@@ -30,7 +30,7 @@ export const RouteComponent = defineComponent({
 
     // Init takes either an initial model or a tuple of an initial model 
     // and one or more tasks to execute when the component is initialized.
-    init: evolve(undefined),
+    init: { state: undefined },
 
     // The mount update function is called when the component is mounted.
     // It will not be called again unless it's arguments has changed or 

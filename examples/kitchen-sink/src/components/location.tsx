@@ -1,40 +1,40 @@
-import { defineComponent, evolve, NodeDescriptor } from 'myra/core'
+import { defineComponent, evolve } from 'myra/core'
 import { updateLocation, trackLocationChanges, goBack, goForward, LocationContext } from 'myra/location'
 import * as jsxFactory from 'myra/html/jsxFactory'
 import { RouteComponent } from './route-component'
 
 
 /**
- * Model
+ * State
  */
-type Model = {
+type State = {
     location: LocationContext
 }
-const init = evolve({}, trackLocationChanges())
+const init = evolve({}).and(trackLocationChanges())
 
 
 /**
  * Subscriptions
  */
 const subscriptions = {
-    '__locationChanged': (m: Model, location: LocationContext) =>
-        evolve(m, x => x.location = location)
+    '__locationChanged': (state: State, location: LocationContext) =>
+        evolve(state, x => x.location = location)
 }
 
 
 /**
  * View
  */
-const view = (m: Model) =>
+const view = (state: State) =>
     <section>
         <h2>Location examples</h2>
 
-        {m.location.matchAny<NodeDescriptor>({
+        {state.location.matchAny({
             'test1': <p>Route to '/test1'.</p>,
             'test1/:param': (params: any) => <RouteComponent {...params} />
         }, <nothing />)}
 
-        {m.location.match('test1/:param') ?
+        {state.location.match('test1/:param') ?
             <p>Location '/test2/:param' matched.</p> : <nothing />}
 
         <ul class="list-group">

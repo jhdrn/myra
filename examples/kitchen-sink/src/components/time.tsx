@@ -4,9 +4,9 @@ import * as jsxFactory from 'myra/html/jsxFactory'
 
 
 /**
- * Model
+ * State
  */
-type Model = {
+type State = {
     timeoutHandle?: number
     intervalHandle?: number
     intervalTickValue: number
@@ -19,19 +19,19 @@ const init = evolve({
 /**
  * Updates
  */
-const timeoutStarted = (model: Model, handle: number) =>
-    evolve(model, m => m.timeoutHandle = handle)
-const timeoutEnded = (model: Model) =>
-    evolve(model, m => m.timeoutHandle = undefined)
-const timeoutCancelled = (model: Model) =>
-    evolve(model, m => m.timeoutHandle = undefined)
+const timeoutStarted = (state: State, handle: number) =>
+    evolve(state, m => m.timeoutHandle = handle)
+const timeoutEnded = (state: State) =>
+    evolve(state, m => m.timeoutHandle = undefined)
+const timeoutCancelled = (state: State) =>
+    evolve(state, m => m.timeoutHandle = undefined)
 
-const intervalStarted = (model: Model, handle: number) =>
-    evolve(model, m => m.intervalHandle = handle)
-const intervalTick = (model: Model) =>
-    evolve(model, m => m.intervalTickValue += 100)
-const intervalCancelled = (model: Model) =>
-    evolve(model, m => {
+const intervalStarted = (state: State, handle: number) =>
+    evolve(state, m => m.intervalHandle = handle)
+const intervalTick = (state: State) =>
+    evolve(state, m => m.intervalTickValue += 100)
+const intervalCancelled = (state: State) =>
+    evolve(state, m => {
         m.intervalHandle = undefined
         m.intervalTickValue = 0
     })
@@ -50,14 +50,14 @@ const cancelIntervalTask = (handle: number) => cancelInterval(handle, intervalCa
 /**
  * View
  */
-const view = (model: Model) =>
+const view = (state: State) =>
     <section>
         <h2>Time examples</h2>
         <p>
-            {model.timeoutHandle ?
+            {state.timeoutHandle ?
                 <button type="button"
                     class="btn btn-sm btn-default"
-                    onclick={cancelTimeoutTask(model.timeoutHandle)}>
+                    onclick={cancelTimeoutTask(state.timeoutHandle)}>
                     Cancel timeout
             </button>
                 : <button type="button"
@@ -68,10 +68,10 @@ const view = (model: Model) =>
             }
         </p>
         <p>
-            {model.intervalHandle ?
+            {state.intervalHandle ?
                 <button type="button"
                     class="btn btn-sm btn-default"
-                    onclick={cancelIntervalTask(model.intervalHandle)}>
+                    onclick={cancelIntervalTask(state.intervalHandle)}>
                     Cancel interval
                 </button>
                 : <button type="button"
@@ -81,7 +81,7 @@ const view = (model: Model) =>
                 </button>
             }
         </p>
-        <p>Milliseconds since interval started: {model.intervalTickValue}</p>
+        <p>Milliseconds since interval started: {state.intervalTickValue}</p>
     </section>
 
 

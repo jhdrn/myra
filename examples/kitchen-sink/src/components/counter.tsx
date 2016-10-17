@@ -3,30 +3,30 @@ import * as jsxFactory from 'myra/html/jsxFactory'
 
 
 /**
- * Model
+ * State
  */
-type Model = number
+type State = number
 const init = evolve(0)
 
 
 /**
  * Updates
  */
-const increase = (model: Model) => evolve(model + 1)
-const decrease = (model: Model) => evolve(model - 1)
+const increase = (state: State) => evolve(state + 1)
+const decrease = (state: State) => evolve(state - 1)
 
 
 /**
  * View
  */
-const view = (model: Model) =>
+const view = (state: State) =>
     <section>
         <h2>Counter example</h2>
         <button type="button"
             class="btn btn-sm btn-default"
             onclick={increase}>+</button>
 
-        <span> {model} </span>
+        <span> {state} </span>
 
         <button type="button"
             class="btn btn-sm btn-default"
