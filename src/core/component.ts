@@ -23,7 +23,7 @@ let nextId = 1
 /** Internal class that holds component state. */
 class ComponentContextImpl<S> implements ComponentContext<S> {
     constructor(readonly parentNode: Element,
-        readonly args: ComponentSpec<S, any>,
+        readonly spec: ComponentSpec<S, any>,
         public childNodes?: NodeDescriptor[]) {
     }
 

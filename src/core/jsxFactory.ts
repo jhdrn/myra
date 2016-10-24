@@ -1,5 +1,5 @@
-import { ComponentFactory, NodeDescriptor, TextDescriptor, GlobalAttributes } from '../core/contract'
-import { flatten } from '../core/helpers'
+import { ComponentFactory, NodeDescriptor, TextDescriptor } from './contract'
+import { flatten } from './helpers'
 
 function textDescriptor(value: string): TextDescriptor {
     return {
@@ -8,31 +8,24 @@ function textDescriptor(value: string): TextDescriptor {
     }
 }
 
-function flattenChildren<A extends GlobalAttributes<any>>(attributesOrNode: A | (NodeDescriptor | string)[] | NodeDescriptor | string) {
-    const attributesGiven = !Array.isArray(attributesOrNode) && typeof attributesOrNode === 'object' && !(attributesOrNode as NodeDescriptor).__type
-
+function flattenChildren(children: ((NodeDescriptor | string)[] | NodeDescriptor | string)[]) {
     const flattenedChildren = [] as (NodeDescriptor | string)[]
 
-    for (let i = 0; i < arguments.length; i++) {
-        if (attributesGiven && i === 0) {
-            continue
-        }
-
-        if (Array.isArray(arguments[i])) {
-            flatten<NodeDescriptor>(arguments[i])
-                .map(c => typeof c === 'object' && !(c as NodeDescriptor).__type ? textDescriptor(c as any) : c)
+    for (let i = 0; i < children.length; i++) {
+        if (Array.isArray(children[i])) {
+            flatten(children[i] as (NodeDescriptor | string)[])
                 .forEach(c => flattenedChildren.push(c))
         }
-        else if (typeof arguments[i] === 'object') {
-            if ((arguments[i] as NodeDescriptor).__type) {
-                flattenedChildren.push(arguments[i] as NodeDescriptor)
+        else if (typeof children[i] === 'object') {
+            if ((children[i] as NodeDescriptor).__type) {
+                flattenedChildren.push(children[i] as NodeDescriptor)
             }
             else {
-                flattenedChildren.push(textDescriptor(arguments[i]))
+                flattenedChildren.push(textDescriptor(children[i] as string))
             }
         }
         else {
-            flattenedChildren.push(arguments[i])
+            flattenedChildren.push(children[i] as NodeDescriptor)
         }
     }
 
@@ -45,8 +38,7 @@ function flattenChildren<A extends GlobalAttributes<any>>(attributesOrNode: A | 
 }
 
 export function createElement<T>(tagNameOrComponent: string | ComponentFactory<T>, props: T): JSX.Element {
-
-    if (typeof tagNameOrComponent === 'undefined') {
+    if (tagNameOrComponent === 'nothing') {
         return { __type: 'nothing' }
     }
     else if (typeof tagNameOrComponent === 'string') {
@@ -58,7 +50,7 @@ export function createElement<T>(tagNameOrComponent: string | ComponentFactory<T
             __type: 'element',
             tagName: tagNameOrComponent,
             attributes: props || {},
-            children: (flattenChildren(children) || []) as NodeDescriptor[]
+            children: flattenChildren(children)
         }
     }
     return tagNameOrComponent(props || undefined, props ? (props as any)['forceMount'] : undefined, Array.prototype.slice.call(arguments, 2))

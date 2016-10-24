@@ -1,6 +1,6 @@
 import { dispatch } from 'core/dispatch'
-import { task, evolve } from 'core'
-import * as jsxFactory from 'html/jsxFactory'
+import { task, evolve, NodeDescriptor } from 'core'
+import * as jsxFactory from 'core/jsxFactory'
 
 /**
  * evolve
@@ -9,7 +9,7 @@ describe('core.dispatch', () => {
     it('updates state and calls render', () => {
         const update = (x: number, arg: number) => evolve(x + arg)
         const context = {
-            args: {
+            spec: {
                 name: '',
                 init: { state: undefined },
                 view: () => <div>a text</div>
@@ -33,7 +33,7 @@ describe('core.dispatch', () => {
     it('does not call render if dispatchLevel > 1', () => {
         const update = (x: number, arg: number) => evolve(x + arg)
         const context = {
-            args: {
+            spec: {
                 name: '',
                 init: { state: undefined },
                 view: () => <div>a text</div>
@@ -63,7 +63,7 @@ describe('core.dispatch', () => {
     it('throws if already updating', () => {
         const update = (x: number, arg: number) => evolve(x + arg)
         const context = {
-            args: {
+            spec: {
                 name: '',
                 init: { state: undefined },
                 view: () => <div>a text</div>
@@ -91,7 +91,7 @@ describe('core.dispatch', () => {
 
         const update = (x: number, arg: number) => evolve(x + arg).and(testTask)
         const context = {
-            args: {
+            spec: {
                 name: '',
                 init: { state: undefined },
                 view: () => <div>a text</div>
@@ -122,7 +122,7 @@ describe('core.dispatch', () => {
         })
         const update = (x: number, arg: number) => evolve(x + arg).and(testTask1).and(testTask2)
         const context = {
-            args: {
+            spec: {
                 name: '',
                 init: { state: undefined },
                 view: () => <div>a text</div>
@@ -141,5 +141,72 @@ describe('core.dispatch', () => {
             return null as any as Node
         }
         dispatch(context, render, update, 2)
+    })
+
+    it('call onBeforeRender if a listener is supplied', () => {
+        const mock = {
+            onBeforeRender: (nodeDescriptor: NodeDescriptor) => {
+                expect(nodeDescriptor.__type).toBe('element')
+            }
+        }
+        spyOn(mock, 'onBeforeRender').and.callThrough()
+
+        const update = (x: number, arg: number) => evolve(x + arg)
+        const context = {
+            spec: {
+                name: '',
+                init: { state: undefined },
+                view: () => <div>a text</div>,
+                onBeforeRender: mock.onBeforeRender
+            },
+            parentNode: document.body,
+            mounted: true,
+            mountArg: undefined,
+            dispatchLevel: 0,
+            isUpdating: false,
+            state: 1,
+            oldView: undefined,
+            rootNode: document.body
+        }
+        const render = () => {
+            return null as any as Node
+        }
+        dispatch(context, render, update, 2)
+
+        expect(mock.onBeforeRender).toHaveBeenCalledTimes(1)
+    })
+
+    it('call onAfterRender if a listener is supplied', () => {
+        const mock = {
+            onAfterRender: (nodeDescriptor: NodeDescriptor) => {
+                console.log('onAfterRender')
+                expect(nodeDescriptor.__type).toBe('element')
+            }
+        }
+        spyOn(mock, 'onAfterRender').and.callThrough()
+
+        const update = (x: number, arg: number) => evolve(x + arg)
+        const context = {
+            spec: {
+                name: '',
+                init: { state: undefined },
+                view: () => <div>a text</div>,
+                onAfterRender: mock.onAfterRender
+            },
+            parentNode: document.body,
+            mounted: true,
+            mountArg: undefined,
+            dispatchLevel: 0,
+            isUpdating: false,
+            state: 1,
+            oldView: undefined,
+            rootNode: document.body
+        }
+        const render = () => {
+            return null as any as Node
+        }
+        dispatch(context, render, update, 2)
+
+        expect(mock.onAfterRender).toHaveBeenCalledTimes(1)
     })
 })

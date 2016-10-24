@@ -1,5 +1,5 @@
 import { defineComponent, broadcast, mountComponent, evolve } from 'core'
-import * as jsxFactory from 'html/jsxFactory'
+import * as jsxFactory from 'core/jsxFactory'
 
 /**
  * defineComponent

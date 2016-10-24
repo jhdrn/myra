@@ -1,6 +1,6 @@
 import { defineComponent, mountComponent, evolve } from 'core'
 import { initComponent, updateComponent } from 'core/component'
-import * as jsxFactory from 'html/jsxFactory'
+import * as jsxFactory from 'core/jsxFactory'
 
 const q = (x: string) => document.querySelector(x)
 
@@ -197,7 +197,7 @@ describe('updateComponent', () => {
         const componentDescriptor = component({})
         initComponent(componentDescriptor, document.body, undefined as any)
 
-        const newDescriptor = component({})
+        const newDescriptor = component({}, true)
         updateComponent(newDescriptor, componentDescriptor)
 
         expect(mountMock.mount).toHaveBeenCalledTimes(2)

@@ -1,9 +1,6 @@
 import { defineComponent, task, evolve } from 'core'
 import { render } from 'core/view'
-
-
-
-import * as jsxFactory from 'html/jsxFactory'
+import * as jsxFactory from 'core/jsxFactory'
 
 const keyPressEvent = (keyCode: number) => {
     const event = document.createEvent('Event')

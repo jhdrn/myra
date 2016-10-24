@@ -20,7 +20,7 @@ declare namespace myra {
 
     /** "Component state holder" interface */
     interface ComponentContext<S> {
-        readonly args: ComponentSpec<S, any>
+        readonly spec: ComponentSpec<S, any>
         readonly parentNode: Element
         mounted: boolean
         dispatchLevel: number
