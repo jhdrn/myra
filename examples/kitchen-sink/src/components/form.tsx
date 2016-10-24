@@ -1,4 +1,4 @@
-import { defineComponent, evolve, FormValidationResult } from 'myra/core'
+import { defineComponent, evolve, Update } from 'myra/core'
 import * as jsxFactory from 'myra/html/jsxFactory'
 import { InputGroupComponent } from './form/inputGroup'
 
@@ -22,7 +22,7 @@ const init = evolve({
 /**
  * Updates
  */
-const onFormSubmitUpdate = (state: State, formData: FormData, validationResult: FormValidationResult) =>
+const onFormSubmitUpdate = (state: State, formData: FormData) =>
     evolve(state, m => {
         m.formData = formData
         m.formValidationResult = validationResult
@@ -43,6 +43,14 @@ const required = (label: string) => (value: string) => ({
     errors: [`'${label}' is required`]
 })
 
+/**
+ * Returns a function that receives the event, calls preventDefault() and 
+ * passes the update argument trough.
+ */
+const preventDefaultAnd = (update: Update<State, FormData>) => (ev: KeyboardEvent) => {
+    ev.preventDefault()
+    return update;
+}
 
 /**
  * View
@@ -68,7 +76,7 @@ const view = (state: State) =>
                 <p>The form is{(state.formValidationResult.valid ? 'valid' : 'invalid')}</p>
                 : <nothing />
         }
-        <form onsubmit={{ listener: onFormSubmitUpdate, preventDefault: true }}>
+        <form onsubmit={preventDefaultAnd(onFormSubmitUpdate)}>
             <div class={!state.formValidationResult || state.formValidationResult.fields['formField'].valid ? 'form-group' : 'form-group has-error'}>
                 <label for="formField">Just a form field</label>
                 <input type="text"
@@ -86,7 +94,7 @@ const view = (state: State) =>
                 label="Oninput demo 1"
                 type="email"
                 validate={[required('Oninput demo 1')]}
-                oninput={oninputUpdate}>
+                oninput={() => oninputUpdate}>
                 {state.formValidationResult ?
                     <p class="help-text"> {(state.formValidationResult!.fields as any)['oninputDemo1'].errors}</p>
                     : <nothing />}
@@ -96,7 +104,7 @@ const view = (state: State) =>
                 <textarea id="oninputDemo"
                     name="oninputDemo"
                     class="form-control"
-                    oninput={oninputUpdate} />
+                    oninput={() => oninputUpdate} />
                 <p class="help-text">The value of this field is: {state.formData.oninputDemo}</p>
             </div>
             <div class="form-group">
@@ -104,7 +112,7 @@ const view = (state: State) =>
                 <select name="onchangeDemo"
                     id="onchangeDemo"
                     class="form-control"
-                    onchange={onchangeUpdate}>
+                    onchange={() => onchangeUpdate}>
                     {
                         ['Choice A', 'Choice B', 'Choice C'].map(choice =>
                             <option>{choice}</option>

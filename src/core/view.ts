@@ -1,62 +1,12 @@
 import { initComponent, updateComponent } from './component'
-import { typeOf, max } from './helpers'
-import { Dispatch, Task, UpdateAny, FieldValidator, ElementEventAttributeArguments, NodeDescriptor, ElementNodeDescriptor, ComponentNodeDescriptor, ListenerWithEventOptions, FormAttributes, InputAttributes } from './contract'
-import { validateField, validateForm } from './validation'
-
-type EventInterceptor = (nodeDescriptor: NodeDescriptor, element: Element, event: Event, update: UpdateAny, dispatch: Dispatch) => boolean
-
-const eventInterceptors = [] as EventInterceptor[]
+import { max } from './helpers'
+import { Dispatch, Task, UpdateAny, EventListener, NodeDescriptor, ElementDescriptor, ComponentDescriptor } from './contract'
 
 const INPUT_TAG_NAMES = [
     'INPUT',
     'TEXTAREA',
     'SELECT'
 ]
-
-eventInterceptors.push((_nodeDescriptor, element, _, update, dispatch) => {
-    if (INPUT_TAG_NAMES.indexOf(element.tagName) !== -1) {
-        const validators = ((_nodeDescriptor as ElementNodeDescriptor).attributes as InputAttributes).validate
-        let validationResult = validators ? validateField((element as HTMLInputElement).value, Array.isArray(validators) ? validators : [validators]) : undefined
-        dispatch(update, (element as HTMLInputElement).value, validationResult)
-        return true
-    }
-    return false
-})
-
-function findFieldValidatorsRec(nodeDescriptors: NodeDescriptor[], fields: { [name: string]: FieldValidator[] }) {
-    return nodeDescriptors.reduce((acc, descriptor) => {
-        if (descriptor.__type === 'element') {
-            const fieldName = (descriptor.attributes as InputAttributes).name
-            const validators = (descriptor.attributes as InputAttributes).validate
-            if (fieldName && validators) {
-                acc[fieldName] = Array.isArray(validators) ? validators : [validators]
-            }
-            findFieldValidatorsRec(descriptor.children, acc)
-        }
-        else if (descriptor.__type === 'component' && descriptor.rendition) {
-            findFieldValidatorsRec([descriptor.rendition], acc)
-        }
-        return acc
-    }, fields)
-}
-
-eventInterceptors.push((nodeDescriptor, element, _, update, dispatch) => {
-    if (element.tagName === 'FORM') {
-        const namedElements = element.querySelectorAll('[name]')
-        const formData: { [name: string]: string } = {}
-        for (let i = 0; i < namedElements.length; i++) {
-            const el = namedElements.item(i) as HTMLInputElement
-            formData[el.name] = el.value
-        }
-        const formValidators = ((nodeDescriptor as ElementNodeDescriptor).attributes as FormAttributes).validate || []
-
-        const fieldValidators = findFieldValidatorsRec((nodeDescriptor as ElementNodeDescriptor).children, {})
-        const validationResult = validateForm(formData, Array.isArray(formValidators) ? formValidators : [formValidators], fieldValidators)
-        dispatch(update, formData, validationResult)
-        return true
-    }
-    return false
-})
 
 const BOOL_ATTRS = [
     'checked',
@@ -131,7 +81,7 @@ function removeAttr(a: string, node: Element) {
 }
 
 /** Creates an event listener */
-function tryCreateEventListener(attributeName: string, eventArgs: ElementEventAttributeArguments, nodeDescriptor: NodeDescriptor, node: Node, dispatch: Dispatch) {
+function tryCreateEventListener(attributeName: string, eventListener: EventListener<any, any>, _nodeDescriptor: NodeDescriptor, node: Node, dispatch: Dispatch) {
     if (attributeName.indexOf('on') !== 0) {
         return undefined
     }
@@ -158,40 +108,21 @@ function tryCreateEventListener(attributeName: string, eventArgs: ElementEventAt
             }
         }
 
-        const eventArgsType = typeOf(eventArgs)
+        const result = eventListener(ev, node/*, nodeDescriptor*/)
 
-        if ((eventArgs as Task).execute) {
-            (eventArgs as Task).execute((eventArgs as any).__dispatch || dispatch)
+        if ((result as Task).execute) {
+            (result as Task).execute((eventListener as any).__dispatch || (result as any).__dispatch || dispatch)
             return
         }
-        else if (eventArgsType === 'object') {
-            if ((eventArgs as ListenerWithEventOptions).preventDefault) {
-                ev.preventDefault()
-            }
-            if ((eventArgs as ListenerWithEventOptions).stopPropagation) {
-                ev.stopPropagation()
-            }
-            if ((eventArgs as ListenerWithEventOptions).listener) {
-                if (((eventArgs as ListenerWithEventOptions).listener as Task).execute) {
-                    ((eventArgs as ListenerWithEventOptions).listener as Task).execute(((eventArgs as ListenerWithEventOptions).listener as any).__dispatch || dispatch)
-                    return
-                }
-                else {
-                    eventArgs = (eventArgs as ListenerWithEventOptions).listener
-                }
-            }
+
+        if ((eventListener as any).__dispatch) {
+            (eventListener as any).__dispatch(result as UpdateAny)
         }
-
-        const intercepted = eventInterceptors.reduce((stop, interceptor) =>
-            stop ? stop : interceptor(nodeDescriptor, node as Element, ev, eventArgs as UpdateAny, (eventArgs as any).__dispatch || dispatch), false)
-
-        if (!intercepted) {
-            if ((eventArgs as any).__dispatch) {
-                (eventArgs as any).__dispatch(eventArgs as UpdateAny)
-            }
-            else {
-                dispatch(eventArgs as UpdateAny)
-            }
+        else if ((result as any).__dispatch) {
+            (result as any).__dispatch(result)
+        }
+        else {
+            dispatch(result as UpdateAny)
         }
     }
 }
@@ -230,8 +161,8 @@ function shouldReplaceNode(newDescriptor: NodeDescriptor, oldDescriptor: NodeDes
     return false
 }
 
-function getAttributesToRemove(newDescriptor: ElementNodeDescriptor, oldDescriptor: NodeDescriptor, existingNode: Node) {
-    const oldAttributeKeys = Object.keys((oldDescriptor as ElementNodeDescriptor).attributes)
+function getAttributesToRemove(newDescriptor: ElementDescriptor<any>, oldDescriptor: NodeDescriptor, existingNode: Node) {
+    const oldAttributeKeys = Object.keys((oldDescriptor as ElementDescriptor<any>).attributes)
 
     if (existingNode !== oldDescriptor.node) {
         return oldAttributeKeys
@@ -241,6 +172,7 @@ function getAttributesToRemove(newDescriptor: ElementNodeDescriptor, oldDescript
     return newAttributeKeys.filter(x => oldAttributeKeys.indexOf(x) === -1)
         .concat(oldAttributeKeys.filter(x => newAttributeKeys.indexOf(x) === -1 || x.indexOf('on') === 0))
 }
+
 
 /** Renders the view by walking the node descriptor tree recursively */
 export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor, existingNode: Node | undefined, dispatch: Dispatch): void {
@@ -254,7 +186,7 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
         if (replaceNode) {
             if (oldDescriptor.__type === 'element') {
                 // Remove old event listeners before replacing the node. 
-                Object.keys(oldDescriptor.attributes).filter(a => a.indexOf('on') === 0).forEach(a => 
+                Object.keys(oldDescriptor.attributes).filter(a => a.indexOf('on') === 0).forEach(a =>
                     removeAttr(a, existingNode as Element)
                 )
             }
@@ -306,7 +238,7 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
                 for (const name in newDescriptor.attributes) {
                     if (newDescriptor.attributes.hasOwnProperty(name)) {
                         const attributeValue = newDescriptor.attributes[name]
-                        const oldAttributeValue = (oldDescriptor as ElementNodeDescriptor).attributes[name]
+                        const oldAttributeValue = (oldDescriptor as ElementDescriptor<any>).attributes[name]
                         if ((name.indexOf('on') === 0 || !(existingNode as Element).hasAttribute(name) ||
                             attributeValue !== oldAttributeValue) && typeof attributeValue !== 'undefined'
                         ) {
@@ -345,7 +277,7 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
                 existingNode.textContent = newDescriptor.value
                 break
             case 'component':
-                updateComponent(newDescriptor, oldDescriptor as ComponentNodeDescriptor)
+                updateComponent(newDescriptor, oldDescriptor as ComponentDescriptor<any>)
                 break
         }
 

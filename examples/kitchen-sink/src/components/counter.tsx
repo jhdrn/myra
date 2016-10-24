@@ -24,13 +24,13 @@ const view = (state: State) =>
         <h2>Counter example</h2>
         <button type="button"
             class="btn btn-sm btn-default"
-            onclick={increase}>+</button>
+            onclick={() => increase}>+</button>
 
         <span> {state} </span>
 
         <button type="button"
             class="btn btn-sm btn-default"
-            onclick={decrease}>-</button>
+            onclick={() => decrease}>-</button>
     </section>
 
 

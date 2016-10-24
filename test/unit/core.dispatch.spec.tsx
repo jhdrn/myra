@@ -1,6 +1,7 @@
 import { dispatch } from 'core/dispatch'
 import { task, evolve } from 'core'
-import { text } from 'html'
+import * as jsxFactory from 'html/jsxFactory'
+
 /**
  * evolve
  */
@@ -8,8 +9,11 @@ describe('core.dispatch', () => {
     it('updates state and calls render', () => {
         const update = (x: number, arg: number) => evolve(x + arg)
         const context = {
-            name: '',
-            view: () => text('a text'),
+            args: {
+                name: '',
+                init: { state: undefined },
+                view: () => <div>a text</div>
+            },
             parentNode: document.body,
             mounted: false,
             mountArg: undefined,
@@ -29,8 +33,11 @@ describe('core.dispatch', () => {
     it('does not call render if dispatchLevel > 1', () => {
         const update = (x: number, arg: number) => evolve(x + arg)
         const context = {
-            name: '',
-            view: () => text('a text'),
+            args: {
+                name: '',
+                init: { state: undefined },
+                view: () => <div>a text</div>
+            },
             parentNode: document.body,
             mounted: false,
             mountArg: undefined,
@@ -56,8 +63,11 @@ describe('core.dispatch', () => {
     it('throws if already updating', () => {
         const update = (x: number, arg: number) => evolve(x + arg)
         const context = {
-            name: '',
-            view: () => text('a text'),
+            args: {
+                name: '',
+                init: { state: undefined },
+                view: () => <div>a text</div>
+            },
             parentNode: document.body,
             mounted: false,
             mountArg: undefined,
@@ -81,8 +91,11 @@ describe('core.dispatch', () => {
 
         const update = (x: number, arg: number) => evolve(x + arg).and(testTask)
         const context = {
-            name: '',
-            view: () => text('a text'),
+            args: {
+                name: '',
+                init: { state: undefined },
+                view: () => <div>a text</div>
+            },
             parentNode: document.body,
             mounted: false,
             mountArg: undefined,
@@ -109,8 +122,11 @@ describe('core.dispatch', () => {
         })
         const update = (x: number, arg: number) => evolve(x + arg).and(testTask1).and(testTask2)
         const context = {
-            name: '',
-            view: () => text('a text'),
+            args: {
+                name: '',
+                init: { state: undefined },
+                view: () => <div>a text</div>
+            },
             parentNode: document.body,
             mounted: false,
             mountArg: undefined,

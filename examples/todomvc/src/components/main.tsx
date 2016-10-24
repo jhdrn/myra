@@ -48,7 +48,7 @@ const view = (_: State) =>
                     placeholder="What needs to be done?"
                     autofocus={true}
                     value=""
-                    onkeydown_enter={addNewTodo} />
+                    onkeydown_enter={() => addNewTodo} />
             </header>
             <TodoListComponent />
         </section>

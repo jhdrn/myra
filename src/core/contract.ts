@@ -5,9 +5,9 @@ export type Map<T> = myra.Map<T>
 /**
  * Component types
  */
-export interface ComponentArgs<S, A> extends myra.ComponentArgs<S, A> { }
+export interface ComponentSpec<S, A> extends myra.ComponentSpec<S, A> { }
 export interface ComponentContext<S> extends myra.ComponentContext<S> { }
-export type InitializeComponent = myra.InitializeComponent
+export type ComponentFactory<T> = myra.ComponentFactory<T>
 
 /**
  * Update/Dispatch types
@@ -23,21 +23,16 @@ export interface Task extends myra.Task { }
  */
 export interface View<S> extends myra.View<S> { }
 
-export interface ListenerWithEventOptions extends myra.ListenerWithEventOptions { }
-export type ElementEventAttributeArguments = Update<any, any> | Task | ListenerWithEventOptions
-export interface NodeDescriptorBase extends myra.NodeDescriptorBase { }
-export interface TextNodeDescriptor extends myra.TextNodeDescriptor { }
-export interface ElementNodeDescriptor extends myra.ElementNodeDescriptor { }
-export interface ComponentNodeDescriptor extends myra.ComponentNodeDescriptor { }
-export interface NothingNodeDescriptor extends myra.NothingNodeDescriptor { }
-export type NodeDescriptor = TextNodeDescriptor | ElementNodeDescriptor | ComponentNodeDescriptor | NothingNodeDescriptor
+export type EventListener<T, E> = myra.EventListener<T, E>
 
-export type FormValidator = myra.FormValidator
-export type FieldValidator = myra.FieldValidator
-export type FormValidationResult = myra.FormValidationResult
-export type FieldValidationResult = myra.FieldValidationResult
+export interface DescriptorBase extends myra.DescriptorBase { }
+export interface TextDescriptor extends myra.TextDescriptor { }
+export interface ElementDescriptor<T> extends myra.ElementDescriptor<T> { }
+export interface ComponentDescriptor<T> extends myra.ComponentDescriptor<T> { }
+export interface NothingDescriptor extends myra.NothingDescriptor { }
+export type NodeDescriptor = myra.NodeDescriptor
 
-export interface GlobalAttributes extends myra.GlobalAttributes { }
+export interface GlobalAttributes<T> extends myra.GlobalAttributes<T> { }
 export interface AAttributes extends myra.AAttributes { }
 export interface AreaAttributes extends myra.AreaAttributes { }
 export interface AudioAttributes extends myra.AudioAttributes { }

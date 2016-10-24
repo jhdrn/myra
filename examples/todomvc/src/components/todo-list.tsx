@@ -103,7 +103,7 @@ const view = (state: State) =>
                 <input class="toggle-all"
                     type="checkbox"
                     checked={state.todos.every(t => t.completed)}
-                    onclick={todos.toggleAll(!state.todos.every(t => t.completed))} />
+                    onclick={() => todos.toggleAll(!state.todos.every(t => t.completed))} />
 
                 <label for="toggle-all">Mark all as complete</label>
                 <ul class="todo-list">
@@ -133,7 +133,7 @@ const view = (state: State) =>
                 {
                     state.todos.filter(t => t.completed).length ?
                         <button class="clear-completed"
-                            onclick={todos.removeCompleted}>
+                            onclick={() => todos.removeCompleted}>
                             Clear completed
                         </button> : <nothing />
                 }

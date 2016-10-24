@@ -1,18 +1,65 @@
-/// <reference path="jsx-global.d.ts" />
+import { ComponentFactory, NodeDescriptor, TextDescriptor, GlobalAttributes } from '../core/contract'
+import { flatten } from '../core/helpers'
 
-import { GlobalAttributes, InitializeComponent, NodeDescriptor, ElementNodeDescriptor, TextNodeDescriptor, ComponentNodeDescriptor, NothingNodeDescriptor } from '../core/contract'
-import { element, nothing } from './index'
+function textDescriptor(value: string): TextDescriptor {
+    return {
+        __type: 'text',
+        value
+    }
+}
 
-export { ElementNodeDescriptor, TextNodeDescriptor, ComponentNodeDescriptor, NothingNodeDescriptor }
+function flattenChildren<A extends GlobalAttributes<any>>(attributesOrNode: A | (NodeDescriptor | string)[] | NodeDescriptor | string) {
+    const attributesGiven = !Array.isArray(attributesOrNode) && typeof attributesOrNode === 'object' && !(attributesOrNode as NodeDescriptor).__type
 
-export function createElement(tagNameOrComponent: string | InitializeComponent, props: GlobalAttributes): NodeDescriptor {
+    const flattenedChildren = [] as (NodeDescriptor | string)[]
 
-    if (typeof tagNameOrComponent === 'string') {
-        if (tagNameOrComponent === 'nothing') {
-            return nothing()
+    for (let i = 0; i < arguments.length; i++) {
+        if (attributesGiven && i === 0) {
+            continue
         }
 
-        return element(tagNameOrComponent)(props || undefined, ...Array.prototype.slice.call(arguments, 2) as NodeDescriptor[])
+        if (Array.isArray(arguments[i])) {
+            flatten<NodeDescriptor>(arguments[i])
+                .map(c => typeof c === 'object' && !(c as NodeDescriptor).__type ? textDescriptor(c as any) : c)
+                .forEach(c => flattenedChildren.push(c))
+        }
+        else if (typeof arguments[i] === 'object') {
+            if ((arguments[i] as NodeDescriptor).__type) {
+                flattenedChildren.push(arguments[i] as NodeDescriptor)
+            }
+            else {
+                flattenedChildren.push(textDescriptor(arguments[i]))
+            }
+        }
+        else {
+            flattenedChildren.push(arguments[i])
+        }
     }
-    return tagNameOrComponent(props || undefined, props ? props['forceMount'] : undefined, Array.prototype.slice.call(arguments, 2))
+
+    return flattenedChildren.filter(c => typeof c !== 'undefined').map(c => {
+        if (typeof c !== 'object' || Array.isArray(c) || typeof c === 'object' && !(c as NodeDescriptor).__type) {
+            return textDescriptor(c as string)
+        }
+        return c as NodeDescriptor
+    })
+}
+
+export function createElement<T>(tagNameOrComponent: string | ComponentFactory<T>, props: T): JSX.Element {
+
+    if (typeof tagNameOrComponent === 'undefined') {
+        return { __type: 'nothing' }
+    }
+    else if (typeof tagNameOrComponent === 'string') {
+        const children = Array.prototype.slice.call(arguments, 2)
+        if (tagNameOrComponent === 'text') {
+            return textDescriptor(children[0])
+        }
+        return {
+            __type: 'element',
+            tagName: tagNameOrComponent,
+            attributes: props || {},
+            children: (flattenChildren(children) || []) as NodeDescriptor[]
+        }
+    }
+    return tagNameOrComponent(props || undefined, props ? (props as any)['forceMount'] : undefined, Array.prototype.slice.call(arguments, 2))
 }

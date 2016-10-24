@@ -1,4 +1,4 @@
-import { InitializeComponent, Dispatch, ComponentNodeDescriptor, ComponentArgs, ComponentContext, Update, View, NodeDescriptor } from './contract'
+import { ComponentFactory, Dispatch, ComponentDescriptor, ComponentSpec, ComponentContext, Update, NodeDescriptor } from './contract'
 import { equal, typeOf } from './helpers'
 import { dispatch } from './dispatch'
 import { render } from './view'
@@ -13,7 +13,7 @@ const subscribe: Subscribe = <S, A>(msg: string, update: Update<S, A>, context: 
 }
 
 type ComponentDefinitions = {
-    [name: string]: ComponentArgs<any, any>
+    [name: string]: ComponentSpec<any, any>
 }
 
 const componentDefinitions = {} as ComponentDefinitions
@@ -23,8 +23,7 @@ let nextId = 1
 /** Internal class that holds component state. */
 class ComponentContextImpl<S> implements ComponentContext<S> {
     constructor(readonly parentNode: Element,
-        readonly name: string,
-        readonly view: View<S>,
+        readonly args: ComponentSpec<S, any>,
         public childNodes?: NodeDescriptor[]) {
     }
 
@@ -45,15 +44,14 @@ class ComponentContextImpl<S> implements ComponentContext<S> {
     rootNode: Node
 }
 
-export function initComponent(descriptor: ComponentNodeDescriptor, parentNode: Element, parentDispatch: Dispatch) {
+export function initComponent<T>(descriptor: ComponentDescriptor<T>, parentNode: Element, parentDispatch: Dispatch) {
 
     decorateFnsWithDispatch(descriptor.props, parentDispatch)
 
     const args = componentDefinitions[descriptor.name]
     const context = new ComponentContextImpl<any>(
         parentNode,
-        args.name,
-        args.view,
+        args,
         descriptor.children
     )
 
@@ -83,7 +81,7 @@ export function initComponent(descriptor: ComponentNodeDescriptor, parentNode: E
     }
 }
 
-export function updateComponent(newDescriptor: ComponentNodeDescriptor, oldDescriptor: ComponentNodeDescriptor) {
+export function updateComponent<T>(newDescriptor: ComponentDescriptor<T>, oldDescriptor: ComponentDescriptor<T>) {
     newDescriptor.id = oldDescriptor.id
 
     const args = componentDefinitions[newDescriptor.name]
@@ -97,10 +95,6 @@ export function updateComponent(newDescriptor: ComponentNodeDescriptor, oldDescr
         newDescriptor.node = context.rendition!.node
         newDescriptor.rendition = context.rendition
     }
-    // else {
-    // TODO: "debug mode" with logging
-    // console.log(`${this.name}: No mount argument changes detected. Skipping mount dispatch.`)
-    // }
 }
 
 /** 
@@ -122,25 +116,28 @@ function decorateFnsWithDispatch(props: any, dispatch: Dispatch) {
 }
 
 /** Defines a component. */
-export function defineComponent<S, A>(args: ComponentArgs<S, A>): InitializeComponent {
+export function defineComponent<S, T>(args: ComponentSpec<S, T>): ComponentFactory<T> {
     if (componentDefinitions[args.name]) {
         throw `A component with name '${args.name}' is already defined!`
     }
 
     componentDefinitions[args.name] = args
 
-    return (props?: A, forceMount: boolean = false, childNodes: NodeDescriptor[] = []) => ({
-        __type: 'component',
-        id: 0,
-        node: undefined,
-        props: props,
-        forceMount: forceMount,
-        children: childNodes,
-        name: args.name
-    } as any)
+    return (props: T, forceMount: boolean = false, childNodes: NodeDescriptor[] = []) => {
+        return {
+            __type: 'component' as 'component',
+            name: args.name,
+            id: 0,
+            forceMount: forceMount,
+            children: childNodes,
+            rendition: undefined,
+            props: props,
+            node: undefined
+        }
+    }
 }
 
 /** Mounts the component onto the supplied element. */
-export function mountComponent(component: InitializeComponent, element: Element) {
-    initComponent(component(), element, undefined as any)
+export function mountComponent(component: ComponentFactory<any>, element: Element) {
+    initComponent(component({}), element, undefined as any)
 }

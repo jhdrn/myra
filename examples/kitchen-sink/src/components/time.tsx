@@ -57,12 +57,12 @@ const view = (state: State) =>
             {state.timeoutHandle ?
                 <button type="button"
                     class="btn btn-sm btn-default"
-                    onclick={cancelTimeoutTask(state.timeoutHandle)}>
+                    onclick={() => cancelTimeoutTask(state.timeoutHandle!)}>
                     Cancel timeout
             </button>
                 : <button type="button"
                     class="btn btn-sm btn-default"
-                    onclick={startTimeoutTask}>
+                    onclick={() => startTimeoutTask}>
                     Set a timeout of 5 seconds
             </button>
             }
@@ -71,12 +71,12 @@ const view = (state: State) =>
             {state.intervalHandle ?
                 <button type="button"
                     class="btn btn-sm btn-default"
-                    onclick={cancelIntervalTask(state.intervalHandle)}>
+                    onclick={() => cancelIntervalTask(state.intervalHandle!)}>
                     Cancel interval
                 </button>
                 : <button type="button"
                     class="btn btn-sm btn-default"
-                    onclick={startIntervalTask}>
+                    onclick={() => startIntervalTask}>
                     Start interval
                 </button>
             }

@@ -18,7 +18,7 @@ describe('defineComponent', () => {
     })
 
     it('has a name', () => {
-        expect(component1().name).toBe(componentName)
+        expect(component1({}).name).toBe(componentName)
     })
 
     it('throws if a component with the same name is already defined', () => {
@@ -108,7 +108,7 @@ describe('mountComponent', () => {
             name: randomName(),
             init: evolve(undefined),
             onMount: (_m, a) => evolve(a),
-            view: (m) => <button onclick={m.onclick} id="childBtn" />
+            view: (m) => <button onclick={() => m.onclick} id="childBtn" />
         })
 
         const parent = defineComponent({
@@ -194,10 +194,10 @@ describe('updateComponent', () => {
             view: () => <div />
         })
 
-        const componentDescriptor = component()
+        const componentDescriptor = component({})
         initComponent(componentDescriptor, document.body, undefined as any)
 
-        const newDescriptor = component(undefined, true)
+        const newDescriptor = component({})
         updateComponent(newDescriptor, componentDescriptor)
 
         expect(mountMock.mount).toHaveBeenCalledTimes(2)

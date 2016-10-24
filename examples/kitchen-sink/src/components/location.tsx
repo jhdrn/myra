@@ -1,4 +1,4 @@
-import { defineComponent, evolve } from 'myra/core'
+import { defineComponent, evolve, Task } from 'myra/core'
 import { updateLocation, trackLocationChanges, goBack, goForward, LocationContext } from 'myra/location'
 import * as jsxFactory from 'myra/html/jsxFactory'
 import { RouteComponent } from './route-component'
@@ -21,6 +21,14 @@ const subscriptions = {
         evolve(state, x => x.location = location)
 }
 
+/**
+ * Returns a function that receives the event, calls preventDefault() and 
+ * passes the update argument trough.
+ */
+const preventDefaultAnd = (task: Task) => (ev: Event) => {
+    ev.preventDefault()
+    return task;
+}
 
 /**
  * View
@@ -39,22 +47,22 @@ const view = (state: State) =>
 
         <ul class="list-group">
             <li class="list-group-item">
-                <a href="" onclick={{ listener: updateLocation('/test1'), preventDefault: true }}>
+                <a href="" onclick={preventDefaultAnd(updateLocation('/test1'))}>
                     Update location to '/test1'
                 </a>
             </li>
             <li class="list-group-item">
-                <a href="" onclick={{ listener: updateLocation('/test1/test2'), preventDefault: true }}>
+                <a href="" onclick={preventDefaultAnd(updateLocation('/test1/test2'))}>
                     Update location to '/test1/test2'
                 </a>
             </li>
             <li class="list-group-item">
-                <a href="" onclick={{ listener: goBack(), preventDefault: true }}>
+                <a href="" onclick={preventDefaultAnd(goBack())}>
                     Go back
                 </a>
             </li>
             <li class="list-group-item">
-                <a href="" onclick={{ listener: goForward(), preventDefault: true }}>
+                <a href="" onclick={preventDefaultAnd(goForward())}>
                     Go forward
                 </a>
             </li>

@@ -46,7 +46,7 @@ const view = (state: State) =>
         <h2>HTTP example</h2>
         <button type="button"
             class="btn btn-sm btn-default"
-            onclick={httpRequestTask}>
+            onclick={() => httpRequestTask}>
             Make HTTP request
         </button>
 

@@ -1,4 +1,4 @@
-import { defineComponent, evolve } from 'myra/core'
+import { defineComponent, evolve, Update } from 'myra/core'
 import * as jsxFactory from 'myra/html/jsxFactory'
 import * as todos from '../models/todos'
 
@@ -79,13 +79,22 @@ const todoClass = (m: State) => {
     return undefined
 }
 
+/**
+ * Returns a function that receives the event, calls preventDefault() and 
+ * passes the update argument trough.
+ */
+const preventDefaultAnd = (update: Update<State, string>) => (ev: KeyboardEvent) => {
+    ev.preventDefault()
+    return update;
+}
+
 const editInputOrNothing = (state: State) =>
     state.editing ? <input class="edit"
         focus="true"
         value={state.todo.title}
-        onblur={saveTodo}
-        onkeyup_enter={{ listener: saveTodo, preventDefault: true }}
-        onkeyup_escape={{ listener: undoEditTodo, preventDefault: true }} />
+        onblur={() => saveTodo}
+        onkeyup_enter={preventDefaultAnd(saveTodo)}
+        onkeyup_escape={preventDefaultAnd(undoEditTodo)} />
         : <nothing />
 
 const view = (state: State) =>
@@ -94,10 +103,10 @@ const view = (state: State) =>
             <input class="toggle"
                 type="checkbox"
                 checked={state.todo.completed}
-                onclick={toggleTodoCompleted} />
+                onclick={() => toggleTodoCompleted} />
 
-            <label ondblclick={state.todo.completed ? undefined : editTodo}>{state.todo.title}</label>
-            <button class="destroy" onclick={todos.remove(state.todo.id)}></button>
+            <label ondblclick={state.todo.completed ? undefined : () => editTodo}>{state.todo.title}</label>
+            <button class="destroy" onclick={() => todos.remove(state.todo.id)}></button>
         </div>
         {editInputOrNothing(state)}
     </li>

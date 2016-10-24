@@ -5,12 +5,12 @@ describe('jsxFactory', () => {
 
     it('creates a TextNodeDescriptor from an expression inside an element', () => {
 
-        const view = <div>{'some text'}</div>
+        const view = <div>{'some text'}</div> as core.ElementDescriptor<any>
 
         expect(view.children[0]).toEqual({
             __type: 'text',
             value: 'some text'
-        } as core.TextNodeDescriptor)
+        } as core.TextDescriptor)
     })
 
     it('creates a NothingNodeDescriptor from a <nothing /> tag', () => {
@@ -19,7 +19,7 @@ describe('jsxFactory', () => {
 
         expect(view).toEqual({
             __type: 'nothing'
-        } as core.NothingNodeDescriptor)
+        } as core.NothingDescriptor)
     })
 
     it('creates an ElementNodeDescriptor with the supplied tagName', () => {
@@ -31,12 +31,12 @@ describe('jsxFactory', () => {
             tagName: 'div',
             attributes: {},
             children: []
-        } as core.ElementNodeDescriptor)
+        })
     })
 
     it('creates an ElementNodeDescriptor and sets attributes', () => {
 
-        const fn = () => core.evolve(0)
+        const fn = () => () => core.evolve(0)
         const view = <div class="test" id="test" onclick={fn}></div>
 
         expect(view).toEqual({
@@ -48,7 +48,7 @@ describe('jsxFactory', () => {
                 onclick: fn
             },
             children: []
-        } as core.ElementNodeDescriptor)
+        })
     })
 
     const childNodeDescriptor = {
@@ -56,7 +56,7 @@ describe('jsxFactory', () => {
         tagName: 'div',
         attributes: {},
         children: []
-    } as core.ElementNodeDescriptor
+    }
 
     it('creates an ElementNodeDescriptor and appends a single child', () => {
 
@@ -69,7 +69,7 @@ describe('jsxFactory', () => {
             children: [
                 childNodeDescriptor
             ]
-        } as core.ElementNodeDescriptor)
+        })
     })
 
     it('creates an ElementNodeDescriptor and appends multiple children with a single argument', () => {
@@ -86,19 +86,23 @@ describe('jsxFactory', () => {
                 {
                     __type: 'text',
                     value: 'abc'
-                } as core.TextNodeDescriptor
+                } as core.TextDescriptor
             ]
-        } as core.ElementNodeDescriptor)
+        })
     })
 
     it('Object element creates a ComponentNodeDescriptor', () => {
-        const TestComponent = core.defineComponent({
+        type TestProps = {
+            test: string
+        }
+
+        const TestComponent = core.defineComponent<undefined, TestProps>({
             name: 'JsxComponent',
             init: core.evolve(undefined),
             view: () => <div></div>
         })
 
-        const view = <TestComponent test="test" /> as any as core.ComponentNodeDescriptor
+        const view = <TestComponent test="test" /> as core.ComponentDescriptor<TestProps>
 
         expect(view.__type).toBe('component')
         expect(view.name).toBe('JsxComponent')
