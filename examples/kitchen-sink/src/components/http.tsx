@@ -1,6 +1,6 @@
 import { defineComponent, evolve } from 'myra/core'
 import { httpRequest, HttpResponse } from 'myra/http'
-import * as jsxFactory from 'myra/html/jsxFactory'
+import * as jsxFactory from 'myra/core/jsxFactory'
 
 
 /**

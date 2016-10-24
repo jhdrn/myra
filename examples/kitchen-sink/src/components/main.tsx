@@ -1,5 +1,5 @@
 import { defineComponent } from 'myra/core'
-import * as jsxFactory from 'myra/html/jsxFactory'
+import * as jsxFactory from 'myra/core/jsxFactory'
 import { CounterComponent } from './counter'
 import { FormComponent } from './form'
 import { HttpComponent } from './http'

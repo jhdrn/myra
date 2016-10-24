@@ -1,5 +1,5 @@
 import { defineComponent, evolve } from 'myra/core'
-import * as jsxFactory from 'myra/html/jsxFactory'
+import * as jsxFactory from 'myra/core/jsxFactory'
 import { replaceLocation, LocationContext } from 'myra/location'
 import { TodosFilter, saveFilter, loadFilter } from '../models/filter'
 import * as todos from '../models/todos'

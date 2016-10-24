@@ -1,6 +1,6 @@
 import { defineComponent, evolve } from 'myra/core'
 import { startTimeout, cancelTimeout, startInterval, cancelInterval } from 'myra/time'
-import * as jsxFactory from 'myra/html/jsxFactory'
+import * as jsxFactory from 'myra/core/jsxFactory'
 
 
 /**

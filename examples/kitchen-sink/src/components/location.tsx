@@ -1,6 +1,6 @@
 import { defineComponent, evolve, Task } from 'myra/core'
 import { updateLocation, trackLocationChanges, goBack, goForward, LocationContext } from 'myra/location'
-import * as jsxFactory from 'myra/html/jsxFactory'
+import * as jsxFactory from 'myra/core/jsxFactory'
 import { RouteComponent } from './route-component'
 
 

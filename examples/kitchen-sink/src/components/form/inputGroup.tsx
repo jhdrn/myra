@@ -1,5 +1,5 @@
 import { defineComponent, evolve, NodeDescriptor } from 'myra/core'
-import * as jsxFactory from 'myra/html/jsxFactory'
+import * as jsxFactory from 'myra/core/jsxFactory'
 
 
 /**

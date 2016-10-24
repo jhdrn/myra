@@ -1,5 +1,5 @@
 import { defineComponent, evolve, Update } from 'myra/core'
-import * as jsxFactory from 'myra/html/jsxFactory'
+import * as jsxFactory from 'myra/core/jsxFactory'
 import * as todos from '../models/todos'
 
 type Todo = todos.Todo

@@ -1,10 +1,11 @@
 import { defineComponent, evolve, Update } from 'myra/core'
-import * as jsxFactory from 'myra/html/jsxFactory'
-import { InputGroupComponent } from './form/inputGroup'
+import * as jsxFactory from 'myra/core/jsxFactory'
+// import { InputGroupComponent } from './form/inputGroup'
 
 /**
  * State
  */
+type FormValidationResult = any
 type FormData = {
     formField?: string
     oninputDemo?: string
@@ -25,11 +26,11 @@ const init = evolve({
 const onFormSubmitUpdate = (state: State, formData: FormData) =>
     evolve(state, m => {
         m.formData = formData
-        m.formValidationResult = validationResult
+        // m.formValidationResult = validationResult
     })
 
-const oninputUpdate = (state: State, value: string) =>
-    evolve(state, x => x.formData.oninputDemo = value)
+// const oninputUpdate = (state: State, value: string) =>
+//     evolve(state, x => x.formData.oninputDemo = value)
 
 const onchangeUpdate = (state: State, value: string) =>
     evolve(state, x => x.formData.onchangeDemo = value)
@@ -88,6 +89,7 @@ const view = (state: State) =>
                     <p class="help-text"> {(state.formValidationResult!.fields as any)['formField'].errors}</p>
                     : <nothing />}
             </div>
+            {/*
             <InputGroupComponent id="oninputDemo1"
                 name="oninputDemo1"
                 class={!state.formValidationResult || state.formValidationResult.fields['oninputDemo1'].valid ? 'form-group' : 'form-group has-error'}
@@ -99,12 +101,13 @@ const view = (state: State) =>
                     <p class="help-text"> {(state.formValidationResult!.fields as any)['oninputDemo1'].errors}</p>
                     : <nothing />}
             </InputGroupComponent>
+        */}
             <div class="form-group">
                 <label for="oninputDemo">Oninput demo (optional)</label>
                 <textarea id="oninputDemo"
                     name="oninputDemo"
                     class="form-control"
-                    oninput={() => oninputUpdate} />
+                    /* oninput={(_: Event, el: HTMLInputElement) => (state) => oninputUpdate(state, el.value)} */ />
                 <p class="help-text">The value of this field is: {state.formData.oninputDemo}</p>
             </div>
             <div class="form-group">
