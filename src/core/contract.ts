@@ -23,16 +23,16 @@ export interface Task extends myra.Task { }
  */
 export interface View<S> extends myra.View<S> { }
 
-export type EventListener<T, E> = myra.EventListener<T, E>
+export type EventListener<T extends Event, E extends Element> = myra.EventListener<T, E>
 
 export interface DescriptorBase extends myra.DescriptorBase { }
 export interface TextDescriptor extends myra.TextDescriptor { }
-export interface ElementDescriptor<T> extends myra.ElementDescriptor<T> { }
+export interface ElementDescriptor<T extends Element> extends myra.ElementDescriptor<T> { }
 export interface ComponentDescriptor<T> extends myra.ComponentDescriptor<T> { }
 export interface NothingDescriptor extends myra.NothingDescriptor { }
 export type NodeDescriptor = myra.NodeDescriptor
 
-export interface GlobalAttributes<T> extends myra.GlobalAttributes<T> { }
+export interface GlobalAttributes<T extends HTMLElement> extends myra.GlobalAttributes<T> { }
 export interface AAttributes extends myra.AAttributes { }
 export interface AreaAttributes extends myra.AreaAttributes { }
 export interface AudioAttributes extends myra.AudioAttributes { }

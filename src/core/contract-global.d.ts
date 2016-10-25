@@ -62,7 +62,7 @@ declare namespace myra {
 
     interface AttributeMap { [name: string]: string }
 
-    type EventListener<T, E> = <S, A>(event: T, element: E) => Update<S, A> | Task
+    type EventListener<T extends Event, E extends Element> = <S, A>(event: T, element: E, descriptor: ElementDescriptor<E>) => Update<S, A> | Task
 
     interface DescriptorBase {
         node?: Node
@@ -71,11 +71,12 @@ declare namespace myra {
         readonly __type: 'text'
         readonly value: string
     }
-    interface ElementDescriptor<E> extends DescriptorBase {
+    interface ElementDescriptor<E extends Element> extends DescriptorBase {
         readonly __type: 'element'
         readonly tagName: string
         readonly attributes: GlobalAttributes<E>
         readonly children: NodeDescriptor[]
+        node?: E
     }
     interface ComponentDescriptor<T> extends DescriptorBase {
         readonly __type: 'component'
@@ -91,7 +92,7 @@ declare namespace myra {
     }
     type NodeDescriptor = TextDescriptor | ElementDescriptor<any> | ComponentDescriptor<any> | NothingDescriptor
 
-    interface GlobalAttributes<E> {
+    interface GlobalAttributes<E extends Element> {
         accesskey?: string
         'class'?: string
         contenteditable?: boolean | '' | 'true' | 'false'
@@ -399,11 +400,9 @@ declare namespace myra {
 
 declare namespace JSX {
 
-    type GlobalAttributes<T> = myra.GlobalAttributes<T>
+    type GlobalAttributes<T extends HTMLElement> = myra.GlobalAttributes<T>
 
     export type Element = myra.NodeDescriptor
-    // export interface Element extends myra.aElement {
-    // }
 
     export interface ElementClass<T> {
         props: T

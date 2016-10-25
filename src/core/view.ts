@@ -81,7 +81,7 @@ function removeAttr(a: string, node: Element) {
 }
 
 /** Creates an event listener */
-function tryCreateEventListener(attributeName: string, eventListener: EventListener<any, any>, _nodeDescriptor: NodeDescriptor, node: Node, dispatch: Dispatch) {
+function tryCreateEventListener(attributeName: string, eventListener: EventListener<any, any>, nodeDescriptor: ElementDescriptor<any>, node: Node, dispatch: Dispatch) {
     if (attributeName.indexOf('on') !== 0) {
         return undefined
     }
@@ -108,7 +108,7 @@ function tryCreateEventListener(attributeName: string, eventListener: EventListe
             }
         }
 
-        const result = eventListener(ev, node/*, nodeDescriptor*/)
+        const result = eventListener(ev, node, nodeDescriptor)
 
         if ((result as Task).execute) {
             (result as Task).execute((eventListener as any).__dispatch || (result as any).__dispatch || dispatch)

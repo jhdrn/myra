@@ -1,4 +1,5 @@
-import { Map, ElementNodeDescriptor, NodeDescriptor, InputAttributes } from './core/contract'
+import { defineComponent } from './core'
+import { Update, Map, ElementDescriptor, NodeDescriptor, InputAttributes } from './core/contract'
 
 export type FieldValidationResult = {
     readonly valid: boolean
@@ -11,6 +12,11 @@ export type FormValidationResult = {
 }
 export type FieldValidator = (value: string) => FieldValidationResult
 export type FormValidator = (value: Map<string>) => FormValidationResult
+
+export interface ValidatableInputAttributes extends InputAttributes {
+    validators?: FieldValidator[]
+}
+
 
 function validateFieldInternal(value: string, validators: FieldValidator[]) {
     return validators.reduce((acc, validator) => {
@@ -52,8 +58,8 @@ function validateFormInternal(formData: Map<string>, formValidators: FormValidat
 }
 
 
-export function validateField(event: Event, element: Element, nodeDescriptor: ElementNodeDescriptor<any>) {
-    const validators = (nodeDescriptor.attributes as InputAttributes).validate
+export function validateField(event: Event, element: Element, nodeDescriptor: ElementDescriptor<any>) {
+    const validators = (nodeDescriptor.attributes as ValidatableInputAttributes).validators
     let validationResult = validators ? validateFieldInternal((element as HTMLInputElement).value, Array.isArray(validators) ? validators : [validators]) : undefined
     return (element as HTMLInputElement).value, validationResult
 }
@@ -62,7 +68,7 @@ function findFieldValidatorsRec(nodeDescriptors: NodeDescriptor[], fields: { [na
     return nodeDescriptors.reduce((acc, descriptor) => {
         if (descriptor.__type === 'element') {
             const fieldName = (descriptor.attributes as InputAttributes).name
-            const validators = (descriptor.attributes as InputAttributes).validate
+            const validators = (descriptor.attributes as ValidatableInputAttributes).validators
             if (fieldName && validators) {
                 acc[fieldName] = Array.isArray(validators) ? validators : [validators]
             }
@@ -75,7 +81,7 @@ function findFieldValidatorsRec(nodeDescriptors: NodeDescriptor[], fields: { [na
     }, fields)
 }
 
-export function validateForm(event: Event, element: Element, nodeDescriptor: ElementNodeDescriptor<any>) {
+export function validateForm(event: Event, element: Element, nodeDescriptor: ElementDescriptor<any>) {
     return (formValidators: FormValidator[]) => {
         const namedElements = element.querySelectorAll('[name]')
         const formData: { [name: string]: string } = {}
@@ -84,8 +90,33 @@ export function validateForm(event: Event, element: Element, nodeDescriptor: Ele
             formData[el.name] = el.value
         }
 
-        const fieldValidators = findFieldValidatorsRec((nodeDescriptor as ElementNodeDescriptor<any>).children, {})
+        const fieldValidators = findFieldValidatorsRec((nodeDescriptor as ElementDescriptor<any>).children, {})
         const validationResult = validateFormInternal(formData, Array.isArray(formValidators) ? formValidators : [formValidators], fieldValidators)
-        return formData, validationResult
+        return { formData, validationResult }
     }
 }
+
+export type FormSubmissionResult = {
+    formData: { [key: string]: string }
+    validationResult: FormValidationResult
+}
+
+export type FormState = {
+    onsubmit: Update<any, FormSubmissionResult>
+    validators?: FormValidator[]
+}
+
+export const Form = defineComponent<FormState, FormState>({
+    name: '__Form',
+    init: {
+        state: {} as any
+    },
+    view: (state: FormState, children) =>
+        <form
+            onsubmit={(ev, el, descriptor) => {
+                const result = validateForm(ev, el, descriptor)(state.validators || [])
+                return (s: any, _: any) => state.onsubmit(s, result)
+            } }>
+            {children}
+        </form>
+})

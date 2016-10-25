@@ -1,6 +1,7 @@
 import { defineComponent, evolve, Update } from 'myra/core'
 import * as jsxFactory from 'myra/core/jsxFactory'
 // import { InputGroupComponent } from './form/inputGroup'
+import { Form } from 'myra/forms'
 
 /**
  * State
@@ -77,7 +78,7 @@ const view = (state: State) =>
                 <p>The form is{(state.formValidationResult.valid ? 'valid' : 'invalid')}</p>
                 : <nothing />
         }
-        <form onsubmit={preventDefaultAnd(onFormSubmitUpdate)}>
+        <Form onsubmit={preventDefaultAnd(onFormSubmitUpdate)}>
             <div class={!state.formValidationResult || state.formValidationResult.fields['formField'].valid ? 'form-group' : 'form-group has-error'}>
                 <label for="formField">Just a form field</label>
                 <input type="text"
