@@ -62,7 +62,7 @@ declare namespace myra {
 
     interface AttributeMap { [name: string]: string }
 
-    type EventListener<T extends Event, E extends Element> = <S, A>(event: T, element: E, descriptor: ElementDescriptor<E>) => Update<S, A> | Task
+    type EventListener<T extends Event, E extends Element> = <S, A>(event: T, descriptor: ElementDescriptor<E>) => Update<S, A> | Task
 
     interface DescriptorBase {
         node?: Node

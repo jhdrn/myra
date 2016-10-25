@@ -81,7 +81,7 @@ function removeAttr(a: string, node: Element) {
 }
 
 /** Creates an event listener */
-function tryCreateEventListener(attributeName: string, eventListener: EventListener<any, any>, nodeDescriptor: ElementDescriptor<any>, node: Node, dispatch: Dispatch) {
+function tryCreateEventListener(attributeName: string, eventListener: EventListener<any, any>, nodeDescriptor: ElementDescriptor<any>, dispatch: Dispatch) {
     if (attributeName.indexOf('on') !== 0) {
         return undefined
     }
@@ -108,7 +108,7 @@ function tryCreateEventListener(attributeName: string, eventListener: EventListe
             }
         }
 
-        const result = eventListener(ev, node, nodeDescriptor)
+        const result = eventListener(ev, nodeDescriptor)
 
         if ((result as Task).execute) {
             (result as Task).execute((eventListener as any).__dispatch || (result as any).__dispatch || dispatch)
@@ -203,7 +203,7 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
                 if (newDescriptor.attributes.hasOwnProperty(name)) {
                     const attributeValue = newDescriptor.attributes[name]
                     if (typeof attributeValue !== 'undefined') {
-                        const eventListener = tryCreateEventListener(name, attributeValue, newDescriptor, newNode, dispatch)
+                        const eventListener = tryCreateEventListener(name, attributeValue, newDescriptor, dispatch)
                         setAttr(newNode as HTMLElement, name, eventListener || attributeValue)
                     }
                 }
@@ -242,7 +242,7 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
                         if ((name.indexOf('on') === 0 || !(existingNode as Element).hasAttribute(name) ||
                             attributeValue !== oldAttributeValue) && typeof attributeValue !== 'undefined'
                         ) {
-                            const eventListener = tryCreateEventListener(name, attributeValue, newDescriptor, existingNode, dispatch)
+                            const eventListener = tryCreateEventListener(name, attributeValue, newDescriptor, dispatch)
                             setAttr(existingNode as HTMLElement, name, eventListener || attributeValue)
                         }
                         else if (typeof attributeValue === 'undefined' && (existingNode as Element).hasAttribute(name)) {
@@ -277,7 +277,7 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
                 existingNode.textContent = newDescriptor.value
                 break
             case 'component':
-                updateComponent(newDescriptor, oldDescriptor as ComponentDescriptor<any>)
+                updateComponent(newDescriptor, oldDescriptor as ComponentDescriptor<any>, dispatch)
                 break
         }
 

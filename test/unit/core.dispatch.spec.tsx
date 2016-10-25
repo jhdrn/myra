@@ -179,7 +179,6 @@ describe('core.dispatch', () => {
     it('call onAfterRender if a listener is supplied', () => {
         const mock = {
             onAfterRender: (nodeDescriptor: NodeDescriptor) => {
-                console.log('onAfterRender')
                 expect(nodeDescriptor.__type).toBe('element')
             }
         }

@@ -47,6 +47,7 @@ class ComponentContextImpl<S> implements ComponentContext<S> {
 export function initComponent<T>(descriptor: ComponentDescriptor<T>, parentNode: Element, parentDispatch: Dispatch) {
 
     decorateFnsWithDispatch(descriptor.props, parentDispatch)
+    decorateChildAttrsWithDispatch(descriptor, parentDispatch)
 
     const args = componentDefinitions[descriptor.name]
     const context = new ComponentContextImpl<any>(
@@ -81,11 +82,17 @@ export function initComponent<T>(descriptor: ComponentDescriptor<T>, parentNode:
     }
 }
 
-export function updateComponent<T>(newDescriptor: ComponentDescriptor<T>, oldDescriptor: ComponentDescriptor<T>) {
+export function updateComponent<T>(newDescriptor: ComponentDescriptor<T>, 
+                                   oldDescriptor: ComponentDescriptor<T>, 
+                                   parentDispatch: Dispatch) {
+    
     newDescriptor.id = oldDescriptor.id
 
     const args = componentDefinitions[newDescriptor.name]
     const context = contexts[oldDescriptor.id]
+
+    decorateFnsWithDispatch(newDescriptor.props, parentDispatch)
+    decorateChildAttrsWithDispatch(newDescriptor, parentDispatch)
 
     if (newDescriptor.forceMount || !equal(oldDescriptor.props, newDescriptor.props)) {
         context.childNodes = newDescriptor.children
@@ -112,6 +119,19 @@ function decorateFnsWithDispatch(props: any, dispatch: Dispatch) {
     }
     else if (propsType === 'array') {
         props.forEach((p: any) => decorateFnsWithDispatch(p, dispatch))
+    }
+}
+
+function decorateChildAttrsWithDispatch(descriptor: NodeDescriptor, dispatch: Dispatch) {
+    switch (descriptor.__type) {
+        case 'component':
+        case 'element':
+            descriptor.children.forEach(c => {
+                if (c.__type === 'element') {
+                    decorateFnsWithDispatch(c.attributes, dispatch)
+                    decorateChildAttrsWithDispatch(c, dispatch)
+                }
+            })
     }
 }
 

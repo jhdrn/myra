@@ -257,7 +257,6 @@ describe('core.view.render', () => {
     it('returns an element with multiple onkeyup event listeners set', (done) => {
         const mocks = {
             onkeyupUpdate: (m: any) => {
-                console.log('onkeyupUpdate')
                 return m
             }
         }
