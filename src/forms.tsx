@@ -1,4 +1,4 @@
-import { defineComponent, task } from './core'
+import { defineComponent, task, evolve } from './core'
 import { Update, Map, ElementDescriptor, NodeDescriptor, InputAttributes } from './core/contract'
 import * as jsxFactory from './core/jsxFactory'
 
@@ -117,9 +117,11 @@ export const Form = defineComponent<FormState, FormState>({
     init: {
         state: {} as any
     },
+    onMount: (_s: FormState, args: FormState) => evolve(args),
     view: (state: FormState, children: NodeDescriptor[]) =>
         <form
-            onsubmit={(ev: Event, descriptor: any) => {
+            onsubmit={(ev: Event, descriptor: ElementDescriptor<HTMLFormElement>) => {
+                ev.preventDefault()
                 const result = validateForm(ev, descriptor)(state.validators || [])
                 return (s: any, _: any) => state.onsubmit(s, result)
             } }>
