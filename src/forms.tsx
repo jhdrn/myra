@@ -112,6 +112,14 @@ export type FormState = {
     validators?: FormValidator[]
 }
 
+function handleOnSubmit(state: FormState) {
+    return (ev: Event, descriptor: ElementDescriptor<HTMLFormElement>) => {
+        ev.preventDefault()
+        const result = validateForm(ev, descriptor)(state.validators || [])
+        return (s: any, _: any) => state.onsubmit(s, result)
+    } 
+}
+
 export const Form = defineComponent<FormState, FormState>({
     name: '__Form',
     init: {
@@ -119,12 +127,7 @@ export const Form = defineComponent<FormState, FormState>({
     },
     onMount: (_s: FormState, args: FormState) => evolve(args),
     view: (state: FormState, children: NodeDescriptor[]) =>
-        <form
-            onsubmit={(ev: Event, descriptor: ElementDescriptor<HTMLFormElement>) => {
-                ev.preventDefault()
-                const result = validateForm(ev, descriptor)(state.validators || [])
-                return (s: any, _: any) => state.onsubmit(s, result)
-            } }>
+        <form onsubmit={handleOnSubmit(state)}>
             {children}
         </form>
 })

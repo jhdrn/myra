@@ -1,6 +1,6 @@
 import { initComponent, updateComponent } from './component'
-import { max } from './helpers'
-import { Dispatch, Task, UpdateAny, EventListener, NodeDescriptor, ElementDescriptor, ComponentDescriptor } from './contract'
+import { max, nameOf } from './helpers'
+import { Dispatch, UpdateAny, Task, EventListener, NodeDescriptor, ElementDescriptor, ComponentDescriptor } from './contract'
 
 const INPUT_TAG_NAMES = [
     'INPUT',
@@ -108,21 +108,20 @@ function tryCreateEventListener(attributeName: string, eventListener: EventListe
             }
         }
 
-        const result = eventListener(ev, nodeDescriptor)
-
-        if ((result as Task).execute) {
-            (result as Task).execute((eventListener as any).__dispatch || (result as any).__dispatch || dispatch)
-            return
-        }
-
-        if ((eventListener as any).__dispatch) {
-            (eventListener as any).__dispatch(result as UpdateAny)
-        }
-        else if ((result as any).__dispatch) {
-            (result as any).__dispatch(result)
+        // Uglyness warning. 'dispatchContext' is the name of the function 
+        // returned by component/decorateFnsWithDispatch.
+        if (nameOf(eventListener) === 'dispatchContext') {
+            eventListener(ev, nodeDescriptor)
         }
         else {
-            dispatch(result as UpdateAny)
+            const result = eventListener(ev, nodeDescriptor)
+
+            if ((result as Task).execute && typeof (result as Task).execute === 'function') {
+                (result as Task).execute(dispatch)
+            }
+            else {
+                dispatch(result as any as UpdateAny)
+            }
         }
     }
 }

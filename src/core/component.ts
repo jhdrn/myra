@@ -1,4 +1,4 @@
-import { ComponentFactory, Dispatch, ComponentDescriptor, ComponentSpec, ComponentContext, Update, NodeDescriptor } from './contract'
+import { ComponentFactory, Dispatch, ComponentDescriptor, ComponentSpec, ComponentContext, Update, NodeDescriptor, Task } from './contract'
 import { equal, typeOf } from './helpers'
 import { dispatch } from './dispatch'
 import { render } from './view'
@@ -82,10 +82,10 @@ export function initComponent<T>(descriptor: ComponentDescriptor<T>, parentNode:
     }
 }
 
-export function updateComponent<T>(newDescriptor: ComponentDescriptor<T>, 
-                                   oldDescriptor: ComponentDescriptor<T>, 
-                                   parentDispatch: Dispatch) {
-    
+export function updateComponent<T>(newDescriptor: ComponentDescriptor<T>,
+    oldDescriptor: ComponentDescriptor<T>,
+    parentDispatch: Dispatch) {
+
     newDescriptor.id = oldDescriptor.id
 
     const args = componentDefinitions[newDescriptor.name]
@@ -105,21 +105,55 @@ export function updateComponent<T>(newDescriptor: ComponentDescriptor<T>,
 }
 
 /** 
- * Finds functions and decorates them with a __dispatch property which can be
- * used if the function is to be used as an event listener when passed from a 
- * parent component.
+ * Finds functions and wraps them with a dispatch call to ensure that the right
+ * dispatch "scope" is executed.
  */
-function decorateFnsWithDispatch(props: any, dispatch: Dispatch) {
+function decorateFnsWithDispatch<T>(props: T, dispatch: Dispatch, asEventListeners = false): T {
     const propsType = typeOf(props)
     if (propsType === 'function') {
-        props.__dispatch = dispatch
+
+        if (asEventListeners) {
+            return function dispatchContext() {
+                const result = (props as any)(...[].slice.call(arguments))
+
+                if ((result as Task).execute) {
+                    return (result as Task).execute(dispatch) as any
+                }
+                else {
+                    return dispatch(result) as any
+                }
+            } as any
+        }
+        else {
+            return function dispatchContext() {
+                const result = props as any
+                const args = [].slice.call(arguments, 1)
+                if ((result as Task).execute) {
+                    return (result as Task).execute((update: any) => dispatch(update, ...args)) as any
+                }
+                else {
+                    return dispatch(result as Update<any, any>, ...args) as any
+                }
+            } as any
+        }
     }
     else if (propsType === 'object') {
-        Object.keys(props).forEach(k => decorateFnsWithDispatch(props[k], dispatch))
+        if ((props as any as Task).execute && typeof (props as any as Task).execute === 'function') {
+            return (() => (props as any as Task).execute(dispatch)) as any
+        }
+        else {
+            Object.keys(props as Object).forEach(k => {
+                if (k.indexOf('on') === 0) {
+                    (props as any)[k] = decorateFnsWithDispatch((props as any)[k], dispatch, asEventListeners)
+                }
+            })
+        }
+        return props
     }
     else if (propsType === 'array') {
-        props.forEach((p: any) => decorateFnsWithDispatch(p, dispatch))
+        return (props as any as Array<any>).map((p: any) => decorateFnsWithDispatch(p, dispatch, asEventListeners)) as any
     }
+    return props
 }
 
 function decorateChildAttrsWithDispatch(descriptor: NodeDescriptor, dispatch: Dispatch) {
@@ -128,7 +162,7 @@ function decorateChildAttrsWithDispatch(descriptor: NodeDescriptor, dispatch: Di
         case 'element':
             descriptor.children.forEach(c => {
                 if (c.__type === 'element') {
-                    decorateFnsWithDispatch(c.attributes, dispatch)
+                    decorateFnsWithDispatch(c.attributes, dispatch, true)
                     decorateChildAttrsWithDispatch(c, dispatch)
                 }
             })

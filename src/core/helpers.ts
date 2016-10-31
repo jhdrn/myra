@@ -14,6 +14,17 @@ export function typeOf(obj: any): Type {
     return ({}).toString.call(obj).slice(8, -1).toLowerCase()
 }
 
+const fnNameMatchRegex = /^\s*function\s+([^\(\s]*)\s*/
+export function nameOf(fn: Function) {
+    if ((fn as any).name) {
+        return (fn as any).name
+    }
+
+    const match = ("" + fn).match(fnNameMatchRegex);
+
+    return (match && match[1]) || 'Function'
+}
+
 export function max(a: number, b: number): number {
     return a > b ? a : b
 }
