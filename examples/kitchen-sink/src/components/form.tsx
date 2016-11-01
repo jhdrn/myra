@@ -27,7 +27,7 @@ const init = evolve({
 const onFormSubmitUpdate = (state: State, r: FormSubmissionResult) =>
     evolve(state, m => {
         m.formData = r.formData
-        // m.formValidationResult = validationResult
+        m.formValidationResult = r.validationResult
     })
 
 const oninputUpdate = (state: State, value: string) =>
@@ -44,17 +44,6 @@ const required = (label: string) => (value: string) => ({
     valid: !!value,
     errors: [`'${label}' is required`]
 })
-
-/**
- * Returns a function that receives the event, calls preventDefault() and 
- * passes the update argument trough.
- */
-// function preventDefaultAnd<T>(update: T) {
-//     return (ev: Event) => {
-//         ev.preventDefault()
-//         return update;
-//     }
-// }
 
 /**
  * View

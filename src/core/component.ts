@@ -94,7 +94,7 @@ export function updateComponent<T>(newDescriptor: ComponentDescriptor<T>,
     decorateFnsWithDispatch(newDescriptor.props, parentDispatch)
     decorateChildAttrsWithDispatch(newDescriptor, parentDispatch)
 
-    if (newDescriptor.forceMount || !equal(oldDescriptor.props, newDescriptor.props)) {
+    if (!context.isUpdating && (newDescriptor.forceMount || !equal(oldDescriptor.props, newDescriptor.props))) {
         context.childNodes = newDescriptor.children
 
         dispatch(context, render, args.onMount || (<S>(m: S) => ({ state: m, tasks: [] })), newDescriptor.props)

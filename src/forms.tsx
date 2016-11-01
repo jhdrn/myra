@@ -116,8 +116,11 @@ function handleOnSubmit(state: FormState) {
     return (ev: Event, descriptor: ElementDescriptor<HTMLFormElement>) => {
         ev.preventDefault()
         const result = validateForm(ev, descriptor)(state.validators || [])
-        return (s: any, _: any) => state.onsubmit(s, result)
-    } 
+        return (s: any, _: any) => {
+            state.onsubmit(s, result)
+            return evolve(state)
+        }
+    }
 }
 
 export const Form = defineComponent<FormState, FormState>({
