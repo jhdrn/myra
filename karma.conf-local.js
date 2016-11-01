@@ -1,4 +1,4 @@
-module.exports = function(config) {
+module.exports = function (config) {
     config.set({
 
         basePath: './',
@@ -7,19 +7,50 @@ module.exports = function(config) {
 
         files: [
             // paths loaded by Karma
-            { pattern: 'node_modules/systemjs/dist/system-polyfills.js', included: true, watched: true },
-            { pattern: 'node_modules/systemjs/dist/system.js', included: true, watched: true },
-            { pattern: 'test/karma-test-shim.js', included: true, watched: true },
-            { pattern: 'test/test.json', included: false, watched: true, served: true },
+            {
+                pattern: 'node_modules/systemjs/dist/system-polyfills.js',
+                included: true,
+                watched: true
+            }, {
+                pattern: 'node_modules/systemjs/dist/system.js',
+                included: true,
+                watched: true
+            }, {
+                pattern: 'test/karma-test-shim.js',
+                included: true,
+                watched: true
+            }, {
+                pattern: 'test/test.json',
+                included: false,
+                watched: true,
+                served: true
+            },
 
             // paths loaded via module imports
-            { pattern: 'build/**/*.js', included: false, watched: true },
-            { pattern: 'test/**/*.ts', included: false, watched: true },
-            { pattern: 'test/**/*.tsx', included: false, watched: true },
+            {
+                pattern: 'build/**/*.js',
+                included: false,
+                watched: true
+            }, {
+                pattern: 'test/**/*.ts',
+                included: false,
+                watched: true
+            }, {
+                pattern: 'test/**/*.tsx',
+                included: false,
+                watched: true
+            },
 
             // paths to support debugging with source maps in dev tools
-            { pattern: 'build/src/**/*.ts', included: false, watched: false },
-            { pattern: 'build/**/*.js.map', included: false, watched: false }
+            {
+                pattern: 'build/src/**/*.ts',
+                included: false,
+                watched: false
+            }, {
+                pattern: 'build/**/*.js.map',
+                included: false,
+                watched: false
+            }
         ],
 
         port: 9876,
@@ -54,11 +85,12 @@ module.exports = function(config) {
             'karma-chrome-launcher',
             'karma-ie-launcher',
             'karma-firefox-launcher',
+            'karma-spec-reporter',
             'karma-coverage'
         ],
 
         // Coverage reporter generates the coverage
-        reporters: ['dots', 'coverage'],
+        reporters: ['spec', 'coverage'],
 
         // Source files that you wanna generate coverage for.
         // Do not include tests or libraries (these files will be instrumented by Istanbul)
@@ -69,9 +101,11 @@ module.exports = function(config) {
         coverageReporter: {
             dir: './coverage/',
             includeAllSources: true,
-            reporters: [
-                { type: 'json', subdir: '.', file: 'coverage.json' }
-            ]
+            reporters: [{
+                type: 'json',
+                subdir: '.',
+                file: 'coverage.json'
+            }]
         },
 
         singleRun: true

@@ -66,7 +66,7 @@ const view = (state: State) =>
         </div>
         {
             state.formValidationResult ?
-                <p>The form is{(state.formValidationResult.valid ? 'valid' : 'invalid')}</p>
+                <p>The form is {(state.formValidationResult.valid ? 'valid' : 'invalid')}</p>
                 : <nothing />
         }
         <Form onsubmit={onFormSubmitUpdate}>
