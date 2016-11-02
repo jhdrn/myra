@@ -13,7 +13,7 @@
     "webpack-dev-server": "^2.1.0-beta.4"
   },
   "dependencies": {
-    "myra": "^1.0.0-alpha.20161006",
+    "myra": "^1.0.0-alpha.20161102",
     "todomvc-app-css": "^2.0.6",
     "todomvc-common": "^1.0.2"
   }

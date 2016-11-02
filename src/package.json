@@ -1,18 +1,18 @@
 {
   "name": "myra",
-  "version": "1.0.0-alpha.20161006",
+  "version": "1.0.0-alpha.20161102",
   "description": "Myra is a simple and small Typescript framework for building web interfaces.",
   "readme": "README.md",
-  "repository": { 
-    "type" : "git",
-    "url" : "https://github.com/jhdrn/myra.git"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jhdrn/myra.git"
   },
   "keywords": [
     "myra",
     "functional",
     "typescript"
   ],
-  "author": { 
+  "author": {
     "name": "Jonathan Hedrén",
     "email": "jonathan.hedren@gmail.com"
   },
