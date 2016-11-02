@@ -145,7 +145,7 @@ the component is supplied as an argument to the view function.
 
 ```
 
-##### Event listeners
+#### Event listeners
 Any attribute key starting with `on` is treated as an event listener.
 Event listeners are functions that returns either an `Update` function or a 
 `Task`. The event and the `NodeDescriptor` of the node are passed as arguments.
