@@ -12,7 +12,9 @@
         "noUnusedLocals": true,
         "strictNullChecks": true,
         "moduleResolution": "node",
-        "pretty": true
+        "pretty": true,
+        "reactNamespace": "jsxFactory",
+        "jsx": "react"
     },
     "include": [
         "src/**/*",

@@ -5,7 +5,7 @@ export { Task }
 /**
  * Creates a task that dispatches a message with the current timestamp.
  */
-export const now = <M>(success: Update<M, Date>) => 
+export const now = <S>(success: Update<S, Date>) =>
     task(dispatch => dispatch(success, new Date()))
 
 
@@ -13,7 +13,7 @@ export const now = <M>(success: Update<M, Date>) =>
  * Creates a task that starts calling the supplied Update function
  * until a cancelInterval task is executed with the supplied handle.
  */
-export const startInterval = <M>(interval: number, started: Update<M, number>, success: Update<M, Date>) => 
+export const startInterval = <S>(interval: number, started: Update<S, number>, success: Update<S, Date>) =>
     task(dispatch => {
         let handle: number
         handle = setInterval(() => {
@@ -25,7 +25,7 @@ export const startInterval = <M>(interval: number, started: Update<M, number>, s
 /**
  * Cancels the interval of the supplied handle.
  */
-export const cancelInterval = <M>(handle: number, success?: Update<M, undefined>) => 
+export const cancelInterval = <S>(handle: number, success?: Update<S, undefined>) =>
     task(dispatch => {
         clearInterval(handle)
         if (success) {
@@ -36,7 +36,7 @@ export const cancelInterval = <M>(handle: number, success?: Update<M, undefined>
 /**
  * Creates a task that sets a timeout and sends a message when that timeout is met.
  */
-export const startTimeout = <M>(delay: number, started: Update<M, number>, ended: Update<M, number>) => 
+export const startTimeout = <S>(delay: number, started: Update<S, number>, ended: Update<S, number>) =>
     task(dispatch => {
         let handle: number
         handle = setTimeout(() => {
@@ -48,7 +48,7 @@ export const startTimeout = <M>(delay: number, started: Update<M, number>, ended
 /**
  * Cancels the timeout of the supplied handle.
  */
-export const cancelTimeout = <M>(handle: number, success?: Update<M, undefined>) => 
+export const cancelTimeout = <S>(handle: number, success?: Update<S, undefined>) =>
     task(dispatch => {
         clearTimeout(handle)
         if (success) {

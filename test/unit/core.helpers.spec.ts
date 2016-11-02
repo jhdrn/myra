@@ -1,3 +1,4 @@
+import { task } from 'core'
 import { equal, max, typeOf, evolve, deepCopy, flatten } from 'core/helpers'
 
 
@@ -38,14 +39,14 @@ describe('core.helpers.equal', () => {
     it('equals date against date', () => {
         const d1 = new Date('2016-01-01')
         const d2 = new Date('2016-01-01')
-        
+
         expect(equal(d1, d2)).toBe(true)
     })
 
     it('equals regexp against regexp', () => {
         const r1 = /^.*$/
         const r2 = /^.*$/
-        
+
         expect(equal(r1, r2)).toBe(true)
     })
 
@@ -84,22 +85,22 @@ describe('core.helpers.equal', () => {
     it('does not equal date against different date', () => {
         const d1 = new Date('2015-01-01')
         const d2 = new Date('2016-01-01')
-        
+
         expect(equal(d1, d2)).toBe(false)
     })
 
     it('does not equal regexp against different regexp', () => {
         const r1 = /^.*$/
         const r2 = /^.+$/
-        
+
         expect(equal(r1, r2)).toBe(false)
     })
 
-    
+
     it('does not equal different types', () => {
         const a = 'A string'
         const b = 254
-        
+
         expect(equal(a, b as any)).toBe(false)
     })
     //FIXME: functions?
@@ -109,7 +110,7 @@ describe('core.helpers.max', () => {
     it('returns max', () => {
         expect(max(66, 22)).toBe(66)
     })
-    
+
     it('returns max of negative numbers', () => {
         expect(max(-51, -2)).toBe(-2)
     })
@@ -120,7 +121,7 @@ describe('core.helpers.typeOf', () => {
     it('identifies an array', () => {
         expect(typeOf([])).toBe('array')
     })
-    
+
     it('identifies an object', () => {
         expect(typeOf({})).toBe('object')
     })
@@ -174,7 +175,7 @@ describe('core.helpers.deepCopy', () => {
             e: () => 'foo'
         }
         const objCopy = deepCopy(obj)
-        
+
         expect(JSON.stringify(objCopy)).toEqual(JSON.stringify(obj))
         expect(objCopy).not.toBe(obj)
     })
@@ -199,7 +200,7 @@ describe('core.helpers.evolve', () => {
                 e: string
             }
         }
-        
+
         const obj: EvolveTestObj = {
             a: 'A string',
             b: 6,
@@ -209,25 +210,47 @@ describe('core.helpers.evolve', () => {
             }
         }
 
-        const evolvedObj = evolve(obj, x => {
+        const result = evolve(obj, x => {
             x.a = 'An updated string'
         })
 
-        expect(evolvedObj).toEqual({
+        expect(JSON.stringify(result.state)).toEqual(JSON.stringify({
             a: 'An updated string',
             b: 6,
             c: [],
             d: {
                 e: 'Another string'
             }
-        })
+        }))
+    })
+
+    it('adds a task to the task array', () => {
+        const mockTask = task((_) => { })
+        const result = evolve(53).and(mockTask)
+
+        expect(result.state).toBe(53)
+        expect(result.tasks!.length).toBe(1)
+        expect(result.tasks![0]).toEqual(mockTask)
+        expect(result.and).toBeDefined()
+    })
+
+    it('adds multiple tasks to the task array', () => {
+        const mockTask1 = task((_) => { })
+        const mockTask2 = task((_) => { })
+        const mockTask3 = task((_) => { })
+        const result = evolve(53).and(mockTask1).and(mockTask2, mockTask3)
+
+        expect(result.tasks!.length).toBe(3)
+        expect(result.tasks![0]).toEqual(mockTask1)
+        expect(result.tasks![1]).toEqual(mockTask2)
+        expect(result.tasks![2]).toEqual(mockTask3)
     })
 })
 
 
 describe('core.helpers.flatten', () => {
     it('flattens a multidimensional array', () => {
-        const multidimensional = 
+        const multidimensional =
             [
                 'a',
                 [

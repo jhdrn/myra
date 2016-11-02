@@ -9,7 +9,9 @@
         "examples/**/src/*.js.map": true,
         "examples/**/src/*.js": true
     },
+    "editor.formatOnSave": true,
     "editor.rulers": [
         80
-    ]
+    ],
+    "editor.tabSize": 4
 }

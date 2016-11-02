@@ -1,5 +1,5 @@
 
-declare namespace myra.core.contract {
+declare namespace myra {
 
     type Map<T> = {
         [key: string]: T
@@ -8,38 +8,46 @@ declare namespace myra.core.contract {
     /**
      * Component types
      */
-    interface ComponentArgs<M, A> {
+    interface ComponentSpec<S, A> {
         name: string
-        init: M | [M, Task | Task[]]
-        mount?: Update<M, A>
-        subscriptions?: { [type: string]: Update<M, any> }
-        view: View<M>
+        init: Result<S>
+        onAfterRender?: (rootNodeDescriptor: NodeDescriptor) => void
+        onBeforeRender?: (rootNodeDescriptor: NodeDescriptor) => void
+        onMount?: Update<S, A>
+        subscriptions?: { [type: string]: Update<S, any> }
+        view: View<S>
     }
 
     /** "Component state holder" interface */
-    interface ComponentContext<M, T> {
-        readonly name: string
-        readonly view: View<M>
+    interface ComponentContext<S> {
+        readonly spec: ComponentSpec<S, any>
         readonly parentNode: Element
         mounted: boolean
         dispatchLevel: number
         isUpdating: boolean
-        model: M | undefined
+        state: S | undefined
         rendition?: NodeDescriptor
         childNodes?: NodeDescriptor[]
     }
 
-    type InitializeComponent = <A>(mountArgs?: A, forceMount?: boolean, children?: NodeDescriptor[]) => ComponentNodeDescriptor
-    
+    interface ComponentFactory<T> {
+        (props: T, forceMount?: boolean, children?: NodeDescriptor[]): ComponentDescriptor<T>
+    }
+
     /**
      * Update/Dispatch types
      */
-    interface Update<M, A> {
-        (model: M, arg?: A): M | [M, Task | Task[]]
+    interface Result<S> {
+        readonly state: S
+        readonly tasks?: Task[]
+    }
+
+    interface Update<S, A> {
+        (state: S, arg?: A): Result<S>
     }
     interface UpdateAny extends Update<any, any> { }
 
-    type Dispatch = <M, A>(fn: Update<M, A>, arg: A) => void
+    type Dispatch = <S, A>(fn: Update<S, A>, arg: A) => void
 
     interface Task {
         execute(dispatch: Dispatch): void
@@ -48,74 +56,43 @@ declare namespace myra.core.contract {
     /**
      * View types
      */
-    interface View<M> {
-        (model: M, children?: NodeDescriptor[]): NodeDescriptor
+    interface View<S> {
+        (state: S, children?: NodeDescriptor[]): NodeDescriptor
     }
 
     interface AttributeMap { [name: string]: string }
-    interface ListenerWithEventOptions {
-        listener: Task | UpdateAny
-        preventDefault?: boolean
-        stopPropagation?: boolean 
-    }
-    type ElementEventAttributeArguments = UpdateAny | Task | ListenerWithEventOptions
 
-    interface FormElementListenerWithEventOptions {
-        listener: Task | UpdateWithFormValidation
-        preventDefault?: boolean
-        stopPropagation?: boolean 
-    }
-    type UpdateWithFormValidation = <M>(model: M, formData: Map<string>, formValidationResult: FormValidationResult) => M | [M, Task | Task[]]
-    type FormElementEventAttributeArguments =  UpdateWithFormValidation | Task | FormElementListenerWithEventOptions
-    
-    interface FieldElementListenerWithEventOptions {
-        listener: Task | UpdateWithFieldValidation
-        preventDefault?: boolean
-        stopPropagation?: boolean 
-    }
-    type UpdateWithFieldValidation = <M>(model: M, value: string, validationResult: FieldValidationResult) => M | [M, Task | Task[]]
-    type FieldElementEventAttributeArguments =  UpdateWithFieldValidation | Task | FieldElementListenerWithEventOptions
+    type EventListener<T extends Event, E extends Element> = <S, A>(event: T, descriptor: ElementDescriptor<E>) => Update<S, A> | Task
 
-    interface NodeDescriptorBase {
+    interface DescriptorBase {
         node?: Node
     }
-    interface TextNodeDescriptor extends NodeDescriptorBase {
+    interface TextDescriptor extends DescriptorBase {
         readonly __type: 'text'
         readonly value: string
     }
-    interface ElementNodeDescriptor extends NodeDescriptorBase {
+    interface ElementDescriptor<E extends Element> extends DescriptorBase {
         readonly __type: 'element'
         readonly tagName: string
-        readonly attributes: GlobalAttributes
+        readonly attributes: GlobalAttributes<E>
         readonly children: NodeDescriptor[]
+        node?: E
     }
-    interface ComponentNodeDescriptor extends NodeDescriptorBase {
+    interface ComponentDescriptor<T> extends DescriptorBase {
         readonly __type: 'component'
         readonly name: string
         id: number;
         forceMount: boolean
         children: NodeDescriptor[]
         rendition?: NodeDescriptor
-        props?: any
+        props: T
     }
-    interface NothingNodeDescriptor extends NodeDescriptorBase {
+    interface NothingDescriptor extends DescriptorBase {
         readonly __type: 'nothing'
     }
-    type NodeDescriptor = TextNodeDescriptor | ElementNodeDescriptor | ComponentNodeDescriptor | NothingNodeDescriptor
+    type NodeDescriptor = TextDescriptor | ElementDescriptor<any> | ComponentDescriptor<any> | NothingDescriptor
 
-    type FieldValidationResult = {
-        readonly valid: boolean
-        readonly errors: string[]
-    }
-    type FormValidationResult = {
-        readonly valid: boolean
-        readonly errors: string[]
-        readonly fields: { [name: string]: FieldValidationResult }
-    }
-    type FieldValidator = (value: string) => FieldValidationResult
-    type FormValidator = (value: Map<string>) => FormValidationResult
-    
-    interface GlobalAttributes {
+    interface GlobalAttributes<E extends Element> {
         accesskey?: string
         'class'?: string
         contenteditable?: boolean | '' | 'true' | 'false'
@@ -131,27 +108,27 @@ declare namespace myra.core.contract {
         title?: string
         translate?: '' | 'yes' | 'no'
 
-        onblur?: ElementEventAttributeArguments
-        onclick?: ElementEventAttributeArguments
-        oncontextmenu?: ElementEventAttributeArguments
-        ondblclick?: ElementEventAttributeArguments
-        onfocus?: ElementEventAttributeArguments
-        onkeydown?: ElementEventAttributeArguments
-        onkeypress?: ElementEventAttributeArguments
-        onkeyup?: ElementEventAttributeArguments
-        onmousedown?: ElementEventAttributeArguments
-        onmouseenter?: ElementEventAttributeArguments
-        onmouseleave?: ElementEventAttributeArguments
-        onmousemove?: ElementEventAttributeArguments
-        onmouseout?: ElementEventAttributeArguments
-        onmouseover?: ElementEventAttributeArguments
-        onmouseup?: ElementEventAttributeArguments
-        onshow?: ElementEventAttributeArguments
+        onblur?: EventListener<Event, E>
+        onclick?: EventListener<MouseEvent, E>
+        oncontextmenu?: EventListener<Event, E>
+        ondblclick?: EventListener<MouseEvent, E>
+        onfocus?: EventListener<FocusEvent, E>
+        onkeydown?: EventListener<KeyboardEvent, E>
+        onkeypress?: EventListener<KeyboardEvent, E>
+        onkeyup?: EventListener<KeyboardEvent, E>
+        onmousedown?: EventListener<MouseEvent, E>
+        onmouseenter?: EventListener<MouseEvent, E>
+        onmouseleave?: EventListener<MouseEvent, E>
+        onmousemove?: EventListener<MouseEvent, E>
+        onmouseout?: EventListener<MouseEvent, E>
+        onmouseover?: EventListener<MouseEvent, E>
+        onmouseup?: EventListener<MouseEvent, E>
+        onshow?: EventListener<Event, E>
 
         [name: string]: any
     }
 
-    interface AAttributes extends GlobalAttributes {
+    interface AAttributes extends GlobalAttributes<HTMLAnchorElement> {
         download?: string
         href?: string
         hreflang?: string
@@ -160,7 +137,7 @@ declare namespace myra.core.contract {
         type?: string
     }
 
-    interface AreaAttributes extends GlobalAttributes {
+    interface AreaAttributes extends GlobalAttributes<HTMLAreaElement> {
         alt?: string
         coords?: string
         download?: string
@@ -172,7 +149,7 @@ declare namespace myra.core.contract {
         target?: string
         type?: string
     }
-    interface AudioAttributes extends GlobalAttributes {
+    interface AudioAttributes extends GlobalAttributes<HTMLAudioElement> {
         autoplay?: boolean | 'true' | 'false'
         buffered?: any
         controls?: any
@@ -183,7 +160,7 @@ declare namespace myra.core.contract {
         src?: string
         volume?: number | string
     }
-    interface ButtonAttributes extends GlobalAttributes {
+    interface ButtonAttributes extends GlobalAttributes<HTMLButtonElement> {
         autofocus?: boolean | 'true' | 'false'
         disabled?: boolean | 'true' | 'false'
         form?: string
@@ -194,37 +171,37 @@ declare namespace myra.core.contract {
         formtarget?: string
         name?: string
         type?: 'submit' | 'reset' | 'button'
-        value?: string | number 
+        value?: string | number
     }
-    interface CanvasAttributes extends GlobalAttributes {
+    interface CanvasAttributes extends GlobalAttributes<HTMLCanvasElement> {
         height?: number | string
         width?: number | string
     }
-    interface ColAttributes extends GlobalAttributes {
+    interface ColAttributes extends GlobalAttributes<HTMLTableColElement> {
         span?: number | string
     }
-    interface ColGroupAttributes extends GlobalAttributes {
+    interface ColGroupAttributes extends GlobalAttributes<HTMLTableColElement> {
         span?: number | string
     }
-    interface DelAttributes extends GlobalAttributes {
+    interface DelAttributes extends GlobalAttributes<HTMLElement> {
         cite?: string
         datetime?: string
     }
-    interface DetailsAttributes extends GlobalAttributes {
+    interface DetailsAttributes extends GlobalAttributes<HTMLElement> {
         open?: boolean | 'true' | 'false'
     }
-    interface EmbedAttributes extends GlobalAttributes {
+    interface EmbedAttributes extends GlobalAttributes<HTMLEmbedElement> {
         height?: number | string
         src?: string
         type?: string
         width?: number | string
     }
-    interface FieldsetAttributes extends GlobalAttributes {
+    interface FieldsetAttributes extends GlobalAttributes<HTMLFieldSetElement> {
         disabled?: boolean | 'true' | 'false'
         form?: string
         name?: string
     }
-    interface FormAttributes extends GlobalAttributes {
+    interface FormAttributes extends GlobalAttributes<HTMLFormElement> {
         accept?: string
         'accept-charset'?: string
         action?: string
@@ -234,14 +211,12 @@ declare namespace myra.core.contract {
         name?: string
         novalidate?: boolean | 'true' | 'false'
         target?: string
-        
-        onreset?: ElementEventAttributeArguments
-        onsubmit?: FormElementEventAttributeArguments
-        onchange?: FormElementEventAttributeArguments
-        
-        validate?: FormValidator | FormValidator[]
+
+        onreset?: EventListener<Event, HTMLFormElement>
+        onsubmit?: EventListener<Event, HTMLFormElement>// FormElementEventAttributeArguments
+        onchange?: EventListener<Event, HTMLFormElement>//FormElementEventAttributeArguments
     }
-    interface IframeAttributes extends GlobalAttributes {
+    interface IframeAttributes extends GlobalAttributes<HTMLIFrameElement> {
         allowfullscreen?: boolean | 'true' | 'false'
         height?: number | string
         name?: string
@@ -250,7 +225,7 @@ declare namespace myra.core.contract {
         srcdoc?: string
         width?: number | string
     }
-    interface ImgAttributes extends GlobalAttributes {
+    interface ImgAttributes extends GlobalAttributes<HTMLImageElement> {
         alt?: string
         crossorigin?: 'anonymous' | 'use-credentials'
         height?: number | string
@@ -262,7 +237,7 @@ declare namespace myra.core.contract {
         width?: number | string
         usemap?: string
     }
-    interface InputAttributes extends GlobalAttributes {
+    interface InputAttributes extends GlobalAttributes<HTMLInputElement> {
         type?: 'button' | 'checkbox' | 'color' | 'date' | 'datetime' | 'datetime-local' | 'email' | 'file' | 'hidden' | 'image' | 'month' | 'number' | 'password' | 'radio' | 'range' | 'reset' | 'search' | 'submit' | 'tel' | 'text' | 'time' | 'url' | 'week'
         accept?: string
         autocomplete?: string
@@ -296,27 +271,25 @@ declare namespace myra.core.contract {
         step?: number | string
         value?: string | number
         width?: number | string
-        
-        onchange?: FieldElementEventAttributeArguments
-        oninput?: FieldElementEventAttributeArguments
-        
-        validate?: FieldValidator | FieldValidator[]
+
+        onchange?: EventListener<Event, HTMLInputElement>
+        oninput?: EventListener<Event, HTMLInputElement>
     }
-    interface InsAttributes extends GlobalAttributes {
+    interface InsAttributes extends GlobalAttributes<HTMLElement> {
         cite?: string
         datetime?: string
     }
-    interface LabelAttributes extends GlobalAttributes {
+    interface LabelAttributes extends GlobalAttributes<HTMLLabelElement> {
         for?: string
         form?: string
     }
-    interface LiAttributes extends GlobalAttributes {
+    interface LiAttributes extends GlobalAttributes<HTMLLIElement> {
         value?: number | string
     }
-    interface MapAttributes extends GlobalAttributes {
+    interface MapAttributes extends GlobalAttributes<HTMLMapElement> {
         name?: string
     }
-    interface MeterAttributes extends GlobalAttributes {
+    interface MeterAttributes extends GlobalAttributes<HTMLMeterElement> {
         value?: number | string
         min?: number | string
         max?: number | string
@@ -325,7 +298,7 @@ declare namespace myra.core.contract {
         optimum?: number | string
         form?: string
     }
-    interface ObjectAttributes extends GlobalAttributes {
+    interface ObjectAttributes extends GlobalAttributes<HTMLObjectElement> {
         data?: string
         height?: number | string
         name?: string
@@ -333,28 +306,28 @@ declare namespace myra.core.contract {
         usemap?: string
         width?: number | string
     }
-    interface OptgroupAttributes extends GlobalAttributes {
+    interface OptgroupAttributes extends GlobalAttributes<HTMLOptGroupElement> {
         disabled?: boolean | 'true' | 'false'
         label?: string
     }
-    interface OptionAttributes extends GlobalAttributes {
+    interface OptionAttributes extends GlobalAttributes<HTMLOptionElement> {
         disabled?: boolean | 'true' | 'false'
         label?: string
         selected?: boolean | 'true' | 'false'
         value?: string | number
     }
-    interface ParamAttributes extends GlobalAttributes {
+    interface ParamAttributes extends GlobalAttributes<HTMLParamElement> {
         name?: string
         value?: string
     }
-    interface ProgressAttributes extends GlobalAttributes {
+    interface ProgressAttributes extends GlobalAttributes<HTMLProgressElement> {
         max?: number | string
         value?: number | string
     }
-    interface QAttributes extends GlobalAttributes {
+    interface QAttributes extends GlobalAttributes<HTMLQuoteElement> {
         cite?: string
     }
-    interface SelectAttributes extends GlobalAttributes {
+    interface SelectAttributes extends GlobalAttributes<HTMLSelectElement> {
         autofocus?: boolean | 'true' | 'false'
         disabled?: boolean | 'true' | 'false'
         form?: string
@@ -363,20 +336,18 @@ declare namespace myra.core.contract {
         required?: boolean | 'true' | 'false'
         size?: number | string
 
-        onchange?: FieldElementEventAttributeArguments
-        
-        validate?: FieldValidator | FieldValidator[]
+        onchange?: EventListener<Event, HTMLSelectElement>
     }
-    interface SourceAttributes extends GlobalAttributes {
+    interface SourceAttributes extends GlobalAttributes<HTMLSourceElement> {
         src?: string
         type?: string
     }
-    interface TdAttributes extends GlobalAttributes {
+    interface TdAttributes extends GlobalAttributes<HTMLTableCellElement> {
         colspan?: number | string
         headers?: string
         rowspan?: number | string
     }
-    interface TextareaAttributes extends GlobalAttributes {
+    interface TextareaAttributes extends GlobalAttributes<HTMLTextAreaElement> {
         autocomplete?: 'on' | 'off'
         autofocus?: boolean | 'true' | 'false'
         cols?: number | string
@@ -392,28 +363,26 @@ declare namespace myra.core.contract {
         selectionStart?: number | string
         wrap?: 'soft' | 'hard'
 
-        onchange?: FieldElementEventAttributeArguments
-        oninput?: FieldElementEventAttributeArguments
-
-        validate?: FieldValidator | FieldValidator[]
+        onchange?: EventListener<Event, HTMLTextAreaElement>
+        oninput?: EventListener<Event, HTMLTextAreaElement>
     }
-    interface ThAttributes extends GlobalAttributes {
+    interface ThAttributes extends GlobalAttributes<HTMLTableHeaderCellElement> {
         colspan?: number | string
         headers?: string
         rowspan?: number | string
         scope?: 'row' | 'col' | 'rowgroup' | 'colgroup' | 'auto'
     }
-    interface TimeAttributes extends GlobalAttributes {
+    interface TimeAttributes extends GlobalAttributes<HTMLElement> {
         datetime?: string
     }
-    interface TrackAttributes extends GlobalAttributes {
+    interface TrackAttributes extends GlobalAttributes<HTMLTrackElement> {
         default?: boolean | 'true' | 'false'
         kind?: 'subtitles' | 'captions' | 'descriptions' | 'chapters' | 'metadata'
         label?: string
         src?: string
         srclang?: string
     }
-    interface VideoAttributes extends GlobalAttributes {
+    interface VideoAttributes extends GlobalAttributes<HTMLVideoElement> {
         autoplay?: boolean | 'true' | 'false'
         buffered?: any
         controls?: boolean | 'true' | 'false'
@@ -426,5 +395,141 @@ declare namespace myra.core.contract {
         poster?: string
         src?: string
         width?: number | string
+    }
+}
+
+declare namespace JSX {
+
+    type GlobalAttributes<T extends HTMLElement> = myra.GlobalAttributes<T>
+
+    export type Element = myra.NodeDescriptor
+
+    export interface ElementClass<T> {
+        props: T
+    }
+    export interface ElementAttributesProperty<T> {
+        props: T
+    }
+    export interface IntrinsicElements {
+        nothing: never
+        text: never
+
+        a: myra.AAttributes
+        attr: GlobalAttributes<HTMLElement>
+        address: GlobalAttributes<HTMLElement>
+        area: myra.AreaAttributes
+        article: GlobalAttributes<HTMLElement>
+        aside: GlobalAttributes<HTMLElement>
+        audio: myra.AudioAttributes
+
+        b: GlobalAttributes<HTMLElement>
+        bdi: GlobalAttributes<HTMLElement>
+        bdo: GlobalAttributes<HTMLElement>
+        blockquote: GlobalAttributes<HTMLElement>
+        br: GlobalAttributes<HTMLBRElement>
+        button: myra.ButtonAttributes
+
+        canvas: myra.CanvasAttributes
+        caption: GlobalAttributes<HTMLTableCaptionElement>
+        cite: GlobalAttributes<HTMLElement>
+        code: GlobalAttributes<HTMLElement>
+        col: myra.ColAttributes
+        colgroup: myra.ColGroupAttributes
+
+        data: GlobalAttributes<HTMLElement>
+        datalist: GlobalAttributes<HTMLDataListElement>
+        dd: GlobalAttributes<HTMLElement>
+        del: myra.DelAttributes
+        details: myra.DetailsAttributes
+        dfn: GlobalAttributes<HTMLElement>
+        div: GlobalAttributes<HTMLDivElement>
+        dl: GlobalAttributes<HTMLDListElement>
+        dt: GlobalAttributes<HTMLElement>
+
+        em: GlobalAttributes<HTMLElement>
+        embed: myra.EmbedAttributes
+
+        fieldset: myra.FieldsetAttributes
+        figcaption: GlobalAttributes<HTMLElement>
+        figure: GlobalAttributes<HTMLElement>
+        footer: GlobalAttributes<HTMLElement>
+        form: myra.FormAttributes
+
+        h1: GlobalAttributes<HTMLHeadingElement>
+        h2: GlobalAttributes<HTMLHeadingElement>
+        h3: GlobalAttributes<HTMLHeadingElement>
+        h4: GlobalAttributes<HTMLHeadingElement>
+        h5: GlobalAttributes<HTMLHeadingElement>
+        h6: GlobalAttributes<HTMLHeadingElement>
+        header: GlobalAttributes<HTMLElement>
+        hr: GlobalAttributes<HTMLHRElement>
+
+        i: GlobalAttributes<HTMLElement>
+        iframe: myra.IframeAttributes
+        img: myra.ImgAttributes
+        input: myra.InputAttributes
+        ins: myra.InsAttributes
+
+        kbd: GlobalAttributes<HTMLElement>
+
+        label: myra.LabelAttributes
+        legend: GlobalAttributes<HTMLLegendElement>
+        li: myra.LiAttributes
+
+        main: GlobalAttributes<HTMLElement>
+        map: myra.MapAttributes
+        mark: GlobalAttributes<HTMLElement>
+        meter: myra.MeterAttributes
+
+        nav: GlobalAttributes<HTMLElement>
+
+        object: myra.ObjectAttributes
+        ol: GlobalAttributes<HTMLOListElement>
+        optgroup: myra.OptgroupAttributes
+        option: myra.OptionAttributes
+        output: GlobalAttributes<HTMLElement>
+
+        p: GlobalAttributes<HTMLParagraphElement>
+        param: myra.ParamAttributes
+        pre: GlobalAttributes<HTMLPreElement>
+        progress: myra.ProgressAttributes
+
+        q: myra.QAttributes
+
+        rp: GlobalAttributes<HTMLElement>
+        rt: GlobalAttributes<HTMLElement>
+        ruby: GlobalAttributes<HTMLElement>
+
+        s: GlobalAttributes<HTMLElement>
+        samp: GlobalAttributes<HTMLElement>
+        section: GlobalAttributes<HTMLElement>
+        select: myra.SelectAttributes
+        small: GlobalAttributes<HTMLElement>
+        source: myra.SourceAttributes
+        span: GlobalAttributes<HTMLElement>
+        strong: GlobalAttributes<HTMLElement>
+        sub: GlobalAttributes<HTMLElement>
+        summary: GlobalAttributes<HTMLElement>
+        sup: GlobalAttributes<HTMLElement>
+
+        table: GlobalAttributes<HTMLTableElement>
+        tbody: GlobalAttributes<HTMLTableSectionElement>
+        td: myra.TdAttributes
+        textarea: myra.TextareaAttributes
+        tfoot: GlobalAttributes<HTMLTableSectionElement>
+        th: myra.ThAttributes
+        thead: GlobalAttributes<HTMLTableSectionElement>
+        time: myra.TimeAttributes
+        tr: GlobalAttributes<HTMLTableRowElement>
+        track: myra.TrackAttributes
+
+        u: GlobalAttributes<HTMLElement>
+        ul: GlobalAttributes<HTMLUListElement>
+
+        var: GlobalAttributes<HTMLElement>
+        video: myra.VideoAttributes
+
+        wbr: GlobalAttributes<HTMLElement>
+
     }
 }

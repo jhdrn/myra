@@ -1,11 +1,11 @@
-import { InitializeComponent, Dispatch, ComponentNodeDescriptor, ComponentArgs, ComponentContext, Update, View, NodeDescriptor } from './contract'
+import { ComponentFactory, Dispatch, ComponentDescriptor, ComponentSpec, ComponentContext, Update, NodeDescriptor, Task } from './contract'
 import { equal, typeOf } from './helpers'
 import { dispatch } from './dispatch'
 import { render } from './view'
 import { subscriptions } from './subscriptions'
 
-type Subscribe = <M, A>(msg: string, update: Update<M, A>, context: ComponentContext<M, any>) => void
-const subscribe: Subscribe = <M, A>(msg: string, update: Update<M, A>, context: ComponentContext<M, any>) => {
+type Subscribe = <S, A>(msg: string, update: Update<S, A>, context: ComponentContext<S>) => void
+const subscribe: Subscribe = <S, A>(msg: string, update: Update<S, A>, context: ComponentContext<S>) => {
     if (!subscriptions[msg]) {
         subscriptions[msg] = []
     }
@@ -13,18 +13,17 @@ const subscribe: Subscribe = <M, A>(msg: string, update: Update<M, A>, context: 
 }
 
 type ComponentDefinitions = {
-    [name: string]: ComponentArgs<any, any>
+    [name: string]: ComponentSpec<any, any>
 }
 
 const componentDefinitions = {} as ComponentDefinitions
-const contexts: { [key: number]: ComponentContext<any, any> } = {}
+const contexts: { [key: number]: ComponentContext<any> } = {}
 let nextId = 1
 
 /** Internal class that holds component state. */
-class ComponentContextImpl<M, T> implements ComponentContext<M, T> {
+class ComponentContextImpl<S> implements ComponentContext<S> {
     constructor(readonly parentNode: Element,
-        readonly name: string,
-        readonly view: View<M>,
+        readonly spec: ComponentSpec<S, any>,
         public childNodes?: NodeDescriptor[]) {
     }
 
@@ -40,20 +39,20 @@ class ComponentContextImpl<M, T> implements ComponentContext<M, T> {
 
     dispatchLevel = 0
     isUpdating = false
-    model: M | undefined
+    state: S | undefined
     rendition: NodeDescriptor | undefined
     rootNode: Node
 }
 
-export function initComponent(descriptor: ComponentNodeDescriptor, parentNode: Element, parentDispatch: Dispatch) {
+export function initComponent<T>(descriptor: ComponentDescriptor<T>, parentNode: Element, parentDispatch: Dispatch) {
 
     decorateFnsWithDispatch(descriptor.props, parentDispatch)
+    decorateChildAttrsWithDispatch(descriptor, parentDispatch)
 
     const args = componentDefinitions[descriptor.name]
-    const context = new ComponentContextImpl<any, any>(
+    const context = new ComponentContextImpl<any>(
         parentNode,
-        args.name,
-        args.view,
+        args,
         descriptor.children
     )
 
@@ -67,12 +66,12 @@ export function initComponent(descriptor: ComponentNodeDescriptor, parentNode: E
     }
 
     // Dispatch once with init. The view won't be rendered.
-    dispatch(context, render, (_) => args.init, undefined)
+    dispatch(context, render, () => args.init, undefined)
 
     context.mounted = true
 
     // Dispatch again to render the view. 
-    dispatch(context, render, args.mount || (<M>(m: M) => m), descriptor.props)
+    dispatch(context, render, args.onMount || (<S>(m: S) => ({ state: m, tasks: [] })), descriptor.props)
 
     if (context.rendition) {
         descriptor.node = context.rendition.node
@@ -83,64 +82,118 @@ export function initComponent(descriptor: ComponentNodeDescriptor, parentNode: E
     }
 }
 
-export function updateComponent(newDescriptor: ComponentNodeDescriptor, oldDescriptor: ComponentNodeDescriptor) {
+export function updateComponent<T>(newDescriptor: ComponentDescriptor<T>,
+    oldDescriptor: ComponentDescriptor<T>,
+    parentDispatch: Dispatch) {
+
     newDescriptor.id = oldDescriptor.id
 
     const args = componentDefinitions[newDescriptor.name]
     const context = contexts[oldDescriptor.id]
 
+    decorateFnsWithDispatch(newDescriptor.props, parentDispatch)
+    decorateChildAttrsWithDispatch(newDescriptor, parentDispatch)
+
     if (newDescriptor.forceMount || !equal(oldDescriptor.props, newDescriptor.props)) {
         context.childNodes = newDescriptor.children
-        
-        dispatch(context, render, args.mount || (<M>(m: M) => m), newDescriptor.props)
+
+        if (!context.isUpdating) {
+            dispatch(context, render, args.onMount || (<S>(m: S) => ({ state: m, tasks: [] })), newDescriptor.props)
+        }
 
         newDescriptor.node = context.rendition!.node
         newDescriptor.rendition = context.rendition
     }
-    // else {
-    // TODO: "debug mode" with logging
-    // console.log(`${this.name}: No mount argument changes detected. Skipping mount dispatch.`)
-    // }
 }
 
 /** 
- * Finds functions and decorates them with a __dispatch property which can be
- * used if the function is to be used as an event listener when passed from a 
- * parent component.
+ * Finds functions and wraps them with a dispatch call to ensure that the right
+ * dispatch "scope" is executed.
  */
-function decorateFnsWithDispatch(props: any, dispatch: Dispatch) {
+function decorateFnsWithDispatch<T>(props: T, dispatch: Dispatch, asEventListeners = false): T {
     const propsType = typeOf(props)
     if (propsType === 'function') {
-        props.__dispatch = dispatch
+
+        if (asEventListeners) {
+            return function dispatchContext() {
+                const result = (props as any)(...[].slice.call(arguments))
+
+                if ((result as Task).execute) {
+                    return (result as Task).execute(dispatch) as any
+                }
+                else {
+                    return dispatch(result) as any
+                }
+            } as any
+        }
+        else {
+            return function dispatchContext() {
+                const result = props as any
+                const args = [].slice.call(arguments, 1)
+                if ((result as Task).execute) {
+                    return (result as Task).execute((update: any) => dispatch(update, ...args)) as any
+                }
+                else {
+                    return dispatch(result as Update<any, any>, ...args) as any
+                }
+            } as any
+        }
     }
     else if (propsType === 'object') {
-        Object.keys(props).forEach(k => decorateFnsWithDispatch(props[k], dispatch))
+        if ((props as any as Task).execute && typeof (props as any as Task).execute === 'function') {
+            return (() => (props as any as Task).execute(dispatch)) as any
+        }
+        else {
+            Object.keys(props as Object).forEach(k => {
+                if (k.indexOf('on') === 0) {
+                    (props as any)[k] = decorateFnsWithDispatch((props as any)[k], dispatch, asEventListeners)
+                }
+            })
+        }
+        return props
     }
     else if (propsType === 'array') {
-        props.forEach((p: any) => decorateFnsWithDispatch(p, dispatch))
+        return (props as any as Array<any>).map((p: any) => decorateFnsWithDispatch(p, dispatch, asEventListeners)) as any
+    }
+    return props
+}
+
+function decorateChildAttrsWithDispatch(descriptor: NodeDescriptor, dispatch: Dispatch) {
+    switch (descriptor.__type) {
+        case 'component':
+        case 'element':
+            descriptor.children.forEach(c => {
+                if (c.__type === 'element') {
+                    decorateFnsWithDispatch(c.attributes, dispatch, true)
+                    decorateChildAttrsWithDispatch(c, dispatch)
+                }
+            })
     }
 }
 
 /** Defines a component. */
-export function defineComponent<M, A>(args: ComponentArgs<M, A>): InitializeComponent {
+export function defineComponent<S, T>(args: ComponentSpec<S, T>): ComponentFactory<T> {
     if (componentDefinitions[args.name]) {
         throw `A component with name '${args.name}' is already defined!`
     }
 
     componentDefinitions[args.name] = args
 
-    return (props?: A, forceMount: boolean = false, childNodes: NodeDescriptor[] = []) => ({
-        __type: 'component',
-        id: 0,
-        node: undefined,
-        props: props,
-        forceMount: forceMount,
-        children: childNodes,
-        name: args.name
-    } as any)
+    return (props: T, forceMount: boolean = false, childNodes: NodeDescriptor[] = []) => {
+        return {
+            __type: 'component' as 'component',
+            name: args.name,
+            id: 0,
+            forceMount: forceMount,
+            children: childNodes,
+            rendition: undefined,
+            props: props,
+            node: undefined
+        }
+    }
 }
 
 /** Mounts the component onto the supplied element. */
-export function mountComponent(component: InitializeComponent, element: Element) {
-    initComponent(component(), element, undefined as any)
+export function mountComponent(component: ComponentFactory<any>, element: Element) {
+    initComponent(component({}), element, undefined as any)
 }

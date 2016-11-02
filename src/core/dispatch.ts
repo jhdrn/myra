@@ -1,50 +1,57 @@
-import { Update, Dispatch, NodeDescriptor, ComponentContext, Task } from './contract'
+import { Update, Dispatch, NodeDescriptor, ComponentContext, Result } from './contract'
 
 export interface Render {
     (parentNode: Element, view: NodeDescriptor, oldView: NodeDescriptor | undefined, oldRootNode: Node | undefined, dispatch: Dispatch): void
 }
 
-export function dispatch<M, A>(context: ComponentContext<M, A>, render: Render, fn: (model: M, ...args: any[]) => M | [M, Task | Task[]], ...args: any[]) {
+export function dispatch<S, A>(context: ComponentContext<S>, render: Render, fn: (state: S, ...args: any[]) => Result<S>, ...args: any[]) {
 
     if (context.isUpdating) {
-        throw `${context.name}: Dispatch error - the dispatch function may not be called during an update. Doing so would most likely corrupt the model state.`
+        throw `${context.spec.name}: Dispatch error - the dispatch function may not be called during an update. Doing so would most likely corrupt the state.`
     }
 
     context.dispatchLevel++
 
     context.isUpdating = true
 
-    const result = fn(context.model!, ...args)
+    const result = fn(context.state!, ...args)
+
+    if (result && typeof result !== 'object') {
+        throw 'Invalid result.'
+    }
 
     context.isUpdating = false
 
-    const dispatchFn = (fn: Update<M, A>, ...args: any[]) => dispatch(context, render, fn, ...args)
+    if (result) {
+        const dispatchFn = (fn: Update<S, A>, ...args: any[]) => dispatch(context, render, fn, ...args)
 
-    if (Array.isArray(result)) {
-        const [newModel, task] = result
+        if (result.tasks && result.tasks.length) {
 
-        context.model = newModel
+            context.state = result.state
 
-        if (Array.isArray(task)) {
-            task.forEach(t => t.execute(dispatchFn))
+            result.tasks.forEach(t => t.execute(dispatchFn))
         }
         else {
-            task.execute(dispatchFn)
+            context.state = result.state
+        }
+
+        // Update view if the component was already mounted and the dispatchLevel
+        // is at "lowest" level (i.e. 1).
+        if (context.mounted && context.dispatchLevel === 1) {
+            const newView = context.spec.view(context.state!, context.childNodes)
+
+            if (context.spec.onBeforeRender) {
+                context.spec.onBeforeRender(newView)
+            }
+
+            const oldNode = context.rendition ? context.rendition.node : undefined
+            render(context.parentNode, newView, context.rendition, oldNode, dispatchFn)
+            context.rendition = newView
+
+            if (context.spec.onAfterRender) {
+                context.spec.onAfterRender(newView)
+            }
         }
     }
-    else {
-        context.model = result
-    }
-
-    // Update view if the component was already mounted and the dispatchLevel
-    // is at "lowest" level (i.e. 1).
-    if (context.mounted && context.dispatchLevel === 1) {
-
-        const newView = context.view(context.model!, context.childNodes)
-        const oldNode = context.rendition ? context.rendition.node : undefined
-        render(context.parentNode, newView, context.rendition, oldNode, dispatchFn)
-        context.rendition = newView
-    }
-
     context.dispatchLevel--
 }

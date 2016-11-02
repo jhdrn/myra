@@ -2,7 +2,7 @@ var path = require("path");
 
 module.exports = {
     entry: {
-        app: './src/app.ts'
+        app: './src/app.tsx'
     },
     output: {
         path: path.resolve(__dirname, 'build'),

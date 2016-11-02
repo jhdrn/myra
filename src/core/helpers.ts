@@ -1,21 +1,33 @@
+import { Result, Task } from './contract'
 
 export const isIE9 = document.all && !window.atob
 
 export type Type = 'array' | 'object' | 'string' | 'date' | 'regexp' | 'function' | 'boolean' | 'number' | 'null' | 'undefined'
 
 export function typeOf(obj: any): Type {
-	if (typeof obj === 'string') return 'string'
-	if (typeof obj === 'number') return 'number'
-	if (typeof obj === 'boolean') return 'boolean'
-	if (typeof obj === 'function') return 'function'
-	if (typeof obj === 'undefined') return 'undefined'
-	if (typeof obj === 'null') return 'null'
+    if (typeof obj === 'string') return 'string'
+    if (typeof obj === 'number') return 'number'
+    if (typeof obj === 'boolean') return 'boolean'
+    if (typeof obj === 'function') return 'function'
+    if (typeof obj === 'undefined') return 'undefined'
+    if (typeof obj === 'null') return 'null'
     return ({}).toString.call(obj).slice(8, -1).toLowerCase()
-} 
+}
 
-export function max(a: number, b: number): number { 
+const fnNameMatchRegex = /^\s*function\s+([^\(\s]*)\s*/
+export function nameOf(fn: Function) {
+    if ((fn as any).name) {
+        return (fn as any).name
+    }
+
+    const match = ("" + fn).match(fnNameMatchRegex);
+
+    return (match && match[1]) || 'Function'
+}
+
+export function max(a: number, b: number): number {
     return a > b ? a : b
-} 
+}
 
 export function equal<T>(a: T, b: T): boolean {
     const typeOfA = typeOf(a)
@@ -91,12 +103,33 @@ export function deepCopy<T>(value: T): T {
     }
 }
 
+export interface Evolved<T> extends Result<T> {
+    and: (task: Task, ...tasks: Task[]) => Evolved<T>
+}
+
 /**
  * Creates a new object by deep copying "original". The evolve function is used 
  * to update the copy with new data.
  */
-export function evolve<T>(original: T, evolve: (obj: T) => void): T {
+export function evolve<T>(original: T, evolve?: ((obj: T) => void)): Evolved<T> {
     const copy = deepCopy(original)
-    evolve(copy)
-    return copy
+
+    if (evolve) {
+        evolve(copy)
+    }
+
+    const result = {
+        state: copy,
+        tasks: [] as Task[]
+    } as Result<T>
+
+    (result as Evolved<T>).and = (task: Task, ...tasks: Task[]) => {
+        result.tasks!.push(task)
+        if (tasks) {
+            tasks.forEach(t => result.tasks!.push(t))
+        }
+        return result as Evolved<T>
+    }
+
+    return result as Evolved<T>
 }

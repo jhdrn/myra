@@ -13,12 +13,11 @@
         "strictNullChecks": true,
         "moduleResolution": "node",
         "pretty": true,
-        "baseUrl": "./",
-        "paths": {
-            "myra/*": ["node_modules/myra/*"]
-        }
+        "reactNamespace": "jsxFactory",
+        "jsx": "react"
     },
     "include": [
-        "src/**/*"
+        "src/**/*",
+        "node_modules/myra/**/*.ts"
     ]
 }

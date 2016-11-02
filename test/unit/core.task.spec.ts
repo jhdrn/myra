@@ -10,12 +10,12 @@ describe('core.task', () => {
 
     it('executes correctly', () => {
         const t = task((dispatch: Dispatch) => {
-            dispatch((x: number) => x + 1)
+            dispatch((x: number) => ({ state: x + 1, tasks: [] }))
         })
 
         t.execute((fn: Update<number, any>) => {
             const result = fn(1)
-            expect(result).toBe(2)
+            expect(result).toEqual({ state: 2, tasks: [] })
         })
     })
 
