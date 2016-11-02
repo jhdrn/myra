@@ -1,4 +1,5 @@
 import { defineComponent, evolve } from 'myra/core'
+import { bind } from 'myra/forms'
 import * as jsxFactory from 'myra/core/jsxFactory'
 import { trackLocationChanges } from 'myra/location'
 import { TodoListComponent } from './todo-list'
@@ -48,7 +49,7 @@ const view = (_: State) =>
                     placeholder="What needs to be done?"
                     autofocus={true}
                     value=""
-                    onkeydown_enter={() => addNewTodo} />
+                    onkeydown_enter={bind(addNewTodo)} />
             </header>
             <TodoListComponent />
         </section>

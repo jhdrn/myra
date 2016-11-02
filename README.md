@@ -29,71 +29,67 @@ that the compiler options `strictNullChecks`, `noImplicitReturns` and
 * **No dependencies:** 
   Myra does not depend on any external libraries.
 * **Small code base/size:** 
-  ~17kb minified/~5kb minified and gzipped
+  Hello World example is ~10kb minified/~4kb minified and gzipped
+
+## State of the project
+The core API (i.e. `myra/core`) is close to be finalized. The other modules
+are subjects to a lot of changes.
 
 ## Getting started
 Clone the repository and check the [examples](https://github.com/jhdrn/myra/tree/master/examples) folder. Open any example's folder
 in your terminal and execute `npm install` followed by `npm start`, then open 
-your favorite browser and point it to `localhost:8080`.
+your favorite browser and point it to `localhost:8080`. 
+
+The examples can be used as bootstrapping templates as they are set up with
+build and "watch" scripts using npm and Webpack.
 
 ## Components
-Myra is all about components and there is always at least one component in a 
-Myra application. A component will have it's own state (the 'State') and view.
+A Myra app is built from a hierarchy of components. The root component is 
+mounted to a DOM element and it may contain child components.
 
-A component will be defined with `defineComponent`:
+Every component has a name (that must be unique), a state of any type and a 
+view. Many times a component also has associated `Update` functions that updates 
+it's state.
+
+To define a component, use `defineComponent` and then mount it to the DOM
+with `mountComponent`:
     
-```typescript
-    import { defineComponent } from 'myra/core'
+```JSX
+    import { defineComponent, mountComponent } from 'myra/core'
 
-    const myComponent = defineComponent({
+    type State = string
+
+    const MyComponent = defineComponent({
         // The name of the component
         name: 'MyComponent', 
         
-        // The initial state and optional tasks (see 'State' and 'Task' below)
-        init: ..., 
+        // The initial state and tasks (optional) (see 'Tasks' below)
+        init: {
+            state: 'Hello world',
+            tasks: ... // optional 
+        }, 
 
         // An optional Update function to call when the component is mounted.
         // See 'Update' below.
-        mount: ..., 
+        onMount: ..., 
         
         // Any subscriptions (see 'Subscriptions' below)
         subscriptions: ...,
         
         // The view of the component (see 'View' below)
-        view: ... 
+        view: (state: State) => <p>{state}</p>
     })
+
+    // Mounts the component to a DOM element
+    mountComponent(MyComponent, document.body) 
 ```
 
-The "main" component should be mounted to a HTML element:
+### Updating the state
+State is updated with `Update` functions. `Update` functions should 
+always be [pure](https://en.wikipedia.org/wiki/Pure_function) and 
+should also always copy the state if any changes are made to it.
 
-```typescript
-    import { mountComponent } from 'myra/core'
-
-    mountComponent(myComponent, document.body)
-```
-
-### State
-Represents the state of the component. Can be anything but a function, even 
-undefined or null.
-
-### Task
-A `Task` represents some kind of side effect. It receives a dispatch function
-that may be used to dispatch an `Update` function with any given arguments.
-
-```typescript
-    import { task, Update } from 'myra/core'
-
-    const myTask = (update: Update<any, any>) => task(dispatch => {
-        ...some side effect...
-        const arg = ...
-        dispatch(update, arg)
-    })
-```
-
-### Update
-One or more functions that updates the state. Update functions should always be 
-pure and should also always copy the state if any changes are made to it.
-The `evolve` function helps with copying the state.
+The `evolve` function helps with modifying and copying the state.
 
 ```typescript
     import { evolve } from 'myra/core'
@@ -106,7 +102,7 @@ The `evolve` function helps with copying the state.
         evolve(state, x => x.foo = newFoo)
 ```
 
-Update functions must return a `Result<T>` which is basically an object with the
+Update functions must return a `Result<T>` which is an object with the
 following definition: 
 
 ``` typescript
@@ -116,127 +112,90 @@ following definition:
     }
 ```
 
-### View
-Myra does not use HTML templates but creates it's views with JSX.
+### Tasks
+A `Task` represents some kind of side effect. It receives a dispatch function
+that may be used to dispatch an `Update` function with any given arguments.
+
+Tasks can be returned in a `Result<T>` from an `Update` function or from
+an event listener (see 'Event listeners' below).
+
+```typescript
+    import { task, Update } from 'myra/core'
+
+    const myTask = (update: Update<any, any>) => task(dispatch => {
+        ...some side effect...
+        const arg = ...
+        dispatch(update, arg)
+    })
+```
+
+### Views
+Myra does not use HTML templates but creates it's views with JSX. The state of
+the component is supplied as an argument to the view function.
 
 ```JSX
     import * as jsxFactory from 'myra/html/jsxFactory'
 
-    const view = (_) => 
-        <div>
-            <ul>
-                <li>
-                    A list item
-                </li>
-            </ul>
-        </div>
+    type State = string
+
+    const view = (s: State) => 
+        <p>
+           The state is {s}
+        </p>
 
 ```
 
-##### Attributes and event listeners
-Event listeners can be either an `Update` function or a `Task`.
+##### Event listeners
+Any attribute key starting with `on` is treated as an event listener.
+Event listeners are functions that returns either an `Update` function or a 
+`Task`. The event and the `NodeDescriptor` of the node are passed as arguments.
+A `NodeDescriptor` is a "virtual DOM" representation of a DOM node. It contains
+a reference to it's associated `Node`. 
+
+Keyboard events are handled a bit different: in order to know what key to be
+listening for, the key of the attribute must be suffixed with an underscore
+and the name of the key code to listen for, i.e. `keyup_49`. There are also
+aliases for the following common keys: backspace, tab, enter, esc and space.
+These can be used instead of their corresponding key code, i.e. 
+`keyup_backspace`, `keydown_enter` etc. 
 
 ```JSX
     import * as jsxFactory from 'myra/html/jsxFactory'
 
     const myUpdate = (m: State) => {
         ...
-        return m
+        return evolve(m)
     }
 
     const view = (_) => 
-        <div class="className" onclick={myUpdate}></div>
+        <div class="className" onclick={(ev: MouseEvent, el: NodeDescriptor) => myUpdate}></div>
 
 ```
 
-##### Special behavior
+#### Special attributes
 Some attributes and events has special behavior associated with them.
 
-* Any attribute key starting with `on` is treated as an event listener. The
-  value of such an attribute should be an `Update` or `Task` function. However,
-  if there is a need to call `event.preventDefault()` and/or 
-  `event.stopPropagation()`, the event listener can be wrapped in an object 
-  like this: 
-  `{ listener: updateFnOrTask, preventDefault: true, stopPropagation: true }`
-* If an event listener is added to an `input`, `select` or `textarea` element,
-  it's `value` will be passed as an argument to the attached `Update` function.
-* If the element is a `form` element and the `onsubmit` event listener is 
-  triggered, all values of it's child elements with a `name` attribute will be 
-  copied to an anonymous object which will be passed as argument to the 
-  attached `Update` function. 
-* Keyboard events are handled a bit different: in order to know what key to be
-  listening for, the key of the attribute must be suffixed with an underscore
-  and the name of the key code to listen for, i.e. `keyup_49`. There are also
-  aliases for the following common keys: backspace, tab, enter, esc and space.
-  These can be used instead of their corresponding key code, i.e. 
-  `keyup_backspace`, `keydown_enter` etc. 
+* The `class` attribute value will be set to the `className` property of the element.
 * `blur`, `focus` and `click` attributes with a truthy value will result in a call to 
   `element.blur()`, `element.focus()` and `element.click()` respectively.
 * `checked` and `disabled` attributes with a truthy value will set 
   `element.checked` and/or `element.disabled` to true.
-* The `value` attribute will set element.value if it is either an `input`, 
+* The `value` attribute will set `element.value` if it is either an `input`, 
   `select` or `textarea` element.
 
-```JSX
-    import * as jsxFactory from 'myra/html/jsxFactory'
-
-    type FormData = { 
-        foo: string
-        bar: string
-    }
-
-    // Example of update function that will receive form data as 
-    // argument when the event is triggered.
-    const handleFormSubmit = (s: State, formData: FormData) => {
-        ...
-        return evolve(s)
-    }
-
-    // Example of update function that will receive an input elements value as 
-    // argument when the event is triggered.
-    const updateNothing = (s: State, value: string) => 
-        return evolve(s)
-    
-    const view = (_) =>
-        <form onsubmit={{ listener: handleFormSubmit, preventDefault: true }}>
-            <div>
-                <input focus={ true }
-                       name="foo"
-                       type="text"
-                       onkeyup_escape={ updateNothing } />
-                
-                <input type="checkbox"
-                       checked={ true }
-                       name="bar" />
-                <button type="submit"></button>
-            </div>
-        </form>
-```
-
 #### Child components
-To mount a child component................., rendering it's view hierarchy. It's possible to feed
-the child component with arguments.
+To mount a child component use it's identifier as a JSX tag. The component
+identifier must begin with an uppercase first letter, as by standard JSX rules.
+
+Any attributes will be passed to the child component's `onMount` `Update` function 
+if defined.
 
 ```JSX
     import * as jsxFactory from 'myra/html/jsxFactory'
-
-    ...
+    import MyComponent from './myComponent'
     
     const view = (_) => 
         <MyOtherComponent foo="an argument" />
-
-```
-
-
-#### Nothing
-Represents nothing, renders as a comment node with the comment "Nothing".
-
-```JSX
-    import * as jsxFactory from 'myra/html/jsxFactory'
-
-    ...
-    
-    const view = (_) => <nothing />
 
 ```
 
@@ -276,6 +235,10 @@ task":
     const someUpdateFn = (s: State) => 
         evolve(s).and(broadcastTask)
 ```
+
+### Forms
+`myra/forms` is a module with helper functions and components for form handling. 
+It's currently a work in progress.
 
 ### HTTP requests
 `myra/http` is a module with `Task` wrappers for making XmlHttpRequests. It 

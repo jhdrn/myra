@@ -1,5 +1,6 @@
-import { defineComponent, evolve, Update } from 'myra/core'
+import { defineComponent, evolve } from 'myra/core'
 import * as jsxFactory from 'myra/core/jsxFactory'
+import { bind } from 'myra/forms'
 import * as todos from '../models/todos'
 
 type Todo = todos.Todo
@@ -79,22 +80,13 @@ const todoClass = (m: State) => {
     return undefined
 }
 
-/**
- * Returns a function that receives the event, calls preventDefault() and 
- * passes the update argument trough.
- */
-const preventDefaultAnd = (update: Update<State, string>) => (ev: KeyboardEvent) => {
-    ev.preventDefault()
-    return update;
-}
-
 const editInputOrNothing = (state: State) =>
     state.editing ? <input class="edit"
         focus="true"
         value={state.todo.title}
-        onblur={() => saveTodo}
-        onkeyup_enter={preventDefaultAnd(saveTodo)}
-        onkeyup_escape={preventDefaultAnd(undoEditTodo)} />
+        onblur={bind(saveTodo)}
+        onkeyup_enter={bind(saveTodo)}
+        onkeyup_escape={bind(undoEditTodo)} />
         : <nothing />
 
 const view = (state: State) =>

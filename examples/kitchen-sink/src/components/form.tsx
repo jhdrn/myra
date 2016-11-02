@@ -81,19 +81,6 @@ const view = (state: State) =>
                     <p class="help-text"> {(state.formValidationResult!.fields as any)['formField'].errors}</p>
                     : <nothing />}
             </div>
-            {/*
-            <InputGroupComponent id="oninputDemo1"
-                name="oninputDemo1"
-                class={!state.formValidationResult || state.formValidationResult.fields['oninputDemo1'].valid ? 'form-group' : 'form-group has-error'}
-                label="Oninput demo 1"
-                type="email"
-                validate={[required('Oninput demo 1')]}
-                oninput={() => oninputUpdate}>
-                {state.formValidationResult ?
-                    <p class="help-text"> {(state.formValidationResult!.fields as any)['oninputDemo1'].errors}</p>
-                    : <nothing />}
-            </InputGroupComponent>
-        */}
             <div class="form-group">
                 <label for="oninputDemo">Oninput demo (optional)</label>
                 <textarea id="oninputDemo"
