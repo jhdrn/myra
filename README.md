@@ -244,7 +244,7 @@ It's currently a work in progress.
 `myra/http` is a module with `Task` wrappers for making XmlHttpRequests. It 
 exposes the `httpRequest` function and 'shortcut' functions for GET, POST, PUT 
 and DELETE requests. Take a look at 
-[examples/kitchen-sink/src/components/http.ts](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/http.ts)
+[examples/kitchen-sink/src/components/http.tsx](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/http.tsx)
 for an example on how to use the module.
 
 ### Location/"routing"
@@ -252,15 +252,15 @@ for an example on how to use the module.
 `pushState/replaceState/popState`.
 
 Both the 
-[kitchen-sink example](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/location.ts) 
+[kitchen-sink example](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/location.tsx) 
 and the 
-[todomvc example](https://github.com/jhdrn/myra/blob/master/examples/todomvc/src/components/todo-list.ts) 
+[todomvc example](https://github.com/jhdrn/myra/blob/master/examples/todomvc/src/components/todo-list.tsx) 
 contains code examples for `myra/location`.
 
 ### Timeouts and intervals
 `myra/time` is a module with `Task` wrappers for `setTimeout` and `setInterval`.
 Take a look at 
-[examples/kitchen-sink/src/components/time.ts](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/time.ts)
+[examples/kitchen-sink/src/components/time.tsx](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/time.tsx)
 for an example on how to use the module.
 
 ## License
