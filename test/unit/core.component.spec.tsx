@@ -1,5 +1,6 @@
 import { defineComponent, mountComponent, evolve, NodeDescriptor } from 'core'
 import { initComponent, updateComponent } from 'core/component'
+import { task } from 'core/task'
 import * as jsxFactory from 'core/jsxFactory'
 
 const q = (x: string) => document.querySelector(x)
@@ -151,6 +152,37 @@ describe('mountComponent', () => {
         mountComponent(parent, document.body)
 
             ; (q('#childBtn2') as HTMLButtonElement).click()
+
+        expect(updateMock.update).toHaveBeenCalledTimes(1)
+    })
+
+    it(`calls the parent's dispatch function if task is passed to and called from a child node descriptor`, () => {
+
+        const updateMock = {
+            update: (x: number) => {
+                expect(x).toBe(22)
+                return evolve(x)
+            }
+        }
+
+        spyOn(updateMock, 'update').and.callThrough()
+
+        const Component = defineComponent<any, any>({
+            name: randomName(),
+            init: evolve(undefined),
+            onMount: (_m, a) => evolve(a),
+            view: (_m: any, children: NodeDescriptor[]) => <div>{children}</div>
+        })
+
+        const parent = defineComponent({
+            name: randomName(),
+            init: evolve(22),
+            view: (_: number) => <Component><button id="childBtn3" onclick={() => task(dispatch => dispatch(updateMock.update))} /></Component>
+        })
+
+        mountComponent(parent, document.body)
+
+            ; (q('#childBtn3') as HTMLButtonElement).click()
 
         expect(updateMock.update).toHaveBeenCalledTimes(1)
     })

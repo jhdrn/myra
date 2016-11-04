@@ -19,18 +19,45 @@
         "reactNamespace": "jsxFactory",
         "jsx": "react",
         "paths": {
-            "core": ["src/core/index"],
-            "core/component": ["src/core/component"],
-            "core/contract": ["src/core/contract"],
-            "core/dispatch": ["src/core/dispatch"],
-            "core/helpers": ["src/core/helpers"],
-            "core/subscriptions": ["src/core/subscriptions"],
-            "core/validation": ["src/core/validation"],
-            "core/view": ["src/core/view"],
-            "core/jsxFactory": ["src/core/jsxFactory"],
-            "http": ["src/http"],
-            "location": ["src/location"],
-            "time": ["src/time"]
+            "core": [
+                "src/core/index"
+            ],
+            "core/component": [
+                "src/core/component"
+            ],
+            "core/contract": [
+                "src/core/contract"
+            ],
+            "core/dispatch": [
+                "src/core/dispatch"
+            ],
+            "core/task": [
+                "src/core/task"
+            ],
+            "core/helpers": [
+                "src/core/helpers"
+            ],
+            "core/subscriptions": [
+                "src/core/subscriptions"
+            ],
+            "core/validation": [
+                "src/core/validation"
+            ],
+            "core/view": [
+                "src/core/view"
+            ],
+            "core/jsxFactory": [
+                "src/core/jsxFactory"
+            ],
+            "http": [
+                "src/http"
+            ],
+            "location": [
+                "src/location"
+            ],
+            "time": [
+                "src/time"
+            ]
         },
         "listEmittedFiles": true
     },
