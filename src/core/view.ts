@@ -242,7 +242,7 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
                             setAttr(existingNode as HTMLElement, name, eventListener || attributeValue)
                         }
                         else if (typeof attributeValue === 'undefined' && (existingNode as Element).hasAttribute(name)) {
-                            existingNode.attributes.removeNamedItem(name)
+                            (existingNode as Element).removeAttribute(name)
                         }
                     }
                 }

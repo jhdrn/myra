@@ -17,7 +17,7 @@ function flattenChildren(children: ((NodeDescriptor | string)[] | NodeDescriptor
                 .forEach(c => flattenedChildren.push(c))
         }
         else if (typeof children[i] === 'object') {
-            if ((children[i] as NodeDescriptor).__type) {
+            if (typeof (children[i] as NodeDescriptor).__type !== 'undefined') {
                 flattenedChildren.push(children[i] as NodeDescriptor)
             }
             else {
@@ -30,7 +30,7 @@ function flattenChildren(children: ((NodeDescriptor | string)[] | NodeDescriptor
     }
 
     return flattenedChildren.filter(c => typeof c !== 'undefined').map(c => {
-        if (typeof c !== 'object' || Array.isArray(c) || typeof c === 'object' && !(c as NodeDescriptor).__type) {
+        if (typeof c !== 'object' || Array.isArray(c) || typeof c === 'object' && typeof (c as NodeDescriptor).__type === 'undefined') {
             return textDescriptor(c as string)
         }
         return c as NodeDescriptor
