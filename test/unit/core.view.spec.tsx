@@ -76,7 +76,7 @@ describe('core.view.render', () => {
 
         render(document.body, view, view, undefined, () => { })
         const node = view.node as HTMLDivElement
-        expect((node.childNodes.item(0) as HTMLDivElement).id).toBe('testComponent')
+        expect((node.childNodes[0] as HTMLDivElement).id).toBe('testComponent')
 
         done()
     })

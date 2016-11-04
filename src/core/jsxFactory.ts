@@ -37,14 +37,13 @@ function flattenChildren(children: ((NodeDescriptor | string)[] | NodeDescriptor
     })
 }
 
-export function createElement<T>(tagNameOrComponent: string | ComponentFactory<T>, props: T): JSX.Element {
+export function createElement<T>(tagNameOrComponent: string | ComponentFactory<T>, props: T, ...children: (string | NodeDescriptor)[]): JSX.Element {
     if (tagNameOrComponent === 'nothing') {
         return { __type: 'nothing' }
     }
     else if (typeof tagNameOrComponent === 'string') {
-        const children = Array.prototype.slice.call(arguments, 2)
         if (tagNameOrComponent === 'text') {
-            return textDescriptor(children[0])
+            return textDescriptor(children[0] as string)
         }
         return {
             __type: 'element',
@@ -53,5 +52,5 @@ export function createElement<T>(tagNameOrComponent: string | ComponentFactory<T
             children: flattenChildren(children)
         }
     }
-    return tagNameOrComponent(props || undefined, props ? (props as any)['forceMount'] : undefined, Array.prototype.slice.call(arguments, 2))
+    return tagNameOrComponent(props || undefined, props ? (props as any)['forceMount'] : undefined, children as NodeDescriptor[])
 }
