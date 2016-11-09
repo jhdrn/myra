@@ -1,4 +1,4 @@
-import { task, broadcast, Update, Dispatch } from 'myra/core'
+import { broadcast, Update, Dispatch } from 'myra/core'
 
 export type Todo = {
     id: number
@@ -10,42 +10,42 @@ const LOCAL_STORAGE_KEY = 'todos-myra'
 const get = () => (JSON.parse(window.localStorage.getItem(LOCAL_STORAGE_KEY) || '[]') || []) as Todo[]
 const set = (todos: Todo[], dispatch: Dispatch) => {
     window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(todos))
-    broadcast('todosChanged', todos).execute(dispatch)
+    broadcast('todosChanged', todos)(dispatch)
 } 
 
-export const getAll = <M>(todosLoaded: Update<M, Todo[]> ) => task((dispatch: Dispatch) => {
+export const getAll = <M>(todosLoaded: Update<M, Todo[]> ) => (dispatch: Dispatch) => {
     dispatch(todosLoaded, get())
-})
+}
 
-export const add = (todo: Todo) => task((dispatch) => {
+export const add = (todo: Todo) => (dispatch: Dispatch) => {
     const todos = get()
     const maxId = todos.map(t => t.id).sort().pop() || 0
     todo.id = maxId + 1
     todos.push(todo)
     set(todos, dispatch)
-})
+}
 
-export const save = (todo: Todo) => task(dispatch => {
+export const save = (todo: Todo) => (dispatch: Dispatch) => {
     const todos = get()
     const existing = todos.filter(f => f.id === todo.id)[0]
     todos.splice(todos.indexOf(existing), 1, todo)
     set(todos, dispatch)
-})
+}
 
-export const remove = (todoId: number) => task(dispatch => {
+export const remove = (todoId: number) => (dispatch: Dispatch) => {
     const todos = get()
     const existing = todos.filter(f => f.id === todoId)[0]
     todos.splice(todos.indexOf(existing), 1)
     set(todos, dispatch)
-})
+}
 
-export const removeCompleted = task(dispatch => {
+export const removeCompleted = (dispatch: Dispatch) => {
     set(get().filter(t => !t.completed), dispatch)
-})
+}
 
-export const toggleAll = (completed: boolean) => task(dispatch => {
+export const toggleAll = (completed: boolean) => (dispatch: Dispatch) => {
     set(get().map(t => { 
         t.completed = completed
         return t
     }), dispatch)
-})
+}

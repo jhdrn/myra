@@ -24,15 +24,11 @@ export function dispatch<S, A>(context: ComponentContext<S>, render: Render, fn:
 
     const dispatchFn = (fn: Update<S, A>, ...args: any[]) => dispatch(context, render, fn, ...args)
 
-        if (typeof result.effects !== 'undefined' && result.effects.length) {
+    context.state = result.state
 
-            context.state = result.state
-
-            result.effects.forEach(t => t(dispatchFn))
-        }
-        else {
-            context.state = result.state
-        }
+    if (typeof result.effects !== 'undefined' && result.effects.length) {
+        result.effects.forEach(t => t(dispatchFn))
+    }
 
     // Update view if the component was already mounted and the dispatchLevel
     // is at "lowest" level (i.e. 1).

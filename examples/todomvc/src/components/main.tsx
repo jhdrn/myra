@@ -36,11 +36,13 @@ const addNewTodo = (m: State, value: string) => {
     return evolve(m)
 }
 
-
 /**
- * View
+ * Component
  */
-const view = (_: State) =>
+export const mainComponent = defineComponent<State, undefined>({
+    name: 'MainComponent',
+    init: init,
+    view:  (ctx) =>
     <div>
         <section class="todoapp">
             <header class="header">
@@ -49,7 +51,7 @@ const view = (_: State) =>
                     placeholder="What needs to be done?"
                     autofocus={true}
                     value=""
-                    onkeydown_enter={bind(addNewTodo)} />
+                    onkeydown_enter={bind(ctx.dispatch, addNewTodo)} />
             </header>
             <TodoListComponent />
         </section>
@@ -59,13 +61,4 @@ const view = (_: State) =>
             <p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
         </footer>
     </div>
-
-
-/**
- * Component
- */
-export const mainComponent = defineComponent<State, undefined>({
-    name: 'MainComponent',
-    init: init,
-    view: view
 })
