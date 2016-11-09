@@ -1,7 +1,5 @@
-import { task, broadcast, Map, Task, Dispatch } from './core/index'
+import { broadcast, Map, Dispatch } from './core/index'
 import { typeOf } from './core/helpers'
-export { Task }
-
 
 export type PatternMap<T> = {
     [pattern: string]: T | ((params: Map<string>) => T)
@@ -72,40 +70,40 @@ function broadcastLocationChanged(dispatch: Dispatch) {
             }
             return defaultValue
         }
-    } as LocationContext).execute(dispatch)
+    } as LocationContext)(dispatch)
 }
 
-export const trackLocationChanges = () => task((dispatch) => {
+export const trackLocationChanges = () => (dispatch: Dispatch) => {
     broadcastLocationChanged(dispatch)
     
     window.onpopstate = (_) => {
         broadcastLocationChanged(dispatch)
     }
-})
+}
 
-export const updateLocation = (path: string, params?: Map<string>) => task((dispatch) => {
+export const updateLocation = (path: string, params?: Map<string>) => (dispatch: Dispatch) => {
     const url = makeUrl(path, params)
     window.history.pushState({ url: url }, '', url)
 
     broadcastLocationChanged(dispatch)
-})
+}
 
-export const replaceLocation = (path: string, params?: Map<string>) => task((dispatch) => {
+export const replaceLocation = (path: string, params?: Map<string>) => (dispatch: Dispatch) => {
     const url = makeUrl(path, params)
     window.history.replaceState({ url: url }, '', url)
 
     broadcastLocationChanged(dispatch)
-})
+}
 
-export const goBack = (steps?: number) => task(dispatch => {
+export const goBack = (steps?: number) => (dispatch: Dispatch) => {
     window.history.back(steps)
     broadcastLocationChanged(dispatch)
-}) 
+}
 
-export const goForward = (steps?: number) => task(dispatch => {
+export const goForward = (steps?: number) => (dispatch: Dispatch) => {
     window.history.forward(steps)
     broadcastLocationChanged(dispatch)
-}) 
+}
 
 function makeUrl(path: string, params?: Map<string>) {
     if (params) {

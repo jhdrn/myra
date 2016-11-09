@@ -1,4 +1,4 @@
-import { Result, Task } from './contract'
+import { Result, Effect } from './contract'
 
 export const isIE9 = document.all && !window.atob
 
@@ -12,17 +12,6 @@ export function typeOf(obj: any): Type {
     if (typeof obj === 'undefined') return 'undefined'
     if (typeof obj === 'null') return 'null'
     return ({}).toString.call(obj).slice(8, -1).toLowerCase()
-}
-
-const fnNameMatchRegex = /^\s*function\s+([^\(\s]*)\s*/
-export function nameOf(fn: Function) {
-    if ((fn as any).name) {
-        return (fn as any).name
-    }
-
-    const match = ("" + fn).match(fnNameMatchRegex);
-
-    return (match && match[1]) || 'Function'
 }
 
 export function max(a: number, b: number): number {
@@ -104,7 +93,7 @@ export function deepCopy<T>(value: T): T {
 }
 
 export interface Evolved<T> extends Result<T> {
-    and: (task: Task, ...tasks: Task[]) => Evolved<T>
+    and: (effect: Effect, ...tasks: Effect[]) => Evolved<T>
 }
 
 /**
@@ -120,13 +109,13 @@ export function evolve<T>(original: T, evolve?: ((obj: T) => void)): Evolved<T> 
 
     const result = {
         state: copy,
-        tasks: [] as Task[]
+        effects: [] as Effect[]
     } as Result<T>
 
-    (result as Evolved<T>).and = (task: Task, ...tasks: Task[]) => {
-        result.tasks!.push(task)
+    (result as Evolved<T>).and = (task: Effect, ...tasks: Effect[]) => {
+        result.effects!.push(task)
         if (tasks) {
-            tasks.forEach(t => result.tasks!.push(t))
+            tasks.forEach(t => result.effects!.push(t))
         }
         return result as Evolved<T>
     }

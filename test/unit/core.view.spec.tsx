@@ -1,4 +1,4 @@
-import { defineComponent, task, evolve } from 'core'
+import { defineComponent, evolve } from 'core'
 import { render } from 'core/view'
 import * as jsxFactory from 'core/jsxFactory'
 
@@ -13,8 +13,6 @@ const keyPressEvent = (keyCode: number) => {
 
     return event
 }
-
-const dispatch = (fn: any, args: any) => fn(undefined, args)
 
 /**
  * evolve
@@ -31,7 +29,7 @@ describe('core.view.render', () => {
     it('creates and returns a text node from a text node descriptor', (done) => {
         const view = <text>a text</text>
 
-        render(document.body, view, view, undefined, () => { })
+        render(document.body, view, view, undefined)
 
         expect(view.node!.nodeType).toBe(Node.TEXT_NODE)
         expect(view.node!.nodeValue).toBe('a text')
@@ -43,11 +41,11 @@ describe('core.view.render', () => {
         const view1 = <text>a text</text>
         const view2 = <text>a new text</text>
 
-        render(document.body, view1, view1, undefined, () => { })
+        render(document.body, view1, view1, undefined)
         let node = view1.node!
         expect(node.nodeValue).toBe('a text')
 
-        render(document.body, view2, view1, node, () => { })
+        render(document.body, view2, view1, node)
         node = view2.node!
         expect(node.nodeValue).toBe('a new text')
 
@@ -57,7 +55,7 @@ describe('core.view.render', () => {
     it('creates and returns a "nothing" comment node from a nothing node descriptor', (done) => {
         const view = <nothing />
 
-        render(document.body, view, view, undefined, () => { })
+        render(document.body, view, view, undefined)
         const node = view.node!
         expect(node.nodeType).toBe(Node.COMMENT_NODE)
         expect(node.nodeValue).toBe('Nothing')
@@ -68,13 +66,13 @@ describe('core.view.render', () => {
     it('mounts a component from a component node descriptor', (done) => {
         const TestComponent = defineComponent({
             name: 'TestComponent1',
-            init: evolve(undefined),
+            init: { state: undefined },
             view: (_) => <div id="testComponent"></div>
         })
 
         const view = <div><TestComponent /></div>
 
-        render(document.body, view, view, undefined, () => { })
+        render(document.body, view, view, undefined)
         const node = view.node as HTMLDivElement
         expect((node.childNodes[0] as HTMLDivElement).id).toBe('testComponent')
 
@@ -90,7 +88,7 @@ describe('core.view.render', () => {
 
         const testComponent = defineComponent({
             name: 'TestComponent2',
-            init: evolve(undefined),
+            init: { state: undefined },
             onMount: mocks.mount,
             view: (_) => <div id="testComponent"></div>
         })
@@ -98,11 +96,11 @@ describe('core.view.render', () => {
         const view1 = testComponent({})
         const view2 = testComponent({}, true)
 
-        render(document.body, view1, view1, undefined, () => { })
+        render(document.body, view1, view1, undefined)
         const node = view1.node! as HTMLDivElement
         const componentId = view1.id
 
-        render(document.body, view2, view1, node, () => { })
+        render(document.body, view2, view1, node)
 
         expect(view2.id).toBe(componentId)
         expect(mocks.mount).toHaveBeenCalledTimes(2)
@@ -122,12 +120,12 @@ describe('core.view.render', () => {
                 {viewItems2.map(item => <div>{item}</div>)}
             </div>
 
-        render(document.body, view1, view1, undefined, () => { })
+        render(document.body, view1, view1, undefined)
         let node = view1.node as HTMLDivElement
 
         expect(node.childElementCount).toBe(viewItems1.length)
 
-        render(document.body, view2, view1, node, () => { })
+        render(document.body, view2, view1, node)
         node = view2.node as HTMLDivElement
 
         expect(node.childElementCount).toBe(viewItems2.length)
@@ -146,13 +144,13 @@ describe('core.view.render', () => {
             <div>
                 {viewItems2.map(item => <div>{item}</div>)}
             </div>
-        render(document.body, view1, view1, undefined, () => { })
+        render(document.body, view1, view1, undefined)
 
         let node = view1.node as HTMLDivElement
 
         expect(node.childElementCount).toBe(viewItems1.length)
 
-        render(document.body, view2, view1, node, () => { })
+        render(document.body, view2, view1, node)
         node = view2.node as HTMLDivElement
 
         expect(node.childElementCount).toBe(viewItems2.length)
@@ -163,7 +161,7 @@ describe('core.view.render', () => {
     it('creates and returns an element node from an element node descriptor', (done) => {
         const view = <div />
 
-        render(document.body, view, view, undefined, () => { })
+        render(document.body, view, view, undefined)
         const node = view.node as Element
 
         expect(node.nodeType).toBe(Node.ELEMENT_NODE)
@@ -182,7 +180,7 @@ describe('core.view.render', () => {
                 checked={true}
                 value="5" />
 
-        render(document.body, view, view, undefined, () => { })
+        render(document.body, view, view, undefined)
 
         const node = view.node as HTMLInputElement
 
@@ -198,17 +196,16 @@ describe('core.view.render', () => {
 
     it('returns an element with onclick event listener set', (done) => {
         const mocks = {
-            onclickUpdate: (m: any) => {
-                return m
+            onclickUpdate: () => {
+
             }
         }
         spyOn(mocks, 'onclickUpdate')
 
         const view =
-            <button onclick={() => mocks.onclickUpdate}></button>
+            <button onclick={mocks.onclickUpdate}></button>
 
-
-        render(document.body, view, view, undefined, dispatch)
+        render(document.body, view, view, undefined)
 
         const node = view.node as HTMLButtonElement
         expect(node.onclick).not.toBeNull()
@@ -222,26 +219,24 @@ describe('core.view.render', () => {
 
     it('replaces the old event listener with a the new one', (done) => {
         const mocks = {
-            onclickUpdate1: (m: any) => {
-                return m
+            onclickUpdate1: () => {
             },
 
-            onclickUpdate2: (m: any) => {
-                return m
+            onclickUpdate2: () => {
             }
         }
         spyOn(mocks, 'onclickUpdate1')
         spyOn(mocks, 'onclickUpdate2')
 
-        const view1 = <button onclick={() => mocks.onclickUpdate1}></button>
+        const view1 = <button onclick={mocks.onclickUpdate1}></button>
 
-        const view2 = <button onclick={() => mocks.onclickUpdate2}></button>
+        const view2 = <button onclick={mocks.onclickUpdate2}></button>
 
-        render(document.body, view1, view1, undefined, dispatch)
+        render(document.body, view1, view1, undefined)
 
         let node = view1.node as HTMLButtonElement
 
-        render(document.body, view2, view1, node, dispatch)
+        render(document.body, view2, view1, node)
 
         node = view2.node as HTMLButtonElement
 
@@ -256,18 +251,17 @@ describe('core.view.render', () => {
 
     it('returns an element with multiple onkeyup event listeners set', (done) => {
         const mocks = {
-            onkeyupUpdate: (m: any) => {
-                return m
+            onkeyupUpdate: () => {
             }
         }
         spyOn(mocks, 'onkeyupUpdate')
 
         const view =
             <div
-                onkeyup_enter={() => mocks.onkeyupUpdate}
-                onkeyup_49={() => mocks.onkeyupUpdate} />
+                onkeyup_enter={mocks.onkeyupUpdate}
+                onkeyup_49={mocks.onkeyupUpdate} />
 
-        render(document.body, view, view, undefined, dispatch)
+        render(document.body, view, view, undefined)
 
         const node = view.node as HTMLDivElement
         expect(node.onkeyup).not.toBeNull()
@@ -280,39 +274,11 @@ describe('core.view.render', () => {
         done()
     })
 
-    it('passes the value of a textarea element when an event listener is triggered', (done) => {
-        const mocks = {
-            update: (m: any, value: string) => {
-                expect(value).toBe('a value')
-                return m
-            }
-        }
-        spyOn(mocks, 'update')
-
-        const view =
-            <textarea
-                onkeyup_enter={() => mocks.update}
-                value="a value"></textarea>
-
-        render(document.body, view, view, undefined, dispatch)
-
-        const node = view.node as HTMLTextAreaElement
-
-        expect(node.value).toBe('a value')
-        expect(node.onkeyup).not.toBeNull()
-
-        node.dispatchEvent(keyPressEvent(13))
-
-        expect(mocks.update).toHaveBeenCalledTimes(1)
-
-        done()
-    })
-
     it('calls element.focus() when focus attribute is set to true', (done) => {
 
         const view = <input focus={true} />
 
-        render(document.body, view, view, undefined, dispatch)
+        render(document.body, view, view, undefined)
 
         const node = view.node as HTMLTextAreaElement
 
@@ -329,14 +295,14 @@ describe('core.view.render', () => {
         const view2 =
             <div class="bar" id="foo"></div>
 
-        render(document.body, view1, view1, undefined, () => { })
+        render(document.body, view1, view1, undefined)
 
         let node = view1.node as HTMLDivElement
 
         expect(node.className).toBe('foo')
         expect(node.id).toBe('bar')
 
-        render(document.body, view2, view1, node, () => { })
+        render(document.body, view2, view1, node)
 
         node = view2.node as HTMLDivElement
 
@@ -353,13 +319,13 @@ describe('core.view.render', () => {
         const view2 =
             <div class="foo"></div>
 
-        render(document.body, view1, view1, undefined, () => { })
+        render(document.body, view1, view1, undefined)
 
         let node = view1.node as HTMLDivElement
 
         expect(node.id).toBe('bar')
 
-        render(document.body, view2, view1, node, () => { })
+        render(document.body, view2, view1, node)
 
         node = view2.node as HTMLDivElement
 
@@ -375,13 +341,13 @@ describe('core.view.render', () => {
         const view2 =
             <div class="foo" id={undefined}></div>
 
-        render(document.body, view1, view1, undefined, () => { })
+        render(document.body, view1, view1, undefined)
 
         let node = view1.node as HTMLDivElement
 
         expect(node.id).toBe('bar')
 
-        render(document.body, view2, view1, node, () => { })
+        render(document.body, view2, view1, node)
 
         node = view2.node as HTMLDivElement
 
@@ -395,14 +361,14 @@ describe('core.view.render', () => {
 
         const view2 = <span />
 
-        render(document.body, view1, view1, undefined, () => { })
+        render(document.body, view1, view1, undefined)
 
         let node = view1.node as HTMLDivElement
 
         (node as any)._id = 1
         expect(node.tagName).toBe('DIV')
 
-        render(document.body, view2, view1, node, () => { })
+        render(document.body, view2, view1, node)
 
         node = view2.node as HTMLDivElement
 
@@ -417,38 +383,19 @@ describe('core.view.render', () => {
 
         const view2 = <nothing />
 
-        render(document.body, view1, view1, undefined, () => { })
+        render(document.body, view1, view1, undefined)
 
         const node = view1.node as HTMLButtonElement
 
         expect(node.onclick).not.toBeNull()
 
-        render(document.body, view2, view1, node, () => { })
+        render(document.body, view2, view1, node)
 
         expect(node.onclick).toBeNull()
 
         done()
     })
 
-    it('executes Task when set as event listener', (done) => {
-        const mocks = {
-            testTask: () => {
-            }
-        }
-
-        spyOn(mocks, 'testTask')
-
-        const view = <button onclick={() => task(mocks.testTask)} />
-
-        render(document.body, view, view, undefined, () => { })
-
-        const node = view.node as HTMLButtonElement
-        node.click()
-
-        expect(mocks.testTask).toHaveBeenCalledTimes(1)
-
-        done()
-    })
 
     // it('collects form data and passes it as argument to the update function', (done) => {
 
@@ -486,7 +433,7 @@ describe('core.view.render', () => {
 
     //     </form>
 
-    //     render(document.body, view, view, undefined, dispatch)
+    //     render(document.body, view, view, undefined)
 
     //     const node = view.node as HTMLFormElement
 
@@ -536,7 +483,7 @@ describe('core.view.render', () => {
     //                 checked={true} />
     //         </form>
 
-    //     render(document.body, view, view, undefined, dispatch)
+    //     render(document.body, view, view, undefined)
 
     //     const node = view.node as HTMLFormElement
 

@@ -1,6 +1,6 @@
 import { initComponent, updateComponent } from './component'
-import { max, nameOf } from './helpers'
-import { Dispatch, UpdateAny, Task, EventListener, NodeDescriptor, ElementDescriptor, ComponentDescriptor } from './contract'
+import { max } from './helpers'
+import { EventListener, NodeDescriptor, ElementDescriptor, ComponentDescriptor } from './contract'
 
 const INPUT_TAG_NAMES = [
     'INPUT',
@@ -81,7 +81,7 @@ function removeAttr(a: string, node: Element) {
 }
 
 /** Creates an event listener */
-function tryCreateEventListener(attributeName: string, eventListener: EventListener<any, any>, nodeDescriptor: ElementDescriptor<any>, dispatch: Dispatch) {
+function tryCreateEventListener(attributeName: string, eventListener: EventListener<any, any>, nodeDescriptor: ElementDescriptor<any>) {
     if (attributeName.indexOf('on') !== 0) {
         return undefined
     }
@@ -108,34 +108,20 @@ function tryCreateEventListener(attributeName: string, eventListener: EventListe
             }
         }
 
-        // Uglyness warning. 'dispatchContext' is the name of the function 
-        // returned by component/decorateFnsWithDispatch.
-        if (nameOf(eventListener) === 'dispatchContext') {
-            eventListener(ev, nodeDescriptor)
-        }
-        else {
-            const result = eventListener(ev, nodeDescriptor)
-
-            if ((result as Task).execute && typeof (result as Task).execute === 'function') {
-                (result as Task).execute(dispatch)
-            }
-            else {
-                dispatch(result as any as UpdateAny)
-            }
-        }
+        eventListener(ev, nodeDescriptor)
     }
 }
 
 
 /** Creates a Node from a NodeDescriptor. */
-function createNode(descriptor: NodeDescriptor, parentNode: Element, dispatch: Dispatch): Node {
+function createNode(descriptor: NodeDescriptor, parentNode: Element): Node {
     switch (descriptor.__type) {
         case 'element':
             return document.createElement(descriptor.tagName)
         case 'text':
             return document.createTextNode(descriptor.value)
         case 'component':
-            initComponent(descriptor, parentNode, dispatch)
+            initComponent(descriptor, parentNode)
             return descriptor.node!
         case 'nothing':
             return document.createComment('Nothing')
@@ -172,11 +158,11 @@ function getAttributesToRemove(newDescriptor: ElementDescriptor<any>, oldDescrip
 
 
 /** Renders the view by walking the node descriptor tree recursively */
-export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor, existingNode: Node | undefined, dispatch: Dispatch): void {
+export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor, existingNode: Node | undefined): void {
     const replaceNode = shouldReplaceNode(newDescriptor, oldDescriptor)
     if (typeof existingNode === 'undefined' || typeof oldDescriptor === 'undefined' || replaceNode) {
         // if no existing node, create one
-        const newNode = createNode(newDescriptor, parentNode, dispatch)
+        const newNode = createNode(newDescriptor, parentNode)
 
         newDescriptor.node = newNode
 
@@ -200,7 +186,7 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
                 if (newDescriptor.attributes.hasOwnProperty(name)) {
                     const attributeValue = newDescriptor.attributes[name]
                     if (typeof attributeValue !== 'undefined') {
-                        const eventListener = tryCreateEventListener(name, attributeValue, newDescriptor, dispatch)
+                        const eventListener = tryCreateEventListener(name, attributeValue, newDescriptor)
                         setAttr(newNode as HTMLElement, name, eventListener || attributeValue)
                     }
                 }
@@ -208,7 +194,7 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
 
             newDescriptor.children
                 .filter(c => typeof c !== 'undefined')
-                .forEach(c => render(newNode as Element, c, c, undefined, dispatch))
+                .forEach(c => render(newNode as Element, c, c, undefined))
         }
     }
     else { // reuse the old node
@@ -238,7 +224,7 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
                         if ((name.indexOf('on') === 0 || attributeValue !== oldAttributeValue ||
                             !(existingNode as Element).hasAttribute(name)) && typeof attributeValue !== 'undefined'
                         ) {
-                            const eventListener = tryCreateEventListener(name, attributeValue, newDescriptor, dispatch)
+                            const eventListener = tryCreateEventListener(name, attributeValue, newDescriptor)
                             setAttr(existingNode as HTMLElement, name, eventListener || attributeValue)
                         }
                         else if (typeof attributeValue === 'undefined' && (existingNode as Element).hasAttribute(name)) {
@@ -260,7 +246,7 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
                     if (i < newDescriptorChildLengh) {
                         const childDescriptor = newDescriptor.children[i]
 
-                        render(existingNode as Element, childDescriptor, oldDescriptor.__type === 'element' ? oldDescriptor!.children[i] : childDescriptor, childNode, dispatch)
+                        render(existingNode as Element, childDescriptor, oldDescriptor.__type === 'element' ? oldDescriptor!.children[i] : childDescriptor, childNode)
 
                         childDescriptorIndex++
                     }
@@ -273,7 +259,7 @@ export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDe
                 existingNode.textContent = newDescriptor.value
                 break
             case 'component':
-                updateComponent(newDescriptor, oldDescriptor as ComponentDescriptor<any>, dispatch)
+                updateComponent(newDescriptor, oldDescriptor as ComponentDescriptor<any>)
                 break
         }
 

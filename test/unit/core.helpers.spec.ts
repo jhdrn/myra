@@ -1,4 +1,3 @@
-import { task } from 'core'
 import { equal, max, typeOf, evolve, deepCopy, flatten } from 'core/helpers'
 
 
@@ -224,26 +223,26 @@ describe('core.helpers.evolve', () => {
         }))
     })
 
-    it('adds a task to the task array', () => {
-        const mockTask = task((_) => { })
+    it('adds an effect to the effects array', () => {
+        const mockTask = () => { }
         const result = evolve(53).and(mockTask)
 
         expect(result.state).toBe(53)
-        expect(result.tasks!.length).toBe(1)
-        expect(result.tasks![0]).toEqual(mockTask)
+        expect(result.effects!.length).toBe(1)
+        expect(result.effects![0]).toEqual(mockTask)
         expect(result.and).toBeDefined()
     })
 
-    it('adds multiple tasks to the task array', () => {
-        const mockTask1 = task((_) => { })
-        const mockTask2 = task((_) => { })
-        const mockTask3 = task((_) => { })
+    it('adds multiple effects to the task array', () => {
+        const mockTask1 = () => { }
+        const mockTask2 = () => { }
+        const mockTask3 = () => { }
         const result = evolve(53).and(mockTask1).and(mockTask2, mockTask3)
 
-        expect(result.tasks!.length).toBe(3)
-        expect(result.tasks![0]).toEqual(mockTask1)
-        expect(result.tasks![1]).toEqual(mockTask2)
-        expect(result.tasks![2]).toEqual(mockTask3)
+        expect(result.effects!.length).toBe(3)
+        expect(result.effects![0]).toEqual(mockTask1)
+        expect(result.effects![1]).toEqual(mockTask2)
+        expect(result.effects![2]).toEqual(mockTask3)
     })
 })
 

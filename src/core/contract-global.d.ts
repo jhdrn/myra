@@ -37,9 +37,12 @@ declare namespace myra {
     /**
      * Update/Dispatch types
      */
+    type Effect = (dispatch: Dispatch) => void
+
     interface Result<S> {
         readonly state: S
-        readonly tasks?: Task[]
+
+        readonly effects?: Effect[]    
     }
 
     interface Update<S, A> {
@@ -49,20 +52,22 @@ declare namespace myra {
 
     type Dispatch = <S, A>(fn: Update<S, A>, arg: A) => void
 
-    interface Task {
-        execute(dispatch: Dispatch): void
-    }
-
     /**
      * View types
      */
+    interface ViewContext<S> {
+        state: S
+        dispatch: Dispatch
+        children?: NodeDescriptor[]
+        broadcast: (type: string, data: any) => void
+    }
     interface View<S> {
-        (state: S, children?: NodeDescriptor[]): NodeDescriptor
+        (ctx: ViewContext<S>): NodeDescriptor
     }
 
     interface AttributeMap { [name: string]: string }
 
-    type EventListener<T extends Event, E extends Element> = <S, A>(event: T, descriptor: ElementDescriptor<E>) => Update<S, A> | Task
+    type EventListener<T extends Event, E extends Element> = <S, A>(event: T, descriptor: ElementDescriptor<E>) => void
 
     interface DescriptorBase {
         node?: Node

@@ -27,9 +27,9 @@ describe('core.subscriptions.broadcast', () => {
 
         mountComponent(component, document.body)
 
-        broadcast('test1', 'testdata1').execute((_: any) => {
+        broadcast('test1', 'testdata1')((_: any) => {
         })
-        broadcast('test2', undefined).execute((_: any) => {
+        broadcast('test2', undefined)((_: any) => {
         })
 
         expect(subscriptions.test1).toHaveBeenCalledTimes(1)

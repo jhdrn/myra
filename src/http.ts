@@ -1,7 +1,6 @@
-import { task, Task, Dispatch, Update } from './core/index'
+import { Dispatch, Update } from './core/index'
 import { isIE9 } from './core/helpers'
 
-export { Task }
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 export type Headers = { [header: string]: string }
 export type ResponseType = '' | 'arraybuffer' | 'blob' | 'document' | 'json' | 'text'
@@ -21,7 +20,7 @@ export interface HttpResponse {
 }
 
 export const httpRequest = <S>(success: Update<S, HttpResponse>, failure: Update<S, HttpResponse>, params: RequestParams) => {
-    return task((dispatch: Dispatch) => {
+    return (dispatch: Dispatch) => {
         const xhr = new XMLHttpRequest()
 
         xhr.onload = () => {
@@ -70,7 +69,7 @@ export const httpRequest = <S>(success: Update<S, HttpResponse>, failure: Update
 
         xhr.responseType = params.responseType || ''
         xhr.send(params.data)
-    })
+    }
 }
 
 /**

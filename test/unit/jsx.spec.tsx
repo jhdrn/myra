@@ -98,7 +98,9 @@ describe('jsxFactory', () => {
 
         const TestComponent = core.defineComponent<undefined, TestProps>({
             name: 'JsxComponent',
-            init: core.evolve(undefined),
+            init: {
+                state: undefined
+            },
             view: () => <div></div>
         })
 

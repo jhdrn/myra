@@ -12,15 +12,16 @@ export type ComponentFactory<T> = myra.ComponentFactory<T>
 /**
  * Update/Dispatch types
  */
+export type Effect = myra.Effect
 export interface Result<S> extends myra.Result<S> { }
 export interface Update<S, A> extends myra.Update<S, A> { }
 export interface UpdateAny extends Update<any, any> { }
 export type Dispatch = <S, A>(fn: Update<S, A>, ...args: any[]) => void
-export interface Task extends myra.Task { }
 
 /**
  * View types
  */
+export interface ViewContext<S> extends myra.ViewContext<S> { }
 export interface View<S> extends myra.View<S> { }
 
 export type EventListener<T extends Event, E extends Element> = myra.EventListener<T, E>

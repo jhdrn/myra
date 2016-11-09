@@ -1,6 +1,5 @@
-import { defineComponent, mountComponent, evolve, NodeDescriptor } from 'core'
+import { defineComponent, mountComponent, evolve } from 'core'
 import { initComponent, updateComponent } from 'core/component'
-import { task } from 'core/task'
 import * as jsxFactory from 'core/jsxFactory'
 
 const q = (x: string) => document.querySelector(x)
@@ -14,7 +13,7 @@ describe('defineComponent', () => {
     const componentName = randomName()
     const component1 = defineComponent({
         name: componentName,
-        init: evolve(undefined),
+        init: { state: undefined },
         view: () => <div />
     })
 
@@ -25,7 +24,7 @@ describe('defineComponent', () => {
     it('throws if a component with the same name is already defined', () => {
         expect(() => defineComponent({
             name: componentName,
-            init: evolve(undefined),
+            init: { state: undefined },
             view: () => <div />
         })).toThrow()
     })
@@ -40,7 +39,7 @@ describe('mountComponent', () => {
 
         const component = defineComponent({
             name: randomName(),
-            init: evolve(undefined),
+            init: { state: undefined },
             view: () => <div id="root" />
         })
 
@@ -60,7 +59,7 @@ describe('mountComponent', () => {
 
         const component = defineComponent({
             name: randomName(),
-            init: evolve(0),
+            init: { state: 0 },
             onMount: mountMock.mount,
             view: () => <div />
         })
@@ -80,7 +79,7 @@ describe('mountComponent', () => {
 
         const component = defineComponent({
             name: randomName(),
-            init: evolve(0),
+            init: { state: 0 },
             onMount: mountMock.mount,
             subscriptions: {
                 'test1': x => evolve(x),
@@ -94,104 +93,11 @@ describe('mountComponent', () => {
         expect(mountMock.mount).toHaveBeenCalled()
     })
 
-    it(`calls the parent's dispatch function if an update function is passed to and called from a child`, () => {
-
-        const updateMock = {
-            update: (x: number) => {
-                expect(x).toBe(22)
-                return evolve(x)
-            }
-        }
-
-        spyOn(updateMock, 'update').and.callThrough()
-
-        const component = defineComponent<any, any>({
-            name: randomName(),
-            init: evolve(undefined),
-            onMount: (_m, a) => evolve(a),
-            view: (m) => <button onclick={() => m.onclick} id="childBtn" />
-        })
-
-        const parent = defineComponent({
-            name: randomName(),
-            init: evolve(22),
-            view: () => component({ onclick: updateMock.update })
-        })
-
-        mountComponent(parent, document.body)
-
-            ; (q('#childBtn') as HTMLButtonElement).click()
-
-        expect(updateMock.update).toHaveBeenCalledTimes(1)
-    })
-
-    it(`calls the parent's dispatch function if an update function is passed to and called from a child node descriptor`, () => {
-
-        const updateMock = {
-            update: (x: number) => {
-                expect(x).toBe(22)
-                return evolve(x)
-            }
-        }
-
-        spyOn(updateMock, 'update').and.callThrough()
-
-        const Component = defineComponent<any, any>({
-            name: randomName(),
-            init: evolve(undefined),
-            onMount: (_m, a) => evolve(a),
-            view: (_m: any, children: NodeDescriptor[]) => <div>{children}</div>
-        })
-
-        const parent = defineComponent({
-            name: randomName(),
-            init: evolve(22),
-            view: (_: number) => <Component><button id="childBtn2" onclick={() => updateMock.update} /></Component>
-        })
-
-        mountComponent(parent, document.body)
-
-            ; (q('#childBtn2') as HTMLButtonElement).click()
-
-        expect(updateMock.update).toHaveBeenCalledTimes(1)
-    })
-
-    it(`calls the parent's dispatch function if task is passed to and called from a child node descriptor`, () => {
-
-        const updateMock = {
-            update: (x: number) => {
-                expect(x).toBe(22)
-                return evolve(x)
-            }
-        }
-
-        spyOn(updateMock, 'update').and.callThrough()
-
-        const Component = defineComponent<any, any>({
-            name: randomName(),
-            init: evolve(undefined),
-            onMount: (_m, a) => evolve(a),
-            view: (_m: any, children: NodeDescriptor[]) => <div>{children}</div>
-        })
-
-        const parent = defineComponent({
-            name: randomName(),
-            init: evolve(22),
-            view: (_: number) => <Component><button id="childBtn3" onclick={() => task(dispatch => dispatch(updateMock.update))} /></Component>
-        })
-
-        mountComponent(parent, document.body)
-
-            ; (q('#childBtn3') as HTMLButtonElement).click()
-
-        expect(updateMock.update).toHaveBeenCalledTimes(1)
-    })
-
     it(`passes the children of a component to it view`, () => {
         const viewMock = {
-            view: (_: any, children: any) => {
-                expect(Array.isArray(children)).toBe(true)
-                return <div>{children}</div>
+            view: (ctx: any) => {
+                expect(Array.isArray(ctx.children)).toBe(true)
+                return <div>{ctx.children}</div>
             }
         }
 
@@ -199,13 +105,13 @@ describe('mountComponent', () => {
 
         const component = defineComponent<any, any>({
             name: randomName(),
-            init: evolve(undefined),
+            init: { state: undefined },
             view: viewMock.view
         })
 
         const parent = defineComponent({
             name: randomName(),
-            init: evolve(22),
+            init: { state: 22 },
             view: () => component(undefined, undefined, [<div id="divTestId" />])
         })
 
@@ -231,14 +137,14 @@ describe('updateComponent', () => {
 
         const component = defineComponent({
             name: randomName(),
-            init: evolve(0),
+            init: { state: 0 },
             onMount: mountMock.mount,
             view: () => <div />
         })
 
         const componentDescriptor = component(45)
-        initComponent(componentDescriptor, document.body, undefined as any)
-        updateComponent(component(45), componentDescriptor, undefined as any)
+        initComponent(componentDescriptor, document.body)
+        updateComponent(component(45), componentDescriptor)
 
         expect(mountMock.mount).toHaveBeenCalledTimes(1)
     })
@@ -252,16 +158,16 @@ describe('updateComponent', () => {
 
         const component = defineComponent({
             name: randomName(),
-            init: evolve(0),
+            init: { state: 0 },
             onMount: mountMock.mount,
             view: () => <div />
         })
 
         const componentDescriptor = component({})
-        initComponent(componentDescriptor, document.body, undefined as any)
+        initComponent(componentDescriptor, document.body)
 
         const newDescriptor = component({}, true)
-        updateComponent(newDescriptor, componentDescriptor, undefined as any)
+        updateComponent(newDescriptor, componentDescriptor)
 
         expect(mountMock.mount).toHaveBeenCalledTimes(2)
     })
@@ -276,16 +182,16 @@ describe('updateComponent', () => {
 
         const component = defineComponent({
             name: 'Test',
-            init: evolve(0),
+            init: { state: 0 },
             onMount: mountMock.mount,
             view: () => <div />
         })
 
         const componentDescriptor = component({ prop: 'a value' })
-        initComponent(componentDescriptor, document.body, undefined as any)
+        initComponent(componentDescriptor, document.body)
 
         const newDescriptor = component({ prop: 'a new value' })
-        updateComponent(newDescriptor, componentDescriptor, undefined as any)
+        updateComponent(newDescriptor, componentDescriptor)
 
         expect(mountMock.mount).toHaveBeenCalledTimes(2)
     })

@@ -1,5 +1,5 @@
-import { defineComponent, task, evolve } from './core'
-import { Update, Map, ElementDescriptor, NodeDescriptor, InputAttributes } from './core/contract'
+import { defineComponent, evolve } from './core'
+import { Dispatch, Update, Map, ElementDescriptor, NodeDescriptor, InputAttributes } from './core/contract'
 import * as jsxFactory from './core/jsxFactory'
 
 export type FieldValidationResult = {
@@ -18,9 +18,9 @@ export interface ValidatableInputAttributes extends InputAttributes {
     validators?: FieldValidator[]
 }
 
-export function bind<S>(update: Update<S, string>) {
+export function bind<S>(dispatch: Dispatch, update: Update<S, string>) {
     return (ev: Event, _descriptor: ElementDescriptor<any>) => {
-        return task(dispatch => dispatch(update, (ev.target as HTMLInputElement).value))
+        dispatch(update, (ev.target as HTMLInputElement).value)
     }
 }
 
@@ -92,7 +92,7 @@ export function validateForm(event: Event, nodeDescriptor: ElementDescriptor<HTM
         const namedElements = (event.target as HTMLFormElement).querySelectorAll('[name]')
         const formData: { [name: string]: string } = {}
         for (let i = 0; i < namedElements.length; i++) {
-            const el = namedElements.item(i) as HTMLInputElement
+            const el = namedElements[i] as HTMLInputElement
             formData[el.name] = el.value
         }
 
@@ -112,14 +112,14 @@ export type FormState = {
     validators?: FormValidator[]
 }
 
-function handleOnSubmit(state: FormState) {
+function handleOnSubmit(dispatch: Dispatch, state: FormState) {
     return (ev: Event, descriptor: ElementDescriptor<HTMLFormElement>) => {
         ev.preventDefault()
         const result = validateForm(ev, descriptor)(state.validators || [])
-        return (s: any, _: any) => {
+        dispatch((s: any, _: any) => {
             state.onsubmit(s, result)
             return evolve(state)
-        }
+        })
     }
 }
 
@@ -129,8 +129,8 @@ export const Form = defineComponent<FormState, FormState>({
         state: {} as any
     },
     onMount: (_s: FormState, args: FormState) => evolve(args),
-    view: (state: FormState, children: NodeDescriptor[]) =>
-        <form onsubmit={handleOnSubmit(state)}>
-            {children}
+    view: (ctx) =>
+        <form onsubmit={handleOnSubmit(ctx.dispatch, ctx.state)}>
+            {ctx.children}
         </form>
 })
