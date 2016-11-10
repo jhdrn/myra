@@ -1,4 +1,4 @@
-import { UpdateAny, ComponentContext, Dispatch } from './contract'
+import { UpdateAny, ComponentContext, Apply } from './contract'
 import { dispatch } from './dispatch'
 import { render } from './view'
 
@@ -8,7 +8,7 @@ export const subscriptions: Subscriptions = {}
 
 /** Broadcasts a message with the given data. */
 export function broadcast(type: string, data: any) {
-    return (_: Dispatch) => {
+    return (_: Apply) => {
         if (subscriptions[type]) {
             subscriptions[type].forEach(([fn, context]) => dispatch(context, render, fn, data))
         }

@@ -1,10 +1,10 @@
-import { Update, Dispatch } from './core/index'
+import { Update, Apply } from './core/index'
 
 /**
  * Creates a task that dispatches a message with the current timestamp.
  */
 export const now = <S>(success: Update<S, Date>) =>
-    (dispatch: Dispatch) => dispatch(success, new Date())
+    (dispatch: Apply) => dispatch(success, new Date())
 
 
 /**
@@ -12,7 +12,7 @@ export const now = <S>(success: Update<S, Date>) =>
  * until a cancelInterval task is executed with the supplied handle.
  */
 export const startInterval = <S>(interval: number, started: Update<S, number>, success: Update<S, Date>) =>
-    (dispatch: Dispatch) => {
+    (dispatch: Apply) => {
         let handle: number
         handle = setInterval(() => {
             dispatch(success, handle)
@@ -24,7 +24,7 @@ export const startInterval = <S>(interval: number, started: Update<S, number>, s
  * Cancels the interval of the supplied handle.
  */
 export const cancelInterval = <S>(handle: number, success?: Update<S, undefined>) =>
-    (dispatch: Dispatch) => {
+    (dispatch: Apply) => {
         clearInterval(handle)
         if (success) {
             dispatch(success)
@@ -35,7 +35,7 @@ export const cancelInterval = <S>(handle: number, success?: Update<S, undefined>
  * Creates a task that sets a timeout and sends a message when that timeout is met.
  */
 export const startTimeout = <S>(delay: number, started: Update<S, number>, ended: Update<S, number>) =>
-    (dispatch: Dispatch) => {
+    (dispatch: Apply) => {
         let handle: number
         handle = setTimeout(() => {
             dispatch(ended, handle)
@@ -47,7 +47,7 @@ export const startTimeout = <S>(delay: number, started: Update<S, number>, ended
  * Cancels the timeout of the supplied handle.
  */
 export const cancelTimeout = <S>(handle: number, success?: Update<S, undefined>) =>
-    (dispatch: Dispatch) => {
+    (dispatch: Apply) => {
         clearTimeout(handle)
         if (success) {
             dispatch(success)

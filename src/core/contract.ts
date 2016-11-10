@@ -9,14 +9,11 @@ export interface ComponentSpec<S, A> extends myra.ComponentSpec<S, A> { }
 export interface ComponentContext<S> extends myra.ComponentContext<S> { }
 export type ComponentFactory<T> = myra.ComponentFactory<T>
 
-/**
- * Update/Dispatch types
- */
 export type Effect = myra.Effect
 export interface Result<S> extends myra.Result<S> { }
 export interface Update<S, A> extends myra.Update<S, A> { }
 export interface UpdateAny extends Update<any, any> { }
-export type Dispatch = <S, A>(fn: Update<S, A>, ...args: any[]) => void
+export type Apply = <S, A>(fn: Update<S, A>, ...args: any[]) => void
 
 /**
  * View types

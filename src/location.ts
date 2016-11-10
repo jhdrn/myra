@@ -1,4 +1,4 @@
-import { broadcast, Map, Dispatch } from './core/index'
+import { broadcast, Map, Apply } from './core/index'
 import { typeOf } from './core/helpers'
 
 export type PatternMap<T> = {
@@ -9,7 +9,7 @@ export interface LocationContext {
     readonly url: string
     readonly params: Map<string>
     readonly match: (pattern: string) => boolean
-    readonly matchAny: <T>(patterns: PatternMap<T>, defaultValue: T) => T 
+    readonly matchAny: <T>(patterns: PatternMap<T>, defaultValue: T) => T
 }
 const LOCATION_CHANGED_MSG = '__locationChanged'
 
@@ -22,15 +22,15 @@ const trimSlashes = (str: string) => !str ? '' : str.replace(/^\/+|\/+$/g, '')
  * Tries to match a route for the given path.
  */
 const matchPattern = (pattern: string, url: string) => {
-    const [regexp, ] = createRegExpFromPattern(trimSlashes(pattern))
+    const [regexp,] = createRegExpFromPattern(trimSlashes(pattern))
     return !!new RegExp(regexp, 'i').exec(url)
-} 
+}
 
 /**
  * Checks if the given pattern matches the location.
  */
 const matchLocation = (location: Location, pattern: string, ...patterns: string[]): boolean => {
-    
+
     const url = pattern.indexOf('#') === 0 ? trimSlashes(location.hash) :
         trimSlashes(location.pathname).split('&')[0]
 
@@ -44,12 +44,12 @@ const matchLocation = (location: Location, pattern: string, ...patterns: string[
         }
     }
     return false
-} 
+}
 
-function broadcastLocationChanged(dispatch: Dispatch) {
+function broadcastLocationChanged(dispatch: Apply) {
     const location = window.location
-    broadcast(LOCATION_CHANGED_MSG, { 
-        url: location.pathname, 
+    broadcast(LOCATION_CHANGED_MSG, {
+        url: location.pathname,
         params: searchStrToObj(location.search),
         match: (pattern: string) => matchLocation(location, pattern),
         matchAny: <T>(patterns: PatternMap<T>, defaultValue: T): T => {
@@ -73,41 +73,41 @@ function broadcastLocationChanged(dispatch: Dispatch) {
     } as LocationContext)(dispatch)
 }
 
-export const trackLocationChanges = () => (dispatch: Dispatch) => {
+export const trackLocationChanges = () => (dispatch: Apply) => {
     broadcastLocationChanged(dispatch)
-    
+
     window.onpopstate = (_) => {
         broadcastLocationChanged(dispatch)
     }
 }
 
-export const updateLocation = (path: string, params?: Map<string>) => (dispatch: Dispatch) => {
+export const updateLocation = (path: string, params?: Map<string>) => (dispatch: Apply) => {
     const url = makeUrl(path, params)
     window.history.pushState({ url: url }, '', url)
 
     broadcastLocationChanged(dispatch)
 }
 
-export const replaceLocation = (path: string, params?: Map<string>) => (dispatch: Dispatch) => {
+export const replaceLocation = (path: string, params?: Map<string>) => (dispatch: Apply) => {
     const url = makeUrl(path, params)
     window.history.replaceState({ url: url }, '', url)
 
     broadcastLocationChanged(dispatch)
 }
 
-export const goBack = (steps?: number) => (dispatch: Dispatch) => {
+export const goBack = (steps?: number) => (dispatch: Apply) => {
     window.history.back(steps)
     broadcastLocationChanged(dispatch)
 }
 
-export const goForward = (steps?: number) => (dispatch: Dispatch) => {
+export const goForward = (steps?: number) => (dispatch: Apply) => {
     window.history.forward(steps)
     broadcastLocationChanged(dispatch)
 }
 
 function makeUrl(path: string, params?: Map<string>) {
     if (params) {
-        const queryString = Object.keys(params).map(key => 
+        const queryString = Object.keys(params).map(key =>
             [key, params![key]].map(encodeURIComponent).join('=')
         ).join('&')
         return `${path}?${queryString}`
@@ -134,13 +134,13 @@ function createRegExpFromPattern(route: string): [string, string[]] {
         parameterNames.push(match.substr(2, match.length - 2))
         return '(.+)'
     }) // *path
-    .replace(/:[^\/]+/ig, (match) => {
-        parameterNames.push(match.substr(1, match.length - 1))
-        return '([^/]+)'
-    }) // :parameter
-    .replace(/\*/g, '[^/]+') // *
-    .replace(/\//g, '\\/') // replace / with \/
-    + '$'
+        .replace(/:[^\/]+/ig, (match) => {
+            parameterNames.push(match.substr(1, match.length - 1))
+            return '([^/]+)'
+        }) // :parameter
+        .replace(/\*/g, '[^/]+') // *
+        .replace(/\//g, '\\/') // replace / with \/
+        + '$'
 
-   return [normalizedRoute, parameterNames]
+    return [normalizedRoute, parameterNames]
 } 

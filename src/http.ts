@@ -1,4 +1,4 @@
-import { Dispatch, Update } from './core/index'
+import { Apply, Update } from './core/index'
 import { isIE9 } from './core/helpers'
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
@@ -20,7 +20,7 @@ export interface HttpResponse {
 }
 
 export const httpRequest = <S>(success: Update<S, HttpResponse>, failure: Update<S, HttpResponse>, params: RequestParams) => {
-    return (dispatch: Dispatch) => {
+    return (apply: Apply) => {
         const xhr = new XMLHttpRequest()
 
         xhr.onload = () => {
@@ -54,7 +54,7 @@ export const httpRequest = <S>(success: Update<S, HttpResponse>, failure: Update
                 data: data,
                 headers: headers
             }
-            dispatch(xhr.status >= 200 && xhr.status < 300 ? success : failure, responseData)
+            apply(xhr.status >= 200 && xhr.status < 300 ? success : failure, responseData)
         }
 
         xhr.open(params.method, params.url)

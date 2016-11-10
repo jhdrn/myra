@@ -34,15 +34,12 @@ declare namespace myra {
         (props: T, forceMount?: boolean, children?: NodeDescriptor[]): ComponentDescriptor<T>
     }
 
-    /**
-     * Update/Dispatch types
-     */
-    type Effect = (dispatch: Dispatch) => void
+    type Effect = (apply: Apply) => void
 
     interface Result<S> {
         readonly state: S
 
-        readonly effects?: Effect[]    
+        readonly effects?: Effect[]
     }
 
     interface Update<S, A> {
@@ -50,16 +47,17 @@ declare namespace myra {
     }
     interface UpdateAny extends Update<any, any> { }
 
-    type Dispatch = <S, A>(fn: Update<S, A>, arg: A) => void
+    type Apply = <S, A>(fn: Update<S, A>, arg: A) => void
 
     /**
      * View types
      */
     interface ViewContext<S> {
-        state: S
-        dispatch: Dispatch
-        children?: NodeDescriptor[]
-        broadcast: (type: string, data: any) => void
+        readonly state: S
+        readonly apply: Apply
+        readonly invoke: (effect: Effect) => void
+        readonly children?: NodeDescriptor[]
+        readonly broadcast: (type: string, data: any) => void
     }
     interface View<S> {
         (ctx: ViewContext<S>): NodeDescriptor
