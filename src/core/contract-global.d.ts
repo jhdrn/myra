@@ -47,7 +47,7 @@ declare namespace myra {
     }
     interface UpdateAny extends Update<any, any> { }
 
-    type Apply = <S, A>(fn: Update<S, A>, arg: A) => void
+    type Apply = <S, A>(fn: Update<S, A>, ...args: any[]) => void
 
     /**
      * View types

@@ -1,5 +1,5 @@
 import { defineComponent, evolve } from './core'
-import { Dispatch, Update, Map, ElementDescriptor, NodeDescriptor, InputAttributes } from './core/contract'
+import { Apply, Update, Map, ElementDescriptor, NodeDescriptor, InputAttributes } from './core/contract'
 import * as jsxFactory from './core/jsxFactory'
 
 export type FieldValidationResult = {
@@ -18,7 +18,7 @@ export interface ValidatableInputAttributes extends InputAttributes {
     validators?: FieldValidator[]
 }
 
-export function bind<S>(dispatch: Dispatch, update: Update<S, string>) {
+export function bind<S>(dispatch: Apply, update: Update<S, string>) {
     return (ev: Event, _descriptor: ElementDescriptor<any>) => {
         dispatch(update, (ev.target as HTMLInputElement).value)
     }
@@ -112,7 +112,7 @@ export type FormState = {
     validators?: FormValidator[]
 }
 
-function handleOnSubmit(dispatch: Dispatch, state: FormState) {
+function handleOnSubmit(dispatch: Apply, state: FormState) {
     return (ev: Event, descriptor: ElementDescriptor<HTMLFormElement>) => {
         ev.preventDefault()
         const result = validateForm(ev, descriptor)(state.validators || [])
@@ -130,7 +130,7 @@ export const Form = defineComponent<FormState, FormState>({
     },
     onMount: (_s: FormState, args: FormState) => evolve(args),
     view: (ctx) =>
-        <form onsubmit={handleOnSubmit(ctx.dispatch, ctx.state)}>
+        <form onsubmit={handleOnSubmit(ctx.apply, ctx.state)}>
             {ctx.children}
         </form>
 })
