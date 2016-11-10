@@ -1,40 +1,46 @@
 import { ComponentFactory, NodeDescriptor, TextDescriptor } from './contract'
 import { flatten } from './helpers'
 
-function textDescriptor(value: string): TextDescriptor {
-    return {
-        __type: 'text',
-        value
+function notUndefined(x: any) {
+    return typeof x !== 'undefined'
+}
+
+function toDescriptor(c: string | NodeDescriptor) {
+    if (typeof c !== 'object' || Array.isArray(c) || typeof c === 'object' && typeof (c as NodeDescriptor).__type === 'undefined') {
+        return {
+            __type: 'text',
+            value: c
+        } as TextDescriptor
     }
+    return c as NodeDescriptor
 }
 
 function flattenChildren(children: ((NodeDescriptor | string)[] | NodeDescriptor | string)[]) {
     const flattenedChildren = [] as (NodeDescriptor | string)[]
 
-    for (let i = 0; i < children.length; i++) {
-        if (Array.isArray(children[i])) {
-            flatten(children[i] as (NodeDescriptor | string)[])
-                .forEach(c => flattenedChildren.push(c))
+    for (const child of children) {
+        if (Array.isArray(child)) {
+            for (const c of flatten(child as (NodeDescriptor | string)[])) {
+                flattenedChildren.push(c)
+            }
         }
-        else if (typeof children[i] === 'object') {
-            if (typeof (children[i] as NodeDescriptor).__type !== 'undefined') {
-                flattenedChildren.push(children[i] as NodeDescriptor)
+        else if (typeof child === 'object') {
+            if (typeof (child as NodeDescriptor).__type !== 'undefined') {
+                flattenedChildren.push(child as NodeDescriptor)
             }
             else {
-                flattenedChildren.push(textDescriptor(children[i] as string))
+                flattenedChildren.push({
+                    __type: 'text',
+                    value: child as any as string
+                } as TextDescriptor)
             }
         }
         else {
-            flattenedChildren.push(children[i] as NodeDescriptor)
+            flattenedChildren.push(child as any as NodeDescriptor)
         }
     }
 
-    return flattenedChildren.filter(c => typeof c !== 'undefined').map(c => {
-        if (typeof c !== 'object' || Array.isArray(c) || typeof c === 'object' && typeof (c as NodeDescriptor).__type === 'undefined') {
-            return textDescriptor(c as string)
-        }
-        return c as NodeDescriptor
-    })
+    return flattenedChildren.filter(notUndefined).map(toDescriptor)
 }
 
 export function createElement<T>(tagNameOrComponent: string | ComponentFactory<T>, props: T, ...children: (string | NodeDescriptor)[]): JSX.Element {
@@ -43,7 +49,10 @@ export function createElement<T>(tagNameOrComponent: string | ComponentFactory<T
     }
     else if (typeof tagNameOrComponent === 'string') {
         if (tagNameOrComponent === 'text') {
-            return textDescriptor(children[0] as string)
+            return {
+                __type: 'text',
+                value: children[0] as string
+            } as TextDescriptor
         }
         return {
             __type: 'element',
