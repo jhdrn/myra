@@ -17,24 +17,6 @@ const decrease = (state: State) => evolve(state - 1)
 
 
 /**
- * View
- */
-const view = (state: State) =>
-    <section>
-        <h2>Counter example</h2>
-        <button type="button"
-            class="btn btn-sm btn-default"
-            onclick={() => increase}>+</button>
-
-        <span> {state} </span>
-
-        <button type="button"
-            class="btn btn-sm btn-default"
-            onclick={() => decrease}>-</button>
-    </section>
-
-
-/**
  * Component
  */
 export const CounterComponent = defineComponent({
@@ -46,5 +28,17 @@ export const CounterComponent = defineComponent({
     init: init,
 
     // The view function is called after update. 
-    view: view
+    view: ctx =>
+        <section>
+            <h2>Counter example</h2>
+            <button type="button"
+                class="btn btn-sm btn-default"
+                onclick={() => ctx.apply(increase)}>+</button>
+
+            <span> {ctx.state} </span>
+
+            <button type="button"
+                class="btn btn-sm btn-default"
+                onclick={() => ctx.apply(decrease)}>-</button>
+        </section>
 })

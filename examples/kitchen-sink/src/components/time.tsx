@@ -1,4 +1,4 @@
-import { defineComponent, evolve } from 'myra/core'
+import { defineComponent, evolve, ViewContext } from 'myra/core'
 import { startTimeout, cancelTimeout, startInterval, cancelInterval } from 'myra/time'
 import * as jsxFactory from 'myra/core/jsxFactory'
 
@@ -50,38 +50,38 @@ const cancelIntervalTask = (handle: number) => cancelInterval(handle, intervalCa
 /**
  * View
  */
-const view = (state: State) =>
+const view = (ctx: ViewContext<State>) =>
     <section>
         <h2>Time examples</h2>
         <p>
-            {state.timeoutHandle ?
+            {ctx.state.timeoutHandle ?
                 <button type="button"
                     class="btn btn-sm btn-default"
-                    onclick={() => cancelTimeoutTask(state.timeoutHandle!)}>
+                    onclick={() => ctx.invoke(cancelTimeoutTask(ctx.state.timeoutHandle!))}>
                     Cancel timeout
             </button>
                 : <button type="button"
                     class="btn btn-sm btn-default"
-                    onclick={() => startTimeoutTask}>
+                    onclick={() => ctx.invoke(startTimeoutTask)}>
                     Set a timeout of 5 seconds
             </button>
             }
         </p>
         <p>
-            {state.intervalHandle ?
+            {ctx.state.intervalHandle ?
                 <button type="button"
                     class="btn btn-sm btn-default"
-                    onclick={() => cancelIntervalTask(state.intervalHandle!)}>
+                    onclick={() => ctx.invoke(cancelIntervalTask(ctx.state.intervalHandle!))}>
                     Cancel interval
                 </button>
                 : <button type="button"
                     class="btn btn-sm btn-default"
-                    onclick={() => startIntervalTask}>
+                    onclick={() => ctx.invoke(startIntervalTask)}>
                     Start interval
                 </button>
             }
         </p>
-        <p>Milliseconds since interval started: {state.intervalTickValue}</p>
+        <p>Milliseconds since interval started: {ctx.state.intervalTickValue}</p>
     </section>
 
 

@@ -1,4 +1,4 @@
-import { defineComponent, evolve } from 'myra/core'
+import { defineComponent, evolve, ViewContext } from 'myra/core'
 import * as jsxFactory from 'myra/core/jsxFactory'
 // import { InputGroupComponent } from './form/inputGroup'
 import { bind, Form, FormSubmissionResult } from 'myra/forms'
@@ -48,37 +48,37 @@ const required = (label: string) => (value: string) => ({
 /**
  * View
  */
-const view = (state: State) =>
+const view = (ctx: ViewContext<State>) =>
     <section>
         <h2>Form example</h2>
         <div>
             <h3>Form data:</h3>
             <dl>
                 {
-                    Object.keys(state.formData).map(name =>
+                    Object.keys(ctx.state.formData).map(name =>
                         [
                             <dt>{name}</dt>,
-                            <dd>{(state.formData as any)[name]}</dd>
+                            <dd>{(ctx.state.formData as any)[name]}</dd>
                         ]
                     )
                 }
             </dl>
         </div>
         {
-            state.formValidationResult ?
-                <p>The form is {(state.formValidationResult.valid ? 'valid' : 'invalid')}</p>
+            ctx.state.formValidationResult ?
+                <p>The form is {(ctx.state.formValidationResult.valid ? 'valid' : 'invalid')}</p>
                 : <nothing />
         }
         <Form onsubmit={onFormSubmitUpdate}>
-            <div class={!state.formValidationResult || state.formValidationResult.fields['formField'].valid ? 'form-group' : 'form-group has-error'}>
+            <div class={!ctx.state.formValidationResult || ctx.state.formValidationResult.fields['formField'].valid ? 'form-group' : 'form-group has-error'}>
                 <label for="formField">Just a form field</label>
                 <input type="text"
                     id="formField"
                     name="formField"
                     validators={[required('Just a form field')]}
                     class="form-control" />
-                {state.formValidationResult ?
-                    <p class="help-text"> {(state.formValidationResult!.fields as any)['formField'].errors}</p>
+                {ctx.state.formValidationResult ?
+                    <p class="help-text"> {(ctx.state.formValidationResult!.fields as any)['formField'].errors}</p>
                     : <nothing />}
             </div>
             <div class="form-group">
@@ -86,15 +86,15 @@ const view = (state: State) =>
                 <textarea id="oninputDemo"
                     name="oninputDemo"
                     class="form-control"
-                    oninput={bind(oninputUpdate)} />
-                <p class="help-text">The value of this field is: {state.formData.oninputDemo}</p>
+                    oninput={bind(ctx.apply, oninputUpdate)} />
+                <p class="help-text">The value of this field is: {ctx.state.formData.oninputDemo}</p>
             </div>
             <div class="form-group">
                 <label for="onchangeDemo">Onchange demo (optional)</label>
                 <select name="onchangeDemo"
                     id="onchangeDemo"
                     class="form-control"
-                    onchange={bind(onchangeUpdate)}>
+                    onchange={bind(ctx.apply, onchangeUpdate)}>
                     {
                         ['Choice A', 'Choice B', 'Choice C'].map(choice =>
                             <option>{choice}</option>

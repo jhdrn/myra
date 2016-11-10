@@ -16,12 +16,6 @@ const mount = (_: State, paramsFromRoute: { param: string }) =>
 
 
 /**
- * View
- */
-const view = (state: State) => <p>Hello route, with param: {state}</p>
-
-
-/**
  * Component
  */
 export const RouteComponent = defineComponent({
@@ -38,5 +32,6 @@ export const RouteComponent = defineComponent({
     onMount: mount,
 
     // The view function is called after update. 
-    view: view
+    view: ctx =>
+        <p>Hello route, with param: {ctx.state}</p>
 })

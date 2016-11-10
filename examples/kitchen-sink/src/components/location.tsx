@@ -1,4 +1,4 @@
-import { defineComponent, evolve, Task } from 'myra/core'
+import { defineComponent, evolve } from 'myra/core'
 import { updateLocation, trackLocationChanges, goBack, goForward, LocationContext } from 'myra/location'
 import * as jsxFactory from 'myra/core/jsxFactory'
 import { RouteComponent } from './route-component'
@@ -10,7 +10,7 @@ import { RouteComponent } from './route-component'
 type State = {
     location: LocationContext
 }
-const init = evolve({}).and(trackLocationChanges())
+const init = {} as State
 
 
 /**
@@ -22,55 +22,6 @@ const subscriptions = {
 }
 
 /**
- * Returns a function that receives the event, calls preventDefault() and 
- * passes the update argument trough.
- */
-const preventDefaultAnd = (task: Task) => (ev: Event) => {
-    ev.preventDefault()
-    return task;
-}
-
-/**
- * View
- */
-const view = (state: State) =>
-    <section>
-        <h2>Location examples</h2>
-
-        {state.location.matchAny({
-            'test1': <p>Route to '/test1'.</p>,
-            'test1/:param': (params: any) => <RouteComponent {...params} />
-        }, <nothing />)}
-
-        {state.location.match('test1/:param') ?
-            <p>Location '/test2/:param' matched.</p> : <nothing />}
-
-        <ul class="list-group">
-            <li class="list-group-item">
-                <a href="" onclick={preventDefaultAnd(updateLocation('/test1'))}>
-                    Update location to '/test1'
-                </a>
-            </li>
-            <li class="list-group-item">
-                <a href="" onclick={preventDefaultAnd(updateLocation('/test1/test2'))}>
-                    Update location to '/test1/test2'
-                </a>
-            </li>
-            <li class="list-group-item">
-                <a href="" onclick={preventDefaultAnd(goBack())}>
-                    Go back
-                </a>
-            </li>
-            <li class="list-group-item">
-                <a href="" onclick={preventDefaultAnd(goForward())}>
-                    Go forward
-                </a>
-            </li>
-        </ul>
-    </section>
-
-
-/**
  * Component
  */
 export const LocationComponent = defineComponent({
@@ -79,10 +30,47 @@ export const LocationComponent = defineComponent({
 
     // Init takes either an initial model or a tuple of an initial model 
     // and one or more tasks to execute when the component is initialized.
-    init: init,
+    init: {
+        state: init,
+        effects: [trackLocationChanges()]
+    },
 
     subscriptions: subscriptions,
 
     // The view function is called after update. 
-    view: view
+    view: ctx =>
+        <section>
+            <h2>Location examples</h2>
+
+            {ctx.state.location.matchAny({
+                'test1': <p>Route to '/test1'.</p>,
+                'test1/:param': (params: any) => <RouteComponent {...params} />
+            }, <nothing />)}
+
+            {ctx.state.location.match('test1/:param') ?
+                <p>Location '/test2/:param' matched.</p> : <nothing />}
+
+            <ul class="list-group">
+                <li class="list-group-item">
+                    <a href="" onclick={() => ctx.invoke(updateLocation('/test1'))}>
+                        Update location to '/test1'
+                </a>
+                </li>
+                <li class="list-group-item">
+                    <a href="" onclick={preventDefaultAnd(updateLocation('/test1/test2'))}>
+                        Update location to '/test1/test2'
+                </a>
+                </li>
+                <li class="list-group-item">
+                    <a href="" onclick={preventDefaultAnd(goBack())}>
+                        Go back
+                </a>
+                </li>
+                <li class="list-group-item">
+                    <a href="" onclick={preventDefaultAnd(goForward())}>
+                        Go forward
+                </a>
+                </li>
+            </ul>
+        </section>
 })
