@@ -1,4 +1,4 @@
-import { broadcast, Update, Dispatch } from 'myra/core'
+import { broadcast, Update, Apply } from 'myra/core'
 
 export type Todo = {
     id: number
@@ -8,44 +8,44 @@ export type Todo = {
 
 const LOCAL_STORAGE_KEY = 'todos-myra'
 const get = () => (JSON.parse(window.localStorage.getItem(LOCAL_STORAGE_KEY) || '[]') || []) as Todo[]
-const set = (todos: Todo[], dispatch: Dispatch) => {
+const set = (todos: Todo[], dispatch: Apply) => {
     window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(todos))
     broadcast('todosChanged', todos)(dispatch)
-} 
-
-export const getAll = <M>(todosLoaded: Update<M, Todo[]> ) => (dispatch: Dispatch) => {
-    dispatch(todosLoaded, get())
 }
 
-export const add = (todo: Todo) => (dispatch: Dispatch) => {
+export const getAll = <M>(todosLoaded: Update<M, Todo[]>) => (apply: Apply) => {
+    apply(todosLoaded, get())
+}
+
+export const add = (todo: Todo) => (apply: Apply) => {
     const todos = get()
     const maxId = todos.map(t => t.id).sort().pop() || 0
     todo.id = maxId + 1
     todos.push(todo)
-    set(todos, dispatch)
+    set(todos, apply)
 }
 
-export const save = (todo: Todo) => (dispatch: Dispatch) => {
+export const save = (todo: Todo) => (apply: Apply) => {
     const todos = get()
     const existing = todos.filter(f => f.id === todo.id)[0]
     todos.splice(todos.indexOf(existing), 1, todo)
-    set(todos, dispatch)
+    set(todos, apply)
 }
 
-export const remove = (todoId: number) => (dispatch: Dispatch) => {
+export const remove = (todoId: number) => (apply: Apply) => {
     const todos = get()
     const existing = todos.filter(f => f.id === todoId)[0]
     todos.splice(todos.indexOf(existing), 1)
-    set(todos, dispatch)
+    set(todos, apply)
 }
 
-export const removeCompleted = (dispatch: Dispatch) => {
-    set(get().filter(t => !t.completed), dispatch)
+export const removeCompleted = (apply: Apply) => {
+    set(get().filter(t => !t.completed), apply)
 }
 
-export const toggleAll = (completed: boolean) => (dispatch: Dispatch) => {
-    set(get().map(t => { 
+export const toggleAll = (completed: boolean) => (apply: Apply) => {
+    set(get().map(t => {
         t.completed = completed
         return t
-    }), dispatch)
+    }), apply)
 }

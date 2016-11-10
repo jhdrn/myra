@@ -1,4 +1,4 @@
-import { defineComponent, evolve, Dispatch } from 'myra/core'
+import { defineComponent, evolve, Apply } from 'myra/core'
 import * as jsxFactory from 'myra/core/jsxFactory'
 import { bind } from 'myra/forms'
 import * as todos from '../models/todos'
@@ -80,7 +80,7 @@ const todoClass = (m: State) => {
     return undefined
 }
 
-const editInputOrNothing = (dispatch: Dispatch, state: State) =>
+const editInputOrNothing = (dispatch: Apply, state: State) =>
     state.editing ? <input class="edit"
         focus="true"
         value={state.todo.title}
@@ -107,6 +107,6 @@ export const TodoItemComponent = defineComponent<State, Todo>({
                 <label ondblclick={ctx.state.todo.completed ? undefined : () => editTodo}>{ctx.state.todo.title}</label>
                 <button class="destroy" onclick={() => todos.remove(ctx.state.todo.id)}></button>
             </div>
-            {editInputOrNothing(ctx.dispatch, ctx.state)}
+            {editInputOrNothing(ctx.apply, ctx.state)}
         </li>
 })

@@ -42,23 +42,23 @@ const addNewTodo = (m: State, value: string) => {
 export const mainComponent = defineComponent<State, undefined>({
     name: 'MainComponent',
     init: init,
-    view:  (ctx) =>
-    <div>
-        <section class="todoapp">
-            <header class="header">
-                <h1>todos</h1>
-                <input class="new-todo"
-                    placeholder="What needs to be done?"
-                    autofocus={true}
-                    value=""
-                    onkeydown_enter={bind(ctx.dispatch, addNewTodo)} />
-            </header>
-            <TodoListComponent />
-        </section>
-        <footer class="info">
-            <p>Double-click to edit a todo</p>
-            <p>Created by <a href="https://github.com/jhdrn/myra">Jonathan Hedrén</a></p>
-            <p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
-        </footer>
-    </div>
+    view: (ctx) =>
+        <div>
+            <section class="todoapp">
+                <header class="header">
+                    <h1>todos</h1>
+                    <input class="new-todo"
+                        placeholder="What needs to be done?"
+                        autofocus={true}
+                        value=""
+                        onkeydown_enter={bind(ctx.apply, addNewTodo)} />
+                </header>
+                <TodoListComponent />
+            </section>
+            <footer class="info">
+                <p>Double-click to edit a todo</p>
+                <p>Created by <a href="https://github.com/jhdrn/myra">Jonathan Hedrén</a></p>
+                <p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
+            </footer>
+        </div>
 })
