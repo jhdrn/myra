@@ -150,7 +150,7 @@ Myra does not use HTML templates but creates it's views with JSX. A
 ```
 
 #### The `ViewContext<T>`
-The `ViewContext<T>` contains key properties for an application:
+The `ViewContext<T>` contains key properties for the component:
 
 - `state` - the current state of the component.
 - `apply` - a function that updates the state of the component by applying the 
@@ -160,6 +160,38 @@ The `ViewContext<T>` contains key properties for an application:
   later.
 - `bind` - a convenience function to apply an update function and pass the value
   of a form field as an argument.
+
+Examples of usage:
+
+```JSX
+    import { ViewContext } from 'myra/core'
+    import { startTimeout } from 'myra/time'
+    import * as jsxFactory from 'myra/html/jsxFactory'
+
+    type State = {
+        inputValue: string
+    }
+
+    const myApplyUpdate = (s: State) => 
+        evolve(s, x => x.inputValue = '')
+    
+    const myBindUpdate = (s: State, inputValue: string) =>
+        evolve(s, x => x.inputValue = inputValue)
+
+    const view = (ctx: ViewContext<State>) => 
+        <div>
+            <input type="text"
+                   oninput={ctx.bind(myBindUpdate)} />
+            <p>{ctx.state.inputValue}</p>
+            <button onclick={() => ctx.apply(myApplyUpdate)}>
+                Clear inputValue
+            </button>
+            <button onclick={() => ctx.invoke(startTimeout(5000, undefined, myApplyUpdate))}>
+                Clear in 5 seconds
+            </button>
+        </div>
+```
+
 
 #### Event listeners
 Any attribute key starting with `on` is treated as an event listener.
