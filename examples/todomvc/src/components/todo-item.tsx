@@ -1,6 +1,5 @@
-import { defineComponent, evolve, Apply } from 'myra/core'
+import { defineComponent, evolve } from 'myra/core'
 import * as jsxFactory from 'myra/core/jsxFactory'
-import { bind } from 'myra/forms'
 import * as todos from '../models/todos'
 
 type Todo = todos.Todo
@@ -80,14 +79,6 @@ const todoClass = (m: State) => {
     return undefined
 }
 
-const editInputOrNothing = (dispatch: Apply, state: State) =>
-    state.editing ? <input class="edit"
-        focus="true"
-        value={state.todo.title}
-        onblur={bind(dispatch, saveTodo)}
-        onkeyup_enter={bind(dispatch, saveTodo)}
-        onkeyup_escape={bind(dispatch, undoEditTodo)} />
-        : <nothing />
 
 /**
  * Component
@@ -102,11 +93,22 @@ export const TodoItemComponent = defineComponent<State, Todo>({
                 <input class="toggle"
                     type="checkbox"
                     checked={ctx.state.todo.completed}
-                    onclick={() => toggleTodoCompleted} />
+                    onclick={() => ctx.apply(toggleTodoCompleted)} />
 
-                <label ondblclick={ctx.state.todo.completed ? undefined : () => editTodo}>{ctx.state.todo.title}</label>
-                <button class="destroy" onclick={() => todos.remove(ctx.state.todo.id)}></button>
+                <label ondblclick={ctx.state.todo.completed ? undefined : () => ctx.apply(editTodo)}>
+                    {ctx.state.todo.title}
+                </label>
+                <button class="destroy" onclick={() => ctx.invoke(todos.remove(ctx.state.todo.id))}></button>
             </div>
-            {editInputOrNothing(ctx.apply, ctx.state)}
+            {
+                ctx.state.editing ?
+                    <input class="edit"
+                        focus="true"
+                        value={ctx.state.todo.title}
+                        onblur={ctx.bind(saveTodo)}
+                        onkeyup_enter={ctx.bind(saveTodo)}
+                        onkeyup_escape={ctx.bind(undoEditTodo)} />
+                    : <nothing />
+            }
         </li>
 })

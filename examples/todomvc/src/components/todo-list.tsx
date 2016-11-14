@@ -76,7 +76,7 @@ const init = {
         filter: 'all',
         location: {} as LocationContext
     } as State,
-    tasks: [loadFilter(applySavedFilter)]
+    effects: [loadFilter(applySavedFilter)]
 }
 
 /**
@@ -112,7 +112,7 @@ export const TodoListComponent = defineComponent<State, any>({
                     <input class="toggle-all"
                         type="checkbox"
                         checked={ctx.state.todos.every(t => t.completed)}
-                        onclick={() => todos.toggleAll(!ctx.state.todos.every(t => t.completed))} />
+                        onclick={() => ctx.invoke(todos.toggleAll(!ctx.state.todos.every(t => t.completed)))} />
 
                     <label for="toggle-all">Mark all as complete</label>
                     <ul class="todo-list">
@@ -142,7 +142,7 @@ export const TodoListComponent = defineComponent<State, any>({
                     {
                         ctx.state.todos.filter(t => t.completed).length ?
                             <button class="clear-completed"
-                                onclick={() => todos.removeCompleted}>
+                                onclick={() => ctx.invoke(todos.removeCompleted)}>
                                 Clear completed
                             </button> : <nothing />
                     }
