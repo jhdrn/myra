@@ -87,7 +87,7 @@ describe('core.dispatch', () => {
     it('call onBeforeRender if a listener is supplied', () => {
         const mock = {
             onBeforeRender: (nodeDescriptor: NodeDescriptor) => {
-                expect(nodeDescriptor.__type).toBe('element')
+                expect(nodeDescriptor.__type).toBe(2)
             }
         }
         spyOn(mock, 'onBeforeRender').and.callThrough()
@@ -120,7 +120,7 @@ describe('core.dispatch', () => {
     it('call onAfterRender if a listener is supplied', () => {
         const mock = {
             onAfterRender: (nodeDescriptor: NodeDescriptor) => {
-                expect(nodeDescriptor.__type).toBe('element')
+                expect(nodeDescriptor.__type).toBe(2)
             }
         }
         spyOn(mock, 'onAfterRender').and.callThrough()

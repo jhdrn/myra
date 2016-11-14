@@ -1,20 +1,6 @@
 import { ComponentFactory, NodeDescriptor, TextDescriptor } from './contract'
 import { flatten } from './helpers'
 
-function notUndefined(x: any) {
-    return typeof x !== 'undefined'
-}
-
-function toDescriptor(c: string | NodeDescriptor) {
-    if (typeof c !== 'object' || Array.isArray(c) || typeof c === 'object' && typeof (c as NodeDescriptor).__type === 'undefined') {
-        return {
-            __type: 'text',
-            value: c
-        } as TextDescriptor
-    }
-    return c as NodeDescriptor
-}
-
 function flattenChildren(children: ((NodeDescriptor | string)[] | NodeDescriptor | string)[]) {
     const flattenedChildren = [] as (NodeDescriptor | string)[]
 
@@ -30,32 +16,35 @@ function flattenChildren(children: ((NodeDescriptor | string)[] | NodeDescriptor
             }
             else {
                 flattenedChildren.push({
-                    __type: 'text',
+                    __type: 1,
                     value: child as any as string
                 } as TextDescriptor)
             }
         }
-        else {
-            flattenedChildren.push(child as any as NodeDescriptor)
+        else if (typeof child !== 'undefined') {
+            flattenedChildren.push({
+                __type: 1,
+                value: child
+            } as TextDescriptor)
         }
     }
 
-    return flattenedChildren.filter(notUndefined).map(toDescriptor)
+    return flattenedChildren as NodeDescriptor[]
 }
 
 export function createElement<T>(tagNameOrComponent: string | ComponentFactory<T>, props: T, ...children: (string | NodeDescriptor)[]): JSX.Element {
     if (tagNameOrComponent === 'nothing') {
-        return { __type: 'nothing' }
+        return { __type: 0 }
     }
     else if (typeof tagNameOrComponent === 'string') {
         if (tagNameOrComponent === 'text') {
             return {
-                __type: 'text',
+                __type: 1,
                 value: children[0] as string
             } as TextDescriptor
         }
         return {
-            __type: 'element',
+            __type: 2,
             tagName: tagNameOrComponent,
             attributes: props || {},
             children: flattenChildren(children)

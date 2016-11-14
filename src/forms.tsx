@@ -18,12 +18,6 @@ export interface ValidatableInputAttributes extends InputAttributes {
     validators?: FieldValidator[]
 }
 
-export function bind<S>(dispatch: Apply, update: Update<S, string>) {
-    return (ev: Event, _descriptor: ElementDescriptor<any>) => {
-        dispatch(update, (ev.target as HTMLInputElement).value)
-    }
-}
-
 function validateFieldInternal(value: string, validators: FieldValidator[]) {
     return validators.reduce((acc, validator) => {
         const result = validator(value)
@@ -72,7 +66,7 @@ export function validateField(event: Event, nodeDescriptor: ElementDescriptor<an
 
 function findFieldValidatorsRec(nodeDescriptors: NodeDescriptor[], fields: { [name: string]: FieldValidator[] }) {
     return nodeDescriptors.reduce((acc, descriptor) => {
-        if (descriptor.__type === 'element') {
+        if (descriptor.__type === 2) {
             const fieldName = (descriptor.attributes as InputAttributes).name
             const validators = (descriptor.attributes as ValidatableInputAttributes).validators
             if (fieldName && validators) {
@@ -80,7 +74,7 @@ function findFieldValidatorsRec(nodeDescriptors: NodeDescriptor[], fields: { [na
             }
             findFieldValidatorsRec(descriptor.children, acc)
         }
-        else if (descriptor.__type === 'component' && descriptor.rendition) {
+        else if (descriptor.__type === 3 && descriptor.rendition) {
             findFieldValidatorsRec([descriptor.rendition], acc)
         }
         return acc
@@ -112,11 +106,11 @@ export type FormState = {
     validators?: FormValidator[]
 }
 
-function handleOnSubmit(dispatch: Apply, state: FormState) {
+function handleOnSubmit(apply: Apply, state: FormState) {
     return (ev: Event, descriptor: ElementDescriptor<HTMLFormElement>) => {
         ev.preventDefault()
         const result = validateForm(ev, descriptor)(state.validators || [])
-        dispatch((s: any, _: any) => {
+        apply((s: any, _: any) => {
             state.onsubmit(s, result)
             return evolve(state)
         })

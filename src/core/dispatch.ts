@@ -1,7 +1,7 @@
-import { Update, Apply, Effect, NodeDescriptor, ComponentContext, Result, ViewContext } from './contract'
+import { Update, Effect, NodeDescriptor, ComponentContext, Result, ViewContext } from './contract'
 
 export interface Render {
-    (parentNode: Element, view: NodeDescriptor, oldView: NodeDescriptor | undefined, oldRootNode: Node | undefined, dispatch: Apply): void
+    (parentNode: Element, view: NodeDescriptor, oldView: NodeDescriptor | undefined, oldRootNode: Node | undefined): void
 }
 
 export function dispatch<S, A>(context: ComponentContext<S>, render: Render, fn: (state: S, ...args: any[]) => Result<S>, ...args: any[]) {
@@ -27,7 +27,9 @@ export function dispatch<S, A>(context: ComponentContext<S>, render: Render, fn:
     context.state = result.state
 
     if (typeof result.effects !== 'undefined' && result.effects.length) {
-        result.effects.forEach(t => t(apply))
+        for (let i = 0; i < result.effects.length; i++) {
+            result.effects[i](apply)
+        }
     }
 
     // Update view if the component was already mounted and the dispatchLevel
@@ -37,21 +39,25 @@ export function dispatch<S, A>(context: ComponentContext<S>, render: Render, fn:
             state: context.state!,
             apply: apply,
             invoke: (fn: Effect) => fn(apply),
-            children: context.childNodes,
-            broadcast: () => { }
+            bind: (update: Update<S, string>) => {
+                return (ev: Event) => {
+                    apply(update as any, (ev.target as HTMLInputElement).value)
+                }
+            },
+            children: context.childNodes
         } as ViewContext<S>
 
         const newView = context.spec.view(ctx)
 
-        if (context.spec.onBeforeRender) {
+        if (typeof context.spec.onBeforeRender !== 'undefined') {
             context.spec.onBeforeRender(newView)
         }
 
         const oldNode = context.rendition ? context.rendition.node : undefined
-        render(context.parentNode, newView, context.rendition, oldNode, apply)
+        render(context.parentNode, newView, context.rendition, oldNode)
         context.rendition = newView
 
-        if (context.spec.onAfterRender) {
+        if (typeof context.spec.onAfterRender !== 'undefined') {
             context.spec.onAfterRender(newView)
         }
     }

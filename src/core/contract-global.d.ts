@@ -57,7 +57,7 @@ declare namespace myra {
         readonly apply: Apply
         readonly invoke: (effect: Effect) => void
         readonly children?: NodeDescriptor[]
-        readonly broadcast: (type: string, data: any) => void
+        readonly bind: <S>(update: Update<S, string>) => EventListener<Event, HTMLElement>
     }
     interface View<S> {
         (ctx: ViewContext<S>): NodeDescriptor
@@ -71,18 +71,18 @@ declare namespace myra {
         node?: Node
     }
     interface TextDescriptor extends DescriptorBase {
-        readonly __type: 'text'
+        readonly __type: 1
         readonly value: string
     }
     interface ElementDescriptor<E extends Element> extends DescriptorBase {
-        readonly __type: 'element'
+        readonly __type: 2
         readonly tagName: string
         readonly attributes: GlobalAttributes<E>
         readonly children: NodeDescriptor[]
         node?: E
     }
     interface ComponentDescriptor<T> extends DescriptorBase {
-        readonly __type: 'component'
+        readonly __type: 3
         readonly name: string
         id: number;
         forceMount: boolean
@@ -91,7 +91,7 @@ declare namespace myra {
         props: T
     }
     interface NothingDescriptor extends DescriptorBase {
-        readonly __type: 'nothing'
+        readonly __type: 0
     }
     type NodeDescriptor = TextDescriptor | ElementDescriptor<any> | ComponentDescriptor<any> | NothingDescriptor
 

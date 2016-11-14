@@ -109,7 +109,7 @@ export function defineComponent<S, T>(args: ComponentSpec<S, T>): ComponentFacto
 
     return (props: T, forceMount: boolean = false, childNodes: NodeDescriptor[] = []) => {
         return {
-            __type: 'component' as 'component',
+            __type: 3,
             name: args.name,
             id: 0,
             forceMount: forceMount,

@@ -54,7 +54,7 @@ export function equal<T>(a: T, b: T): boolean {
     else if (typeOfA === 'regexp' && typeOfB === 'regexp') {
         return (a as any).toString() === (b as any).toString()
     }
-    // FIXME: functions?
+    // Functions?
     return false
 }
 
@@ -112,10 +112,12 @@ export function evolve<T>(original: T, evolve?: ((obj: T) => void)): Evolved<T> 
         effects: [] as Effect[]
     } as Result<T>
 
-    (result as Evolved<T>).and = (task: Effect, ...tasks: Effect[]) => {
-        result.effects!.push(task)
-        if (tasks) {
-            tasks.forEach(t => result.effects!.push(t))
+    (result as Evolved<T>).and = (effect: Effect, ...effects: Effect[]) => {
+        result.effects!.push(effect)
+        if (typeof effects !== 'undefined') {
+            for (let i = 0; i < effects.length; i++) {
+                result.effects!.push(effects[i])
+            }
         }
         return result as Evolved<T>
     }

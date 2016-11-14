@@ -8,7 +8,7 @@ describe('jsxFactory', () => {
         const view = <div>{'some text'}</div> as core.ElementDescriptor<any>
 
         expect(view.children[0]).toEqual({
-            __type: 'text',
+            __type: 1,
             value: 'some text'
         } as core.TextDescriptor)
     })
@@ -18,7 +18,7 @@ describe('jsxFactory', () => {
         const view = <nothing />
 
         expect(view).toEqual({
-            __type: 'nothing'
+            __type: 0
         } as core.NothingDescriptor)
     })
 
@@ -27,7 +27,7 @@ describe('jsxFactory', () => {
         const view = <div></div>
 
         expect(view).toEqual({
-            __type: 'element',
+            __type: 2,
             tagName: 'div',
             attributes: {},
             children: []
@@ -40,7 +40,7 @@ describe('jsxFactory', () => {
         const view = <div class="test" id="test" onclick={fn}></div>
 
         expect(view).toEqual({
-            __type: 'element',
+            __type: 2,
             tagName: 'div',
             attributes: {
                 'class': 'test',
@@ -52,7 +52,7 @@ describe('jsxFactory', () => {
     })
 
     const childNodeDescriptor = {
-        __type: 'element',
+        __type: 2,
         tagName: 'div',
         attributes: {},
         children: []
@@ -63,7 +63,7 @@ describe('jsxFactory', () => {
         const view = <div><div></div></div>
 
         expect(view).toEqual({
-            __type: 'element',
+            __type: 2,
             tagName: 'div',
             attributes: {},
             children: [
@@ -77,14 +77,14 @@ describe('jsxFactory', () => {
         const view = <div><div></div><div></div>abc</div>
 
         expect(view).toEqual({
-            __type: 'element',
+            __type: 2,
             tagName: 'div',
             attributes: {},
             children: [
                 childNodeDescriptor,
                 childNodeDescriptor,
                 {
-                    __type: 'text',
+                    __type: 1,
                     value: 'abc'
                 } as core.TextDescriptor
             ]
@@ -106,7 +106,7 @@ describe('jsxFactory', () => {
 
         const view = <TestComponent test="test" /> as core.ComponentDescriptor<TestProps>
 
-        expect(view.__type).toBe('component')
+        expect(view.__type).toBe(3)
         expect(view.name).toBe('JsxComponent')
         expect(view.props).toEqual({ test: 'test' })
         expect(view.forceMount).toBe(false)
