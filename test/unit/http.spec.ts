@@ -19,7 +19,7 @@ describe('http module', () => {
 
         spyOn(mocks, 'success').and.callThrough()
 
-        httpGet(mocks.success, m => m, '/base/test/test.json', {}, 'text').execute(dispatch)
+        httpGet(mocks.success, m => m, '/base/test/test.json', {}, 'text')(dispatch)
 
         setTimeout(() => {
             expect(mocks.success).toHaveBeenCalledTimes(1)
@@ -42,7 +42,7 @@ describe('http module', () => {
             method: 'GET',
             url: '/base/test/fail.json',
             responseType: 'text'
-        }).execute(dispatch)
+        })(dispatch)
 
         setTimeout(() => {
             expect(mocks.error).toHaveBeenCalledTimes(1)
@@ -62,7 +62,7 @@ describe('http module', () => {
 
         spyOn(mocks, 'error').and.callThrough()
 
-        httpPost(m => m, mocks.error, '/base/test/fail', 'some data', { 'Header': 'header value'}, 'text').execute(dispatch)
+        httpPost(m => m, mocks.error, '/base/test/fail', 'some data', { 'Header': 'header value'}, 'text')(dispatch)
 
         setTimeout(() => {
             expect(mocks.error).toHaveBeenCalledTimes(1)
@@ -81,7 +81,7 @@ describe('http module', () => {
 
         spyOn(mocks, 'error').and.callThrough()
 
-        httpPut(m => m, mocks.error, '/base/test/fail', 'some data', { 'Header': 'header value'}, 'text').execute(dispatch)
+        httpPut(m => m, mocks.error, '/base/test/fail', 'some data', { 'Header': 'header value'}, 'text')(dispatch)
 
         setTimeout(() => {
             expect(mocks.error).toHaveBeenCalledTimes(1)
@@ -100,7 +100,7 @@ describe('http module', () => {
 
         spyOn(mocks, 'error').and.callThrough()
 
-        httpDelete(m => m, mocks.error, '/base/test/fail', { 'Header': 'header value'}).execute(dispatch)
+        httpDelete(m => m, mocks.error, '/base/test/fail', { 'Header': 'header value'})(dispatch)
 
         setTimeout(() => {
             expect(mocks.error).toHaveBeenCalledTimes(1)

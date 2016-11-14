@@ -12,7 +12,7 @@ if (window.history && window.history.pushState) {
 
         it('updateLocation updates window.location', () => {
 
-            location.updateLocation('/some/path').execute(dispatch)
+            location.updateLocation('/some/path')(dispatch)
 
             expect(window.location.pathname).toBe('/some/path')
         })
@@ -23,7 +23,7 @@ if (window.history && window.history.pushState) {
             location.updateLocation('/some/path', {
                 foo: 'bar',
                 baz: '1'
-            }).execute(dispatch)
+            })(dispatch)
             
             expect(window.location.search).toBe('?foo=bar&baz=1')
         })

@@ -1,5 +1,5 @@
 import { dispatch } from 'core/dispatch'
-import { task, evolve, NodeDescriptor } from 'core'
+import { evolve, NodeDescriptor } from 'core'
 import * as jsxFactory from 'core/jsxFactory'
 
 /**
@@ -84,69 +84,10 @@ describe('core.dispatch', () => {
         expect(() => dispatch(context, render, update, 2)).toThrow()
     })
 
-    it('updates state and executes task', () => {
-        const testTask = task(dispatch => {
-            expect(dispatch).toBeDefined()
-        })
-
-        const update = (x: number, arg: number) => evolve(x + arg).and(testTask)
-        const context = {
-            spec: {
-                name: '',
-                init: { state: undefined },
-                view: () => <div>a text</div>
-            },
-            parentNode: document.body,
-            mounted: false,
-            mountArg: undefined,
-            dispatchLevel: 0,
-            isUpdating: false,
-            state: 1,
-            oldView: undefined,
-            rootNode: document.body
-        }
-        const render = () => {
-            expect(context.state).toBe(2)
-            return null as any as Node
-        }
-        dispatch(context, render, update, 2)
-    })
-
-
-    it('updates state and executes array of tasks', () => {
-        const testTask1 = task(dispatch => {
-            expect(dispatch).toBeDefined()
-        })
-        const testTask2 = task(dispatch => {
-            expect(dispatch).toBeDefined()
-        })
-        const update = (x: number, arg: number) => evolve(x + arg).and(testTask1).and(testTask2)
-        const context = {
-            spec: {
-                name: '',
-                init: { state: undefined },
-                view: () => <div>a text</div>
-            },
-            parentNode: document.body,
-            mounted: false,
-            mountArg: undefined,
-            dispatchLevel: 0,
-            isUpdating: false,
-            state: 1,
-            oldView: undefined,
-            rootNode: document.body
-        }
-        const render = () => {
-            expect(context.state).toBe(2)
-            return null as any as Node
-        }
-        dispatch(context, render, update, 2)
-    })
-
     it('call onBeforeRender if a listener is supplied', () => {
         const mock = {
             onBeforeRender: (nodeDescriptor: NodeDescriptor) => {
-                expect(nodeDescriptor.__type).toBe('element')
+                expect(nodeDescriptor.__type).toBe(2)
             }
         }
         spyOn(mock, 'onBeforeRender').and.callThrough()
@@ -179,7 +120,7 @@ describe('core.dispatch', () => {
     it('call onAfterRender if a listener is supplied', () => {
         const mock = {
             onAfterRender: (nodeDescriptor: NodeDescriptor) => {
-                expect(nodeDescriptor.__type).toBe('element')
+                expect(nodeDescriptor.__type).toBe(2)
             }
         }
         spyOn(mock, 'onAfterRender').and.callThrough()

@@ -1,6 +1,5 @@
 import { defineComponent, evolve } from 'myra/core'
 import * as jsxFactory from 'myra/core/jsxFactory'
-import { bind } from 'myra/forms'
 import * as todos from '../models/todos'
 
 type Todo = todos.Todo
@@ -80,29 +79,6 @@ const todoClass = (m: State) => {
     return undefined
 }
 
-const editInputOrNothing = (state: State) =>
-    state.editing ? <input class="edit"
-        focus="true"
-        value={state.todo.title}
-        onblur={bind(saveTodo)}
-        onkeyup_enter={bind(saveTodo)}
-        onkeyup_escape={bind(undoEditTodo)} />
-        : <nothing />
-
-const view = (state: State) =>
-    <li class={todoClass(state)}>
-        <div class="view">
-            <input class="toggle"
-                type="checkbox"
-                checked={state.todo.completed}
-                onclick={() => toggleTodoCompleted} />
-
-            <label ondblclick={state.todo.completed ? undefined : () => editTodo}>{state.todo.title}</label>
-            <button class="destroy" onclick={() => todos.remove(state.todo.id)}></button>
-        </div>
-        {editInputOrNothing(state)}
-    </li>
-
 
 /**
  * Component
@@ -111,5 +87,28 @@ export const TodoItemComponent = defineComponent<State, Todo>({
     name: 'TodoItemComponent',
     init: { state: init },
     onMount: mount,
-    view: view
+    view: (ctx) =>
+        <li class={todoClass(ctx.state)}>
+            <div class="view">
+                <input class="toggle"
+                    type="checkbox"
+                    checked={ctx.state.todo.completed}
+                    onclick={() => ctx.apply(toggleTodoCompleted)} />
+
+                <label ondblclick={ctx.state.todo.completed ? undefined : () => ctx.apply(editTodo)}>
+                    {ctx.state.todo.title}
+                </label>
+                <button class="destroy" onclick={() => ctx.invoke(todos.remove(ctx.state.todo.id))}></button>
+            </div>
+            {
+                ctx.state.editing ?
+                    <input class="edit"
+                        focus="true"
+                        value={ctx.state.todo.title}
+                        onblur={ctx.bind(saveTodo)}
+                        onkeyup_enter={ctx.bind(saveTodo)}
+                        onkeyup_escape={ctx.bind(undoEditTodo)} />
+                    : <nothing />
+            }
+        </li>
 })

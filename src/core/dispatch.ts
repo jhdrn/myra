@@ -1,7 +1,7 @@
-import { Update, Dispatch, NodeDescriptor, ComponentContext, Result } from './contract'
+import { Update, Effect, NodeDescriptor, ComponentContext, Result, ViewContext } from './contract'
 
 export interface Render {
-    (parentNode: Element, view: NodeDescriptor, oldView: NodeDescriptor | undefined, oldRootNode: Node | undefined, dispatch: Dispatch): void
+    (parentNode: Element, view: NodeDescriptor, oldView: NodeDescriptor | undefined, oldRootNode: Node | undefined): void
 }
 
 export function dispatch<S, A>(context: ComponentContext<S>, render: Render, fn: (state: S, ...args: any[]) => Result<S>, ...args: any[]) {
@@ -16,41 +16,49 @@ export function dispatch<S, A>(context: ComponentContext<S>, render: Render, fn:
 
     const result = fn(context.state!, ...args)
 
-    if (result && typeof result !== 'object') {
+    if (typeof result !== 'object') {
         throw 'Invalid result.'
     }
 
     context.isUpdating = false
 
-    if (result) {
-        const dispatchFn = (fn: Update<S, A>, ...args: any[]) => dispatch(context, render, fn, ...args)
+    const apply = (fn: Update<S, A>, ...args: any[]) => dispatch(context, render, fn, ...args)
 
-        if (result.tasks && result.tasks.length) {
+    context.state = result.state
 
-            context.state = result.state
-
-            result.tasks.forEach(t => t.execute(dispatchFn))
+    if (typeof result.effects !== 'undefined' && result.effects.length) {
+        for (let i = 0; i < result.effects.length; i++) {
+            result.effects[i](apply)
         }
-        else {
-            context.state = result.state
+    }
+
+    // Update view if the component was already mounted and the dispatchLevel
+    // is at "lowest" level (i.e. 1).
+    if (context.mounted && context.dispatchLevel === 1) {
+        const ctx = {
+            state: context.state!,
+            apply: apply,
+            invoke: (fn: Effect) => fn(apply),
+            bind: (update: Update<S, string>) => {
+                return (ev: Event) => {
+                    apply(update as any, (ev.target as HTMLInputElement).value)
+                }
+            },
+            children: context.childNodes
+        } as ViewContext<S>
+
+        const newView = context.spec.view(ctx)
+
+        if (typeof context.spec.onBeforeRender !== 'undefined') {
+            context.spec.onBeforeRender(newView)
         }
 
-        // Update view if the component was already mounted and the dispatchLevel
-        // is at "lowest" level (i.e. 1).
-        if (context.mounted && context.dispatchLevel === 1) {
-            const newView = context.spec.view(context.state!, context.childNodes)
+        const oldNode = context.rendition ? context.rendition.node : undefined
+        render(context.parentNode, newView, context.rendition, oldNode)
+        context.rendition = newView
 
-            if (context.spec.onBeforeRender) {
-                context.spec.onBeforeRender(newView)
-            }
-
-            const oldNode = context.rendition ? context.rendition.node : undefined
-            render(context.parentNode, newView, context.rendition, oldNode, dispatchFn)
-            context.rendition = newView
-
-            if (context.spec.onAfterRender) {
-                context.spec.onAfterRender(newView)
-            }
+        if (typeof context.spec.onAfterRender !== 'undefined') {
+            context.spec.onAfterRender(newView)
         }
     }
     context.dispatchLevel--

@@ -11,9 +11,9 @@ type State = {
     responseStatus: ResponseStatus
     response?: HttpResponse
 }
-const init = evolve({
+const init = {
     responseStatus: 'init'
-})
+} as State
 
 
 /**
@@ -37,35 +37,6 @@ const httpRequestTask =
         url: 'https://api.github.com/repos/jhdrn/myra'
     })
 
-
-/**
- * View
- */
-const view = (state: State) =>
-    <section>
-        <h2>HTTP example</h2>
-        <button type="button"
-            class="btn btn-sm btn-default"
-            onclick={() => httpRequestTask}>
-            Make HTTP request
-        </button>
-
-        <p>Response status:{state.responseStatus}</p>
-        {state.response ?
-            <div>
-                {state.response.status}
-                {state.response.statusText}
-                {state.responseStatus === 'success' ?
-                    <p><strong>Response text:</strong>{state.response.data}</p>
-                    : <nothing />
-                }
-            </div>
-            : <nothing />
-        }
-
-    </section>
-
-
 /**
  * Component
  */
@@ -75,8 +46,30 @@ export const HttpComponent = defineComponent({
 
     // Init takes either an initial model or a tuple of an initial model 
     // and one or more tasks to execute when the component is initialized.
-    init: init,
+    init: { state: init },
 
     // The view function is called after update. 
-    view: view
+    view: ctx =>
+        <section>
+            <h2>HTTP example</h2>
+            <button type="button"
+                class="btn btn-sm btn-default"
+                onclick={() => ctx.invoke(httpRequestTask)}>
+                Make HTTP request
+            </button>
+
+            <p>Response status:{ctx.state.responseStatus}</p>
+            {ctx.state.response ?
+                <div>
+                    {ctx.state.response.status}
+                    {ctx.state.response.statusText}
+                    {ctx.state.responseStatus === 'success' ?
+                        <p><strong>Response text:</strong>{ctx.state.response.data}</p>
+                        : <nothing />
+                    }
+                </div>
+                : <nothing />
+            }
+
+        </section>
 })

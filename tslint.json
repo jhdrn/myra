@@ -2,6 +2,13 @@
     "rules": {
         "quotemark": [
             "single"
+        ],
+        "curly": true,
+        "triple-equals": [
+            true
+        ],
+        "semicolon": [
+            true, "never"
         ]
     }
 }

@@ -23,7 +23,7 @@ describe('time module', () => {
 
         spyOn(mocks, 'success').and.callThrough()
 
-        now(mocks.success).execute(dispatch)
+        now(mocks.success)(dispatch)
         expect(mocks.success).toHaveBeenCalledTimes(1)
 
     })
@@ -37,7 +37,7 @@ describe('time module', () => {
         spyOn(mocks, 'started')
         spyOn(mocks, 'ended')
 
-        startTimeout(500, mocks.started, mocks.ended).execute(dispatch)
+        startTimeout(500, mocks.started, mocks.ended)(dispatch)
         expect(mocks.started).toHaveBeenCalledTimes(1)
 
         expect(mocks.ended).not.toHaveBeenCalled()
@@ -60,13 +60,13 @@ describe('time module', () => {
         spyOn(mocks, 'ended')
         spyOn(mocks, 'canceled')
 
-        startTimeout(500, mocks.started, mocks.ended).execute(dispatch)
+        startTimeout(500, mocks.started, mocks.ended)(dispatch)
 
         jasmine.clock().tick(200)
 
         expect(delayHandle).not.toBe(-1)
         
-        cancelTimeout(delayHandle, mocks.canceled).execute(dispatch)
+        cancelTimeout(delayHandle, mocks.canceled)(dispatch)
 
         expect(mocks.canceled).toHaveBeenCalledTimes(1)
 
@@ -84,7 +84,7 @@ describe('time module', () => {
         spyOn(mocks, 'started')
         spyOn(mocks, 'tick')
 
-        startInterval(50, mocks.started, mocks.tick).execute(dispatch)
+        startInterval(50, mocks.started, mocks.tick)(dispatch)
         expect(mocks.started).toHaveBeenCalledTimes(1)
 
         expect(mocks.tick).not.toHaveBeenCalled()
@@ -110,13 +110,13 @@ describe('time module', () => {
         spyOn(mocks, 'tick')
         spyOn(mocks, 'canceled')
 
-        startInterval(50, mocks.started, mocks.tick).execute(dispatch)
+        startInterval(50, mocks.started, mocks.tick)(dispatch)
 
         jasmine.clock().tick(101)
 
         expect(intervalHandle).not.toBe(-1)
         
-        cancelInterval(intervalHandle, mocks.canceled).execute(dispatch)
+        cancelInterval(intervalHandle, mocks.canceled)(dispatch)
 
         expect(mocks.canceled).toHaveBeenCalledTimes(1)
 

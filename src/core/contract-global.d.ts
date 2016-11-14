@@ -34,12 +34,12 @@ declare namespace myra {
         (props: T, forceMount?: boolean, children?: NodeDescriptor[]): ComponentDescriptor<T>
     }
 
-    /**
-     * Update/Dispatch types
-     */
+    type Effect = (apply: Apply) => void
+
     interface Result<S> {
         readonly state: S
-        readonly tasks?: Task[]
+
+        readonly effects?: Effect[]
     }
 
     interface Update<S, A> {
@@ -47,39 +47,42 @@ declare namespace myra {
     }
     interface UpdateAny extends Update<any, any> { }
 
-    type Dispatch = <S, A>(fn: Update<S, A>, arg: A) => void
-
-    interface Task {
-        execute(dispatch: Dispatch): void
-    }
+    type Apply = <S, A>(fn: Update<S, A>, ...args: any[]) => void
 
     /**
      * View types
      */
+    interface ViewContext<S> {
+        readonly state: S
+        readonly apply: Apply
+        readonly invoke: (effect: Effect) => void
+        readonly children?: NodeDescriptor[]
+        readonly bind: <S>(update: Update<S, string>) => EventListener<Event, HTMLElement>
+    }
     interface View<S> {
-        (state: S, children?: NodeDescriptor[]): NodeDescriptor
+        (ctx: ViewContext<S>): NodeDescriptor
     }
 
     interface AttributeMap { [name: string]: string }
 
-    type EventListener<T extends Event, E extends Element> = <S, A>(event: T, descriptor: ElementDescriptor<E>) => Update<S, A> | Task
+    type EventListener<T extends Event, E extends Element> = <S, A>(event: T, descriptor: ElementDescriptor<E>) => void
 
     interface DescriptorBase {
         node?: Node
     }
     interface TextDescriptor extends DescriptorBase {
-        readonly __type: 'text'
+        readonly __type: 1
         readonly value: string
     }
     interface ElementDescriptor<E extends Element> extends DescriptorBase {
-        readonly __type: 'element'
+        readonly __type: 2
         readonly tagName: string
         readonly attributes: GlobalAttributes<E>
         readonly children: NodeDescriptor[]
         node?: E
     }
     interface ComponentDescriptor<T> extends DescriptorBase {
-        readonly __type: 'component'
+        readonly __type: 3
         readonly name: string
         id: number;
         forceMount: boolean
@@ -88,7 +91,7 @@ declare namespace myra {
         props: T
     }
     interface NothingDescriptor extends DescriptorBase {
-        readonly __type: 'nothing'
+        readonly __type: 0
     }
     type NodeDescriptor = TextDescriptor | ElementDescriptor<any> | ComponentDescriptor<any> | NothingDescriptor
 

@@ -76,7 +76,7 @@ const init = {
         filter: 'all',
         location: {} as LocationContext
     } as State,
-    tasks: [loadFilter(applySavedFilter)]
+    effects: [loadFilter(applySavedFilter)]
 }
 
 /**
@@ -96,60 +96,57 @@ const filterLink = (href: string, txt: string, location: LocationContext) =>
     location.match(href) ? <a href={href} class="selected">{txt}</a>
         : <a href={href}>{txt}</a>
 
-const view = (state: State) =>
-    state.todos.length ?
-        <div>
-            <section class="main">
-                <input class="toggle-all"
-                    type="checkbox"
-                    checked={state.todos.every(t => t.completed)}
-                    onclick={() => todos.toggleAll(!state.todos.every(t => t.completed))} />
-
-                <label for="toggle-all">Mark all as complete</label>
-                <ul class="todo-list">
-                    {
-                        state.todos.filter(filterTodos(state)).map(todo =>
-                            <TodoItemComponent { ...todo } />
-                        )
-                    }
-                </ul>
-            </section>
-            <footer class="footer">
-                <span class="todo-count">
-                    <strong>{state.itemsLeft}</strong>
-                    {state.itemsLeft === 1 ? ' item left' : ' items left'}
-                </span>
-                <ul class="filters">
-                    <li>
-                        {filterLink('#/', 'All', state.location)}
-                    </li>
-                    <li>
-                        {filterLink('#/active', 'Active', state.location)}
-                    </li>
-                    <li>
-                        {filterLink('#/completed', 'Completed', state.location)}
-                    </li>
-                </ul>
-                {
-                    state.todos.filter(t => t.completed).length ?
-                        <button class="clear-completed"
-                            onclick={() => todos.removeCompleted}>
-                            Clear completed
-                        </button> : <nothing />
-                }
-            </footer>
-        </div>
-        : <nothing />
-
-
 
 /**
  * Component
  */
-export const TodoListComponent = defineComponent({
+export const TodoListComponent = defineComponent<State, any>({
     name: 'TodoListComponent',
     init: init,
     onMount: mount,
     subscriptions: subscriptions,
-    view: view
+    view: (ctx) =>
+        ctx.state.todos.length ?
+            <div>
+                <section class="main">
+                    <input class="toggle-all"
+                        type="checkbox"
+                        checked={ctx.state.todos.every(t => t.completed)}
+                        onclick={() => ctx.invoke(todos.toggleAll(!ctx.state.todos.every(t => t.completed)))} />
+
+                    <label for="toggle-all">Mark all as complete</label>
+                    <ul class="todo-list">
+                        {
+                            ctx.state.todos.filter(filterTodos(ctx.state)).map(todo =>
+                                <TodoItemComponent { ...todo } />
+                            )
+                        }
+                    </ul>
+                </section>
+                <footer class="footer">
+                    <span class="todo-count">
+                        <strong>{ctx.state.itemsLeft}</strong>
+                        {ctx.state.itemsLeft === 1 ? ' item left' : ' items left'}
+                    </span>
+                    <ul class="filters">
+                        <li>
+                            {filterLink('#/', 'All', ctx.state.location)}
+                        </li>
+                        <li>
+                            {filterLink('#/active', 'Active', ctx.state.location)}
+                        </li>
+                        <li>
+                            {filterLink('#/completed', 'Completed', ctx.state.location)}
+                        </li>
+                    </ul>
+                    {
+                        ctx.state.todos.filter(t => t.completed).length ?
+                            <button class="clear-completed"
+                                onclick={() => ctx.invoke(todos.removeCompleted)}>
+                                Clear completed
+                            </button> : <nothing />
+                    }
+                </footer>
+            </div>
+            : <nothing />
 })

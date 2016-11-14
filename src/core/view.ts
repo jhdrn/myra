@@ -1,6 +1,6 @@
 import { initComponent, updateComponent } from './component'
-import { max, nameOf } from './helpers'
-import { Dispatch, UpdateAny, Task, EventListener, NodeDescriptor, ElementDescriptor, ComponentDescriptor } from './contract'
+import { max } from './helpers'
+import { EventListener, NodeDescriptor, ElementDescriptor, ComponentDescriptor } from './contract'
 
 const INPUT_TAG_NAMES = [
     'INPUT',
@@ -34,15 +34,15 @@ const KEY_MAP = {
     space: 32
 } as { [key: string]: number }
 
-function nodesEqual(a: Node | undefined, b: Node) {
-    return typeof a !== 'undefined' && (a === b || a.nodeType === Node.COMMENT_NODE && b.nodeType === Node.COMMENT_NODE && a.nodeValue === b.nodeValue)
-}
+// function nodesEqual(a: Node | undefined, b: Node) {
+//     return typeof a !== 'undefined' && (a === b || a.nodeType === Node.COMMENT_NODE && b.nodeType === Node.COMMENT_NODE && a.nodeValue === b.nodeValue)
+// }
 
 /** Sets an attribute or event listener on an HTMLElement. */
 function setAttr(element: HTMLElement, attributeName: string, attributeValue: any) {
     if (attributeName.indexOf('on') === 0) {
         const eventName = attributeName.split('_')[0]
-        if ((element as any)[eventName]) {
+        if (typeof (element as any)[eventName] === 'function') {
             // If there is a previous event listener, wrap it and the new one in
             // a function calling both.
             const prevListener = (element as any)[eventName]
@@ -71,9 +71,8 @@ function setAttr(element: HTMLElement, attributeName: string, attributeValue: an
 
 /** Removes an attribute or event listener from an HTMLElement. */
 function removeAttr(a: string, node: Element) {
-    const [eventName,] = a.substr(2).toLowerCase().split('_')
     if (a.indexOf('on') === 0) {
-        (node as any)['on' + eventName.toLowerCase()] = null
+        (node as any)[a.toLowerCase().split('_')[0]] = null
     }
     else if (node.hasAttribute(a)) {
         node.removeAttribute(a)
@@ -81,7 +80,7 @@ function removeAttr(a: string, node: Element) {
 }
 
 /** Creates an event listener */
-function tryCreateEventListener(attributeName: string, eventListener: EventListener<any, any>, nodeDescriptor: ElementDescriptor<any>, dispatch: Dispatch) {
+function tryCreateEventListener(attributeName: string, eventListener: EventListener<any, any>, nodeDescriptor: ElementDescriptor<any>) {
     if (attributeName.indexOf('on') !== 0) {
         return undefined
     }
@@ -108,56 +107,24 @@ function tryCreateEventListener(attributeName: string, eventListener: EventListe
             }
         }
 
-        // Uglyness warning. 'dispatchContext' is the name of the function 
-        // returned by component/decorateFnsWithDispatch.
-        if (nameOf(eventListener) === 'dispatchContext') {
-            eventListener(ev, nodeDescriptor)
-        }
-        else {
-            const result = eventListener(ev, nodeDescriptor)
-
-            if ((result as Task).execute && typeof (result as Task).execute === 'function') {
-                (result as Task).execute(dispatch)
-            }
-            else {
-                dispatch(result as any as UpdateAny)
-            }
-        }
+        eventListener(ev, nodeDescriptor)
     }
 }
 
 
 /** Creates a Node from a NodeDescriptor. */
-function createNode(descriptor: NodeDescriptor, parentNode: Element, dispatch: Dispatch): Node {
+function createNode(descriptor: NodeDescriptor, parentNode: Element): Node {
     switch (descriptor.__type) {
-        case 'element':
+        case 2:
             return document.createElement(descriptor.tagName)
-        case 'text':
+        case 1:
             return document.createTextNode(descriptor.value)
-        case 'component':
-            initComponent(descriptor, parentNode, dispatch)
+        case 3:
+            initComponent(descriptor, parentNode)
             return descriptor.node!
-        case 'nothing':
+        case 0:
             return document.createComment('Nothing')
     }
-}
-
-/** Returns true if the node should be replaced, given the new and old descriptors. */
-function shouldReplaceNode(newDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor | undefined): boolean {
-    if (typeof oldDescriptor === 'undefined') {
-        return false
-    }
-    if (newDescriptor.__type !== oldDescriptor.__type) {
-        return true
-    }
-    if (newDescriptor.__type === 'element' && oldDescriptor.__type === 'element') {
-        const sameTagName = newDescriptor.tagName === oldDescriptor.tagName
-
-        if (!sameTagName) {
-            return true
-        }
-    }
-    return false
 }
 
 function getAttributesToRemove(newDescriptor: ElementDescriptor<any>, oldDescriptor: NodeDescriptor) {
@@ -170,119 +137,184 @@ function getAttributesToRemove(newDescriptor: ElementDescriptor<any>, oldDescrip
     return attributesToRemove
 }
 
+function renderNewNode(replaceNode: boolean, parentNode: Element, newDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor, existingNode: Node | undefined) {
+    // if no existing node, create one
+    const newNode = createNode(newDescriptor, parentNode)
 
-/** Renders the view by walking the node descriptor tree recursively */
-export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor, existingNode: Node | undefined, dispatch: Dispatch): void {
-    const replaceNode = shouldReplaceNode(newDescriptor, oldDescriptor)
-    if (typeof existingNode === 'undefined' || typeof oldDescriptor === 'undefined' || replaceNode) {
-        // if no existing node, create one
-        const newNode = createNode(newDescriptor, parentNode, dispatch)
+    newDescriptor.node = newNode
 
-        newDescriptor.node = newNode
-
-        if (replaceNode) {
-            if (oldDescriptor.__type === 'element') {
-                // Remove old event listeners before replacing the node. 
-                Object.keys(oldDescriptor.attributes).filter(a => a.indexOf('on') === 0).forEach(a =>
-                    removeAttr(a, existingNode as Element)
-                )
-            }
-
-            parentNode.replaceChild(newNode, existingNode!)
-        }
-        else {
-            parentNode.appendChild(newNode)
-        }
-
-        if (newDescriptor.__type === 'element') {
-
-            for (const name in newDescriptor.attributes) {
-                if (newDescriptor.attributes.hasOwnProperty(name)) {
-                    const attributeValue = newDescriptor.attributes[name]
-                    if (typeof attributeValue !== 'undefined') {
-                        const eventListener = tryCreateEventListener(name, attributeValue, newDescriptor, dispatch)
-                        setAttr(newNode as HTMLElement, name, eventListener || attributeValue)
-                    }
+    if (replaceNode) {
+        if (oldDescriptor.__type === 2) {
+            // Remove old event listeners before replacing the node. 
+            for (const attr in oldDescriptor.attributes) {
+                if (attr.indexOf('on') === 0) {
+                    removeAttr(attr, existingNode as Element)
                 }
             }
+        }
 
-            newDescriptor.children
-                .filter(c => typeof c !== 'undefined')
-                .forEach(c => render(newNode as Element, c, c, undefined, dispatch))
+        parentNode.replaceChild(newNode, existingNode!)
+    }
+    else {
+        parentNode.appendChild(newNode)
+    }
+
+    if (newDescriptor.__type === 2) {
+
+        for (const name in newDescriptor.attributes) {
+            if (newDescriptor.attributes.hasOwnProperty(name)) {
+                const attributeValue = newDescriptor.attributes[name]
+                if (typeof attributeValue !== 'undefined') {
+                    const eventListener = tryCreateEventListener(name, attributeValue, newDescriptor)
+                    setAttr(newNode as HTMLElement, name, eventListener || attributeValue)
+                }
+            }
+        }
+        for (const c of newDescriptor.children) {
+            if (typeof c !== 'undefined') {
+                render(newNode as Element, c, c, undefined)
+            }
         }
     }
+}
+
+function updateElementAttributes(newDescriptor: ElementDescriptor<any>, oldDescriptor: NodeDescriptor, existingNode: Node) {
+    // remove any attributes that was added with the old node descriptor but does not exist in the new descriptor.
+    for (const attr of getAttributesToRemove(newDescriptor, oldDescriptor)) {
+        removeAttr(attr, existingNode as Element)
+    }
+
+    let attributeValue: any;
+    let oldAttributeValue: any;
+    let eventListener: EventListener<any, any> | undefined
+
+    // update any attribute where the attribute value has changed
+    for (const name in newDescriptor.attributes) {
+        if (newDescriptor.attributes.hasOwnProperty(name)) {
+            attributeValue = newDescriptor.attributes[name]
+            oldAttributeValue = (oldDescriptor as ElementDescriptor<any>).attributes[name]
+            if ((name.indexOf('on') === 0 || attributeValue !== oldAttributeValue ||
+                !(existingNode as Element).hasAttribute(name)) && typeof attributeValue !== 'undefined'
+            ) {
+                eventListener = tryCreateEventListener(name, attributeValue, newDescriptor)
+                setAttr(existingNode as HTMLElement, name, typeof eventListener === 'undefined' ? attributeValue : eventListener)
+            }
+            else if (typeof attributeValue === 'undefined' && (existingNode as Element).hasAttribute(name)) {
+                (existingNode as Element).removeAttribute(name)
+            }
+        }
+    }
+}
+
+function renderChildNodes(newDescriptor: ElementDescriptor<any>, oldDescriptor: NodeDescriptor, existingNode: Node) {
+
+    // Iterate over children and add/update/remove nodes
+    const newDescriptorChildLengh = newDescriptor.children.length
+    const oldDescriptorChildrenLength = oldDescriptor.__type === 2 ? oldDescriptor.children.length : 0
+    const maxIterations = max(newDescriptorChildLengh, oldDescriptorChildrenLength)
+
+    let childDescriptorIndex = 0
+    let childNode: Node
+    let childDescriptor: NodeDescriptor
+
+    for (let i = 0; i < maxIterations; i++) {
+
+        childNode = existingNode!.childNodes[childDescriptorIndex]
+
+        if (i < newDescriptorChildLengh) {
+            childDescriptor = newDescriptor.children[i]
+
+            render(existingNode as Element, childDescriptor, oldDescriptor.__type === 2 ? oldDescriptor!.children[i] : childDescriptor, childNode)
+
+            childDescriptorIndex++
+        }
+        else if (typeof childNode !== 'undefined') {
+            existingNode.removeChild(childNode)
+        }
+    }
+}
+/** Returns true if the node should be replaced, given the new and old descriptors. */
+function shouldReplaceNode(newDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor | undefined): boolean {
+    if (typeof oldDescriptor === 'undefined') {
+        return false
+    }
+    else if (newDescriptor.__type !== oldDescriptor.__type) {
+        return true
+    }
+    else if (newDescriptor.__type === 2 && oldDescriptor.__type === 2 &&
+        newDescriptor.tagName !== oldDescriptor.tagName) {
+        return true
+    }
+    return false
+}
+
+// function equalDescriptors(a: NodeDescriptor, b: NodeDescriptor) {
+//     if (a.__type !== b.__type) {
+//         return false
+//     }
+//     else if (a.__type === 2) {
+//         if (a.tagName !== (b as ElementDescriptor<any>).tagName) {
+//             return false
+//         }
+//         else if (a.children.length !== (b as ElementDescriptor<any>).children.length) {
+//             return false
+//         }
+//         else if (!equal(a.attributes, (b as ElementDescriptor<any>).attributes)) {
+//             return false
+//         }
+//         for (let i = 0; i < a.children.length; i++) {
+//             if (!equalDescriptors(a.children[i], (b as ElementDescriptor<any>).children[i])) {
+//                 return false
+//             }
+//         }
+//     }
+//     else if (a.__type === 1) {
+//         return a.value === (b as TextDescriptor).value
+//     }
+//     return true
+// }
+
+function reRenderNode(newDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor, existingNode: Node) {
+
+    // if (!nodesEqual(oldDescriptor.node, existingNode)) {
+    //     // TODO: "debug mode" with logging
+    //     // console.error('The view is not matching the DOM. Are outside forces tampering with it?')
+    //     // console.error('Expected node:')
+    //     // console.error(oldDescriptor.node)
+    //     // console.error('Actual node:')
+    //     // console.error(existingNode)
+    // }
+
+    // update existing node
+    switch (newDescriptor.__type) {
+        case 2:
+            updateElementAttributes(newDescriptor, oldDescriptor, existingNode)
+            renderChildNodes(newDescriptor, oldDescriptor, existingNode)
+            break
+        case 1:
+            existingNode.textContent = newDescriptor.value
+            break
+        case 3:
+            updateComponent(newDescriptor, oldDescriptor as ComponentDescriptor<any>)
+            break
+    }
+
+    // add a reference to the node
+    newDescriptor.node = existingNode
+
+    if (newDescriptor !== oldDescriptor) {
+        // clean up
+        oldDescriptor.node = undefined
+    }
+}
+
+/** Renders the view by walking the node descriptor tree recursively */
+export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor, existingNode: Node | undefined): void {
+    const replaceNode = shouldReplaceNode(newDescriptor, oldDescriptor)
+    if (typeof existingNode === 'undefined' || typeof oldDescriptor === 'undefined' || replaceNode) {
+        renderNewNode(replaceNode, parentNode, newDescriptor, oldDescriptor, existingNode)
+    }
     else { // reuse the old node
-
-        if (!nodesEqual(oldDescriptor.node, existingNode)) {
-            // TODO: "debug mode" with logging
-            // console.error('The view is not matching the DOM. Are outside forces tampering with it?')
-            // console.error('Expected node:')
-            // console.error(oldDescriptor.node)
-            // console.error('Actual node:')
-            // console.error(existingNode)
-        }
-
-        // update existing node
-        switch (newDescriptor.__type) {
-            case 'element':
-
-                // remove any attributes that was added with the old node descriptor but does not exist in the new descriptor.
-                getAttributesToRemove(newDescriptor, oldDescriptor)
-                    .forEach(a => removeAttr(a, existingNode as Element))
-
-                // update any attribute where the attribute value has changed
-                for (const name in newDescriptor.attributes) {
-                    if (newDescriptor.attributes.hasOwnProperty(name)) {
-                        const attributeValue = newDescriptor.attributes[name]
-                        const oldAttributeValue = (oldDescriptor as ElementDescriptor<any>).attributes[name]
-                        if ((name.indexOf('on') === 0 || attributeValue !== oldAttributeValue ||
-                            !(existingNode as Element).hasAttribute(name)) && typeof attributeValue !== 'undefined'
-                        ) {
-                            const eventListener = tryCreateEventListener(name, attributeValue, newDescriptor, dispatch)
-                            setAttr(existingNode as HTMLElement, name, eventListener || attributeValue)
-                        }
-                        else if (typeof attributeValue === 'undefined' && (existingNode as Element).hasAttribute(name)) {
-                            (existingNode as Element).removeAttribute(name)
-                        }
-                    }
-                }
-
-                // Iterate over children and add/update/remove nodes
-                const newDescriptorChildLengh = newDescriptor.children.length
-                const oldDescriptorChildrenLength = oldDescriptor.__type === 'element' ? oldDescriptor.children.length : 0
-                const maxIterations = max(newDescriptorChildLengh, oldDescriptorChildrenLength)
-
-                let childDescriptorIndex = 0
-                for (let i = 0; i < maxIterations; i++) {
-
-                    const childNode = existingNode!.childNodes[childDescriptorIndex]
-
-                    if (i < newDescriptorChildLengh) {
-                        const childDescriptor = newDescriptor.children[i]
-
-                        render(existingNode as Element, childDescriptor, oldDescriptor.__type === 'element' ? oldDescriptor!.children[i] : childDescriptor, childNode, dispatch)
-
-                        childDescriptorIndex++
-                    }
-                    else if (typeof childNode !== 'undefined') {
-                        existingNode.removeChild(childNode)
-                    }
-                }
-                break
-            case 'text':
-                existingNode.textContent = newDescriptor.value
-                break
-            case 'component':
-                updateComponent(newDescriptor, oldDescriptor as ComponentDescriptor<any>, dispatch)
-                break
-        }
-
-        // add a reference to the node
-        newDescriptor.node = existingNode
-
-        if (newDescriptor !== oldDescriptor) {
-            // clean up
-            oldDescriptor.node = undefined
-        }
+        reRenderNode(newDescriptor, oldDescriptor, existingNode)
     }
 }

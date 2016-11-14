@@ -1,5 +1,5 @@
-import { defineComponent, task, evolve } from './core'
-import { Update, Map, ElementDescriptor, NodeDescriptor, InputAttributes } from './core/contract'
+import { defineComponent, evolve } from './core'
+import { Map, ElementDescriptor, NodeDescriptor, InputAttributes } from './core/contract'
 import * as jsxFactory from './core/jsxFactory'
 
 export type FieldValidationResult = {
@@ -16,12 +16,6 @@ export type FormValidator = (value: Map<string>) => FormValidationResult
 
 export interface ValidatableInputAttributes extends InputAttributes {
     validators?: FieldValidator[]
-}
-
-export function bind<S>(update: Update<S, string>) {
-    return (ev: Event, _descriptor: ElementDescriptor<any>) => {
-        return task(dispatch => dispatch(update, (ev.target as HTMLInputElement).value))
-    }
 }
 
 function validateFieldInternal(value: string, validators: FieldValidator[]) {
@@ -72,7 +66,7 @@ export function validateField(event: Event, nodeDescriptor: ElementDescriptor<an
 
 function findFieldValidatorsRec(nodeDescriptors: NodeDescriptor[], fields: { [name: string]: FieldValidator[] }) {
     return nodeDescriptors.reduce((acc, descriptor) => {
-        if (descriptor.__type === 'element') {
+        if (descriptor.__type === 2) {
             const fieldName = (descriptor.attributes as InputAttributes).name
             const validators = (descriptor.attributes as ValidatableInputAttributes).validators
             if (fieldName && validators) {
@@ -80,7 +74,7 @@ function findFieldValidatorsRec(nodeDescriptors: NodeDescriptor[], fields: { [na
             }
             findFieldValidatorsRec(descriptor.children, acc)
         }
-        else if (descriptor.__type === 'component' && descriptor.rendition) {
+        else if (descriptor.__type === 3 && descriptor.rendition) {
             findFieldValidatorsRec([descriptor.rendition], acc)
         }
         return acc
@@ -92,7 +86,7 @@ export function validateForm(event: Event, nodeDescriptor: ElementDescriptor<HTM
         const namedElements = (event.target as HTMLFormElement).querySelectorAll('[name]')
         const formData: { [name: string]: string } = {}
         for (let i = 0; i < namedElements.length; i++) {
-            const el = namedElements.item(i) as HTMLInputElement
+            const el = namedElements[i] as HTMLInputElement
             formData[el.name] = el.value
         }
 
@@ -108,20 +102,10 @@ export type FormSubmissionResult = {
 }
 
 export type FormState = {
-    onsubmit: Update<any, FormSubmissionResult>
+    onsubmit: (result: FormSubmissionResult) => void
     validators?: FormValidator[]
 }
 
-function handleOnSubmit(state: FormState) {
-    return (ev: Event, descriptor: ElementDescriptor<HTMLFormElement>) => {
-        ev.preventDefault()
-        const result = validateForm(ev, descriptor)(state.validators || [])
-        return (s: any, _: any) => {
-            state.onsubmit(s, result)
-            return evolve(state)
-        }
-    }
-}
 
 export const Form = defineComponent<FormState, FormState>({
     name: '__Form',
@@ -129,8 +113,14 @@ export const Form = defineComponent<FormState, FormState>({
         state: {} as any
     },
     onMount: (_s: FormState, args: FormState) => evolve(args),
-    view: (state: FormState, children: NodeDescriptor[]) =>
-        <form onsubmit={handleOnSubmit(state)}>
-            {children}
+    view: (ctx) =>
+        <form onsubmit={(ev: Event, descriptor: ElementDescriptor<HTMLFormElement>) => {
+            ev.preventDefault()
+            const result = validateForm(ev, descriptor)(ctx.state.validators || [])
+
+            ctx.state.onsubmit(result)
+            ctx.apply(s => evolve(s))
+        } }>
+            {ctx.children}
         </form>
 })
