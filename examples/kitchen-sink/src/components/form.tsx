@@ -1,7 +1,6 @@
 import { defineComponent, evolve, ViewContext } from 'myra/core'
 import * as jsxFactory from 'myra/core/jsxFactory'
-// import { InputGroupComponent } from './form/inputGroup'
-import { bind, Form, FormSubmissionResult } from 'myra/forms'
+import { Form, FormSubmissionResult } from 'myra/forms'
 
 /**
  * State
@@ -69,7 +68,7 @@ const view = (ctx: ViewContext<State>) =>
                 <p>The form is {(ctx.state.formValidationResult.valid ? 'valid' : 'invalid')}</p>
                 : <nothing />
         }
-        <Form onsubmit={onFormSubmitUpdate}>
+        <Form onsubmit={(result) => ctx.apply(onFormSubmitUpdate, result)}>
             <div class={!ctx.state.formValidationResult || ctx.state.formValidationResult.fields['formField'].valid ? 'form-group' : 'form-group has-error'}>
                 <label for="formField">Just a form field</label>
                 <input type="text"
@@ -79,14 +78,14 @@ const view = (ctx: ViewContext<State>) =>
                     class="form-control" />
                 {ctx.state.formValidationResult ?
                     <p class="help-text"> {(ctx.state.formValidationResult!.fields as any)['formField'].errors}</p>
-                    : <nothing />}
+                    : undefined}
             </div>
             <div class="form-group">
                 <label for="oninputDemo">Oninput demo (optional)</label>
                 <textarea id="oninputDemo"
                     name="oninputDemo"
                     class="form-control"
-                    oninput={bind(ctx.apply, oninputUpdate)} />
+                    oninput={ctx.bind(oninputUpdate)} />
                 <p class="help-text">The value of this field is: {ctx.state.formData.oninputDemo}</p>
             </div>
             <div class="form-group">
@@ -94,7 +93,7 @@ const view = (ctx: ViewContext<State>) =>
                 <select name="onchangeDemo"
                     id="onchangeDemo"
                     class="form-control"
-                    onchange={bind(ctx.apply, onchangeUpdate)}>
+                    onchange={ctx.bind(onchangeUpdate)}>
                     {
                         ['Choice A', 'Choice B', 'Choice C'].map(choice =>
                             <option>{choice}</option>

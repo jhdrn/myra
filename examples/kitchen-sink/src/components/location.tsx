@@ -52,22 +52,22 @@ export const LocationComponent = defineComponent({
 
             <ul class="list-group">
                 <li class="list-group-item">
-                    <a href="" onclick={() => ctx.invoke(updateLocation('/test1'))}>
+                    <a href="" onclick={(ev: Event) => { ev.preventDefault(), ctx.invoke(updateLocation('/test1')) } }>
                         Update location to '/test1'
                 </a>
                 </li>
                 <li class="list-group-item">
-                    <a href="" onclick={preventDefaultAnd(updateLocation('/test1/test2'))}>
+                    <a href="" onclick={(ev: Event) => { ev.preventDefault(), ctx.invoke(updateLocation('/test1/test2')) } }>
                         Update location to '/test1/test2'
                 </a>
                 </li>
                 <li class="list-group-item">
-                    <a href="" onclick={preventDefaultAnd(goBack())}>
+                    <a href="" onclick={(ev: Event) => { ev.preventDefault(), ctx.invoke(goBack()) } }>
                         Go back
                 </a>
                 </li>
                 <li class="list-group-item">
-                    <a href="" onclick={preventDefaultAnd(goForward())}>
+                    <a href="" onclick={(ev: Event) => { ev.preventDefault(), ctx.invoke(goForward()) } }>
                         Go forward
                 </a>
                 </li>

@@ -1,5 +1,5 @@
 import { defineComponent, evolve } from './core'
-import { Apply, Update, Map, ElementDescriptor, NodeDescriptor, InputAttributes } from './core/contract'
+import { Map, ElementDescriptor, NodeDescriptor, InputAttributes } from './core/contract'
 import * as jsxFactory from './core/jsxFactory'
 
 export type FieldValidationResult = {
@@ -102,20 +102,10 @@ export type FormSubmissionResult = {
 }
 
 export type FormState = {
-    onsubmit: Update<any, FormSubmissionResult>
+    onsubmit: (result: FormSubmissionResult) => void
     validators?: FormValidator[]
 }
 
-function handleOnSubmit(apply: Apply, state: FormState) {
-    return (ev: Event, descriptor: ElementDescriptor<HTMLFormElement>) => {
-        ev.preventDefault()
-        const result = validateForm(ev, descriptor)(state.validators || [])
-        apply((s: any, _: any) => {
-            state.onsubmit(s, result)
-            return evolve(state)
-        })
-    }
-}
 
 export const Form = defineComponent<FormState, FormState>({
     name: '__Form',
@@ -124,7 +114,13 @@ export const Form = defineComponent<FormState, FormState>({
     },
     onMount: (_s: FormState, args: FormState) => evolve(args),
     view: (ctx) =>
-        <form onsubmit={handleOnSubmit(ctx.apply, ctx.state)}>
+        <form onsubmit={(ev: Event, descriptor: ElementDescriptor<HTMLFormElement>) => {
+            ev.preventDefault()
+            const result = validateForm(ev, descriptor)(ctx.state.validators || [])
+
+            ctx.state.onsubmit(result)
+            ctx.apply(s => evolve(s))
+        } }>
             {ctx.children}
         </form>
 })

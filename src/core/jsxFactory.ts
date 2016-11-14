@@ -7,7 +7,16 @@ function flattenChildren(children: ((NodeDescriptor | string)[] | NodeDescriptor
     for (const child of children) {
         if (Array.isArray(child)) {
             for (const c of flatten(child as (NodeDescriptor | string)[])) {
-                flattenedChildren.push(c)
+                if (typeof c === 'string') {
+
+                    flattenedChildren.push({
+                        __type: 1,
+                        value: child as any as string
+                    } as TextDescriptor)
+                }
+                else {
+                    flattenedChildren.push(c)
+                }
             }
         }
         else if (typeof child === 'object') {
