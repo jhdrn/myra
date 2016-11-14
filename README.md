@@ -29,7 +29,7 @@ that the compiler options `strictNullChecks`, `noImplicitReturns` and
 * **No dependencies:** 
   Myra does not depend on any external libraries.
 * **Small code base/size:** 
-  Hello World example is ~10kb minified/~4kb minified and gzipped
+  Hello World example is ~9kb minified/~4kb minified and gzipped
 
 ## State of the project
 The core API (i.e. `myra/core`) is close to be finalized. The other modules
@@ -63,10 +63,10 @@ with `mountComponent`:
         // The name of the component
         name: 'MyComponent', 
         
-        // The initial state and tasks (optional) (see 'Tasks' below)
+        // The initial state and effects (optional) (see 'Effects' below)
         init: {
             state: 'Hello world',
-            tasks: ... // optional 
+            effects: ... // optional 
         }, 
 
         // An optional Update function to call when the component is mounted.
@@ -77,7 +77,7 @@ with `mountComponent`:
         subscriptions: ...,
         
         // The view of the component (see 'View' below)
-        view: (state: State) => <p>{state}</p>
+        view: ctx => <p>{ctx.state}</p>
     })
 
     // Mounts the component to a DOM element
@@ -89,7 +89,9 @@ State is updated with `Update` functions. `Update` functions should
 always be [pure](https://en.wikipedia.org/wiki/Pure_function) and 
 should also always copy the state if any changes are made to it.
 
-The `evolve` function helps with modifying and copying the state.
+The `evolve` function helps with modifying and copying the state. In the 
+following example, the `updateFoo` function updates the value of the `foo`
+property of the state:
 
 ```typescript
     import { evolve } from 'myra/core'
@@ -103,52 +105,65 @@ The `evolve` function helps with modifying and copying the state.
 ```
 
 Update functions must return a `Result<T>` which is an object with the
-following definition: 
+following definition (the `evolve` function does this for you):
 
 ``` typescript
     {
         state: T
-        tasks?: Task[]
+        effects?: Effect[]
     }
 ```
 
-### Tasks
-A `Task` represents some kind of side effect. It receives a dispatch function
-that may be used to dispatch an `Update` function with any given arguments.
+### Effects
+An `Effect` represents some kind of side effect. It receives an `Apply` function
+that may be used to apply an `Update` function with any given arguments.
 
-Tasks can be returned in a `Result<T>` from an `Update` function or from
+Effects can be returned in a `Result<T>` from an `Update` function or from
 an event listener (see 'Event listeners' below).
 
 ```typescript
-    import { task, Update } from 'myra/core'
+    import { Update, Apply } from 'myra/core'
+    type State = ...
 
-    const myTask = (update: Update<any, any>) => task(dispatch => {
+    const myEffect = (update: Update<State, any>) => (apply: Apply) => {
         ...some side effect...
         const arg = ...
-        dispatch(update, arg)
-    })
+        apply(update, arg)
+    }
 ```
 
 ### Views
-Myra does not use HTML templates but creates it's views with JSX. The state of
-the component is supplied as an argument to the view function.
+Myra does not use HTML templates but creates it's views with JSX. A 
+`ViewContext<T>` is supplied as an argument to the view function. 
 
 ```JSX
-    import * as jsxFactory from 'myra/html/jsxFactory'
+    import { ViewContext } from 'myra/core'
+    import * as jsxFactory from 'myra/core/jsxFactory'
 
     type State = string
 
-    const view = (s: State) => 
+    const view = (ctx: ViewContext<State>) => 
         <p>
-           The state is {s}
+           The state is {ctx.state}
         </p>
 
 ```
 
+#### The `ViewContext<T>`
+The `ViewContext<T>` contains key properties for an application:
+
+- `state` - the current state of the component.
+- `apply` - a function that updates the state of the component by applying the 
+  `Update` function that is supplied as an argument. Subsequent arguments will 
+  be passed as arguments to the `Update` function.
+- `invoke` - a function that invokes an `Effect` which may update the state 
+  later.
+- `bind` - a convenience function to apply an update function and pass the value
+  of a form field as an argument.
+
 #### Event listeners
 Any attribute key starting with `on` is treated as an event listener.
-Event listeners are functions that returns either an `Update` function or a 
-`Task`. The event and the `NodeDescriptor` of the node are passed as arguments.
+The event and the `NodeDescriptor` of the node are passed as arguments.
 A `NodeDescriptor` is a "virtual DOM" representation of a DOM node. It contains
 a reference to it's associated `Node`. 
 
@@ -160,15 +175,18 @@ These can be used instead of their corresponding key code, i.e.
 `keyup_backspace`, `keydown_enter` etc. 
 
 ```JSX
+    import { ViewContext } from 'myra/core'
     import * as jsxFactory from 'myra/html/jsxFactory'
 
-    const myUpdate = (m: State) => {
+    type State = ...
+
+    const myUpdate = (s: State) => {
         ...
-        return evolve(m)
+        return evolve(s)
     }
 
-    const view = (_) => 
-        <div class="className" onclick={(ev: MouseEvent, el: NodeDescriptor) => myUpdate}></div>
+    const view = (ctx: ViewContext<State>) => 
+        <div class="className" onclick={(ev: MouseEvent, el: NodeDescriptor) => ctx.apply(myUpdate)}></div>
 
 ```
 
@@ -201,7 +219,7 @@ if defined.
 
 ### Subscriptions
 Subscriptions makes it possible to communicate between components and between 
-tasks and components. 
+effects and components. 
 
 To subscribe to messages, supply `defineComponent` with an anonymous object 
 where the keys are the message type to listen for and the value is the `Update`
@@ -209,6 +227,8 @@ function to call when a message is recieved:
 
 ```typescript
     import { defineComponent } from 'myra/core'
+
+    type State = ...
 
     const onFooMessageRecieved = (s: State, messageData: string) => {
         ...
@@ -226,14 +246,16 @@ function to call when a message is recieved:
 ```
 
 To broadcast a message, use the `broadcast` function to create a "broadcast 
-task":
+effect":
 
 ```typescript
     import { broadcast } from 'myra/core'
 
-    const broadcastTask = broadcast('messageType', 'an argument')
+    type State = ...
+
+    const broadcastMsg = broadcast('messageType', 'an argument')
     const someUpdateFn = (s: State) => 
-        evolve(s).and(broadcastTask)
+        evolve(s).and(broadcastMsg)
 ```
 
 ### Forms
@@ -241,15 +263,15 @@ task":
 It's currently a work in progress.
 
 ### HTTP requests
-`myra/http` is a module with `Task` wrappers for making XmlHttpRequests. It 
+`myra/http` is a module with `Effect` wrappers for making XmlHttpRequests. It 
 exposes the `httpRequest` function and 'shortcut' functions for GET, POST, PUT 
 and DELETE requests. Take a look at 
 [examples/kitchen-sink/src/components/http.tsx](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/http.tsx)
 for an example on how to use the module.
 
 ### Location/"routing"
-`myra/location` is a module with `Task` wrappers for 
-`pushState/replaceState/popState`.
+`myra/location` is a module with `Effect` wrappers for 
+`pushState/replaceState/popState`. It is currently a work in progress.
 
 Both the 
 [kitchen-sink example](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/location.tsx) 
@@ -258,7 +280,7 @@ and the
 contains code examples for `myra/location`.
 
 ### Timeouts and intervals
-`myra/time` is a module with `Task` wrappers for `setTimeout` and `setInterval`.
+`myra/time` is a module with `Effect` wrappers for `setTimeout` and `setInterval`.
 Take a look at 
 [examples/kitchen-sink/src/components/time.tsx](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/time.tsx)
 for an example on how to use the module.
