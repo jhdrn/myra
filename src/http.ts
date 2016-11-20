@@ -5,21 +5,21 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 export type Headers = { [header: string]: string }
 export type ResponseType = '' | 'arraybuffer' | 'blob' | 'document' | 'json' | 'text'
 export type RequestParams = {
-    method: HttpMethod
+    method?: HttpMethod
     url: string
     data?: any
     headers?: Headers
     responseType?: ResponseType
 }
 
-export interface HttpResponse {
+export interface HttpResponse<T> {
     status: number
     statusText: string
-    data: any
+    data: T
     headers: Headers
 }
 
-export const httpRequest = <S>(success: Update<S, HttpResponse>, failure: Update<S, HttpResponse>, params: RequestParams) => {
+export const httpRequest = <S, T>(params: RequestParams, success: Update<S, HttpResponse<T>>, failure: Update<S, HttpResponse<T>>) => {
     return (apply: Apply) => {
         const xhr = new XMLHttpRequest()
 
@@ -56,8 +56,8 @@ export const httpRequest = <S>(success: Update<S, HttpResponse>, failure: Update
             }
             apply(xhr.status >= 200 && xhr.status < 300 ? success : failure, responseData)
         }
-
-        xhr.open(params.method, params.url)
+        const method = typeof params.method === 'undefined' ? 'GET' : params.method
+        xhr.open(method, params.url)
 
         if (typeof params.headers !== 'undefined') {
             for (const header in params.headers) {
@@ -71,64 +71,3 @@ export const httpRequest = <S>(success: Update<S, HttpResponse>, failure: Update
         xhr.send(params.data)
     }
 }
-
-/**
- * Creates a task that sends a GET HTTP request and dispatches a message when the response is received.
- */
-export const httpGet = <S>(success: Update<S, HttpResponse>, failure: Update<S, HttpResponse>, url: string, headers?: Headers, responseType?: ResponseType) =>
-    httpRequest(
-        success,
-        failure,
-        {
-            method: 'GET',
-            url: url,
-            headers: headers,
-            responseType: responseType
-        }
-    )
-
-/**
- * Creates a task that sends a POST HTTP request and dispatches a message when the response is received.
- */
-export const httpPost = <S>(success: Update<S, HttpResponse>, failure: Update<S, HttpResponse>, url: string, data: any, headers?: Headers, responseType?: ResponseType) =>
-    httpRequest(
-        success,
-        failure,
-        {
-            method: 'POST',
-            url: url,
-            data: data,
-            headers: headers,
-            responseType: responseType
-        }
-    )
-
-/**
- * Creates a task that sends a PUT HTTP request and dispatches a message when the response is received.
- */
-export const httpPut = <S>(success: Update<S, HttpResponse>, failure: Update<S, HttpResponse>, url: string, data: any, headers?: Headers, responseType?: ResponseType) =>
-    httpRequest(
-        success,
-        failure,
-        {
-            method: 'PUT',
-            url: url,
-            data: data,
-            headers: headers,
-            responseType: responseType
-        }
-    )
-
-/**
- * Creates a task that sends a DELETE HTTP request and dispatches a message when the response is received.
- */
-export const httpDelete = <S>(success: Update<S, HttpResponse>, failure: Update<S, HttpResponse>, url: string, headers?: Headers) =>
-    httpRequest(
-        success,
-        failure,
-        {
-            method: 'DELETE',
-            url: url,
-            headers: headers
-        }
-    )

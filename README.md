@@ -295,9 +295,8 @@ effect":
 It's currently a work in progress.
 
 ### HTTP requests
-`myra/http` is a module with `Effect` wrappers for making XmlHttpRequests. It 
-exposes the `httpRequest` function and 'shortcut' functions for GET, POST, PUT 
-and DELETE requests. Take a look at 
+`myra/http` exposes the `httpRequest` function that is an `Effect` wrapper for 
+making XmlHttpRequests. Take a look at 
 [examples/kitchen-sink/src/components/http.tsx](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/http.tsx)
 for an example on how to use the module.
 
