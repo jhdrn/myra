@@ -13,6 +13,6 @@
     "webpack-dev-server": "2.1.0-beta.4"
   },
   "dependencies": {
-    "myra": "^1.0.0-alpha.20161114"
+    "myra": "^1.0.0-alpha.20161120"
   }
 }

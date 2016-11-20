@@ -9,7 +9,7 @@ import * as jsxFactory from 'myra/core/jsxFactory'
 type ResponseStatus = 'init' | 'success' | 'failure'
 type State = {
     responseStatus: ResponseStatus
-    response?: HttpResponse
+    response?: HttpResponse<any>
 }
 const init = {
     responseStatus: 'init'
@@ -19,23 +19,23 @@ const init = {
 /**
  * Updates
  */
-const httpSuccess = (state: State, response: HttpResponse) =>
+const httpSuccess = (state: State, response: HttpResponse<any>) =>
     evolve(state, m => {
         m.responseStatus = 'success'
         m.response = response
     })
 
-const httpFailure = (state: State, response: HttpResponse) =>
+const httpFailure = (state: State, response: HttpResponse<any>) =>
     evolve(state, m => {
         m.responseStatus = 'failure'
         m.response = response
     })
 
 const httpRequestTask =
-    httpRequest(httpSuccess, httpFailure, {
+    httpRequest({
         method: 'GET',
         url: 'https://api.github.com/repos/jhdrn/myra'
-    })
+    }, httpSuccess, httpFailure)
 
 /**
  * Component
