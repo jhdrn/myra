@@ -93,7 +93,7 @@ export function deepCopy<T>(value: T): T {
 }
 
 export interface Evolved<T> extends Result<T> {
-    and: (effect: Effect, ...tasks: Effect[]) => Evolved<T>
+    and: (effect: Effect, ...effects: Effect[]) => Evolved<T>
 }
 
 /**
