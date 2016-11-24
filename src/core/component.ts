@@ -68,7 +68,7 @@ export function initComponent<T>(descriptor: ComponentDescriptor<T>, parentNode:
     context.mounted = true
 
     // Dispatch again to render the view. 
-    dispatch(context, render, args.onMount || (<S>(m: S) => ({ state: m, tasks: [] })), descriptor.props)
+    dispatch(context, render, args.onMount || (<S>(m: S) => ({ state: m })), descriptor.props)
 
     if (context.rendition) {
         descriptor.node = context.rendition.node
@@ -91,7 +91,7 @@ export function updateComponent<T>(newDescriptor: ComponentDescriptor<T>,
         context.childNodes = newDescriptor.children
 
         if (!context.isUpdating) {
-            dispatch(context, render, args.onMount || (<S>(m: S) => ({ state: m, tasks: [] })), newDescriptor.props)
+            dispatch(context, render, args.onMount || (<S>(m: S) => ({ state: m })), newDescriptor.props)
         }
 
         newDescriptor.node = context.rendition!.node
