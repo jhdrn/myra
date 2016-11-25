@@ -1,6 +1,8 @@
 # Myra
 Myra is a simple and small [Typescript](http://www.typescriptlang.org/) 
-framework for building web interfaces.
+framework for building web interfaces. It targets the "middle ground" between
+[Elm](http://elm-lang.org/) and [React](https://facebook.github.io/react/) + 
+[Redux](http://redux.js.org/).
 
 [![npm](https://img.shields.io/npm/v/myra.svg?maxAge=36000)](https://www.npmjs.com/package/myra)
 [![Travis](https://img.shields.io/travis/jhdrn/myra.svg?maxAge=36000)](https://travis-ci.org/jhdrn/myra)
@@ -9,11 +11,6 @@ framework for building web interfaces.
 ## Disclaimer
 This project is currently in alpha stage. There are bugs and it's API might 
 change in future versions. Use at your own risk!
-
-## Requirements
-Myra requires Typescript 2.0 to function properly. It is also highly advised 
-that the compiler options `strictNullChecks`, `noImplicitReturns` and 
-`noImplicitAny` are set to true.
 
 ## Features
 * **Functional:** 
@@ -34,6 +31,11 @@ that the compiler options `strictNullChecks`, `noImplicitReturns` and
 ## State of the project
 The core API (i.e. `myra/core`) is close to be finalized. The other modules
 are subjects to a lot of changes.
+
+## Requirements
+Myra requires Typescript 2.0 to function properly. It is also highly advised 
+that the compiler options `strictNullChecks`, `noImplicitReturns` and 
+`noImplicitAny` are set to true.
 
 ## Getting started
 Clone the repository and check the [examples](https://github.com/jhdrn/myra/tree/master/examples) folder. Open any example's folder
