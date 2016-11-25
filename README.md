@@ -12,6 +12,10 @@ framework for building web interfaces. It targets the "middle ground" between
 This project is currently in alpha stage. There are bugs and it's API might 
 change in future versions. Use at your own risk!
 
+### State of the project
+The core API (i.e. `myra/core`) is close to be finalized. The other modules
+are subjects to a lot of changes.
+
 ## Features
 * **Functional:** 
   Myra encourages functional programming and immutability for predictable 
@@ -27,10 +31,6 @@ change in future versions. Use at your own risk!
   Myra does not depend on any external libraries.
 * **Small code base/size:** 
   Hello World example is ~9kb minified/~4kb minified and gzipped
-
-## State of the project
-The core API (i.e. `myra/core`) is close to be finalized. The other modules
-are subjects to a lot of changes.
 
 ## Requirements
 Myra requires Typescript 2.0 to function properly. It is also highly advised 
