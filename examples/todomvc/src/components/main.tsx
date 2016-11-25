@@ -1,6 +1,5 @@
 import { defineComponent, evolve } from 'myra/core'
 import * as jsxFactory from 'myra/core/jsxFactory'
-import { trackLocationChanges } from 'myra/location'
 import { TodoListComponent } from './todo-list'
 import * as todos from '../models/todos'
 
@@ -12,7 +11,7 @@ type Todo = todos.Todo
 type State = undefined
 
 // Initial state
-const init = evolve(undefined).and(trackLocationChanges())
+const init = evolve(undefined)
 
 
 /**

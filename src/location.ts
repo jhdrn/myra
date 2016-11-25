@@ -1,4 +1,4 @@
-import { broadcast, Map, Apply } from './core/index'
+import { Map, Update, Apply } from './core/index'
 import { typeOf } from './core/helpers'
 
 export type PatternMap<T> = {
@@ -11,7 +11,6 @@ export interface LocationContext {
     readonly match: (pattern: string) => boolean
     readonly matchAny: <T>(patterns: PatternMap<T>, defaultValue: T) => T
 }
-const LOCATION_CHANGED_MSG = '__locationChanged'
 
 /**
  * Trims slashes and returns the trimmed string.
@@ -46,9 +45,8 @@ const matchLocation = (location: Location, pattern: string, ...patterns: string[
     return false
 }
 
-function broadcastLocationChanged(dispatch: Apply) {
-    const location = window.location
-    broadcast(LOCATION_CHANGED_MSG, {
+function getLocationContext(location: Location) {
+    return {
         url: location.pathname,
         params: searchStrToObj(location.search),
         match: (pattern: string) => matchLocation(location, pattern),
@@ -70,39 +68,54 @@ function broadcastLocationChanged(dispatch: Apply) {
             }
             return defaultValue
         }
-    } as LocationContext)(dispatch)
-}
-
-export const trackLocationChanges = () => (dispatch: Apply) => {
-    broadcastLocationChanged(dispatch)
-
-    window.onpopstate = (_) => {
-        broadcastLocationChanged(dispatch)
     }
 }
 
-export const updateLocation = (path: string, params?: Map<string>) => (dispatch: Apply) => {
+const tracked: [Apply, Update<any, LocationContext>][] = []
+
+function applyTracked() {
+    const ctx = getLocationContext(window.location)
+    for (const [apply, update] of tracked) {
+        apply(update, ctx)
+    }
+}
+
+export const trackLocationChanges = <S>(update: Update<S, LocationContext>) => (apply: Apply) => {
+
+    tracked.push([apply, update])
+
+    apply(update, getLocationContext(window.location))
+
+    window.onpopstate = (_) => {
+        apply(update, getLocationContext(window.location))
+    }
+}
+
+
+
+export const updateLocation = (path: string, params?: Map<string>) => (_: Apply) => {
     const url = makeUrl(path, params)
     window.history.pushState({ url: url }, '', url)
 
-    broadcastLocationChanged(dispatch)
+    applyTracked()
 }
 
-export const replaceLocation = (path: string, params?: Map<string>) => (dispatch: Apply) => {
+export const replaceLocation = (path: string, params?: Map<string>) => (_: Apply) => {
     const url = makeUrl(path, params)
     window.history.replaceState({ url: url }, '', url)
 
-    broadcastLocationChanged(dispatch)
+    applyTracked()
 }
 
-export const goBack = (steps?: number) => (dispatch: Apply) => {
+export const goBack = (steps?: number) => (_: Apply) => {
     window.history.back(steps)
-    broadcastLocationChanged(dispatch)
+
+    applyTracked()
 }
 
-export const goForward = (steps?: number) => (dispatch: Apply) => {
+export const goForward = (steps?: number) => (_: Apply) => {
     window.history.forward(steps)
-    broadcastLocationChanged(dispatch)
+    applyTracked()
 }
 
 function makeUrl(path: string, params?: Map<string>) {
@@ -116,7 +129,9 @@ function makeUrl(path: string, params?: Map<string>) {
 }
 
 function searchStrToObj(searchString: string) {
-    if (!searchString) return {}
+    if (!searchString) {
+        return {}
+    }
 
     return searchString
         .substring(1)

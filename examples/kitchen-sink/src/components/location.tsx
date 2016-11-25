@@ -14,12 +14,10 @@ const init = {} as State
 
 
 /**
- * Subscriptions
+ * Updates
  */
-const subscriptions = {
-    '__locationChanged': (state: State, location: LocationContext) =>
-        evolve(state, x => x.location = location)
-}
+const onLocationUpdate = (state: State, location: LocationContext) =>
+    evolve(state, x => x.location = location)
 
 /**
  * Component
@@ -32,10 +30,8 @@ export const LocationComponent = defineComponent({
     // and one or more tasks to execute when the component is initialized.
     init: {
         state: init,
-        effects: [trackLocationChanges()]
+        effects: [trackLocationChanges(onLocationUpdate)]
     },
-
-    subscriptions: subscriptions,
 
     // The view function is called after update. 
     view: ctx =>

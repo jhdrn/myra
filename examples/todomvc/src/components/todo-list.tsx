@@ -1,6 +1,6 @@
 import { defineComponent, evolve } from 'myra/core'
 import * as jsxFactory from 'myra/core/jsxFactory'
-import { replaceLocation, LocationContext } from 'myra/location'
+import { trackLocationChanges, replaceLocation, LocationContext } from 'myra/location'
 import { TodosFilter, saveFilter, loadFilter } from '../models/filter'
 import * as todos from '../models/todos'
 import { TodoItemComponent } from './todo-item'
@@ -62,8 +62,7 @@ const mount = (m: State) => evolve(m).and(todos.getAll(todosLoaded))
  * Subscriptions
  */
 const subscriptions = {
-    'todosChanged': todosLoaded,
-    '__locationChanged': applyFilterFromLocation
+    'todosChanged': todosLoaded
 }
 
 /**
@@ -76,7 +75,10 @@ const init = {
         filter: 'all',
         location: {} as LocationContext
     } as State,
-    effects: [loadFilter(applySavedFilter)]
+    effects: [
+        loadFilter(applySavedFilter),
+        trackLocationChanges(applyFilterFromLocation)
+    ]
 }
 
 /**
