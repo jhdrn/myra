@@ -1,5 +1,5 @@
 import { dispatch } from 'core/dispatch'
-import { evolve, NodeDescriptor } from 'core'
+import { evolve, NodeDescriptor, Apply } from 'core'
 import * as jsxFactory from 'core/jsxFactory'
 
 /**
@@ -82,6 +82,70 @@ describe('core.dispatch', () => {
         }
 
         expect(() => dispatch(context, render, update, 2)).toThrow()
+    })
+
+    it('throws if Update result is not an object', () => {
+        const update = () => undefined
+        const context = {
+            spec: {
+                name: '',
+                init: { state: undefined },
+                view: () => <div>a text</div>
+            },
+            parentNode: document.body,
+            mounted: false,
+            mountArg: undefined,
+            dispatchLevel: 0,
+            isUpdating: true,
+            state: 1,
+            oldView: undefined,
+            rootNode: document.body
+        }
+        const render = () => {
+            return null as any as Node
+        }
+
+        expect(() => dispatch(context as any, render, update as any, 2)).toThrow()
+    })
+
+    it('invokes effects with an Apply function', () => {
+
+        const mockEffects = {
+            effect1: (apply: Apply) => {
+                expect(apply).toBeDefined()
+            },
+            effect2: (apply: Apply) => {
+                expect(apply).toBeDefined()
+            }
+        }
+
+        spyOn(mockEffects, 'effect1')
+        spyOn(mockEffects, 'effect2')
+
+        const update = (x: number, arg: number) =>
+            evolve(x + arg).and(mockEffects.effect1, mockEffects.effect2)
+
+        const context = {
+            spec: {
+                name: '',
+                init: { state: undefined },
+                view: () => <div>a text</div>
+            },
+            parentNode: document.body,
+            mounted: false,
+            mountArg: undefined,
+            dispatchLevel: 0,
+            isUpdating: false,
+            state: 1,
+            oldView: undefined,
+            rootNode: document.body
+        }
+        const render = () => null as any as Node
+
+        dispatch(context, render, update, 2)
+
+        expect(mockEffects.effect1).toHaveBeenCalledTimes(1)
+        expect(mockEffects.effect2).toHaveBeenCalledTimes(1)
     })
 
     it('call onBeforeRender if a listener is supplied', () => {
