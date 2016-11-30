@@ -22,6 +22,20 @@ describe('jsxFactory', () => {
         } as core.NothingDescriptor)
     })
 
+    it('ignores null values', () => {
+
+        const view = <div>{null}</div> as core.ElementDescriptor<any>
+
+        expect(view.children.length).toBe(0)
+    })
+
+    it('ignores undefined values', () => {
+
+        const view = <div>{undefined}</div> as core.ElementDescriptor<any>
+
+        expect(view.children.length).toBe(0)
+    })
+
     it('creates an ElementNodeDescriptor with the supplied tagName', () => {
 
         const view = <div></div>

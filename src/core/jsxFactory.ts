@@ -5,7 +5,10 @@ function flattenChildren(children: ((NodeDescriptor | string)[] | NodeDescriptor
     const flattenedChildren = [] as (NodeDescriptor | string)[]
 
     for (const child of children) {
-        if (Array.isArray(child)) {
+        if (child === null) {
+            continue
+        }
+        else if (Array.isArray(child)) {
             for (const c of flatten(child as (NodeDescriptor | string)[])) {
                 if (typeof c === 'string') {
 
