@@ -11,8 +11,8 @@ declare namespace myra {
     interface ComponentSpec<S, A> {
         name: string
         init: Result<S>
-        onAfterRender?: (rootNodeDescriptor: NodeDescriptor) => void
-        onBeforeRender?: (rootNodeDescriptor: NodeDescriptor) => void
+        onAfterRender?: (rootNodeDescriptor: NodeDescriptor, state: S) => void
+        onBeforeRender?: (rootNodeDescriptor: NodeDescriptor, state: S) => void
         onMount?: Update<S, A>
         subscriptions?: { [type: string]: Update<S, any> }
         view: View<S>

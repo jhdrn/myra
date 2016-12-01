@@ -4,6 +4,21 @@ export interface Render {
     (parentNode: Element, view: NodeDescriptor, oldView: NodeDescriptor | undefined, oldRootNode: Node | undefined): void
 }
 
+export type DebugOptions = {
+    components?: string[]
+}
+
+let debugEnabled = false
+const debugOptions: DebugOptions = {}
+
+// TODO: enable custom logger
+export function debug(debug: boolean = true, options?: DebugOptions) {
+    debugEnabled = debug
+    if (typeof options !== 'undefined') {
+        debugOptions.components = options.components
+    }
+}
+
 export function dispatch<S, A>(context: ComponentContext<S>, render: Render, fn: (state: S, ...args: any[]) => Result<S>, ...args: any[]) {
 
     if (context.isUpdating) {
@@ -25,6 +40,16 @@ export function dispatch<S, A>(context: ComponentContext<S>, render: Render, fn:
     const apply = (fn: Update<S, A>, ...args: any[]) => dispatch(context, render, fn, ...args)
 
     context.state = result.state
+
+    if (debugEnabled) {
+        if (typeof debugOptions.components === 'undefined' ||
+            debugOptions.components!.indexOf(context.spec.name) !== -1) {
+
+            console.group(context.spec.name)
+            console.debug('State: ', context.state)
+            console.groupEnd()
+        }
+    }
 
     if (typeof result.effects !== 'undefined' && result.effects.length) {
         for (let i = 0; i < result.effects.length; i++) {
@@ -50,7 +75,7 @@ export function dispatch<S, A>(context: ComponentContext<S>, render: Render, fn:
         const newView = context.spec.view(ctx)
 
         if (typeof context.spec.onBeforeRender !== 'undefined') {
-            context.spec.onBeforeRender(newView)
+            context.spec.onBeforeRender(newView, ctx.state)
         }
 
         const oldNode = context.rendition ? context.rendition.node : undefined
@@ -58,7 +83,7 @@ export function dispatch<S, A>(context: ComponentContext<S>, render: Render, fn:
         context.rendition = newView
 
         if (typeof context.spec.onAfterRender !== 'undefined') {
-            context.spec.onAfterRender(newView)
+            context.spec.onAfterRender(newView, ctx.state)
         }
     }
     context.dispatchLevel--
