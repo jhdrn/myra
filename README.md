@@ -266,7 +266,7 @@ function to call when a message is recieved:
 
     const onFooMessageRecieved = (s: State, messageData: string) => {
         ...
-        return s
+        return evolve(s)
     }
 
     const myComponent = defineComponent({
