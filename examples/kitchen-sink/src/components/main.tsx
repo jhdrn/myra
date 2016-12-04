@@ -1,7 +1,6 @@
 import { defineComponent } from 'myra/core'
 import * as jsxFactory from 'myra/core/jsxFactory'
 import { CounterComponent } from './counter'
-import { FormComponent } from './form'
 import { HttpComponent } from './http'
 import { TimeComponent } from './time'
 import { LocationComponent } from './location'
@@ -15,8 +14,6 @@ const view = () =>
         <h1>Kitchen sink demo</h1>
         <hr />
         <CounterComponent />
-        <hr />
-        <FormComponent />
         <hr />
         <HttpComponent />
         <hr />
