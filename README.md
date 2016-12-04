@@ -292,10 +292,6 @@ effect":
         evolve(s).and(broadcastMsg)
 ```
 
-### Forms
-`myra/forms` is a module with helper functions and components for form handling. 
-It's currently a work in progress.
-
 ### HTTP requests
 `myra/http` exposes the `httpRequest` function that is an `Effect` wrapper for 
 making XmlHttpRequests. Take a look at 
