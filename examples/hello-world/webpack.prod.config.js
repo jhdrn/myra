@@ -13,7 +13,7 @@ module.exports = {
     },
 
     module: {
-        loaders: [
+        rules: [
             { test: /\.tsx?$/, loader: 'awesome-typescript-loader' }
         ]
     },
@@ -35,8 +35,11 @@ module.exports = {
     ],
 
     resolve: {
-        root: path.resolve(__dirname),
-        extensions: ["", ".webpack.js", ".web.js", ".ts", ".tsx", ".js"]
+        modules: [
+            "node_modules",
+            path.resolve(__dirname, "app")
+        ],
+        extensions: [".webpack.js", ".web.js", ".ts", ".tsx", ".js"]
     },
 
     devtool: false

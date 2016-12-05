@@ -1,6 +1,5 @@
-import { defineComponent, evolve } from 'myra/core'
-import * as jsxFactory from 'myra/core/jsxFactory'
-import { TodoListComponent } from './todo-list'
+import * as myra from 'myra/core'
+import TodoListComponent from './todo-list'
 import * as todos from '../models/todos'
 
 type Todo = todos.Todo
@@ -9,10 +8,6 @@ type Todo = todos.Todo
  * State
  */
 type State = undefined
-
-// Initial state
-const init = evolve(undefined)
-
 
 /**
  * Updates
@@ -29,18 +24,18 @@ const addNewTodo = (m: State, value: string) => {
             title: newTodo
         }
 
-        return evolve(m).and(todos.add(todo))
+        return myra.evolve(m).and(todos.add(todo))
     }
-    return evolve(m)
+    return myra.evolve(m)
 }
 
 /**
  * Component
  */
-export const mainComponent = defineComponent<State, undefined>({
+export default myra.defineComponent<State, undefined>({
     name: 'MainComponent',
-    init: init,
-    view: (ctx) =>
+    init: { state: undefined },
+    view: ctx =>
         <div>
             <section class="todoapp">
                 <header class="header">

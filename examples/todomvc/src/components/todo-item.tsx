@@ -1,5 +1,4 @@
-import { defineComponent, evolve } from 'myra/core'
-import * as jsxFactory from 'myra/core/jsxFactory'
+import * as myra from 'myra/core'
 import * as todos from '../models/todos'
 
 type Todo = todos.Todo
@@ -26,43 +25,38 @@ const init: State = {
  * Updates
  */
 const mount = (state: State, todo: Todo) =>
-    evolve(state, x => {
+    myra.evolve(state, x => {
         x.todo = todo!
     })
 
 const saveTodo = (state: State, value: string) => {
     const todo = value.trim()
     if (todo) {
-        const updatedTodo = evolve(state.todo, t => {
+        const updatedTodo = myra.evolve(state.todo, t => {
             t.title = todo
         }).state
-        return evolve(state, x => {
+        return myra.evolve(state, x => {
             x.editing = false
             x.todo = updatedTodo
         }).and(todos.save(updatedTodo))
     }
     else {
-        return evolve(state).and(todos.remove(state.todo.id))
+        return myra.evolve(state).and(todos.remove(state.todo.id))
     }
 }
 
-const editTodo = (m: State) => {
-    return evolve(m, x => {
-        x.editing = true
-    })
-}
+const editTodo = (m: State) =>
+    myra.evolve(m, x => x.editing = true)
 
 const undoEditTodo = (m: State) =>
-    evolve(m, x => {
-        x.editing = false
-    })
+    myra.evolve(m, x => x.editing = false)
 
 const toggleTodoCompleted = (m: State) => {
-    const updatedTodo = evolve(
+    const updatedTodo = myra.evolve(
         m.todo,
         t => t.completed = !m.todo.completed
     ).state
-    return evolve(m, x => x.todo = updatedTodo).and(todos.save(updatedTodo))
+    return myra.evolve(m, x => x.todo = updatedTodo).and(todos.save(updatedTodo))
 }
 
 
@@ -83,11 +77,11 @@ const todoClass = (m: State) => {
 /**
  * Component
  */
-export const TodoItemComponent = defineComponent<State, Todo>({
+export default myra.defineComponent<State, Todo>({
     name: 'TodoItemComponent',
     init: { state: init },
     onMount: mount,
-    view: (ctx) =>
+    view: ctx =>
         <li class={todoClass(ctx.state)}>
             <div class="view">
                 <input class="toggle"

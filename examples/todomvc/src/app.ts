@@ -1,4 +1,4 @@
 import { mountComponent } from 'myra/core'
-import { mainComponent } from './components/main'
+import MainComponent from './components/main'
 
-mountComponent(mainComponent, document.body)
+mountComponent(MainComponent, document.body)

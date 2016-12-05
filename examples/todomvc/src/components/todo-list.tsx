@@ -1,9 +1,8 @@
-import { defineComponent, evolve } from 'myra/core'
-import * as jsxFactory from 'myra/core/jsxFactory'
+import * as myra from 'myra/core'
 import { trackLocationChanges, replaceLocation, LocationContext } from 'myra/location'
 import { TodosFilter, saveFilter, loadFilter } from '../models/filter'
 import * as todos from '../models/todos'
-import { TodoItemComponent } from './todo-item'
+import TodoItemComponent from './todo-item'
 
 type Todo = todos.Todo
 
@@ -23,39 +22,40 @@ type State = {
  * Updates
  */
 const applySavedFilter = (state: State, filter: TodosFilter) =>
-    evolve(state).and(replaceLocation(`#/${filter === 'all' ? '' : filter || ''}`))
+    myra.evolve(state).and(replaceLocation(`#/${filter === 'all' ? '' : filter || ''}`))
 
 const applyFilterFromLocation = (state: State, location: LocationContext) => {
 
     if (location.match('#/active')) {
-        return evolve(state, x => {
+        return myra.evolve(state, x => {
             x.filter = 'active'
             x.location = location
         }).and(saveFilter('active'))
     }
     else if (location.match('#/completed')) {
-        return evolve(state, x => {
+        return myra.evolve(state, x => {
             x.filter = 'completed'
             x.location = location
         }).and(saveFilter('completed'))
     }
     else if (location.match('#/') || location.match('')) {
-        return evolve(state, x => {
+        return myra.evolve(state, x => {
             x.filter = 'all'
             x.location = location
         }).and(saveFilter('all'))
     }
-    return evolve(state, x => x.location = location)
+    return myra.evolve(state, x => x.location = location)
 }
 
 const todosLoaded = (state: State, todos: Todo[]) =>
-    evolve(state, x => {
+    myra.evolve(state, x => {
         x.todos = todos
         x.itemsLeft = todos.filter(t => !t.completed).length
     })
 
 // Mount function: load all todos
-const mount = (m: State) => evolve(m).and(todos.getAll(todosLoaded))
+const mount = (m: State) =>
+    myra.evolve(m).and(todos.getAll(todosLoaded))
 
 
 /**
@@ -102,12 +102,12 @@ const filterLink = (href: string, txt: string, location: LocationContext) =>
 /**
  * Component
  */
-export const TodoListComponent = defineComponent<State, any>({
+export default myra.defineComponent<State, any>({
     name: 'TodoListComponent',
     init: init,
     onMount: mount,
     subscriptions: subscriptions,
-    view: (ctx) =>
+    view: ctx =>
         ctx.state.todos.length ?
             <div>
                 <section class="main">

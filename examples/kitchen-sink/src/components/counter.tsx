@@ -1,25 +1,24 @@
-import { defineComponent, evolve } from 'myra/core'
-import * as jsxFactory from 'myra/core/jsxFactory'
+import * as myra from 'myra/core'
 
 
 /**
  * State
  */
 type State = number
-const init = evolve(0)
+const init = myra.evolve(0)
 
 
 /**
  * Updates
  */
-const increase = (state: State) => evolve(state + 1)
-const decrease = (state: State) => evolve(state - 1)
+const increase = (state: State) => myra.evolve(state + 1)
+const decrease = (state: State) => myra.evolve(state - 1)
 
 
 /**
  * Component
  */
-export const CounterComponent = defineComponent({
+export default myra.defineComponent({
     // The name of the component. Used for debugging purposes.
     name: 'CounterComponent',
 

@@ -13,14 +13,11 @@
         "strictNullChecks": true,
         "moduleResolution": "node",
         "pretty": true,
-        "reactNamespace": "jsxFactory",
+        "reactNamespace": "myra",
         "jsx": "react"
     },
     "include": [
         "src/**/*",
         "node_modules/myra/**/*.ts"
-    ],
-    "exclude": [
-        "node_modules"
     ]
 }

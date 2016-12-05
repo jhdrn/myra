@@ -1,6 +1,4 @@
-import { defineComponent, mountComponent, evolve } from 'myra/core'
-import * as jsxFactory from 'myra/core/jsxFactory'
-
+import * as myra from 'myra/core'
 
 /**
  * This is the definition of the component state. For this component, it can be 
@@ -20,7 +18,8 @@ const init: State = undefined
  * The evolve function is a helper function that is more useful when the state
  * is more complex. It copies the state and returns a Result<State>.
  */
-const mount = (_: State) => evolve('Hello world!')
+const mount = (_: State) =>
+    myra.evolve('Hello world!')
 
 
 /**
@@ -29,13 +28,14 @@ const mount = (_: State) => evolve('Hello world!')
  * 
  * This function is applied when the <p>-tag in the view is clicked, see below.
  */
-const updateHelloWorld = (s: State, arg: string) => evolve(`${s} again ${arg}`)
+const updateHelloWorld = (s: State, arg: string) =>
+    myra.evolve(`${s} again ${arg}`)
 
 
 /**
  * This is the actual component definition.
  */
-const AppComponent = defineComponent({
+const AppComponent = myra.defineComponent({
     // The name is required. It should be unique within your application.
     name: 'HelloWorldApp',
     // The initial state (also required).
@@ -57,4 +57,4 @@ const AppComponent = defineComponent({
 /**
  * Mounts the component to a DOM element.
  */
-mountComponent(AppComponent, document.body)
+myra.mountComponent(AppComponent, document.body)

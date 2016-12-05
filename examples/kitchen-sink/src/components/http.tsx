@@ -1,6 +1,5 @@
-import { defineComponent, evolve } from 'myra/core'
+import * as myra from 'myra/core'
 import { httpRequest, HttpResponse } from 'myra/http'
-import * as jsxFactory from 'myra/core/jsxFactory'
 
 
 /**
@@ -20,13 +19,13 @@ const init = {
  * Updates
  */
 const httpSuccess = (state: State, response: HttpResponse<any>) =>
-    evolve(state, m => {
+    myra.evolve(state, m => {
         m.responseStatus = 'success'
         m.response = response
     })
 
 const httpFailure = (state: State, response: HttpResponse<any>) =>
-    evolve(state, m => {
+    myra.evolve(state, m => {
         m.responseStatus = 'failure'
         m.response = response
     })
@@ -40,7 +39,7 @@ const httpRequestTask =
 /**
  * Component
  */
-export const HttpComponent = defineComponent({
+export default myra.defineComponent({
     // The name of the component. Used for debugging purposes.
     name: 'HttpComponent',
 

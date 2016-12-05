@@ -13,7 +13,7 @@
         "strictNullChecks": true,
         "moduleResolution": "node",
         "pretty": true,
-        "reactNamespace": "jsxFactory",
+        "reactNamespace": "myra",
         "jsx": "react"
     },
     "include": [

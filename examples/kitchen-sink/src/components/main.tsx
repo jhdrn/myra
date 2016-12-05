@@ -1,9 +1,8 @@
-import { defineComponent } from 'myra/core'
-import * as jsxFactory from 'myra/core/jsxFactory'
-import { CounterComponent } from './counter'
-import { HttpComponent } from './http'
-import { TimeComponent } from './time'
-import { LocationComponent } from './location'
+import * as myra from 'myra/core'
+import CounterComponent from './counter'
+import HttpComponent from './http'
+import TimeComponent from './time'
+import LocationComponent from './location'
 
 
 /**
@@ -26,7 +25,7 @@ const view = () =>
 /**
  * Component
  */
-export const mainComponent = defineComponent({
+export default myra.defineComponent({
     // The name of the component. Used for debugging purposes.
     name: 'KitchenSinkApp',
 

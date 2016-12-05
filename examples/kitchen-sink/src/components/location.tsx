@@ -1,7 +1,6 @@
-import { defineComponent, evolve } from 'myra/core'
+import * as myra from 'myra/core'
 import { updateLocation, trackLocationChanges, goBack, goForward, LocationContext } from 'myra/location'
-import * as jsxFactory from 'myra/core/jsxFactory'
-import { RouteComponent } from './route-component'
+import RouteComponent from './route-component'
 
 
 /**
@@ -17,12 +16,12 @@ const init = {} as State
  * Updates
  */
 const onLocationUpdate = (state: State, location: LocationContext) =>
-    evolve(state, x => x.location = location)
+    myra.evolve(state, x => x.location = location)
 
 /**
  * Component
  */
-export const LocationComponent = defineComponent({
+export default myra.defineComponent({
     // The name of the component. Used for debugging purposes.
     name: 'LocationComponent',
 

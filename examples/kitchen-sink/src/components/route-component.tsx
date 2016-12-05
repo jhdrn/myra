@@ -1,5 +1,4 @@
-import { defineComponent, evolve } from 'myra/core'
-import * as jsxFactory from 'myra/core/jsxFactory'
+import * as myra from 'myra/core'
 
 
 /**
@@ -12,13 +11,13 @@ type State = string | undefined
  * Updates
  */
 const mount = (_: State, paramsFromRoute: { param: string }) =>
-    evolve(paramsFromRoute.param)
+    myra.evolve(paramsFromRoute.param)
 
 
 /**
  * Component
  */
-export const RouteComponent = defineComponent({
+export default myra.defineComponent({
     // The name of the component. Used for debugging purposes.
     name: 'RouteComponent',
 
