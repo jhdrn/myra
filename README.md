@@ -57,11 +57,11 @@ To define a component, use `defineComponent` and then mount it to the DOM
 with `mountComponent`:
     
 ```JSX
-    import { defineComponent, mountComponent } from 'myra/core'
+    import * as myra from 'myra/core'
 
     type State = string
 
-    const MyComponent = defineComponent({
+    const MyComponent = myra.defineComponent({
         // The name of the component
         name: 'MyComponent', 
         
@@ -83,7 +83,7 @@ with `mountComponent`:
     })
 
     // Mounts the component to a DOM element
-    mountComponent(MyComponent, document.body) 
+    myra.mountComponent(MyComponent, document.body) 
 ```
 
 ### Updating the state
@@ -139,12 +139,11 @@ Myra does not use HTML templates but creates it's views with JSX. A
 `ViewContext<T>` is supplied as an argument to the view function. 
 
 ```JSX
-    import { ViewContext } from 'myra/core'
-    import * as jsxFactory from 'myra/core/jsxFactory'
+    import * as myra from 'myra/core'
 
     type State = string
 
-    const view = (ctx: ViewContext<State>) => 
+    const view = (ctx: myra.ViewContext<State>) => 
         <p>
            The state is {ctx.state}
         </p>
@@ -166,21 +165,20 @@ The `ViewContext<T>` contains key properties for the component:
 Examples of usage:
 
 ```JSX
-    import { ViewContext } from 'myra/core'
+    import * as myra from 'myra/core'
     import { startTimeout } from 'myra/time'
-    import * as jsxFactory from 'myra/html/jsxFactory'
 
     type State = {
         inputValue: string
     }
 
     const myApplyUpdate = (s: State) => 
-        evolve(s, x => x.inputValue = '')
+        myra.evolve(s, x => x.inputValue = '')
     
     const myBindUpdate = (s: State, inputValue: string) =>
-        evolve(s, x => x.inputValue = inputValue)
+        myra.evolve(s, x => x.inputValue = inputValue)
 
-    const view = (ctx: ViewContext<State>) => 
+    const view = (ctx: myra.ViewContext<State>) => 
         <div>
             <input type="text"
                    oninput={ctx.bind(myBindUpdate)} />
@@ -209,17 +207,16 @@ These can be used instead of their corresponding key code, i.e.
 `keyup_backspace`, `keydown_enter` etc. 
 
 ```JSX
-    import { ViewContext } from 'myra/core'
-    import * as jsxFactory from 'myra/html/jsxFactory'
+    import * as myra from 'myra/core'
 
     type State = ...
 
     const myUpdate = (s: State) => {
         ...
-        return evolve(s)
+        return myra.evolve(s)
     }
 
-    const view = (ctx: ViewContext<State>) => 
+    const view = (ctx: myra.ViewContext<State>) => 
         <div class="className" onclick={(ev: MouseEvent, el: NodeDescriptor) => ctx.apply(myUpdate)}></div>
 
 ```
@@ -243,7 +240,7 @@ Any attributes will be passed to the child component's `onMount` `Update` functi
 if defined.
 
 ```JSX
-    import * as jsxFactory from 'myra/html/jsxFactory'
+    import * as myra from 'myra/core'
     import MyComponent from './myComponent'
     
     const view = (_) => 
@@ -260,16 +257,16 @@ where the keys are the message type to listen for and the value is the `Update`
 function to call when a message is recieved:
 
 ```typescript
-    import { defineComponent } from 'myra/core'
+    import * as myra from 'myra/core'
 
     type State = ...
 
     const onFooMessageRecieved = (s: State, messageData: string) => {
         ...
-        return evolve(s)
+        return myra.evolve(s)
     }
 
-    const myComponent = defineComponent({
+    const myComponent = myra.defineComponent({
         name: 'MyComponent',
         init: ...,
         subscriptions: {
@@ -283,13 +280,13 @@ To broadcast a message, use the `broadcast` function to create a "broadcast
 effect":
 
 ```typescript
-    import { broadcast } from 'myra/core'
+    import * as myra from 'myra/core'
 
     type State = ...
 
-    const broadcastMsg = broadcast('messageType', 'an argument')
+    const broadcastMsg = myra.broadcast('messageType', 'an argument')
     const someUpdateFn = (s: State) => 
-        evolve(s).and(broadcastMsg)
+        myra.evolve(s).and(broadcastMsg)
 ```
 
 ### HTTP requests

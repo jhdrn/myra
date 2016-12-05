@@ -1,5 +1,6 @@
 export { broadcast } from './subscriptions'
 export { defineComponent, mountComponent } from './component'
-export { evolve } from './helpers'
-export * from './contract'
 export { debug } from './dispatch'
+export { evolve } from './helpers'
+export * from './jsxFactory'
+export * from './contract'
