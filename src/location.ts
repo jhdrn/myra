@@ -107,14 +107,14 @@ export const replaceLocation = (path: string, params?: Map<string>) => (_: Apply
     applyTracked()
 }
 
-export const goBack = (steps?: number) => (_: Apply) => {
-    window.history.back(steps)
+export const goBack = () => (_: Apply) => {
+    window.history.back()
 
     applyTracked()
 }
 
-export const goForward = (steps?: number) => (_: Apply) => {
-    window.history.forward(steps)
+export const goForward = () => (_: Apply) => {
+    window.history.forward()
     applyTracked()
 }
 
