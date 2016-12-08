@@ -295,21 +295,20 @@ making XmlHttpRequests. Take a look at
 [examples/kitchen-sink/src/components/http.tsx](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/http.tsx)
 for an example on how to use the module.
 
-### Location/"routing"
-`myra/location` is a module with `Effect` wrappers for 
-`pushState/replaceState/popState`. It is currently a work in progress.
-
-Both the 
-[kitchen-sink example](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/location.tsx) 
-and the 
-[todomvc example](https://github.com/jhdrn/myra/blob/master/examples/todomvc/src/components/todo-list.tsx) 
-contains code examples for `myra/location`.
-
 ### Timeouts and intervals
 `myra/time` is a module with `Effect` wrappers for `setTimeout` and `setInterval`.
 Take a look at 
 [examples/kitchen-sink/src/components/time.tsx](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/time.tsx)
 for an example on how to use the module.
+
+### Routing
+Routing is supplied by the [myra-router package](https://github.com/jhdrn/myra-router) (currently a work in progress).
+
+Both the 
+[kitchen-sink example](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/routing.tsx) 
+and the 
+[todomvc example](https://github.com/jhdrn/myra/blob/master/examples/todomvc/src/components/todo-list.tsx) 
+contains code examples for `myra/location`.
 
 ## License
 

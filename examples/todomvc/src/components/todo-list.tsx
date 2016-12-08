@@ -1,5 +1,5 @@
 import * as myra from 'myra/core'
-import { trackLocationChanges, replaceLocation, LocationContext } from 'myra/location'
+import * as router from 'myra-router'
 import { TodosFilter, saveFilter, loadFilter } from '../models/filter'
 import * as todos from '../models/todos'
 import TodoItemComponent from './todo-item'
@@ -14,7 +14,7 @@ type State = {
     todos: Todo[]
     itemsLeft: number
     filter: TodosFilter
-    location: LocationContext
+    location: router.RouteContext
 }
 
 
@@ -22,29 +22,29 @@ type State = {
  * Updates
  */
 const applySavedFilter = (state: State, filter: TodosFilter) =>
-    myra.evolve(state).and(replaceLocation(`#/${filter === 'all' ? '' : filter || ''}`))
+    myra.evolve(state).and(router.routeTo(`#/${filter === 'all' ? '' : filter || ''}`, undefined, true))
 
-const applyFilterFromLocation = (state: State, location: LocationContext) => {
+const applyFilterFromLocation = (state: State, routeCtx: router.RouteContext) => {
 
-    if (location.match('#/active')) {
+    if (routeCtx.match('#/active')) {
         return myra.evolve(state, x => {
             x.filter = 'active'
-            x.location = location
+            x.location = routeCtx
         }).and(saveFilter('active'))
     }
-    else if (location.match('#/completed')) {
+    else if (routeCtx.match('#/completed')) {
         return myra.evolve(state, x => {
             x.filter = 'completed'
-            x.location = location
+            x.location = routeCtx
         }).and(saveFilter('completed'))
     }
-    else if (location.match('#/') || location.match('')) {
+    else if (routeCtx.match('#/') || routeCtx.match('')) {
         return myra.evolve(state, x => {
             x.filter = 'all'
-            x.location = location
+            x.location = routeCtx
         }).and(saveFilter('all'))
     }
-    return myra.evolve(state, x => x.location = location)
+    return myra.evolve(state, x => x.location = routeCtx)
 }
 
 const todosLoaded = (state: State, todos: Todo[]) =>
@@ -73,11 +73,11 @@ const init = {
         todos: [],
         itemsLeft: 0,
         filter: 'all',
-        location: {} as LocationContext
+        location: {} as router.RouteContext
     } as State,
     effects: [
         loadFilter(applySavedFilter),
-        trackLocationChanges(applyFilterFromLocation)
+        router.addListener(applyFilterFromLocation)
     ]
 }
 
@@ -94,8 +94,8 @@ const filterTodos = (state: State) => (todo: Todo) => {
     return true
 }
 
-const filterLink = (href: string, txt: string, location: LocationContext) =>
-    location.match(href) ? <a href={href} class="selected">{txt}</a>
+const filterLink = (href: string, txt: string, routeCtx: router.RouteContext) =>
+    routeCtx.match(href) ? <a href={href} class="selected">{txt}</a>
         : <a href={href}>{txt}</a>
 
 

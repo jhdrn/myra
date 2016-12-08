@@ -2,7 +2,7 @@ import * as myra from 'myra/core'
 import CounterComponent from './counter'
 import HttpComponent from './http'
 import TimeComponent from './time'
-import LocationComponent from './location'
+import RoutingComponent from './routing'
 
 
 /**
@@ -18,7 +18,7 @@ const view = () =>
         <hr />
         <TimeComponent />
         <hr />
-        <LocationComponent />
+        <RoutingComponent />
     </div>
 
 
