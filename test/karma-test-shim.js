@@ -24,7 +24,6 @@ System.config({
                 'core/view': './src/core/view',
                 'core/jsxFactory': './src/core/jsxFactory',
                 'http': './src/http',
-                'location': './src/location',
                 'time': './src/time'
             }
         }
