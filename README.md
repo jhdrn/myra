@@ -53,7 +53,7 @@ To define a component, use `defineComponent` and then mount it to the DOM
 with `mountComponent`:
     
 ```JSX
-    import * as myra from 'myra/core'
+    import * as myra from 'myra'
 
     type State = string
 
@@ -92,7 +92,7 @@ following example, the `updateFoo` function updates the value of the `foo`
 property of the state:
 
 ```typescript
-    import { evolve } from 'myra/core'
+    import { evolve } from 'myra'
 
     type State = {
         foo: string
@@ -120,7 +120,7 @@ Effects can be returned in a `Result<T>` from an `Update` function or from
 an event listener (see 'Event listeners' below).
 
 ```typescript
-    import { Update, Apply } from 'myra/core'
+    import { Update, Apply } from 'myra'
     type State = ...
 
     const myEffect = (update: Update<State, any>) => (apply: Apply) => {
@@ -135,7 +135,7 @@ Myra does not use HTML templates but creates it's views with JSX. A
 `ViewContext<T>` is supplied as an argument to the view function. 
 
 ```JSX
-    import * as myra from 'myra/core'
+    import * as myra from 'myra'
 
     type State = string
 
@@ -161,7 +161,7 @@ The `ViewContext<T>` contains key properties for the component:
 Examples of usage:
 
 ```JSX
-    import * as myra from 'myra/core'
+    import * as myra from 'myra'
     import { startTimeout } from 'myra/time'
 
     type State = {
@@ -203,7 +203,7 @@ These can be used instead of their corresponding key code, i.e.
 `keyup_backspace`, `keydown_enter` etc. 
 
 ```JSX
-    import * as myra from 'myra/core'
+    import * as myra from 'myra'
 
     type State = ...
 
@@ -236,7 +236,7 @@ Any attributes will be passed to the child component's `onMount` `Update` functi
 if defined.
 
 ```JSX
-    import * as myra from 'myra/core'
+    import * as myra from 'myra'
     import MyComponent from './myComponent'
     
     const view = (_) => 
@@ -253,7 +253,7 @@ where the keys are the message type to listen for and the value is the `Update`
 function to call when a message is recieved:
 
 ```typescript
-    import * as myra from 'myra/core'
+    import * as myra from 'myra'
 
     type State = ...
 
@@ -276,7 +276,7 @@ To broadcast a message, use the `broadcast` function to create a "broadcast
 effect":
 
 ```typescript
-    import * as myra from 'myra/core'
+    import * as myra from 'myra'
 
     type State = ...
 
