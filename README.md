@@ -9,12 +9,8 @@ framework for building web interfaces. It targets the "middle ground" between
 [![codecov](https://codecov.io/gh/jhdrn/myra/branch/master/graph/badge.svg)](https://codecov.io/gh/jhdrn/myra)
 
 ## Disclaimer
-This project is currently in alpha stage. There are bugs and it's API might 
-change in future versions. Use at your own risk!
-
-### State of the project
-The core API (i.e. `myra/core`) is close to be finalized. The other modules
-are subjects to a lot of changes.
+This project is currently in beta stage. It is quite stable but there might be
+some bugs here and there. Use at your own risk!
 
 ## Features
 * **Functional:** 
@@ -290,19 +286,22 @@ effect":
 ```
 
 ### HTTP requests
-`myra/http` exposes the `httpRequest` function that is an `Effect` wrapper for 
+The [myra-http](https://github.com/jhdrn/myra-http) exposes the package
+`httpRequest` function that is an `Effect` wrapper for 
 making XmlHttpRequests. Take a look at 
 [examples/kitchen-sink/src/components/http.tsx](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/http.tsx)
 for an example on how to use the module.
 
 ### Timeouts and intervals
-`myra/time` is a module with `Effect` wrappers for `setTimeout` and `setInterval`.
+The [myra-time](https://github.com/jhdrn/myra-time) contains `Effect` package
+wrappers for `setTimeout` and `setInterval`.
 Take a look at 
 [examples/kitchen-sink/src/components/time.tsx](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/time.tsx)
 for an example on how to use the module.
 
 ### Routing
-Routing is supplied by the [myra-router package](https://github.com/jhdrn/myra-router) (currently a work in progress).
+Routing is supplied by the [myra-router](https://github.com/jhdrn/myra-router) 
+package (currently a work in progress).
 
 Both the 
 [kitchen-sink example](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/routing.tsx) 
