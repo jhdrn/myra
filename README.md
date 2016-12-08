@@ -4,7 +4,7 @@ framework for building web interfaces. It targets the "middle ground" between
 [Elm](http://elm-lang.org/) and [React](https://facebook.github.io/react/) + 
 [Redux](http://redux.js.org/).
 
-[![npm](https://img.shields.io/npm/v/myra.svg?maxAge=36000)](https://www.npmjs.com/package/myra)
+[![npm](https://img.shields.io/npm/v/myra.svg?maxAge=24000)](https://www.npmjs.com/package/myra)
 [![Travis](https://img.shields.io/travis/jhdrn/myra.svg?maxAge=36000)](https://travis-ci.org/jhdrn/myra)
 [![codecov](https://codecov.io/gh/jhdrn/myra/branch/master/graph/badge.svg)](https://codecov.io/gh/jhdrn/myra)
 
@@ -162,7 +162,7 @@ Examples of usage:
 
 ```JSX
     import * as myra from 'myra'
-    import { startTimeout } from 'myra/time'
+    import { startTimeout } from 'myra-time'
 
     type State = {
         inputValue: string
