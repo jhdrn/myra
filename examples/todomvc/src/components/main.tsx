@@ -1,4 +1,4 @@
-import * as myra from 'myra/core'
+import * as myra from 'myra'
 import TodoListComponent from './todo-list'
 import * as todos from '../models/todos'
 

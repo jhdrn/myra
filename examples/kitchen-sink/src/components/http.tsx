@@ -1,5 +1,5 @@
-import * as myra from 'myra/core'
-import { httpRequest, HttpResponse } from 'myra/http'
+import * as myra from 'myra'
+import { httpRequest, HttpResponse } from 'myra-http'
 
 
 /**

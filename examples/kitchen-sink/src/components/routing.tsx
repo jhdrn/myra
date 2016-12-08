@@ -1,4 +1,4 @@
-import * as myra from 'myra/core'
+import * as myra from 'myra'
 import * as router from 'myra-router'
 import RouteComponent from './route-component'
 

@@ -1,5 +1,5 @@
-import * as myra from 'myra/core'
-import { startTimeout, cancelTimeout, startInterval, cancelInterval } from 'myra/time'
+import * as myra from 'myra'
+import { startTimeout, cancelTimeout, startInterval, cancelInterval } from 'myra-time'
 
 
 /**

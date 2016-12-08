@@ -1,4 +1,4 @@
-import * as myra from 'myra/core'
+import * as myra from 'myra'
 
 
 /**

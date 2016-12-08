@@ -1,4 +1,4 @@
-import * as myra from 'myra/core'
+import * as myra from 'myra'
 import * as router from 'myra-router'
 import { TodosFilter, saveFilter, loadFilter } from '../models/filter'
 import * as todos from '../models/todos'

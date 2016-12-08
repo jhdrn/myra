@@ -1,4 +1,4 @@
-import * as myra from 'myra/core'
+import * as myra from 'myra'
 
 /**
  * This is the definition of the component state. For this component, it can be 

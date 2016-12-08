@@ -1,4 +1,4 @@
-import { Update, Apply } from 'myra/core'
+import { Update, Apply } from 'myra'
 
 export type TodosFilter = 'all' | 'active' | 'completed'
 

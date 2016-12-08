@@ -1,4 +1,4 @@
-import * as myra from 'myra/core'
+import * as myra from 'myra'
 import * as todos from '../models/todos'
 
 type Todo = todos.Todo

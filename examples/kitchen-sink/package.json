@@ -14,7 +14,9 @@
     "webpack-dev-server": "^2.1.0-beta.12"
   },
   "dependencies": {
-    "myra": "^1.0.0-alpha.20161208",
-    "myra-router": "0.0.4"
+    "myra": "^1.0.0-beta",
+    "myra-http": "0.0.1",
+    "myra-router": "0.0.5",
+    "myra-time": "0.0.1"
   }
 }

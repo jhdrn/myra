@@ -1,4 +1,4 @@
-import { broadcast, Update, Apply } from 'myra/core'
+import { broadcast, Update, Apply } from 'myra'
 
 export type Todo = {
     id: number
