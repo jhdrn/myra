@@ -14,7 +14,7 @@
     "webpack-dev-server": "^2.1.0-beta.12"
   },
   "dependencies": {
-    "myra": "^1.0.0-alpha.20161205",
+    "myra": "^1.0.0-alpha.20161208",
     "myra-router": "0.0.4",
     "todomvc-app-css": "^2.0.6",
     "todomvc-common": "^1.0.2"
