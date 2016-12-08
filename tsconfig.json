@@ -20,43 +20,34 @@
         "jsx": "react",
         "paths": {
             "core": [
-                "src/core/index"
+                "src/index"
             ],
             "core/component": [
-                "src/core/component"
+                "src/component"
             ],
             "core/contract": [
-                "src/core/contract"
+                "src/contract"
             ],
             "core/dispatch": [
-                "src/core/dispatch"
+                "src/dispatch"
             ],
             "core/task": [
-                "src/core/task"
+                "src/task"
             ],
             "core/helpers": [
-                "src/core/helpers"
+                "src/helpers"
             ],
             "core/subscriptions": [
-                "src/core/subscriptions"
+                "src/subscriptions"
             ],
             "core/validation": [
-                "src/core/validation"
+                "src/validation"
             ],
             "core/view": [
-                "src/core/view"
+                "src/view"
             ],
             "core/jsxFactory": [
-                "src/core/jsxFactory"
-            ],
-            "http": [
-                "src/http"
-            ],
-            "location": [
-                "src/location"
-            ],
-            "time": [
-                "src/time"
+                "src/jsxFactory"
             ]
         },
         "listEmittedFiles": true

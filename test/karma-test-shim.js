@@ -5,7 +5,7 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 5000;
 
 // // Cancel Karma's synchronous start,
 // // we will call `__karma__.start()` later, once all the specs are loaded.
-__karma__.loaded = function () { };
+__karma__.loaded = function () {};
 
 System.config({
     packages: {
@@ -13,24 +13,22 @@ System.config({
             defaultExtension: 'js',
             format: 'cjs',
             map: {
-                'core': './src/core/index',
-                'core/component': './src/core/component',
-                'core/contract': './src/core/contract',
-                'core/dispatch': './src/core/dispatch',
-                'core/task': './src/core/task',
-                'core/helpers': './src/core/helpers',
-                'core/subscriptions': './src/core/subscriptions',
-                'core/validation': './src/core/validation',
-                'core/view': './src/core/view',
-                'core/jsxFactory': './src/core/jsxFactory',
-                'http': './src/http',
-                'time': './src/time'
+                'core': './src/index',
+                'core/component': './src/component',
+                'core/contract': './src/contract',
+                'core/dispatch': './src/dispatch',
+                'core/task': './src/task',
+                'core/helpers': './src/helpers',
+                'core/subscriptions': './src/subscriptions',
+                'core/validation': './src/validation',
+                'core/view': './src/view',
+                'core/jsxFactory': './src/jsxFactory'
             }
         }
     }
 });
 
-System.import('base/build/src/core/index')
+System.import('base/build/src/index')
     .then(function () {
         return Promise.all(resolveTestFiles());
     })
