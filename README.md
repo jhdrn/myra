@@ -286,14 +286,14 @@ effect":
 ```
 
 ### HTTP requests
-The [myra-http](https://github.com/jhdrn/myra-http) exposes the package
+The [myra-http](https://github.com/jhdrn/myra-http) package exposes the package
 `httpRequest` function that is an `Effect` wrapper for 
 making XmlHttpRequests. Take a look at 
 [examples/kitchen-sink/src/components/http.tsx](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/http.tsx)
 for an example on how to use the module.
 
 ### Timeouts and intervals
-The [myra-time](https://github.com/jhdrn/myra-time) contains `Effect` package
+The [myra-time](https://github.com/jhdrn/myra-time) package contains `Effect` package
 wrappers for `setTimeout` and `setInterval`.
 Take a look at 
 [examples/kitchen-sink/src/components/time.tsx](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/time.tsx)
