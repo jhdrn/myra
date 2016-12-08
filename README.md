@@ -308,7 +308,7 @@ Both the
 [kitchen-sink example](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/routing.tsx) 
 and the 
 [todomvc example](https://github.com/jhdrn/myra/blob/master/examples/todomvc/src/components/todo-list.tsx) 
-contains code examples for `myra/location`.
+contains code examples for `myra-router`.
 
 ## License
 
