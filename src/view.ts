@@ -245,6 +245,10 @@ function shouldReplaceNode(newDescriptor: NodeDescriptor, oldDescriptor: NodeDes
         newDescriptor.tagName !== oldDescriptor.tagName) {
         return true
     }
+    else if (newDescriptor.__type === 3 && oldDescriptor.__type === 3 &&
+        newDescriptor.name !== oldDescriptor.name) {
+        return true
+    }
     return false
 }
 
