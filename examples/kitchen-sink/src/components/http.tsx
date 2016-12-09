@@ -1,5 +1,5 @@
 import * as myra from 'myra'
-import { httpRequest, HttpResponse } from 'myra-http'
+import { request, HttpResponse } from 'myra-http'
 
 
 /**
@@ -16,25 +16,24 @@ const init = {
 
 
 /**
- * Updates
+ * Effects
  */
-const httpSuccess = (state: State, response: HttpResponse<any>) =>
-    myra.evolve(state, m => {
-        m.responseStatus = 'success'
-        m.response = response
-    })
-
-const httpFailure = (state: State, response: HttpResponse<any>) =>
-    myra.evolve(state, m => {
-        m.responseStatus = 'failure'
-        m.response = response
-    })
-
-const httpRequestTask =
-    httpRequest({
+const httpRequestEffect =
+    request({
         method: 'GET',
-        url: 'https://api.github.com/repos/jhdrn/myra'
-    }, httpSuccess, httpFailure)
+        url: 'https://api.github.com/repos/jhdrn/myra',
+        responseType: 'text',
+        onSuccess: (state: State, response: HttpResponse<any>) =>
+            myra.evolve(state, m => {
+                m.responseStatus = 'success'
+                m.response = response
+            }),
+        onFailure: (state: State, response: HttpResponse<any>) =>
+            myra.evolve(state, m => {
+                m.responseStatus = 'failure'
+                m.response = response
+            })
+    })
 
 /**
  * Component
@@ -53,7 +52,7 @@ export default myra.defineComponent({
             <h2>HTTP example</h2>
             <button type="button"
                 class="btn btn-sm btn-default"
-                onclick={() => ctx.invoke(httpRequestTask)}>
+                onclick={() => ctx.invoke(httpRequestEffect)}>
                 Make HTTP request
             </button>
 
