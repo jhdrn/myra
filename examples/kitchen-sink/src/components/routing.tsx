@@ -15,7 +15,7 @@ const init = {} as State
 /**
  * Updates
  */
-const onLocationUpdate = (state: State, ctx: router.RouteContext) =>
+const onRoute = (state: State, ctx: router.RouteContext) =>
     myra.evolve(state, x => x.routeCtx = ctx)
 
 /**
@@ -29,7 +29,7 @@ export default myra.defineComponent({
     // and one or more tasks to execute when the component is initialized.
     init: {
         state: init,
-        effects: [router.addListener(onLocationUpdate)]
+        effects: [router.addListener(onRoute)]
     },
 
     // The view function is called after update. 
