@@ -9,13 +9,13 @@ declare namespace myra {
      * Component types
      */
     interface ComponentSpec<S, A> {
-        name: string
-        init: Result<S>
-        onAfterRender?: (rootNodeDescriptor: NodeDescriptor, state: S) => void
-        onBeforeRender?: (rootNodeDescriptor: NodeDescriptor, state: S) => void
-        onMount?: Update<S, A>
-        subscriptions?: { [type: string]: Update<S, any> }
-        view: View<S>
+        readonly name: string
+        readonly init: Result<S>
+        readonly onAfterRender?: (rootNodeDescriptor: NodeDescriptor, state: S) => void
+        readonly onBeforeRender?: (rootNodeDescriptor: NodeDescriptor, state: S) => void
+        readonly onMount?: Update<S, A>
+        readonly subscriptions?: { [type: string]: Update<S, any> }
+        readonly view: View<S>
     }
 
     /** "Component state holder" interface */
@@ -42,10 +42,7 @@ declare namespace myra {
         readonly effects?: Effect[]
     }
 
-    interface Update<S, A> {
-        (state: S, arg?: A): Result<S>
-    }
-    interface UpdateAny extends Update<any, any> { }
+    type Update<S, A> = (state: S, arg: A) => Result<S>
 
     type Apply = <S, A>(fn: Update<S, A>, ...args: any[]) => void
 

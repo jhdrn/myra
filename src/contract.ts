@@ -11,8 +11,7 @@ export type ComponentFactory<T> = myra.ComponentFactory<T>
 
 export type Effect = myra.Effect
 export interface Result<S> extends myra.Result<S> { }
-export interface Update<S, A> extends myra.Update<S, A> { }
-export interface UpdateAny extends Update<any, any> { }
+export type Update<S, A> = myra.Update<S, A>
 export type Apply = <S, A>(fn: Update<S, A>, ...args: any[]) => void
 
 /**
