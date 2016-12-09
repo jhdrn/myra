@@ -7,7 +7,7 @@ import RouteComponent from './route-component'
  * State
  */
 type State = {
-    routerCtx: router.RouteContext
+    routeCtx: router.RouteContext
 }
 const init = {} as State
 
@@ -16,7 +16,7 @@ const init = {} as State
  * Updates
  */
 const onLocationUpdate = (state: State, ctx: router.RouteContext) =>
-    myra.evolve(state, x => x.routerCtx = ctx)
+    myra.evolve(state, x => x.routeCtx = ctx)
 
 /**
  * Component
@@ -37,12 +37,12 @@ export default myra.defineComponent({
         <section>
             <h2>Router examples</h2>
 
-            {ctx.state.routerCtx.matchAny({
+            {ctx.state.routeCtx.matchAny({
                 'test1': <p>Route to '/test1'.</p>,
                 'test1/:param': (params: any) => <RouteComponent {...params} />
             }, <nothing />)}
 
-            {ctx.state.routerCtx.match('test1/:param') ?
+            {ctx.state.routeCtx.match('test1/:param') ?
                 <p>Location '/test2/:param' matched.</p> : <nothing />}
 
             <ul class="list-group">
