@@ -132,25 +132,25 @@ an event listener (see 'Event listeners' below).
 
 ### Views
 Myra does not use HTML templates but creates it's views with JSX. A 
-`ViewContext<T>` is supplied as an argument to the view function. 
+`ViewContext<TState, TProps>` is supplied as an argument to the view function. 
 
 ```JSX
     import * as myra from 'myra'
 
     type State = string
+    type Props = {}
 
-    const view = (ctx: myra.ViewContext<State>) => 
+    const view = (ctx: myra.ViewContext<State, Props>) => 
         <p>
            The state is {ctx.state}
         </p>
 
 ```
 
-#### The `ViewContext`
-The `ViewContext` contains key properties for the component:
+The `ViewContext<TState, TProps>` contains key properties for the component:
 
-- `state` - the current state of the component.
-- `props` - the props supplied to the component.
+- `state` - the current state (`TState`) of the component.
+- `props` - the props (`TProps`) supplied to the component.
 - `apply` - a function that updates the state of the component by applying the 
   `Update` function that is supplied as an argument. If a second argument is 
   supplied, it will be passed to the `Update` function.
@@ -168,6 +168,9 @@ Examples of usage:
     type State = {
         inputValue: string
     }
+    type Props = {
+        foo: string
+    }
 
     const myApplyUpdate = (s: State) => 
         myra.evolve(s, x => x.inputValue = '')
@@ -175,8 +178,9 @@ Examples of usage:
     const myBindUpdate = (s: State, inputValue: string) =>
         myra.evolve(s, x => x.inputValue = inputValue)
 
-    const view = (ctx: myra.ViewContext<State>) => 
+    const view = (ctx: myra.ViewContext<State, Props>) => 
         <div>
+            <p>The props property 'foo' has value {ctx.props.foo}.</p>
             <input type="text"
                    oninput={ctx.bind(myBindUpdate)} />
             <p>{ctx.state.inputValue}</p>
@@ -207,13 +211,14 @@ These can be used instead of their corresponding key code, i.e.
     import * as myra from 'myra'
 
     type State = ...
+    type Props = ...
 
     const myUpdate = (s: State) => {
         ...
         return myra.evolve(s)
     }
 
-    const view = (ctx: myra.ViewContext<State>) => 
+    const view = (ctx: myra.ViewContext<State, Props>) => 
         <div class="className" onclick={(ev: MouseEvent, el: NodeDescriptor) => ctx.apply(myUpdate)}></div>
 
 ```
@@ -233,15 +238,15 @@ Some attributes and events has special behavior associated with them.
 To mount a child component use it's identifier as a JSX tag. The component
 identifier must begin with an uppercase first letter, as by standard JSX rules.
 
-Any attributes will be passed to the child component's `onMount` `Update` function 
-if defined.
+Any props will be passed to the child component's `ViewContext` and to it's 
+`onMount` `Update` function if defined.
 
 ```JSX
     import * as myra from 'myra'
     import MyComponent from './myComponent'
     
     const view = (_) => 
-        <MyOtherComponent foo="an argument" />
+        <MyOtherComponent foo="a prop" />
 
 ```
 
