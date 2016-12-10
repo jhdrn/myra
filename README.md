@@ -114,7 +114,7 @@ following definition (the `evolve` function does this for you):
 
 ### Effects
 An `Effect` represents some kind of side effect. It receives an `Apply` function
-that may be used to apply an `Update` function with any given arguments.
+that may be used to apply an `Update` function with a given argument.
 
 Effects can be returned in a `Result<T>` from an `Update` function or from
 an event listener (see 'Event listeners' below).
@@ -146,13 +146,14 @@ Myra does not use HTML templates but creates it's views with JSX. A
 
 ```
 
-#### The `ViewContext<T>`
-The `ViewContext<T>` contains key properties for the component:
+#### The `ViewContext`
+The `ViewContext` contains key properties for the component:
 
 - `state` - the current state of the component.
+- `props` - the props supplied to the component.
 - `apply` - a function that updates the state of the component by applying the 
-  `Update` function that is supplied as an argument. Subsequent arguments will 
-  be passed as arguments to the `Update` function.
+  `Update` function that is supplied as an argument. If a second argument is 
+  supplied, it will be passed to the `Update` function.
 - `invoke` - a function that invokes an `Effect` which may update the state 
   later.
 - `bind` - a convenience function to apply an update function and pass the value

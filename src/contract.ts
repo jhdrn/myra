@@ -5,8 +5,8 @@ export type Map<T> = myra.Map<T>
 /**
  * Component types
  */
-export interface ComponentSpec<S, A> extends myra.ComponentSpec<S, A> { }
-export interface ComponentContext<S> extends myra.ComponentContext<S> { }
+export interface ComponentSpec<TState, TProps> extends myra.ComponentSpec<TState, TProps> { }
+export interface ComponentContext<TState, TProps> extends myra.ComponentContext<TState, TProps> { }
 export type ComponentFactory<T> = myra.ComponentFactory<T>
 
 export type Effect = myra.Effect
@@ -17,8 +17,8 @@ export type Apply = <S, A>(fn: Update<S, A>, ...args: any[]) => void
 /**
  * View types
  */
-export interface ViewContext<S> extends myra.ViewContext<S> { }
-export interface View<S> extends myra.View<S> { }
+export interface ViewContext<TState, TProps> extends myra.ViewContext<TState, TProps> { }
+export interface View<TState, TProps> extends myra.View<TState, TProps> { }
 
 export type EventListener<T extends Event, E extends Element> = myra.EventListener<T, E>
 

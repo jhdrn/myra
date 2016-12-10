@@ -19,7 +19,7 @@ export function debug(debug: boolean = true, options?: DebugOptions) {
     }
 }
 
-export function dispatch<S, A>(context: ComponentContext<S>, render: Render, fn: (state: S, ...args: any[]) => Result<S>, ...args: any[]) {
+export function dispatch<TState, TArg>(context: ComponentContext<TState, any>, render: Render, fn: (state: TState, arg: TArg) => Result<TState>, arg: TArg) {
 
     if (context.isUpdating) {
         throw `${context.spec.name}: Dispatch error - the dispatch function may not be called during an update. Doing so would most likely corrupt the state.`
@@ -29,7 +29,7 @@ export function dispatch<S, A>(context: ComponentContext<S>, render: Render, fn:
 
     context.isUpdating = true
 
-    const result = fn(context.state!, ...args)
+    const result = fn(context.state!, arg)
 
     if (typeof result !== 'object') {
         throw 'Invalid result.'
@@ -37,7 +37,7 @@ export function dispatch<S, A>(context: ComponentContext<S>, render: Render, fn:
 
     context.isUpdating = false
 
-    const apply = (fn: Update<S, A>, ...args: any[]) => dispatch(context, render, fn, ...args)
+    const apply = <T>(fn: Update<TState, T>, arg: T) => dispatch(context, render, fn, arg)
 
     context.state = result.state
 
@@ -61,16 +61,17 @@ export function dispatch<S, A>(context: ComponentContext<S>, render: Render, fn:
     // is at "lowest" level (i.e. 1).
     if (context.mounted && context.dispatchLevel === 1) {
         const ctx = {
+            props: context.props,
             state: context.state!,
             apply: apply,
             invoke: (fn: Effect) => fn(apply),
-            bind: (update: Update<S, string>) => {
+            bind: (update: Update<TState, string>) => {
                 return (ev: Event) => {
                     apply(update as any, (ev.target as HTMLInputElement).value)
                 }
             },
             children: context.childNodes
-        } as ViewContext<S>
+        } as ViewContext<TState, any>
 
         const newView = context.spec.view(ctx)
 

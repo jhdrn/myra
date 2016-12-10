@@ -1,4 +1,4 @@
-import { defineComponent, evolve } from 'core'
+import { defineComponent, mountComponent, evolve } from 'core'
 import { render } from 'core/view'
 import * as jsxFactory from 'core/jsxFactory'
 
@@ -396,58 +396,40 @@ describe('core.view.render', () => {
         done()
     })
 
+    it('Props are passed to the view context', () => {
 
-    // it('collects form data and passes it as argument to the update function', (done) => {
+        type ChildComponentProps = {
+            test: string
+        }
 
-    //     type FormData = {
-    //         test1: string
-    //         test2: string
-    //     }
-    //     const mocks = {
-    //         formSubmitted: (m: any, formData: FormData) => {
-    //             expect(formData).toEqual({
-    //                 test1: 'testValue1',
-    //                 test2: 'on'
-    //             })
-    //             return m
-    //         }
-    //     }
+        const mocks = {
+            assertProps: (props: ChildComponentProps) =>
+                expect(props).toEqual({ test: 'test' })
+        }
 
-    //     spyOn(mocks, 'formSubmitted')
+        spyOn(mocks, 'assertProps').and.callThrough()
 
-    //     const view = <form
-    //         onsubmit={{
-    //             listener: mocks.formSubmitted,
-    //             preventDefault: true,
-    //             stopPropagation: true
-    //         }}>
+        const ChildComponent = defineComponent<undefined, ChildComponentProps>({
+            name: 'ChildComponent',
+            init: {
+                state: undefined
+            },
+            view: ctx => {
+                mocks.assertProps(ctx.props)
+                return <nothing />
+            }
+        })
 
-    //         <input
-    //             name="test1"
-    //             type="text"
-    //             value="testValue" />
-    //         <input
-    //             name="test2"
-    //             type="checkbox"
-    //             checked={true} />
+        const ParentComponent = defineComponent({
+            name: 'ParentComponent',
+            init: { state: undefined },
+            view: () => <ChildComponent test="test" />
+        })
 
-    //     </form>
+        mountComponent(ParentComponent, document.body)
 
-    //     render(document.body, view, view, undefined)
-
-    //     const node = view.node as HTMLFormElement
-
-    //     const event = document.createEvent('Event')
-    //     event.initEvent('submit', true, true)
-
-    //     node.dispatchEvent(event)
-
-    //     expect(mocks.formSubmitted).toHaveBeenCalledTimes(1)
-
-    //     done()
-    // })
-
-
+        expect(mocks.assertProps).toHaveBeenCalledTimes(1)
+    })
     // it('onchange propagates event from child to form, resulting in a call to the update function', (done) => {
 
     //     type FormData = {

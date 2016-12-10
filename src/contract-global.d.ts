@@ -1,68 +1,69 @@
 
 declare namespace myra {
 
-    type Map<T> = {
-        [key: string]: T
+    type Map<TValue> = {
+        [key: string]: TValue
     }
 
     /**
      * Component types
      */
-    interface ComponentSpec<S, A> {
+    interface ComponentSpec<TState, TProps> {
         readonly name: string
-        readonly init: Result<S>
-        readonly onAfterRender?: (rootNodeDescriptor: NodeDescriptor, state: S) => void
-        readonly onBeforeRender?: (rootNodeDescriptor: NodeDescriptor, state: S) => void
-        readonly onMount?: Update<S, A>
-        readonly subscriptions?: { [type: string]: Update<S, any> }
-        readonly view: View<S>
+        readonly init: Result<TState>
+        readonly onAfterRender?: (rootNodeDescriptor: NodeDescriptor, state: TState) => void
+        readonly onBeforeRender?: (rootNodeDescriptor: NodeDescriptor, state: TState) => void
+        readonly onMount?: Update<TState, TProps>
+        readonly subscriptions?: { [type: string]: Update<TState, any> }
+        readonly view: View<TState, TProps>
     }
 
     /** "Component state holder" interface */
-    interface ComponentContext<S> {
-        readonly spec: ComponentSpec<S, any>
+    interface ComponentContext<TState, TProps> {
+        readonly spec: ComponentSpec<TState, any>
         readonly parentNode: Element
         mounted: boolean
         dispatchLevel: number
         isUpdating: boolean
-        state: S | undefined
+        props: TProps | undefined
+        state: TState | undefined
         rendition?: NodeDescriptor
         childNodes?: NodeDescriptor[]
     }
 
-    interface ComponentFactory<T> {
-        (props: T, forceMount?: boolean, children?: NodeDescriptor[]): ComponentDescriptor<T>
+    interface ComponentFactory<TProps> {
+        (props: TProps, forceMount?: boolean, children?: NodeDescriptor[]): ComponentDescriptor<TProps>
     }
 
     type Effect = (apply: Apply) => void
 
-    interface Result<S> {
-        readonly state: S
-
+    interface Result<TState> {
+        readonly state: TState
         readonly effects?: Effect[]
     }
 
-    type Update<S, A> = (state: S, arg: A) => Result<S>
+    type Update<TState, TArg> = (state: TState, arg: TArg) => Result<TState>
 
-    type Apply = <S, A>(fn: Update<S, A>, ...args: any[]) => void
+    type Apply = <TState, TArg>(fn: Update<TState, TArg>, arg?: TArg) => void
 
     /**
      * View types
      */
-    interface ViewContext<S> {
-        readonly state: S
+    interface ViewContext<TState, TProps> {
+        readonly props: TProps
+        readonly state: TState
         readonly apply: Apply
         readonly invoke: (effect: Effect) => void
         readonly children?: NodeDescriptor[]
-        readonly bind: <S>(update: Update<S, string>) => EventListener<Event, HTMLElement>
+        readonly bind: (update: Update<TState, string>) => EventListener<Event, HTMLElement>
     }
-    interface View<S> {
-        (ctx: ViewContext<S>): NodeDescriptor
+    interface View<TState, TProps> {
+        (ctx: ViewContext<TState, TProps>): NodeDescriptor
     }
 
     interface AttributeMap { [name: string]: string }
 
-    type EventListener<T extends Event, E extends Element> = <S, A>(event: T, descriptor: ElementDescriptor<E>) => void
+    type EventListener<TEvent extends Event, TElement extends Element> = (event: TEvent, descriptor: ElementDescriptor<TElement>) => void
 
     interface DescriptorBase {
         node?: Node
@@ -71,28 +72,28 @@ declare namespace myra {
         readonly __type: 1
         readonly value: string
     }
-    interface ElementDescriptor<E extends Element> extends DescriptorBase {
+    interface ElementDescriptor<TElement extends Element> extends DescriptorBase {
         readonly __type: 2
         readonly tagName: string
-        readonly attributes: GlobalAttributes<E>
+        readonly attributes: GlobalAttributes<TElement>
         readonly children: NodeDescriptor[]
-        node?: E
+        node?: TElement
     }
-    interface ComponentDescriptor<T> extends DescriptorBase {
+    interface ComponentDescriptor<TProps> extends DescriptorBase {
         readonly __type: 3
         readonly name: string
         id: number;
         forceMount: boolean
         children: NodeDescriptor[]
         rendition?: NodeDescriptor
-        props: T
+        props: TProps
     }
     interface NothingDescriptor extends DescriptorBase {
         readonly __type: 0
     }
     type NodeDescriptor = TextDescriptor | ElementDescriptor<any> | ComponentDescriptor<any> | NothingDescriptor
 
-    interface GlobalAttributes<E extends Element> {
+    interface GlobalAttributes<TElement extends Element> {
         accesskey?: string
         'class'?: string
         contenteditable?: boolean | '' | 'true' | 'false'
@@ -108,22 +109,22 @@ declare namespace myra {
         title?: string
         translate?: '' | 'yes' | 'no'
 
-        onblur?: EventListener<Event, E>
-        onclick?: EventListener<MouseEvent, E>
-        oncontextmenu?: EventListener<Event, E>
-        ondblclick?: EventListener<MouseEvent, E>
-        onfocus?: EventListener<FocusEvent, E>
-        onkeydown?: EventListener<KeyboardEvent, E>
-        onkeypress?: EventListener<KeyboardEvent, E>
-        onkeyup?: EventListener<KeyboardEvent, E>
-        onmousedown?: EventListener<MouseEvent, E>
-        onmouseenter?: EventListener<MouseEvent, E>
-        onmouseleave?: EventListener<MouseEvent, E>
-        onmousemove?: EventListener<MouseEvent, E>
-        onmouseout?: EventListener<MouseEvent, E>
-        onmouseover?: EventListener<MouseEvent, E>
-        onmouseup?: EventListener<MouseEvent, E>
-        onshow?: EventListener<Event, E>
+        onblur?: EventListener<Event, TElement>
+        onclick?: EventListener<MouseEvent, TElement>
+        oncontextmenu?: EventListener<Event, TElement>
+        ondblclick?: EventListener<MouseEvent, TElement>
+        onfocus?: EventListener<FocusEvent, TElement>
+        onkeydown?: EventListener<KeyboardEvent, TElement>
+        onkeypress?: EventListener<KeyboardEvent, TElement>
+        onkeyup?: EventListener<KeyboardEvent, TElement>
+        onmousedown?: EventListener<MouseEvent, TElement>
+        onmouseenter?: EventListener<MouseEvent, TElement>
+        onmouseleave?: EventListener<MouseEvent, TElement>
+        onmousemove?: EventListener<MouseEvent, TElement>
+        onmouseout?: EventListener<MouseEvent, TElement>
+        onmouseover?: EventListener<MouseEvent, TElement>
+        onmouseup?: EventListener<MouseEvent, TElement>
+        onshow?: EventListener<Event, TElement>
 
         [name: string]: any
     }
@@ -400,15 +401,15 @@ declare namespace myra {
 
 declare namespace JSX {
 
-    type GlobalAttributes<T extends HTMLElement> = myra.GlobalAttributes<T>
+    type GlobalAttributes<TElement extends HTMLElement> = myra.GlobalAttributes<TElement>
 
     export type Element = myra.NodeDescriptor
 
-    export interface ElementClass<T> {
-        props: T
+    export interface ElementClass<TProps> {
+        props: TProps
     }
-    export interface ElementAttributesProperty<T> {
-        props: T
+    export interface ElementAttributesProperty<TProps> {
+        props: TProps
     }
     export interface IntrinsicElements {
         nothing: never

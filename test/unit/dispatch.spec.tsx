@@ -19,6 +19,7 @@ describe('core.dispatch', () => {
             mountArg: undefined,
             dispatchLevel: 0,
             isUpdating: false,
+            props: undefined,
             state: 1,
             oldView: undefined,
             rootNode: document.body
@@ -43,6 +44,7 @@ describe('core.dispatch', () => {
             mountArg: undefined,
             dispatchLevel: 1,
             isUpdating: false,
+            props: undefined,
             state: undefined,
             oldView: undefined,
             rootNode: document.body
@@ -73,6 +75,7 @@ describe('core.dispatch', () => {
             mountArg: undefined,
             dispatchLevel: 0,
             isUpdating: true,
+            props: undefined,
             state: 1,
             oldView: undefined,
             rootNode: document.body
@@ -136,6 +139,7 @@ describe('core.dispatch', () => {
             mountArg: undefined,
             dispatchLevel: 0,
             isUpdating: false,
+            props: undefined,
             state: 1,
             oldView: undefined,
             rootNode: document.body
@@ -169,6 +173,7 @@ describe('core.dispatch', () => {
             mountArg: undefined,
             dispatchLevel: 0,
             isUpdating: false,
+            props: undefined,
             state: 1,
             oldView: undefined,
             rootNode: document.body
@@ -202,6 +207,7 @@ describe('core.dispatch', () => {
             mountArg: undefined,
             dispatchLevel: 0,
             isUpdating: false,
+            props: undefined,
             state: 1,
             oldView: undefined,
             rootNode: document.body

@@ -2,7 +2,7 @@ import { Update, ComponentContext, Apply } from './contract'
 import { dispatch } from './dispatch'
 import { render } from './view'
 
-export type Subscriptions = { [type: string]: [Update<any, any>, ComponentContext<any>][] }
+export type Subscriptions = { [type: string]: [Update<any, any>, ComponentContext<any, any>][] }
 
 export const subscriptions: Subscriptions = {}
 

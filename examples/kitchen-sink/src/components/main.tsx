@@ -1,4 +1,5 @@
 import * as myra from 'myra'
+import PropsComponent from './props'
 import CounterComponent from './counter'
 import HttpComponent from './http'
 import TimeComponent from './time'
@@ -11,6 +12,8 @@ import RoutingComponent from './routing'
 const view = () =>
     <div class="container">
         <h1>Kitchen sink demo</h1>
+        <hr />
+        <PropsComponent foo="a string prop" bar={123} />
         <hr />
         <CounterComponent />
         <hr />
