@@ -146,7 +146,41 @@ describe('unmountComponent', () => {
         initComponent(instance, document.body)
         unmountComponent(instance.id)
 
-        expect(mountMock.unmount).toHaveBeenCalled()
+        expect(mountMock.unmount).toHaveBeenCalledTimes(1)
+    })
+
+    it('calls the onUnmount function on child components', () => {
+        const mountMock = {
+            unmount: (x: number) => evolve(x)
+        }
+
+        spyOn(mountMock, 'unmount').and.callThrough()
+
+        const ChildChildComponent = defineComponent({
+            name: randomName(),
+            init: { state: 0 },
+            onUnmount: mountMock.unmount,
+            view: () => <div />
+        })
+
+        const ChildComponent = defineComponent({
+            name: randomName(),
+            init: { state: 0 },
+            onUnmount: mountMock.unmount,
+            view: () => <ChildChildComponent />
+        })
+
+        const component = defineComponent({
+            name: randomName(),
+            init: { state: 0 },
+            view: () => <div><ChildComponent /></div>
+        })
+
+        const instance = component({})
+        initComponent(instance, document.body)
+        unmountComponent(instance.id)
+
+        expect(mountMock.unmount).toHaveBeenCalledTimes(2)
     })
 })
 
