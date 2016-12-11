@@ -41,7 +41,8 @@ const KEY_MAP = {
 /** Sets an attribute or event listener on an HTMLElement. */
 function setAttr(element: HTMLElement, attributeName: string, attributeValue: any) {
     if (attributeName.indexOf('on') === 0) {
-        const eventName = attributeName.split('_')[0]
+        const underscorePos = attributeName.indexOf('_')
+        const eventName = underscorePos > 0 ? attributeName.substring(0, underscorePos) : attributeName
         if (typeof (element as any)[eventName] === 'function') {
             // If there is a previous event listener, wrap it and the new one in
             // a function calling both.
