@@ -59,10 +59,10 @@ export function initComponent<T>(descriptor: ComponentDescriptor<T>, parentNode:
     descriptor.id = nextId++
     contexts[descriptor.id] = context
 
-    if (spec.subscriptions) {
-        Object.keys(spec.subscriptions).forEach(k => {
-            subscribe(k, spec.subscriptions![k], context)
-        })
+    if (typeof spec.subscriptions !== 'undefined') {
+        for (const k in spec.subscriptions) {
+            subscribe(k, spec.subscriptions[k], context)
+        }
     }
 
     // Dispatch once with init. The view won't be rendered.
@@ -127,4 +127,32 @@ export function defineComponent<TState, TProps>(spec: ComponentSpec<TState, TPro
 /** Mounts the component onto the supplied element. */
 export function mountComponent(component: ComponentFactory<any>, element: Element) {
     initComponent(component({}), element)
+}
+
+export function unmountComponent(componentId: number) {
+    unmountComponentRec(contexts[componentId])
+}
+
+function unmountComponentRec(ctx: ComponentContext<any, any>) {
+    if (typeof ctx.spec.onUnmount === 'function') {
+        dispatch(ctx, render, ctx.spec.onUnmount, undefined)
+    }
+    for (const id of findChildComponentsRec(ctx.rendition!)) {
+        unmountComponent(id)
+    }
+}
+
+function findChildComponentsRec(descriptor: NodeDescriptor) {
+    const ids: number[] = []
+    if (descriptor.__type === 3) {
+        ids.push(descriptor.id)
+    }
+    else if (descriptor.__type === 2) {
+        for (const c of descriptor.children) {
+            for (const id of findChildComponentsRec(c)) {
+                ids.push(id)
+            }
+        }
+    }
+    return ids
 }

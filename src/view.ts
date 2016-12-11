@@ -1,4 +1,4 @@
-import { initComponent, updateComponent } from './component'
+import { initComponent, updateComponent, unmountComponent } from './component'
 import { max } from './helpers'
 import { EventListener, NodeDescriptor, ElementDescriptor, ComponentDescriptor } from './contract'
 
@@ -313,8 +313,17 @@ function reRenderNode(newDescriptor: NodeDescriptor, oldDescriptor: NodeDescript
 }
 
 /** Renders the view by walking the node descriptor tree recursively */
-export function render(parentNode: Element, newDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor, existingNode: Node | undefined): void {
+export function render(
+    parentNode: Element,
+    newDescriptor: NodeDescriptor,
+    oldDescriptor: NodeDescriptor,
+    existingNode: Node | undefined): void {
+
     const replaceNode = shouldReplaceNode(newDescriptor, oldDescriptor)
+    if (replaceNode && oldDescriptor.__type === 3) {
+        unmountComponent(oldDescriptor.id)
+    }
+
     if (typeof existingNode === 'undefined' || typeof oldDescriptor === 'undefined' || replaceNode) {
         renderNewNode(replaceNode, parentNode, newDescriptor, oldDescriptor, existingNode)
     }

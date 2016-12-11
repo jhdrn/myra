@@ -1,5 +1,6 @@
 import { defineComponent, mountComponent, evolve } from 'core'
 import { render } from 'core/view'
+import { initComponent } from 'core/component'
 import * as jsxFactory from 'core/jsxFactory'
 
 const keyPressEvent = (keyCode: number) => {
@@ -106,6 +107,30 @@ describe('core.view.render', () => {
         expect(mocks.mount).toHaveBeenCalledTimes(2)
 
         done()
+    })
+
+    it(`render unmounts a component when it's replaced`, (done) => {
+        const mocks = {
+            unmount: (s: any) => {
+                done()
+                return evolve(s)
+            }
+        }
+
+        spyOn(mocks, 'unmount').and.callThrough()
+
+        const TestComponent = defineComponent({
+            name: 'TestComponent3',
+            init: { state: undefined },
+            onUnmount: mocks.unmount,
+            view: (_) => <div></div>
+        })
+        const instance = TestComponent({})
+        initComponent(instance, document.body)
+
+        render(document.body, <nothing />, instance, undefined)
+
+        expect(mocks.unmount).toHaveBeenCalledTimes(1)
     })
 
     it('removes excessive child nodes', (done) => {

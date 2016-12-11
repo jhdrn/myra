@@ -1,5 +1,5 @@
 import { defineComponent, mountComponent, evolve } from 'core'
-import { initComponent, updateComponent } from 'core/component'
+import { initComponent, updateComponent, unmountComponent } from 'core/component'
 import * as jsxFactory from 'core/jsxFactory'
 
 const q = (x: string) => document.querySelector(x)
@@ -50,7 +50,7 @@ describe('mountComponent', () => {
         expect(rootNode).not.toBeNull()
     })
 
-    it('calls the mount function', () => {
+    it('calls the onMount function', () => {
         const mountMock = {
             mount: (x: number) => evolve(x)
         }
@@ -120,6 +120,33 @@ describe('mountComponent', () => {
         expect(q('#divTestId')).not.toBeNull()
 
         expect(viewMock.view).toHaveBeenCalledTimes(1)
+    })
+})
+
+
+/**
+ * mountComponent
+ */
+describe('unmountComponent', () => {
+
+    it('calls the onUnmount function', () => {
+        const mountMock = {
+            unmount: (x: number) => evolve(x)
+        }
+
+        spyOn(mountMock, 'unmount').and.callThrough()
+
+        const component = defineComponent({
+            name: randomName(),
+            init: { state: 0 },
+            onUnmount: mountMock.unmount,
+            view: () => <div />
+        })
+        const instance = component({})
+        initComponent(instance, document.body)
+        unmountComponent(instance.id)
+
+        expect(mountMock.unmount).toHaveBeenCalled()
     })
 })
 
