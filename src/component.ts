@@ -129,10 +129,12 @@ export function mountComponent(component: ComponentFactory<any>, element: Elemen
     initComponent(component({}), element)
 }
 
+/** Unmounts the component, calling onUnmount if defined */
 export function unmountComponent(componentId: number) {
     unmountComponentRec(contexts[componentId])
 }
 
+/** Recursively unmounts any components in the hierarchy */
 function unmountComponentRec(ctx: ComponentContext<any, any>) {
     if (typeof ctx.spec.onUnmount === 'function') {
         dispatch(ctx, render, ctx.spec.onUnmount, undefined)
@@ -142,6 +144,10 @@ function unmountComponentRec(ctx: ComponentContext<any, any>) {
     }
 }
 
+/** 
+ * Traverses the descriptor hierarchy and returns the ids of every component
+ * that is a "direct" child of the component.
+ */
 function findChildComponentsRec(descriptor: NodeDescriptor) {
     const ids: number[] = []
     if (descriptor.__type === 3) {

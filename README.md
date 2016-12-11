@@ -67,9 +67,13 @@ with `mountComponent`:
             effects: ... // optional 
         }, 
 
-        // An optional Update function to call when the component is mounted.
-        // See 'Update' below.
+        // An optional Update function that will be called when the component is 
+        // mounted (see 'Updating the state'). 
         onMount: ..., 
+
+        // An optional Update function that will be called when the component is
+        // unmounted (see 'Updating the state'). 
+        onUnmount: ...,
         
         // Any subscriptions (see 'Subscriptions' below)
         subscriptions: ...,
