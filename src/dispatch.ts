@@ -39,17 +39,19 @@ export function dispatch<TState, TArg>(context: ComponentContext<TState, any>, r
 
     const apply = <T>(fn: Update<TState, T>, arg: T) => dispatch(context, render, fn, arg)
 
-    context.state = result.state
-
     if (debugEnabled) {
         if (typeof debugOptions.components === 'undefined' ||
             debugOptions.components!.indexOf(context.spec.name) !== -1) {
 
             console.group(context.spec.name)
-            console.debug('State: ', context.state)
+            console.debug('State before update: ', context.state)
+            console.debug(`Update '${(fn as any).name}' arguments: `, arg)
+            console.debug('State after update: ', result.state)
             console.groupEnd()
         }
     }
+
+    context.state = result.state
 
     if (typeof result.effects !== 'undefined' && result.effects.length) {
         for (let i = 0; i < result.effects.length; i++) {
