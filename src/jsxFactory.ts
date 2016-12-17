@@ -62,5 +62,5 @@ export function createElement<T>(tagNameOrComponent: string | ComponentFactory<T
             children: flattenChildren(children)
         }
     }
-    return tagNameOrComponent(props || undefined, props ? (props as any)['forceMount'] : undefined, children as NodeDescriptor[])
+    return tagNameOrComponent(props || undefined, children as NodeDescriptor[])
 }

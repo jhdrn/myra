@@ -8,7 +8,7 @@ declare namespace myra {
     /**
      * Component types
      */
-    interface ComponentSpec<TState, TProps> {
+    interface ComponentSpec<TState, TProps extends {}> {
         readonly name: string
         readonly init: Result<TState>
         readonly onAfterRender?: (rootNodeDescriptor: NodeDescriptor, state: TState) => void
@@ -20,7 +20,7 @@ declare namespace myra {
     }
 
     /** "Component state holder" interface */
-    interface ComponentContext<TState, TProps> {
+    interface ComponentContext<TState, TProps extends {}> {
         readonly spec: ComponentSpec<TState, any>
         readonly parentNode: Element
         mounted: boolean
@@ -32,8 +32,8 @@ declare namespace myra {
         childNodes?: NodeDescriptor[]
     }
 
-    interface ComponentFactory<TProps> {
-        (props: TProps, forceMount?: boolean, children?: NodeDescriptor[]): ComponentDescriptor<TProps>
+    interface ComponentFactory<TProps extends {}> {
+        (props: TProps, children?: NodeDescriptor[]): ComponentDescriptor<TProps>
     }
 
     type Effect = (apply: Apply) => void
@@ -84,7 +84,6 @@ declare namespace myra {
         readonly __type: 3
         readonly name: string
         id: number;
-        forceMount: boolean
         children: NodeDescriptor[]
         rendition?: NodeDescriptor
         props: TProps

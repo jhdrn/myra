@@ -112,7 +112,7 @@ describe('mountComponent', () => {
         const parent = defineComponent({
             name: randomName(),
             init: { state: 22 },
-            view: () => component(undefined, undefined, [<div id="divTestId" />])
+            view: () => component(undefined, [<div id="divTestId" />])
         })
 
         mountComponent(parent, document.body)
@@ -210,7 +210,7 @@ describe('updateComponent', () => {
         expect(mountMock.mount).toHaveBeenCalledTimes(1)
     })
 
-    it('calls the mount function if forceMount is true', () => {
+    it('calls the mount function if forceUpdate is true', () => {
         const mountMock = {
             mount: (x: number) => evolve(x)
         }
@@ -227,7 +227,7 @@ describe('updateComponent', () => {
         const componentDescriptor = component({})
         initComponent(componentDescriptor, document.body)
 
-        const newDescriptor = component({}, true)
+        const newDescriptor = component({ forceUpdate: true })
         updateComponent(newDescriptor, componentDescriptor)
 
         expect(mountMock.mount).toHaveBeenCalledTimes(2)

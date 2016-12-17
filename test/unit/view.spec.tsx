@@ -80,7 +80,7 @@ describe('core.view.render', () => {
         done()
     })
 
-    it('remounts a component', (done) => {
+    it('remounts a component if forceUpdate is set to true', (done) => {
         const mocks = {
             mount: (m: any) => evolve(m)
         }
@@ -95,7 +95,7 @@ describe('core.view.render', () => {
         })
 
         const view1 = testComponent({})
-        const view2 = testComponent({}, true)
+        const view2 = testComponent({ forceUpdate: true })
 
         render(document.body, view1, view1, undefined)
         const node = view1.node! as HTMLDivElement

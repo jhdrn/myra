@@ -30,9 +30,9 @@ export default myra.defineComponent({
         <section>
             <h2>Props example</h2>
             <dl>
-                <dt>foo:</dt>
+                <dt>The value of <code>props.foo</code> is:</dt>
                 <dd>{ctx.props.foo}</dd>
-                <dt>bar:</dt>
+                <dt>The value of <code>props.bar</code> is:</dt>
                 <dd>{ctx.props.bar}</dd>
             </dl>
         </section>

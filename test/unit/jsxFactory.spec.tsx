@@ -123,6 +123,17 @@ describe('jsxFactory', () => {
         expect(view.__type).toBe(3)
         expect(view.name).toBe('JsxComponent')
         expect(view.props).toEqual({ test: 'test' })
-        expect(view.forceMount).toBe(false)
+    })
+
+
+    it('Stateless component creates an ElementNodeDescriptor', () => {
+
+        const TestComponent = (props: { test: string }) => <div>{props}</div>
+
+        const view = <TestComponent test="test" /> as core.ElementDescriptor<HTMLDivElement>
+
+        console.log(view)
+        expect(view.__type).toBe(2)
+        expect(view.tagName).toBe('div')
     })
 })

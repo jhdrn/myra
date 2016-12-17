@@ -43,10 +43,32 @@ build and "watch" scripts using npm and Webpack.
 
 ## Components
 A Myra app is built from a hierarchy of components. The root component is 
-mounted to a DOM element and it may contain child components.
+mounted to a DOM element and it may contain child components. Components can be
+either stateful or stateless. 
 
-Every component has a name (that must be unique), a state of any type and a 
-view. Many times a component also has associated `Update` functions that updates 
+### Stateless components
+A stateless component is just a function that takes a props object and  
+children as arguments:
+
+```JSX
+    import * as myra from 'myra'
+
+    type Props = { test: string }
+    const StateLessComponent = (props: Props, children: NodeDescriptor[]) =>
+        <div>
+            {props.test}
+            {...children}
+        </div>
+
+    const parentView = () => 
+        <StateLessComponent test="foo">
+            This is child.
+        </StateLessComponent>
+```
+
+### Stateful components
+A stateful component must have a unique name, a state of any type and a 
+view. Many times it also has associated `Update` functions that updates 
 it's state.
 
 To define a component, use `defineComponent` and then mount it to the DOM

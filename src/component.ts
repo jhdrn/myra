@@ -90,11 +90,19 @@ export function updateComponent<T>(newDescriptor: ComponentDescriptor<T>,
     const context = contexts[oldDescriptor.id]
     context.props = newDescriptor.props
 
-    if (newDescriptor.forceMount || !equal(oldDescriptor.props, newDescriptor.props)) {
+    if (typeof newDescriptor.props !== 'undefined' && newDescriptor.props !== null && (newDescriptor.props as any).forceUpdate
+        || !equal(oldDescriptor.props, newDescriptor.props)) {
+
         context.childNodes = newDescriptor.children
 
         if (!context.isUpdating) {
-            dispatch(context, render, context.spec.onMount || (<TState>(s: TState) => ({ state: s })), newDescriptor.props)
+            dispatch(
+                context,
+                render,
+                typeof context.spec.onMount !== 'undefined' ?
+                    context.spec.onMount :
+                    (<TState>(s: TState) => ({ state: s })),
+                newDescriptor.props)
         }
 
         newDescriptor.node = context.rendition!.node
@@ -110,12 +118,11 @@ export function defineComponent<TState, TProps>(spec: ComponentSpec<TState, TPro
 
     componentSpecs[spec.name] = spec
 
-    return (props: TProps, forceMount: boolean = false, childNodes: NodeDescriptor[] = []) => {
+    return (props: TProps, childNodes: NodeDescriptor[] = []) => {
         return {
             __type: 3,
             name: spec.name,
             id: 0,
-            forceMount: forceMount,
             children: childNodes,
             rendition: undefined,
             props: props,
