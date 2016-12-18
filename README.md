@@ -243,7 +243,7 @@ Any props will be passed to the child component's `ViewContext` and to it's
 ```
 
 ### Stateless components
-A stateless component is just a function that takes a props object and  
+A stateless component is just a function that takes a props object and 
 children as arguments:
 
 ```JSX
@@ -258,7 +258,7 @@ children as arguments:
 
     const parentView = () => 
         <StateLessComponent test="foo">
-            This is child.
+            This is a child.
         </StateLessComponent>
 ```
 
