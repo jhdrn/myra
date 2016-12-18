@@ -56,7 +56,6 @@ declare namespace myra {
         readonly apply: Apply
         readonly invoke: (effect: Effect) => void
         readonly children?: NodeDescriptor[]
-        readonly bind: (update: Update<TState, string>) => EventListener<Event, HTMLElement>
     }
     interface View<TState, TProps> {
         (ctx: ViewContext<TState, TProps>): NodeDescriptor
@@ -64,7 +63,8 @@ declare namespace myra {
 
     interface AttributeMap { [name: string]: string }
 
-    type EventListener<TEvent extends Event, TElement extends Element> = (event: TEvent, descriptor: ElementDescriptor<TElement>) => void
+    type EventListener<TEvent extends Event, TElement extends Element> =
+        (event: TEvent, element: TElement, descriptor: ElementDescriptor<TElement>) => void
 
     interface DescriptorBase {
         node?: Node
@@ -109,6 +109,10 @@ declare namespace myra {
         title?: string
         translate?: '' | 'yes' | 'no'
 
+        blur?: boolean
+        click?: boolean
+        focus?: boolean
+
         onblur?: EventListener<Event, TElement>
         onclick?: EventListener<MouseEvent, TElement>
         oncontextmenu?: EventListener<Event, TElement>
@@ -126,7 +130,7 @@ declare namespace myra {
         onmouseup?: EventListener<MouseEvent, TElement>
         onshow?: EventListener<Event, TElement>
 
-        [name: string]: any
+        // [name: string]: any
     }
 
     interface AAttributes extends GlobalAttributes<HTMLAnchorElement> {

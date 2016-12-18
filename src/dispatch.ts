@@ -67,11 +67,6 @@ export function dispatch<TState, TArg>(context: ComponentContext<TState, any>, r
             state: context.state!,
             apply: apply,
             invoke: (fn: Effect) => fn(apply),
-            bind: (update: Update<TState, string>) => {
-                return (ev: Event) => {
-                    apply(update as any, (ev.target as HTMLInputElement).value)
-                }
-            },
             children: context.childNodes
         } as ViewContext<TState, any>
 

@@ -26,34 +26,40 @@ const CALLABLE_ATTRS = [
     'focus'
 ]
 
-const KEY_MAP = {
-    backspace: 8,
-    tab: 9,
-    enter: 13,
-    escape: 27,
-    space: 32
-} as { [key: string]: number }
+/** Renders the view by walking the node descriptor tree recursively */
+export function render(
+    parentNode: Element,
+    newDescriptor: NodeDescriptor,
+    oldDescriptor: NodeDescriptor,
+    existingNode: Node | undefined): void {
 
-// function nodesEqual(a: Node | undefined, b: Node) {
-//     return typeof a !== 'undefined' && (a === b || a.nodeType === Node.COMMENT_NODE && b.nodeType === Node.COMMENT_NODE && a.nodeValue === b.nodeValue)
-// }
+    const replaceNode = shouldReplaceNode(newDescriptor, oldDescriptor)
+    if (replaceNode && oldDescriptor.__type === 3) {
+        unmountComponent(oldDescriptor.id)
+    }
+
+    if (typeof existingNode === 'undefined' || typeof oldDescriptor === 'undefined' || replaceNode) {
+        renderNewNode(replaceNode, parentNode, newDescriptor, oldDescriptor, existingNode)
+    }
+    else { // reuse the old node
+        reRenderNode(newDescriptor, oldDescriptor, existingNode)
+    }
+}
 
 /** Sets an attribute or event listener on an HTMLElement. */
 function setAttr(element: HTMLElement, attributeName: string, attributeValue: any) {
     if (attributeName.indexOf('on') === 0) {
-        const underscorePos = attributeName.indexOf('_')
-        const eventName = underscorePos > 0 ? attributeName.substring(0, underscorePos) : attributeName
-        if (typeof (element as any)[eventName] === 'function') {
+        if (typeof (element as any)[attributeName] === 'function') {
             // If there is a previous event listener, wrap it and the new one in
             // a function calling both.
-            const prevListener = (element as any)[eventName]
-                ; (element as any)[eventName] = (ev: Event) => {
+            const prevListener = (element as any)[attributeName]
+                ; (element as any)[attributeName] = (ev: Event) => {
                     prevListener(ev)
                     attributeValue(ev)
                 }
         }
         else {
-            ; (element as any)[eventName] = attributeValue
+            ; (element as any)[attributeName] = attributeValue
         }
     }
     else if (attributeName === 'value' && INPUT_TAG_NAMES.indexOf(element.tagName) >= 0) {
@@ -73,7 +79,7 @@ function setAttr(element: HTMLElement, attributeName: string, attributeValue: an
 /** Removes an attribute or event listener from an HTMLElement. */
 function removeAttr(a: string, node: Element) {
     if (a.indexOf('on') === 0) {
-        (node as any)[a.toLowerCase().split('_')[0]] = null
+        (node as any)[a] = null
     }
     else if (node.hasAttribute(a)) {
         node.removeAttribute(a)
@@ -86,32 +92,10 @@ function tryCreateEventListener(attributeName: string, eventListener: EventListe
         return undefined
     }
 
-    const [eventName, key] = attributeName.substr(2).toLowerCase().split('_')
-    const isKeyboardEvent = ['keyup', 'keypress', 'keydown'].indexOf(eventName) >= 0
-    let keyCode: number | undefined = undefined
-    if (isKeyboardEvent && typeof key !== 'undefined') {
-        keyCode = parseInt(key)
-        if (isNaN(keyCode)) {
-            keyCode = KEY_MAP[key as string]
-        }
-        if (typeof keyCode === 'undefined') {
-            throw `Unhandled key '${key}'. Use a key code instead, for example keyup_65 for 'a'.`
-        }
-    }
-
     return (ev: Event) => {
-
-        if (isKeyboardEvent) {
-            const eventKeyCode = (ev as KeyboardEvent).which || (ev as KeyboardEvent).keyCode || 0
-            if (typeof key !== 'undefined' && eventKeyCode !== keyCode) {
-                return
-            }
-        }
-
-        eventListener(ev, nodeDescriptor)
+        eventListener(ev, ev.target, nodeDescriptor)
     }
 }
-
 
 /** Creates a Node from a NodeDescriptor. */
 function createNode(descriptor: NodeDescriptor, parentNode: Element): Node {
@@ -131,7 +115,7 @@ function createNode(descriptor: NodeDescriptor, parentNode: Element): Node {
 function getAttributesToRemove(newDescriptor: ElementDescriptor<any>, oldDescriptor: NodeDescriptor) {
     const attributesToRemove = [] as string[]
     for (const attributeName in (oldDescriptor as ElementDescriptor<any>).attributes) {
-        if (typeof newDescriptor.attributes[attributeName] === 'undefined' || attributeName.indexOf('on') === 0) {
+        if (typeof (newDescriptor.attributes as any)[attributeName] === 'undefined' || attributeName.indexOf('on') === 0) {
             attributesToRemove.push(attributeName)
         }
     }
@@ -164,10 +148,14 @@ function renderNewNode(replaceNode: boolean, parentNode: Element, newDescriptor:
 
         for (const name in newDescriptor.attributes) {
             if (newDescriptor.attributes.hasOwnProperty(name)) {
-                const attributeValue = newDescriptor.attributes[name]
+                const attributeValue = (newDescriptor.attributes as any)[name]
                 if (typeof attributeValue !== 'undefined') {
                     const eventListener = tryCreateEventListener(name, attributeValue, newDescriptor)
-                    setAttr(newNode as HTMLElement, name, eventListener || attributeValue)
+                    setAttr(
+                        newNode as HTMLElement,
+                        name,
+                        typeof eventListener === 'undefined' ? attributeValue : eventListener
+                    )
                 }
             }
         }
@@ -192,13 +180,17 @@ function updateElementAttributes(newDescriptor: ElementDescriptor<any>, oldDescr
     // update any attribute where the attribute value has changed
     for (const name in newDescriptor.attributes) {
         if (newDescriptor.attributes.hasOwnProperty(name)) {
-            attributeValue = newDescriptor.attributes[name]
-            oldAttributeValue = (oldDescriptor as ElementDescriptor<any>).attributes[name]
+            attributeValue = (newDescriptor.attributes as any)[name]
+            oldAttributeValue = ((oldDescriptor as ElementDescriptor<any>).attributes as any)[name]
             if ((name.indexOf('on') === 0 || attributeValue !== oldAttributeValue ||
                 !(existingNode as Element).hasAttribute(name)) && typeof attributeValue !== 'undefined'
             ) {
                 eventListener = tryCreateEventListener(name, attributeValue, newDescriptor)
-                setAttr(existingNode as HTMLElement, name, typeof eventListener === 'undefined' ? attributeValue : eventListener)
+                setAttr(
+                    existingNode as HTMLElement,
+                    name,
+                    typeof eventListener === 'undefined' ? attributeValue : eventListener
+                )
             }
             else if (typeof attributeValue === 'undefined' && (existingNode as Element).hasAttribute(name)) {
                 (existingNode as Element).removeAttribute(name)
@@ -234,6 +226,7 @@ function renderChildNodes(newDescriptor: ElementDescriptor<any>, oldDescriptor: 
         }
     }
 }
+
 /** Returns true if the node should be replaced, given the new and old descriptors. */
 function shouldReplaceNode(newDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor | undefined): boolean {
     if (typeof oldDescriptor === 'undefined') {
@@ -252,32 +245,6 @@ function shouldReplaceNode(newDescriptor: NodeDescriptor, oldDescriptor: NodeDes
     }
     return false
 }
-
-// function equalDescriptors(a: NodeDescriptor, b: NodeDescriptor) {
-//     if (a.__type !== b.__type) {
-//         return false
-//     }
-//     else if (a.__type === 2) {
-//         if (a.tagName !== (b as ElementDescriptor<any>).tagName) {
-//             return false
-//         }
-//         else if (a.children.length !== (b as ElementDescriptor<any>).children.length) {
-//             return false
-//         }
-//         else if (!equal(a.attributes, (b as ElementDescriptor<any>).attributes)) {
-//             return false
-//         }
-//         for (let i = 0; i < a.children.length; i++) {
-//             if (!equalDescriptors(a.children[i], (b as ElementDescriptor<any>).children[i])) {
-//                 return false
-//             }
-//         }
-//     }
-//     else if (a.__type === 1) {
-//         return a.value === (b as TextDescriptor).value
-//     }
-//     return true
-// }
 
 function reRenderNode(newDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor, existingNode: Node) {
 
@@ -310,25 +277,5 @@ function reRenderNode(newDescriptor: NodeDescriptor, oldDescriptor: NodeDescript
     if (newDescriptor !== oldDescriptor) {
         // clean up
         oldDescriptor.node = undefined
-    }
-}
-
-/** Renders the view by walking the node descriptor tree recursively */
-export function render(
-    parentNode: Element,
-    newDescriptor: NodeDescriptor,
-    oldDescriptor: NodeDescriptor,
-    existingNode: Node | undefined): void {
-
-    const replaceNode = shouldReplaceNode(newDescriptor, oldDescriptor)
-    if (replaceNode && oldDescriptor.__type === 3) {
-        unmountComponent(oldDescriptor.id)
-    }
-
-    if (typeof existingNode === 'undefined' || typeof oldDescriptor === 'undefined' || replaceNode) {
-        renderNewNode(replaceNode, parentNode, newDescriptor, oldDescriptor, existingNode)
-    }
-    else { // reuse the old node
-        reRenderNode(newDescriptor, oldDescriptor, existingNode)
     }
 }

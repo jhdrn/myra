@@ -46,26 +46,6 @@ A Myra app is built from a hierarchy of components. The root component is
 mounted to a DOM element and it may contain child components. Components can be
 either stateful or stateless. 
 
-### Stateless components
-A stateless component is just a function that takes a props object and  
-children as arguments:
-
-```JSX
-    import * as myra from 'myra'
-
-    type Props = { test: string }
-    const StateLessComponent = (props: Props, children: NodeDescriptor[]) =>
-        <div>
-            {props.test}
-            {...children}
-        </div>
-
-    const parentView = () => 
-        <StateLessComponent test="foo">
-            This is child.
-        </StateLessComponent>
-```
-
 ### Stateful components
 A stateful component must have a unique name, a state of any type and a 
 view. Many times it also has associated `Update` functions that updates 
@@ -182,8 +162,6 @@ The `ViewContext<TState, TProps>` contains key properties for the component:
   supplied, it will be passed to the `Update` function.
 - `invoke` - a function that invokes an `Effect` which may update the state 
   later.
-- `bind` - a convenience function to apply an update function and pass the value
-  of a form field as an argument.
 
 Examples of usage:
 
@@ -201,14 +179,9 @@ Examples of usage:
     const myApplyUpdate = (s: State) => 
         myra.evolve(s, x => x.inputValue = '')
     
-    const myBindUpdate = (s: State, inputValue: string) =>
-        myra.evolve(s, x => x.inputValue = inputValue)
-
     const view = (ctx: myra.ViewContext<State, Props>) => 
         <div>
             <p>The props property 'foo' has value {ctx.props.foo}.</p>
-            <input type="text"
-                   oninput={ctx.bind(myBindUpdate)} />
             <p>{ctx.state.inputValue}</p>
             <button onclick={() => ctx.apply(myApplyUpdate)}>
                 Clear inputValue
@@ -219,19 +192,12 @@ Examples of usage:
         </div>
 ```
 
-
 #### Event listeners
 Any attribute key starting with `on` is treated as an event listener.
-The event and the `NodeDescriptor` of the node are passed as arguments.
-A `NodeDescriptor` is a "virtual DOM" representation of a DOM node. It contains
-a reference to it's associated `Node`. 
-
-Keyboard events are handled a bit different: in order to know what key to be
-listening for, the key of the attribute must be suffixed with an underscore
-and the name of the key code to listen for, i.e. `keyup_49`. There are also
-aliases for the following common keys: backspace, tab, enter, esc and space.
-These can be used instead of their corresponding key code, i.e. 
-`keyup_backspace`, `keydown_enter` etc. 
+The event, the target element and the `ElementDescriptor<TElement>` of the 
+element are passed as arguments.
+An `ElementDescriptor<TElement>` is a "virtual DOM" representation of a DOM 
+element.
 
 ```JSX
     import * as myra from 'myra'
@@ -245,7 +211,7 @@ These can be used instead of their corresponding key code, i.e.
     }
 
     const view = (ctx: myra.ViewContext<State, Props>) => 
-        <div class="className" onclick={(ev: MouseEvent, el: NodeDescriptor) => ctx.apply(myUpdate)}></div>
+        <button onclick={(ev, node, descriptor) => ctx.apply(myUpdate)}>Click me!</button>
 
 ```
 
@@ -274,6 +240,26 @@ Any props will be passed to the child component's `ViewContext` and to it's
     const view = (_) => 
         <MyOtherComponent foo="a prop" />
 
+```
+
+### Stateless components
+A stateless component is just a function that takes a props object and  
+children as arguments:
+
+```JSX
+    import * as myra from 'myra'
+
+    type Props = { test: string }
+    const StateLessComponent = (props: Props, children: NodeDescriptor[]) =>
+        <div>
+            {props.test}
+            {...children}
+        </div>
+
+    const parentView = () => 
+        <StateLessComponent test="foo">
+            This is child.
+        </StateLessComponent>
 ```
 
 ### Subscriptions

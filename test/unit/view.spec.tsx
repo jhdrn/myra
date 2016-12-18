@@ -3,17 +3,17 @@ import { render } from 'core/view'
 import { initComponent } from 'core/component'
 import * as jsxFactory from 'core/jsxFactory'
 
-const keyPressEvent = (keyCode: number) => {
-    const event = document.createEvent('Event')
+// const keyPressEvent = (keyCode: number) => {
+//     const event = document.createEvent('Event')
 
-    event.initEvent('keyup', true, true)
+//     event.initEvent('keyup', true, true)
 
-    Object.defineProperty(event, 'keyCode', { value: keyCode })
+//     Object.defineProperty(event, 'keyCode', { value: keyCode })
 
-    Object.defineProperty(event, 'which', { value: keyCode })
+//     Object.defineProperty(event, 'which', { value: keyCode })
 
-    return event
-}
+//     return event
+// }
 
 /**
  * evolve
@@ -269,32 +269,6 @@ describe('core.view.render', () => {
 
         expect(mocks.onclickUpdate1).not.toHaveBeenCalled()
         expect(mocks.onclickUpdate2).toHaveBeenCalledTimes(1)
-
-        done()
-    })
-
-
-    it('returns an element with multiple onkeyup event listeners set', (done) => {
-        const mocks = {
-            onkeyupUpdate: () => {
-            }
-        }
-        spyOn(mocks, 'onkeyupUpdate')
-
-        const view =
-            <div
-                onkeyup_enter={mocks.onkeyupUpdate}
-                onkeyup_49={mocks.onkeyupUpdate} />
-
-        render(document.body, view, view, undefined)
-
-        const node = view.node as HTMLDivElement
-        expect(node.onkeyup).not.toBeNull()
-
-        node.dispatchEvent(keyPressEvent(13))
-        node.dispatchEvent(keyPressEvent(49))
-
-        expect(mocks.onkeyupUpdate).toHaveBeenCalledTimes(2)
 
         done()
     })
