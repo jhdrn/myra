@@ -42,9 +42,10 @@ export default myra.defineComponent<State, undefined>({
                     <h1>todos</h1>
                     <input class="new-todo"
                         placeholder="What needs to be done?"
-                        autofocus={true}
+                        autofocus
                         value=""
-                        onkeydown_enter={ctx.bind(addNewTodo)} />
+                        onkeydown={(ev, el) =>
+                            ev.keyCode === 13 && ctx.apply(addNewTodo, el.value)} />
                 </header>
                 <TodoListComponent />
             </section>

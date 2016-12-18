@@ -97,11 +97,17 @@ export default myra.defineComponent<State, Todo>({
             {
                 ctx.state.editing ?
                     <input class="edit"
-                        focus="true"
+                        focus
                         value={ctx.state.todo.title}
-                        onblur={ctx.bind(saveTodo)}
-                        onkeyup_enter={ctx.bind(saveTodo)}
-                        onkeyup_escape={ctx.bind(undoEditTodo)} />
+                        onblur={(_, el) => ctx.apply(saveTodo, el.value)}
+                        onkeyup={(ev, el) => {
+                            if (ev.keyCode === 13) {
+                                ctx.apply(saveTodo, el.value)
+                            }
+                            else if (ev.keyCode === 27) {
+                                ctx.apply(undoEditTodo)
+                            }
+                        } } />
                     : <nothing />
             }
         </li>
