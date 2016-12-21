@@ -1,4 +1,4 @@
-import { defineComponent, mountComponent, evolve } from 'core'
+import { defineComponent, mountComponent, evolve, ComponentDescriptor } from 'core'
 import { initComponent, updateComponent, unmountComponent } from 'core/component'
 import * as jsxFactory from 'core/jsxFactory'
 
@@ -136,13 +136,14 @@ describe('unmountComponent', () => {
 
         spyOn(mountMock, 'unmount').and.callThrough()
 
-        const component = defineComponent({
+        const Component = defineComponent({
             name: randomName(),
             init: { state: 0 },
             onUnmount: mountMock.unmount,
             view: () => <div />
         })
-        const instance = component({})
+        const instance = <Component /> as ComponentDescriptor<{}>
+
         initComponent(instance, document.body)
         unmountComponent(instance.id)
 
