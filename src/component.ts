@@ -12,11 +12,10 @@ const subscribe: Subscribe = <TState, TArg>(msg: string, update: Update<TState, 
     subscriptions[msg].push([update, context])
 }
 
-type ComponentDefinitions = {
-    [name: string]: ComponentSpec<any, any>
-}
+/** Holds all component specs. The component name is used as key. */
+const componentSpecs = {} as { [name: string]: ComponentSpec<any, any> }
 
-const componentSpecs = {} as ComponentDefinitions
+/** Holds all component  */
 const contexts: { [key: number]: ComponentContext<any, any> } = {}
 let nextId = 1
 
@@ -45,6 +44,13 @@ class ComponentContextImpl<TState, TProps> implements ComponentContext<TState, T
     rootNode: Node
 }
 
+/** 
+ * Initializes a component from a descriptor.
+ * 
+ * Will create a ComponentContext for for the component instance and call 
+ * dispatch with the intial value from the component spec. If spec.onMount is
+ * set, it will also be applied.
+ */
 export function initComponent<T>(descriptor: ComponentDescriptor<T>, parentNode: Element) {
 
     const spec = componentSpecs[descriptor.name]
@@ -71,7 +77,12 @@ export function initComponent<T>(descriptor: ComponentDescriptor<T>, parentNode:
     context.mounted = true
 
     // Dispatch again to render the view. 
-    dispatch(context, render, spec.onMount || (<S>(m: S) => ({ state: m })), descriptor.props)
+    dispatch(
+        context,
+        render,
+        typeof spec.onMount !== 'undefined' ? spec.onMount : (<S>(m: S) => ({ state: m })),
+        descriptor.props
+    )
 
     if (context.rendition) {
         descriptor.node = context.rendition.node
@@ -82,6 +93,7 @@ export function initComponent<T>(descriptor: ComponentDescriptor<T>, parentNode:
     }
 }
 
+/** Updates a component by comparing the new and old descriptors. */
 export function updateComponent<T>(newDescriptor: ComponentDescriptor<T>,
     oldDescriptor: ComponentDescriptor<T>) {
 
@@ -89,6 +101,9 @@ export function updateComponent<T>(newDescriptor: ComponentDescriptor<T>,
 
     const context = contexts[oldDescriptor.id]
     context.props = newDescriptor.props
+
+    // The node might have changed if the descriptor was "keyed"
+    context.rendition!.node = oldDescriptor.node
 
     if (typeof newDescriptor.props !== 'undefined' && newDescriptor.props !== null && (newDescriptor.props as any).forceUpdate
         || !equal(oldDescriptor.props, newDescriptor.props)) {
@@ -110,7 +125,13 @@ export function updateComponent<T>(newDescriptor: ComponentDescriptor<T>,
     }
 }
 
-/** Defines a component. */
+/** 
+ * Defines a component from a ComponentSpec. 
+ * 
+ * @param ComponentSpec<TState, TProps> spec - the component specification 
+ * 
+ * @returns a factory that creates ComponentDescriptor's of the component  
+ */
 export function defineComponent<TState, TProps>(spec: ComponentSpec<TState, TProps>): ComponentFactory<TProps> {
     if (componentSpecs[spec.name]) {
         throw `A component with name '${spec.name}' is already defined!`
@@ -131,14 +152,18 @@ export function defineComponent<TState, TProps>(spec: ComponentSpec<TState, TPro
     }
 }
 
-/** Mounts the component onto the supplied element. */
-export function mountComponent(component: ComponentFactory<any>, element: Element) {
-    initComponent(component({}), element)
+/** 
+ * Mounts the component onto the supplied element by calling the supplied 
+ * component factory. 
+ */
+export function mountComponent(componentFactory: ComponentFactory<any>, element: Element) {
+    initComponent(componentFactory({}), element)
 }
 
 /** Unmounts the component, calling onUnmount if defined */
 export function unmountComponent(componentId: number) {
     unmountComponentRec(contexts[componentId])
+    delete contexts[componentId]
 }
 
 /** Recursively unmounts any components in the hierarchy */

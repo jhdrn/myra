@@ -173,8 +173,8 @@ function updateElementAttributes(newDescriptor: ElementDescriptor<any>, oldDescr
         removeAttr(attr, existingNode as Element)
     }
 
-    let attributeValue: any;
-    let oldAttributeValue: any;
+    let attributeValue: any
+    let oldAttributeValue: any
     let eventListener: EventListener<any, any> | undefined
 
     // update any attribute where the attribute value has changed
@@ -199,6 +199,36 @@ function updateElementAttributes(newDescriptor: ElementDescriptor<any>, oldDescr
     }
 }
 
+function findOldChildDescriptor(childDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor, childIndex: number) {
+    if (oldDescriptor.__type === 2 || oldDescriptor.__type === 3) {
+        const oldChildDescriptor = oldDescriptor.children[childIndex]
+        if (typeof childDescriptor !== 'undefined' && typeof oldChildDescriptor !== 'undefined') {
+            if (childDescriptor.__type === 2 && oldChildDescriptor.__type === 2
+                && childDescriptor.attributes.key !== oldChildDescriptor.attributes.key) {
+
+                for (let i = 0; i < oldDescriptor.children.length; i++) {
+                    if (oldDescriptor.children[i].__type === 2 && (oldDescriptor.children[i] as ElementDescriptor<any>).attributes.key === childDescriptor.attributes.key) {
+                        return oldDescriptor.children[i]
+                    }
+                }
+            }
+            else if (childDescriptor.__type === 3 && oldChildDescriptor.__type === 3 && childDescriptor.props.key !== oldChildDescriptor.props.key) {
+                for (let i = 0; i < oldDescriptor.children.length; i++) {
+                    if (oldDescriptor.children[i].__type === 3 && (oldDescriptor.children[i] as ComponentDescriptor<any>).props.key === childDescriptor.props.key) {
+                        return oldDescriptor.children[i]
+                    }
+                }
+            }
+        }
+        if (typeof oldChildDescriptor === 'undefined') {
+            return childDescriptor
+        }
+
+        return oldChildDescriptor
+    }
+    return childDescriptor
+}
+
 function renderChildNodes(newDescriptor: ElementDescriptor<any>, oldDescriptor: NodeDescriptor, existingNode: Node) {
 
     // Iterate over children and add/update/remove nodes
@@ -217,7 +247,15 @@ function renderChildNodes(newDescriptor: ElementDescriptor<any>, oldDescriptor: 
         if (i < newDescriptorChildLengh) {
             childDescriptor = newDescriptor.children[i]
 
-            render(existingNode as Element, childDescriptor, oldDescriptor.__type === 2 ? oldDescriptor!.children[i] : childDescriptor, childNode)
+            const oldChildDescriptor = findOldChildDescriptor(childDescriptor, oldDescriptor, i)
+            if (oldChildDescriptor.node !== childNode) {
+                existingNode.insertBefore(
+                    oldChildDescriptor.node,
+                    typeof childNode !== 'undefined' ? childNode : null
+                )
+            }
+
+            render(existingNode as Element, childDescriptor, oldChildDescriptor, oldChildDescriptor.node)
 
             childDescriptorIndex++
         }

@@ -132,7 +132,6 @@ describe('jsxFactory', () => {
 
         const view = <TestComponent test="test" /> as core.ElementDescriptor<HTMLDivElement>
 
-        console.log(view)
         expect(view.__type).toBe(2)
         expect(view.tagName).toBe('div')
     })

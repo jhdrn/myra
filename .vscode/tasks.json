@@ -4,7 +4,7 @@
     "version": "0.1.0",
     "command": "${cwd}/node_modules/.bin/tsc",
     "isShellCommand": true,
-    "args": ["-w", "-p", "src"],
+    "args": ["-w", "-p", "."],
     "showOutput": "silent",
     "isWatching": true,
     "problemMatcher": "$tsc-watch"
