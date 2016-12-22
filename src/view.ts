@@ -205,22 +205,26 @@ function findOldChildDescriptor(childDescriptor: NodeDescriptor, oldDescriptor: 
         if (typeof childDescriptor !== 'undefined' && typeof oldChildDescriptor !== 'undefined') {
             if (childDescriptor.__type === 2 && oldChildDescriptor.__type === 2
                 && childDescriptor.attributes.key !== oldChildDescriptor.attributes.key) {
-
+                let child: ElementDescriptor<any>
                 for (let i = 0; i < oldDescriptor.children.length; i++) {
-                    if (oldDescriptor.children[i].__type === 2 && (oldDescriptor.children[i] as ElementDescriptor<any>).attributes.key === childDescriptor.attributes.key) {
-                        return oldDescriptor.children[i]
+                    child = oldDescriptor.children[i] as ElementDescriptor<any>
+                    if (child.__type === 2 && child.attributes.key === childDescriptor.attributes.key) {
+                        return child
                     }
                 }
             }
-            else if (childDescriptor.__type === 3 && oldChildDescriptor.__type === 3 && childDescriptor.props.key !== oldChildDescriptor.props.key) {
+            else if (childDescriptor.__type === 3 && oldChildDescriptor.__type === 3
+                && childDescriptor.props.key !== oldChildDescriptor.props.key) {
+                let child: ComponentDescriptor<any>
                 for (let i = 0; i < oldDescriptor.children.length; i++) {
-                    if (oldDescriptor.children[i].__type === 3 && (oldDescriptor.children[i] as ComponentDescriptor<any>).props.key === childDescriptor.props.key) {
-                        return oldDescriptor.children[i]
+                    child = oldDescriptor.children[i] as ComponentDescriptor<any>
+                    if (child.__type === 3 && child.props.key === childDescriptor.props.key) {
+                        return child
                     }
                 }
             }
         }
-        if (typeof oldChildDescriptor === 'undefined') {
+        else if (typeof oldChildDescriptor === 'undefined') {
             return childDescriptor
         }
 
