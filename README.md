@@ -212,9 +212,13 @@ element.
 
 ```
 
-#### Special attributes
-Some attributes and events has special behavior associated with them.
+#### Special attributes/props
+Some attributes/props and events has special behavior associated with them.
 
+* The `key` attribute/prop should be used to ensure that the state of child 
+components is retained when they are changing position in a list. When used with
+elements, it may also prevent unnecessary re-rendering and thus increase performance.
+_It's value must be unique amongst the items in the list._
 * The `class` attribute value will be set to the `className` property of the element.
 * `blur`, `focus` and `click` attributes with a truthy value will result in a call to 
   `element.blur()`, `element.focus()` and `element.click()` respectively.

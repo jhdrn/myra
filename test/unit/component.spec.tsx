@@ -1,5 +1,5 @@
 import { defineComponent, mountComponent, evolve, ComponentDescriptor } from 'core'
-import { initComponent, updateComponent, unmountComponent } from 'core/component'
+import { initComponent, updateComponent, findAndUnmountComponentsRec } from 'core/component'
 import * as jsxFactory from 'core/jsxFactory'
 
 const q = (x: string) => document.querySelector(x)
@@ -121,7 +121,7 @@ describe('unmountComponent', () => {
         const instance = <Component /> as ComponentDescriptor<{}>
 
         initComponent(instance, document.body)
-        unmountComponent(instance.id)
+        findAndUnmountComponentsRec(instance)
 
         expect(mountMock.unmount).toHaveBeenCalledTimes(1)
     })
@@ -155,7 +155,7 @@ describe('unmountComponent', () => {
 
         const instance = component({})
         initComponent(instance, document.body)
-        unmountComponent(instance.id)
+        findAndUnmountComponentsRec(instance)
 
         expect(mountMock.unmount).toHaveBeenCalledTimes(2)
     })

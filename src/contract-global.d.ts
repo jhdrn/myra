@@ -93,6 +93,7 @@ declare namespace myra {
     type NodeDescriptor = TextDescriptor | ElementDescriptor<any> | ComponentDescriptor<any> | NothingDescriptor
 
     interface GlobalAttributes<TElement extends Element> {
+        key?: any
         accesskey?: string
         'class'?: string
         contenteditable?: boolean | '' | 'true' | 'false'
