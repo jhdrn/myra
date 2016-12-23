@@ -15,7 +15,6 @@ declare namespace myra {
         readonly onBeforeRender?: (rootNodeDescriptor: NodeDescriptor, state: TState) => void
         readonly onMount?: Update<TState, TProps>
         readonly onUnmount?: Update<TState, undefined>
-        readonly subscriptions?: { [type: string]: Update<TState, any> }
         readonly view: View<TState, TProps>
     }
 

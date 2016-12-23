@@ -77,9 +77,6 @@ with `mountComponent`:
         // unmounted (see 'Updating the state'). 
         onUnmount: ...,
         
-        // Any subscriptions (see 'Subscriptions' below)
-        subscriptions: ...,
-        
         // The view of the component (see 'View' below)
         view: ctx => <p>{ctx.state}</p>
     })
@@ -260,47 +257,6 @@ children as arguments:
         <StateLessComponent test="foo">
             This is a child.
         </StateLessComponent>
-```
-
-### Subscriptions
-Subscriptions makes it possible to communicate between components and between 
-effects and components. 
-
-To subscribe to messages, supply `defineComponent` with an anonymous object 
-where the keys are the message type to listen for and the value is the `Update`
-function to call when a message is recieved:
-
-```typescript
-    import * as myra from 'myra'
-
-    type State = ...
-
-    const onFooMessageRecieved = (s: State, messageData: string) => {
-        ...
-        return myra.evolve(s)
-    }
-
-    const myComponent = myra.defineComponent({
-        name: 'MyComponent',
-        init: ...,
-        subscriptions: {
-            'fooMessage': onFooMessageRecieved
-        },
-        view: ...
-    })
-```
-
-To broadcast a message, use the `broadcast` function to create a "broadcast 
-effect":
-
-```typescript
-    import * as myra from 'myra'
-
-    type State = ...
-
-    const broadcastMsg = myra.broadcast('messageType', 'an argument')
-    const someUpdateFn = (s: State) => 
-        myra.evolve(s).and(broadcastMsg)
 ```
 
 ### HTTP requests

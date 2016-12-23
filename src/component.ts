@@ -1,16 +1,7 @@
-import { ComponentFactory, ComponentDescriptor, ComponentSpec, ComponentContext, Update, NodeDescriptor } from './contract'
+import { ComponentFactory, ComponentDescriptor, ComponentSpec, ComponentContext, NodeDescriptor } from './contract'
 import { equal } from './helpers'
 import { dispatch } from './dispatch'
 import { render } from './view'
-import { subscriptions } from './subscriptions'
-
-type Subscribe = <TState, TArg>(msg: string, update: Update<TState, TArg>, context: ComponentContext<TState, any>) => void
-const subscribe: Subscribe = <TState, TArg>(msg: string, update: Update<TState, TArg>, context: ComponentContext<TState, any>) => {
-    if (!subscriptions[msg]) {
-        subscriptions[msg] = []
-    }
-    subscriptions[msg].push([update, context])
-}
 
 type ComponentDefinitions = {
     [name: string]: ComponentSpec<any, any>
@@ -58,12 +49,6 @@ export function initComponent<T>(descriptor: ComponentDescriptor<T>, parentNode:
 
     descriptor.id = nextId++
     contexts[descriptor.id] = context
-
-    if (typeof spec.subscriptions !== 'undefined') {
-        for (const k in spec.subscriptions) {
-            subscribe(k, spec.subscriptions[k], context)
-        }
-    }
 
     // Dispatch once with init. The view won't be rendered.
     dispatch(context, render, () => spec.init, undefined)

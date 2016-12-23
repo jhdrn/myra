@@ -69,30 +69,6 @@ describe('mountComponent', () => {
         expect(mountMock.mount).toHaveBeenCalled()
     })
 
-
-    it('calls the subscribe function if supplied with subscriptions', () => {
-        const mountMock = {
-            mount: (x: number) => evolve(x)
-        }
-
-        spyOn(mountMock, 'mount').and.callThrough()
-
-        const component = defineComponent({
-            name: randomName(),
-            init: { state: 0 },
-            onMount: mountMock.mount,
-            subscriptions: {
-                'test1': x => evolve(x),
-                'test2': x => evolve(x)
-            },
-            view: () => <div />
-        })
-
-        mountComponent(component, document.body)
-
-        expect(mountMock.mount).toHaveBeenCalled()
-    })
-
     it(`passes the children of a component to it view`, () => {
         const viewMock = {
             view: (ctx: any) => {
