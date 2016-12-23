@@ -3,6 +3,10 @@ import * as todos from '../models/todos'
 
 type Todo = todos.Todo
 
+type Props = {
+    onchange: () => void
+    todo: Todo
+}
 
 /**
  * State
@@ -24,9 +28,9 @@ const init: State = {
 /**
  * Updates
  */
-const mount = (state: State, todo: Todo) =>
+const mount = (state: State, props: Props) =>
     myra.evolve(state, x => {
-        x.todo = todo!
+        x.todo = props.todo
     })
 
 const saveTodo = (state: State, value: string) => {
@@ -77,7 +81,7 @@ const todoClass = (m: State) => {
 /**
  * Component
  */
-export default myra.defineComponent<State, Todo>({
+export default myra.defineComponent<State, Props>({
     name: 'TodoItemComponent',
     init: { state: init },
     onMount: mount,
@@ -92,7 +96,7 @@ export default myra.defineComponent<State, Todo>({
                 <label ondblclick={ctx.state.todo.completed ? undefined : () => ctx.apply(editTodo)}>
                     {ctx.state.todo.title}
                 </label>
-                <button class="destroy" onclick={() => ctx.invoke(todos.remove(ctx.state.todo.id))}></button>
+                <button class="destroy" onclick={() => ctx.invoke(todos.remove(ctx.state.todo.id)) > ctx.props.onchange()}></button>
             </div>
             {
                 ctx.state.editing ?

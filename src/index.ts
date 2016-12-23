@@ -1,4 +1,3 @@
-export { broadcast } from './subscriptions'
 export { defineComponent, mountComponent } from './component'
 export { debug } from './dispatch'
 export { evolve } from './helpers'

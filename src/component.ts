@@ -1,16 +1,7 @@
-import { ComponentFactory, ComponentDescriptor, ComponentSpec, ComponentContext, Update, NodeDescriptor } from './contract'
+import { ComponentFactory, ComponentDescriptor, ComponentSpec, ComponentContext, NodeDescriptor } from './contract'
 import { equal } from './helpers'
 import { dispatch } from './dispatch'
 import { render } from './view'
-import { subscriptions } from './subscriptions'
-
-type Subscribe = <TState, TArg>(msg: string, update: Update<TState, TArg>, context: ComponentContext<TState, any>) => void
-const subscribe: Subscribe = <TState, TArg>(msg: string, update: Update<TState, TArg>, context: ComponentContext<TState, any>) => {
-    if (!subscriptions[msg]) {
-        subscriptions[msg] = []
-    }
-    subscriptions[msg].push([update, context])
-}
 
 /** Holds all component specs. The component name is used as key. */
 const componentSpecs = {} as { [name: string]: ComponentSpec<any, any> }
@@ -18,7 +9,6 @@ const componentSpecs = {} as { [name: string]: ComponentSpec<any, any> }
 /** Holds all component  */
 const contexts: { [key: number]: ComponentContext<any, any> } = {}
 let nextId = 1
-
 /** Internal class that holds component state. */
 class ComponentContextImpl<TState, TProps> implements ComponentContext<TState, TProps> {
     constructor(readonly parentNode: Element,
@@ -65,12 +55,6 @@ export function initComponent<T>(descriptor: ComponentDescriptor<T>, parentNode:
     descriptor.id = nextId++
     contexts[descriptor.id] = context
 
-    if (typeof spec.subscriptions !== 'undefined') {
-        for (const k in spec.subscriptions) {
-            subscribe(k, spec.subscriptions[k], context)
-        }
-    }
-
     // Dispatch once with init. The view won't be rendered.
     dispatch(context, render, () => spec.init, undefined)
 
@@ -80,12 +64,13 @@ export function initComponent<T>(descriptor: ComponentDescriptor<T>, parentNode:
     dispatch(
         context,
         render,
-        typeof spec.onMount !== 'undefined' ? spec.onMount : (<S>(m: S) => ({ state: m })),
+        typeof spec.onMount === 'function' ? spec.onMount : (<S>(m: S) => ({ state: m })),
         descriptor.props
     )
 
     if (context.rendition) {
         descriptor.node = context.rendition.node
+
         descriptor.rendition = context.rendition
     }
     else {
@@ -121,6 +106,7 @@ export function updateComponent<T>(newDescriptor: ComponentDescriptor<T>,
         }
 
         newDescriptor.node = context.rendition!.node
+
         newDescriptor.rendition = context.rendition
     }
 }
@@ -160,37 +146,22 @@ export function mountComponent(componentFactory: ComponentFactory<any>, element:
     initComponent(componentFactory({}), element)
 }
 
-/** Unmounts the component, calling onUnmount if defined */
-export function unmountComponent(componentId: number) {
-    unmountComponentRec(contexts[componentId])
-    delete contexts[componentId]
-}
-
-/** Recursively unmounts any components in the hierarchy */
-function unmountComponentRec(ctx: ComponentContext<any, any>) {
-    if (typeof ctx.spec.onUnmount === 'function') {
-        dispatch(ctx, render, ctx.spec.onUnmount, undefined)
-    }
-    for (const id of findChildComponentsRec(ctx.rendition!)) {
-        unmountComponent(id)
-    }
-}
-
 /** 
- * Traverses the descriptor hierarchy and returns the ids of every component
- * that is a "direct" child of the component.
+ * Traverses the descriptor hierarchy and unmounts any components in the 
+ * hierarchy.
  */
-function findChildComponentsRec(descriptor: NodeDescriptor) {
-    const ids: number[] = []
+export function findAndUnmountComponentsRec(descriptor: NodeDescriptor) {
     if (descriptor.__type === 3) {
-        ids.push(descriptor.id)
+        const ctx = contexts[descriptor.id]
+        if (typeof ctx.spec.onUnmount === 'function') {
+            dispatch(ctx, render, ctx.spec.onUnmount, undefined)
+        }
+        delete contexts[descriptor.id]
+        findAndUnmountComponentsRec(ctx.rendition!)
     }
     else if (descriptor.__type === 2) {
         for (const c of descriptor.children) {
-            for (const id of findChildComponentsRec(c)) {
-                ids.push(id)
-            }
+            findAndUnmountComponentsRec(c)
         }
     }
-    return ids
 }

@@ -1,5 +1,5 @@
-import { defineComponent, mountComponent, evolve } from 'core'
-import { initComponent, updateComponent, unmountComponent } from 'core/component'
+import { defineComponent, mountComponent, evolve, ComponentDescriptor } from 'core'
+import { initComponent, updateComponent, findAndUnmountComponentsRec } from 'core/component'
 import * as jsxFactory from 'core/jsxFactory'
 
 const q = (x: string) => document.querySelector(x)
@@ -69,30 +69,6 @@ describe('mountComponent', () => {
         expect(mountMock.mount).toHaveBeenCalled()
     })
 
-
-    it('calls the subscribe function if supplied with subscriptions', () => {
-        const mountMock = {
-            mount: (x: number) => evolve(x)
-        }
-
-        spyOn(mountMock, 'mount').and.callThrough()
-
-        const component = defineComponent({
-            name: randomName(),
-            init: { state: 0 },
-            onMount: mountMock.mount,
-            subscriptions: {
-                'test1': x => evolve(x),
-                'test2': x => evolve(x)
-            },
-            view: () => <div />
-        })
-
-        mountComponent(component, document.body)
-
-        expect(mountMock.mount).toHaveBeenCalled()
-    })
-
     it(`passes the children of a component to it view`, () => {
         const viewMock = {
             view: (ctx: any) => {
@@ -136,15 +112,16 @@ describe('unmountComponent', () => {
 
         spyOn(mountMock, 'unmount').and.callThrough()
 
-        const component = defineComponent({
+        const Component = defineComponent({
             name: randomName(),
             init: { state: 0 },
             onUnmount: mountMock.unmount,
             view: () => <div />
         })
-        const instance = component({})
+        const instance = <Component /> as ComponentDescriptor<{}>
+
         initComponent(instance, document.body)
-        unmountComponent(instance.id)
+        findAndUnmountComponentsRec(instance)
 
         expect(mountMock.unmount).toHaveBeenCalledTimes(1)
     })
@@ -178,7 +155,7 @@ describe('unmountComponent', () => {
 
         const instance = component({})
         initComponent(instance, document.body)
-        unmountComponent(instance.id)
+        findAndUnmountComponentsRec(instance)
 
         expect(mountMock.unmount).toHaveBeenCalledTimes(2)
     })

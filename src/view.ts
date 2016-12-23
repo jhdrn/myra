@@ -1,4 +1,4 @@
-import { initComponent, updateComponent, unmountComponent } from './component'
+import { initComponent, updateComponent, findAndUnmountComponentsRec } from './component'
 import { max } from './helpers'
 import { EventListener, NodeDescriptor, ElementDescriptor, ComponentDescriptor } from './contract'
 
@@ -35,7 +35,7 @@ export function render(
 
     const replaceNode = shouldReplaceNode(newDescriptor, oldDescriptor)
     if (replaceNode && oldDescriptor.__type === 3) {
-        unmountComponent(oldDescriptor.id)
+        findAndUnmountComponentsRec(oldDescriptor)
     }
 
     if (typeof existingNode === 'undefined' || typeof oldDescriptor === 'undefined' || replaceNode) {
@@ -233,26 +233,26 @@ function findOldChildDescriptor(childDescriptor: NodeDescriptor, oldDescriptor: 
     return childDescriptor
 }
 
+
 function renderChildNodes(newDescriptor: ElementDescriptor<any>, oldDescriptor: NodeDescriptor, existingNode: Node) {
 
     // Iterate over children and add/update/remove nodes
     const newDescriptorChildLengh = newDescriptor.children.length
     const oldDescriptorChildrenLength = oldDescriptor.__type === 2 ? oldDescriptor.children.length : 0
     const maxIterations = max(newDescriptorChildLengh, oldDescriptorChildrenLength)
-
     let childDescriptorIndex = 0
-    let childNode: Node
+    let childNode: Node | null = null
     let childDescriptor: NodeDescriptor
 
     for (let i = 0; i < maxIterations; i++) {
 
-        childNode = existingNode!.childNodes[childDescriptorIndex]
+        childNode = i < oldDescriptorChildrenLength ? existingNode!.childNodes[childDescriptorIndex] : null
 
         if (i < newDescriptorChildLengh) {
             childDescriptor = newDescriptor.children[i]
 
             const oldChildDescriptor = findOldChildDescriptor(childDescriptor, oldDescriptor, i)
-            if (oldChildDescriptor.node !== childNode) {
+            if (typeof oldChildDescriptor.node !== 'undefined' && oldChildDescriptor.node !== childNode) {
                 existingNode.insertBefore(
                     oldChildDescriptor.node,
                     typeof childNode !== 'undefined' ? childNode : null
@@ -260,10 +260,11 @@ function renderChildNodes(newDescriptor: ElementDescriptor<any>, oldDescriptor: 
             }
 
             render(existingNode as Element, childDescriptor, oldChildDescriptor, oldChildDescriptor.node)
-
             childDescriptorIndex++
         }
-        else if (typeof childNode !== 'undefined') {
+        else if (childNode !== null) {
+            const oldChildDescriptor = (oldDescriptor as ElementDescriptor<any>).children[i]
+            findAndUnmountComponentsRec(oldChildDescriptor)
             existingNode.removeChild(childNode)
         }
     }

@@ -825,6 +825,28 @@ describe('core.view.render', () => {
         expect(btn.id).toBe("item-1")
     })
 
+    it('unmounts a component which is a child of removed descriptor', () => {
+        const mountMock = {
+            unmount: (x: number) => evolve(x)
+        }
+
+        spyOn(mountMock, 'unmount').and.callThrough()
+
+        const ChildComponent = defineComponent({
+            name: randomName(),
+            init: { state: 0 },
+            onUnmount: mountMock.unmount,
+            view: () => <div />
+        })
+
+        const view1 = <div><div><ChildComponent /></div></div>
+        render(document.body, view1, view1, undefined)
+
+        const view2 = <div></div>
+        render(document.body, view2, view1, view1.node)
+
+        expect(mountMock.unmount).toHaveBeenCalledTimes(1)
+    })
     // FIXME: This test is very hard to get working cross browser...
     // it('calls element.blur() when blur attribute is set to true', (done) => {
 

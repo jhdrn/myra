@@ -47,7 +47,7 @@ export default myra.defineComponent<State, undefined>({
                         onkeydown={(ev, el) =>
                             ev.keyCode === 13 && ctx.apply(addNewTodo, el.value)} />
                 </header>
-                <TodoListComponent />
+                <TodoListComponent forceUpdate />
             </section>
             <footer class="info">
                 <p>Double-click to edit a todo</p>
