@@ -57,14 +57,6 @@ const todosLoaded = (state: State, todos: Todo[]) =>
 const mount = (m: State) =>
     myra.evolve(m).and(todos.getAll(todosLoaded))
 
-
-/**
- * Subscriptions
- */
-const subscriptions = {
-    'todosChanged': todosLoaded
-}
-
 /**
  * Init model
  */
@@ -106,7 +98,6 @@ export default myra.defineComponent<State, any>({
     name: 'TodoListComponent',
     init: init,
     onMount: mount,
-    subscriptions: subscriptions,
     view: ctx =>
         ctx.state.todos.length ?
             <div>
@@ -120,7 +111,7 @@ export default myra.defineComponent<State, any>({
                     <ul class="todo-list">
                         {
                             ctx.state.todos.filter(filterTodos(ctx.state)).map(todo =>
-                                <TodoItemComponent { ...todo } />
+                                <TodoItemComponent onchange={() => ctx.invoke(todos.getAll(todosLoaded))} todo={todo} />
                             )
                         }
                     </ul>
