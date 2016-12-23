@@ -42,9 +42,10 @@ export const removeCompleted = (_apply: Apply) => {
     set(get().filter(t => !t.completed))
 }
 
-export const toggleAll = (completed: boolean) => (_apply: Apply) => {
+export const toggleAll = <S>(completed: boolean, then: Update<S, undefined>) => (apply: Apply) => {
     set(get().map(t => {
         t.completed = completed
         return t
     }))
+    apply(then)
 }

@@ -91,7 +91,7 @@ export default myra.defineComponent<State, Props>({
                 <input class="toggle"
                     type="checkbox"
                     checked={ctx.state.todo.completed}
-                    onclick={() => ctx.apply(toggleTodoCompleted)} />
+                    onclick={() => ctx.apply(toggleTodoCompleted) > ctx.props.onchange()} />
 
                 <label ondblclick={ctx.state.todo.completed ? undefined : () => ctx.apply(editTodo)}>
                     {ctx.state.todo.title}

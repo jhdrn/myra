@@ -54,7 +54,7 @@ const todosLoaded = (state: State, todos: Todo[]) =>
     })
 
 // Mount function: load all todos
-const mount = (m: State) =>
+const loadTodos = (m: State) =>
     myra.evolve(m).and(todos.getAll(todosLoaded))
 
 /**
@@ -97,7 +97,7 @@ const filterLink = (href: string, txt: string, routeCtx: router.RouteContext) =>
 export default myra.defineComponent<State, any>({
     name: 'TodoListComponent',
     init: init,
-    onMount: mount,
+    onMount: loadTodos,
     view: ctx =>
         ctx.state.todos.length ?
             <div>
@@ -105,7 +105,7 @@ export default myra.defineComponent<State, any>({
                     <input class="toggle-all"
                         type="checkbox"
                         checked={ctx.state.todos.every(t => t.completed)}
-                        onclick={() => ctx.invoke(todos.toggleAll(!ctx.state.todos.every(t => t.completed)))} />
+                        onclick={() => ctx.invoke(todos.toggleAll(!ctx.state.todos.every(t => t.completed), loadTodos))} />
 
                     <label for="toggle-all">Mark all as complete</label>
                     <ul class="todo-list">
