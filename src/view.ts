@@ -241,22 +241,19 @@ function renderChildNodes(newDescriptor: ElementDescriptor<any>, oldDescriptor: 
     const oldDescriptorChildrenLength = oldDescriptor.__type === 2 ? oldDescriptor.children.length : 0
     const maxIterations = max(newDescriptorChildLengh, oldDescriptorChildrenLength)
     let childDescriptorIndex = 0
-    let childNode: Node | null = null
+    let childNode: Node | null = existingNode.firstChild
     let childDescriptor: NodeDescriptor
 
     for (let i = 0; i < maxIterations; i++) {
-
-        childNode = i < oldDescriptorChildrenLength ? existingNode!.childNodes[childDescriptorIndex] : null
-
         if (i < newDescriptorChildLengh) {
             childDescriptor = newDescriptor.children[i]
 
             const oldChildDescriptor = findOldChildDescriptor(childDescriptor, oldDescriptor, i)
             if (typeof oldChildDescriptor.node !== 'undefined' && oldChildDescriptor.node !== childNode) {
-                existingNode.insertBefore(
-                    oldChildDescriptor.node,
-                    typeof childNode !== 'undefined' ? childNode : null
-                )
+                existingNode.insertBefore(oldChildDescriptor.node, childNode)
+            }
+            else if (childNode !== null) {
+                childNode = childNode!.nextSibling
             }
 
             render(existingNode as Element, childDescriptor, oldChildDescriptor, oldChildDescriptor.node)
@@ -265,8 +262,11 @@ function renderChildNodes(newDescriptor: ElementDescriptor<any>, oldDescriptor: 
         else if (childNode !== null) {
             const oldChildDescriptor = (oldDescriptor as ElementDescriptor<any>).children[i]
             findAndUnmountComponentsRec(oldChildDescriptor)
+            const nextSibling = childNode.nextSibling
             existingNode.removeChild(childNode)
+            childNode = nextSibling
         }
+
     }
 }
 
