@@ -147,16 +147,14 @@ function renderNewNode(replaceNode: boolean, parentNode: Element, newDescriptor:
     if (newDescriptor.__type === 2) {
 
         for (const name in newDescriptor.attributes) {
-            if (newDescriptor.attributes.hasOwnProperty(name)) {
-                const attributeValue = (newDescriptor.attributes as any)[name]
-                if (typeof attributeValue !== 'undefined') {
-                    const eventListener = tryCreateEventListener(name, attributeValue, newDescriptor)
-                    setAttr(
-                        newNode as HTMLElement,
-                        name,
-                        typeof eventListener === 'undefined' ? attributeValue : eventListener
-                    )
-                }
+            const attributeValue = (newDescriptor.attributes as any)[name]
+            if (typeof attributeValue !== 'undefined') {
+                const eventListener = tryCreateEventListener(name, attributeValue, newDescriptor)
+                setAttr(
+                    newNode as HTMLElement,
+                    name,
+                    typeof eventListener === 'undefined' ? attributeValue : eventListener
+                )
             }
         }
         for (const c of newDescriptor.children) {
