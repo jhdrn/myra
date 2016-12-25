@@ -2,12 +2,6 @@ import { initComponent, updateComponent, findAndUnmountComponentsRec } from './c
 import { max } from './helpers'
 import { EventListener, NodeDescriptor, ElementDescriptor, ComponentDescriptor } from './contract'
 
-const INPUT_TAG_NAMES = [
-    'INPUT',
-    'TEXTAREA',
-    'SELECT'
-]
-
 const BOOL_ATTRS = [
     'checked',
     'disabled',
@@ -18,12 +12,6 @@ const BOOL_ATTRS = [
     'multiple',
     'draggable',
     // TODO: add more
-]
-
-const CALLABLE_ATTRS = [
-    'blur',
-    'click',
-    'focus'
 ]
 
 /** Renders the view by walking the node descriptor tree recursively */
@@ -62,13 +50,13 @@ function setAttr(element: HTMLElement, attributeName: string, attributeValue: an
             ; (element as any)[attributeName] = attributeValue
         }
     }
-    else if (attributeName === 'value' && INPUT_TAG_NAMES.indexOf(element.tagName) >= 0) {
+    else if (attributeName === 'value' && (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA' || element.tagName === 'SELECT')) {
         (element as HTMLInputElement).value = attributeValue
     }
     else if (BOOL_ATTRS.indexOf(attributeName) >= 0) {
         (element as any)[attributeName] = !!attributeValue
     }
-    else if (attributeValue && CALLABLE_ATTRS.indexOf(attributeName) >= 0) {
+    else if (attributeValue && (attributeName === 'blur' || attributeName === 'click' || attributeName === 'focus')) {
         (element as any)[attributeName]()
     }
     else if (typeof attributeValue !== 'function' && typeof attributeValue !== 'object') {
@@ -150,10 +138,17 @@ function renderNewNode(replaceNode: boolean, parentNode: Element, newDescriptor:
             const attributeValue = (newDescriptor.attributes as any)[name]
             if (typeof attributeValue !== 'undefined') {
                 const eventListener = tryCreateEventListener(name, attributeValue, newDescriptor)
+                let value
+                if (typeof eventListener === 'undefined') {
+                    value = attributeValue
+                }
+                else {
+                    value = eventListener
+                }
                 setAttr(
                     newNode as HTMLElement,
                     name,
-                    typeof eventListener === 'undefined' ? attributeValue : eventListener
+                    value
                 )
             }
         }
