@@ -135,7 +135,7 @@ export default myra.defineComponent<State, any>({
                     {
                         ctx.state.todos.filter(t => t.completed).length ?
                             <button class="clear-completed"
-                                onclick={() => ctx.invoke(todos.removeCompleted)}>
+                                onclick={() => ctx.invoke(todos.removeCompleted(loadTodos))}>
                                 Clear completed
                             </button> : <nothing />
                     }

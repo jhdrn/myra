@@ -38,8 +38,9 @@ export const remove = (todoId: number) => (_apply: Apply) => {
     set(todos)
 }
 
-export const removeCompleted = (_apply: Apply) => {
+export const removeCompleted = <S>(update: Update<S, undefined>) => (apply: Apply) => {
     set(get().filter(t => !t.completed))
+    apply(update)
 }
 
 export const toggleAll = <S>(completed: boolean, then: Update<S, undefined>) => (apply: Apply) => {
