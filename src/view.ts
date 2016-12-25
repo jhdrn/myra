@@ -314,8 +314,10 @@ function reRenderNode(newDescriptor: NodeDescriptor, oldDescriptor: NodeDescript
             break
     }
 
-    // add a reference to the node
-    newDescriptor.node = existingNode
+    if (typeof newDescriptor.node === 'undefined') {
+        // add a reference to the node
+        newDescriptor.node = existingNode
+    }
 
     if (newDescriptor !== oldDescriptor) {
         // clean up
