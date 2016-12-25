@@ -18,7 +18,7 @@ export const getAll = <M>(todosLoaded: Update<M, Todo[]>) => (apply: Apply) => {
 
 export const add = (todo: Todo) => (_apply: Apply) => {
     const todos = get()
-    const maxId = todos.map(t => t.id).sort().pop() || 0
+    const maxId = todos.length > 0 ? Math.max(...todos.map(t => t.id)) : 0
     todo.id = maxId + 1
     todos.push(todo)
     set(todos)
