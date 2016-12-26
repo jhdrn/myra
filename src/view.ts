@@ -169,48 +169,67 @@ function updateElementAttributes(newDescriptor: ElementDescriptor<any>, oldDescr
     let attributeValue: any
     let oldAttributeValue: any
     let eventListener: EventListener<any, any> | undefined
+    let newValue: any
 
     // update any attribute where the attribute value has changed
     for (const name in newDescriptor.attributes) {
-        if (newDescriptor.attributes.hasOwnProperty(name)) {
-            attributeValue = (newDescriptor.attributes as any)[name]
-            oldAttributeValue = ((oldDescriptor as ElementDescriptor<any>).attributes as any)[name]
-            if ((name.indexOf('on') === 0 || attributeValue !== oldAttributeValue ||
-                !(existingNode as Element).hasAttribute(name)) && typeof attributeValue !== 'undefined'
-            ) {
-                eventListener = tryCreateEventListener(name, attributeValue, newDescriptor)
-                setAttr(
-                    existingNode as HTMLElement,
-                    name,
-                    typeof eventListener === 'undefined' ? attributeValue : eventListener
-                )
+
+        attributeValue = (newDescriptor.attributes as any)[name]
+        oldAttributeValue = ((oldDescriptor as ElementDescriptor<any>).attributes as any)[name]
+
+        if ((name.indexOf('on') === 0 || attributeValue !== oldAttributeValue ||
+            !(existingNode as Element).hasAttribute(name)) && typeof attributeValue !== 'undefined'
+        ) {
+            eventListener = tryCreateEventListener(name, attributeValue, newDescriptor)
+
+            if (typeof eventListener === 'undefined') {
+                newValue = attributeValue
             }
-            else if (typeof attributeValue === 'undefined' && (existingNode as Element).hasAttribute(name)) {
-                (existingNode as Element).removeAttribute(name)
+            else {
+                newValue = eventListener
             }
+
+            setAttr(
+                existingNode as HTMLElement,
+                name,
+                newValue
+            )
+        }
+        else if (typeof attributeValue === 'undefined' && (existingNode as Element).hasAttribute(name)) {
+            (existingNode as Element).removeAttribute(name)
         }
     }
 }
 
 function findOldChildDescriptor(childDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor, childIndex: number) {
     if (oldDescriptor.__type === 2 || oldDescriptor.__type === 3) {
+
         const oldChildDescriptor = oldDescriptor.children[childIndex]
+
         if (typeof childDescriptor !== 'undefined' && typeof oldChildDescriptor !== 'undefined') {
             if (childDescriptor.__type === 2 && oldChildDescriptor.__type === 2
                 && childDescriptor.attributes.key !== oldChildDescriptor.attributes.key) {
+
                 let child: ElementDescriptor<any>
                 for (let i = 0; i < oldDescriptor.children.length; i++) {
+
                     child = oldDescriptor.children[i] as ElementDescriptor<any>
+
                     if (child.__type === 2 && child.attributes.key === childDescriptor.attributes.key) {
                         return child
                     }
                 }
+
             }
             else if (childDescriptor.__type === 3 && oldChildDescriptor.__type === 3
                 && childDescriptor.props.key !== oldChildDescriptor.props.key) {
+
                 let child: ComponentDescriptor<any>
+
                 for (let i = 0; i < oldDescriptor.children.length; i++) {
+
                     child = oldDescriptor.children[i] as ComponentDescriptor<any>
+
                     if (child.__type === 3 && child.props.key === childDescriptor.props.key) {
                         return child
                     }
@@ -233,12 +252,14 @@ function renderChildNodes(newDescriptor: ElementDescriptor<any>, oldDescriptor: 
     const newDescriptorChildLengh = newDescriptor.children.length
     const oldDescriptorChildrenLength = oldDescriptor.__type === 2 ? oldDescriptor.children.length : 0
     const maxIterations = max(newDescriptorChildLengh, oldDescriptorChildrenLength)
+
     let childDescriptorIndex = 0
     let childNode: Node | null = existingNode.firstChild
     let childDescriptor: NodeDescriptor
 
     for (let i = 0; i < maxIterations; i++) {
         if (i < newDescriptorChildLengh) {
+
             childDescriptor = newDescriptor.children[i]
 
             const oldChildDescriptor = findOldChildDescriptor(childDescriptor, oldDescriptor, i)
@@ -250,13 +271,17 @@ function renderChildNodes(newDescriptor: ElementDescriptor<any>, oldDescriptor: 
             }
 
             render(existingNode as Element, childDescriptor, oldChildDescriptor, oldChildDescriptor.node)
+
             childDescriptorIndex++
         }
         else if (childNode !== null) {
             const oldChildDescriptor = (oldDescriptor as ElementDescriptor<any>).children[i]
             findAndUnmountComponentsRec(oldChildDescriptor)
+
             const nextSibling = childNode.nextSibling
+
             existingNode.removeChild(childNode)
+
             childNode = nextSibling
         }
 
