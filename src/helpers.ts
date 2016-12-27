@@ -4,20 +4,41 @@ export const isIE9 = document.all && !window.atob
 
 export type Type = 'array' | 'object' | 'string' | 'date' | 'regexp' | 'function' | 'boolean' | 'number' | 'null' | 'undefined'
 
+/**
+ * Better "typeof" which identifies arrays.
+ */
 export function typeOf(obj: any): Type {
-    if (typeof obj === 'string') return 'string'
-    if (typeof obj === 'number') return 'number'
-    if (typeof obj === 'boolean') return 'boolean'
-    if (typeof obj === 'function') return 'function'
-    if (typeof obj === 'undefined') return 'undefined'
-    if (typeof obj === 'null') return 'null'
+    if (typeof obj === 'string') {
+        return 'string'
+    }
+    if (typeof obj === 'number') {
+        return 'number'
+    }
+    if (typeof obj === 'boolean') {
+        return 'boolean'
+    }
+    if (typeof obj === 'function') {
+        return 'function'
+    }
+    if (typeof obj === 'undefined') {
+        return 'undefined'
+    }
+    if (typeof obj === 'null') {
+        return 'null'
+    }
     return ({}).toString.call(obj).slice(8, -1).toLowerCase()
 }
 
+/**
+ * Returns the maximum value of a and b.
+ */
 export function max(a: number, b: number): number {
     return a > b ? a : b
 }
 
+/**
+ * Does a deep equality check.
+ */
 export function equal<T>(a: T, b: T): boolean {
     const typeOfA = typeOf(a)
     const typeOfB = typeOf(b)
@@ -39,7 +60,7 @@ export function equal<T>(a: T, b: T): boolean {
     }
     else if (typeOfA === 'array' && typeOfB === 'array') {
         if ((a as any as Array<any>).length !== (b as any as Array<any>).length) {
-            return false;
+            return false
         }
         for (const i in a) {
             if (!equal((a as any as Array<any>)[i as any], (b as any as Array<any>)[i as any])) {
@@ -71,6 +92,9 @@ export function flatten<T>(arg: T[]): T[] {
     }, [] as T[])
 }
 
+/**
+ * Does a deep copy of an object.
+ */
 export function deepCopy<T>(value: T): T {
     const type = typeOf(value)
     switch (type) {

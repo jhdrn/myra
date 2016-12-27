@@ -31,23 +31,35 @@ declare namespace myra {
         childNodes?: VNode[]
     }
 
+    /**
+     * Creates ComponentVNode's of a specific Component spec.
+     */
     interface ComponentFactory<TProps extends {}> {
         (props: TProps, children?: VNode[]): ComponentVNode<TProps>
     }
 
     type Effect = (apply: Apply) => void
 
+    /**
+     * The result of an Update function.
+     */
     interface Result<TState> {
         readonly state: TState
         readonly effects?: Effect[]
     }
 
+    /**
+     * Function that updates a component's state.
+     */
     type Update<TState, TArg> = (state: TState, arg: TArg) => Result<TState>
 
+    /**
+     * Function that is used to apply an Update function.
+     */
     type Apply = <TState, TArg>(fn: Update<TState, TArg>, arg?: TArg) => void
 
     /**
-     * View types
+     * Holds data and functions used in a View.
      */
     interface ViewContext<TState, TProps> {
         readonly props: TProps
@@ -56,22 +68,43 @@ declare namespace myra {
         readonly invoke: (effect: Effect) => void
         readonly children?: VNode[]
     }
+
+    /**
+     * Function that is responsible of creating a component's view.
+     */
     interface View<TState, TProps> {
         (ctx: ViewContext<TState, TProps>): VNode
     }
 
     interface AttributeMap { [name: string]: string }
 
+    /**
+     * A function used as callback for event triggers.
+     */
     type EventListener<TEvent extends Event, TElement extends Element> =
         (event: TEvent, element: TElement, descriptor: ElementVNode<TElement>) => void
 
+    /**
+     * Base interface for a virtual node.
+     */
     interface VNodeBase {
+        /**
+         * A reference to a DOM node.
+         */
         domRef?: Node
     }
+
+    /**
+     * A virtual node that represents a text DOM node. 
+     */
     interface TextVNode extends VNodeBase {
         readonly __type: 1
         readonly value: string
     }
+
+    /**
+     * A virtual node representing a DOM Element. 
+     */
     interface ElementVNode<TElement extends Element> extends VNodeBase {
         readonly __type: 2
         readonly tagName: string
@@ -79,6 +112,10 @@ declare namespace myra {
         readonly children: VNode[]
         domRef?: TElement
     }
+
+    /**
+     * A virtual node representing a component.
+     */
     interface ComponentVNode<TProps> extends VNodeBase {
         readonly __type: 3
         readonly name: string
@@ -87,9 +124,18 @@ declare namespace myra {
         rendition?: VNode
         props: TProps
     }
+
+    /**
+     * A virtual node representing nothing. Will be rendered as a comment DOM 
+     * node.
+     */
     interface NothingVNode extends VNodeBase {
         readonly __type: 0
     }
+
+    /**
+     * Union type of the different types of virtual nodes.
+     */
     type VNode = TextVNode | ElementVNode<any> | ComponentVNode<any> | NothingVNode
 
     interface GlobalAttributes<TElement extends Element> {
