@@ -22,12 +22,12 @@ export interface View<TState, TProps> extends myra.View<TState, TProps> { }
 
 export type EventListener<T extends Event, E extends Element> = myra.EventListener<T, E>
 
-export interface DescriptorBase extends myra.DescriptorBase { }
-export interface TextDescriptor extends myra.TextDescriptor { }
-export interface ElementDescriptor<T extends Element> extends myra.ElementDescriptor<T> { }
-export interface ComponentDescriptor<T> extends myra.ComponentDescriptor<T> { }
-export interface NothingDescriptor extends myra.NothingDescriptor { }
-export type NodeDescriptor = myra.NodeDescriptor
+export interface VNodeBase extends myra.VNodeBase { }
+export interface TextVNode extends myra.TextVNode { }
+export interface ElementVNode<T extends Element> extends myra.ElementVNode<T> { }
+export interface ComponentVNode<T> extends myra.ComponentVNode<T> { }
+export interface NothingVNode extends myra.NothingVNode { }
+export type VNode = myra.VNode
 
 export interface GlobalAttributes<T extends HTMLElement> extends myra.GlobalAttributes<T> { }
 export interface AAttributes extends myra.AAttributes { }

@@ -1,5 +1,5 @@
 import { dispatch } from 'core/dispatch'
-import { evolve, NodeDescriptor, Apply } from 'core'
+import { evolve, VNode, Apply } from 'core'
 import * as jsxFactory from 'core/jsxFactory'
 
 /**
@@ -154,8 +154,8 @@ describe('core.dispatch', () => {
 
     it('call onBeforeRender if a listener is supplied', () => {
         const mock = {
-            onBeforeRender: (nodeDescriptor: NodeDescriptor) => {
-                expect(nodeDescriptor.__type).toBe(2)
+            onBeforeRender: (vNode: VNode) => {
+                expect(vNode.__type).toBe(2)
             }
         }
         spyOn(mock, 'onBeforeRender').and.callThrough()
@@ -188,8 +188,8 @@ describe('core.dispatch', () => {
 
     it('call onAfterRender if a listener is supplied', () => {
         const mock = {
-            onAfterRender: (nodeDescriptor: NodeDescriptor) => {
-                expect(nodeDescriptor.__type).toBe(2)
+            onAfterRender: (vNode: VNode) => {
+                expect(vNode.__type).toBe(2)
             }
         }
         spyOn(mock, 'onAfterRender').and.callThrough()

@@ -1,12 +1,6 @@
 import { initComponent, updateComponent, findAndUnmountComponentsRec } from './component'
 import { max } from './helpers'
-import { EventListener, NodeDescriptor, ElementDescriptor, ComponentDescriptor } from './contract'
-
-const INPUT_TAG_NAMES = [
-    'INPUT',
-    'TEXTAREA',
-    'SELECT'
-]
+import { EventListener, VNode, ElementVNode, ComponentVNode } from './contract'
 
 const BOOL_ATTRS = [
     'checked',
@@ -20,74 +14,78 @@ const BOOL_ATTRS = [
     // TODO: add more
 ]
 
-const CALLABLE_ATTRS = [
-    'blur',
-    'click',
-    'focus'
-]
-
-/** Renders the view by walking the node descriptor tree recursively */
+/** Renders the view by walking the virtual node tree recursively */
 export function render(
-    parentNode: Element,
-    newDescriptor: NodeDescriptor,
-    oldDescriptor: NodeDescriptor,
-    existingNode: Node | undefined): void {
+    parentDomNode: Element,
+    newVNode: VNode,
+    oldVNode: VNode,
+    existingDomNode: Node | undefined): void {
 
-    const replaceNode = shouldReplaceNode(newDescriptor, oldDescriptor)
-    if (replaceNode && oldDescriptor.__type === 3) {
-        findAndUnmountComponentsRec(oldDescriptor)
+    const replaceNode = shouldReplaceNode(newVNode, oldVNode)
+    if (replaceNode && oldVNode.__type === 3) {
+        findAndUnmountComponentsRec(oldVNode)
     }
 
-    if (typeof existingNode === 'undefined' || typeof oldDescriptor === 'undefined' || replaceNode) {
-        renderNewNode(replaceNode, parentNode, newDescriptor, oldDescriptor, existingNode)
+    if (typeof existingDomNode === 'undefined' || typeof oldVNode === 'undefined' || replaceNode) {
+        renderNewNode(replaceNode, parentDomNode, newVNode, oldVNode, existingDomNode)
     }
     else { // reuse the old node
-        reRenderNode(newDescriptor, oldDescriptor, existingNode)
+        reRenderNode(newVNode, oldVNode, existingDomNode)
     }
 }
 
 /** 
- * Renders a new descriptor by creating a new DOM node and attaching it to it's 
- * parent.
+ * Renders a new virtual node by creating a new DOM node and attaching it to 
+ * it's parent.
  */
-function renderNewNode(replaceNode: boolean, parentNode: Element, newDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor, existingNode: Node | undefined) {
-    // if no existing node, create one
-    const newNode = createNode(newDescriptor, parentNode)
+function renderNewNode(replaceNode: boolean, parentDomNode: Element, newVNode: VNode, oldVNode: VNode, existingDomNode: Node | undefined) {
+    // if no existing DOM node, create one
+    const newNode = createNode(newVNode, parentDomNode)
 
-    newDescriptor.node = newNode
+    newVNode.domRef = newNode
 
     if (replaceNode) {
-        if (oldDescriptor.__type === 2) {
+        if (oldVNode.__type === 2) {
             // Remove old event listeners before replacing the node. 
-            for (const attr in oldDescriptor.attributes) {
+            for (const attr in oldVNode.props) {
                 if (attr.indexOf('on') === 0) {
-                    removeAttr(attr, existingNode as Element)
+                    removeAttr(attr, existingDomNode as Element)
                 }
             }
         }
 
-        parentNode.replaceChild(newNode, existingNode!)
+        parentDomNode.replaceChild(newNode, existingDomNode!)
     }
     else {
-        parentNode.appendChild(newNode)
+        parentDomNode.appendChild(newNode)
     }
 
-    if (newDescriptor.__type === 2) {
+    if (newVNode.__type === 2) {
 
-        for (const name in newDescriptor.attributes) {
-            if (newDescriptor.attributes.hasOwnProperty(name)) {
-                const attributeValue = (newDescriptor.attributes as any)[name]
-                if (typeof attributeValue !== 'undefined') {
-                    const eventListener = tryCreateEventListener(name, attributeValue, newDescriptor)
-                    setAttr(
-                        newNode as HTMLElement,
-                        name,
-                        typeof eventListener === 'undefined' ? attributeValue : eventListener
-                    )
+        for (const name in newVNode.props) {
+            const attributeValue = (newVNode.props as any)[name]
+
+            if (typeof attributeValue !== 'undefined') {
+
+                const eventListener = tryCreateEventListener(name, attributeValue, newVNode)
+
+                let value
+                if (typeof eventListener === 'undefined') {
+                    value = attributeValue
                 }
+                else {
+                    value = eventListener
+                }
+
+                setAttr(
+                    newNode as HTMLElement,
+                    name,
+                    value
+                )
             }
         }
-        for (const c of newDescriptor.children) {
+
+        for (const c of newVNode.children) {
             if (typeof c !== 'undefined') {
                 render(newNode as Element, c, c, undefined)
             }
@@ -95,154 +93,143 @@ function renderNewNode(replaceNode: boolean, parentNode: Element, newDescriptor:
     }
 }
 
-/** Re-renders a descriptor by reusing a DOM node. */
-function reRenderNode(newDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor, existingNode: Node) {
+/** Re-renders a virtual node by reusing a DOM node. */
+function reRenderNode(newVNode: VNode, oldVNode: VNode, existingDomNode: Node) {
 
-    // if (!nodesEqual(oldDescriptor.node, existingNode)) {
+    // if (!nodesEqual(oldVNode.node, existingDomNode)) {
     //     // TODO: "debug mode" with logging
     //     // console.error('The view is not matching the DOM. Are outside forces tampering with it?')
     //     // console.error('Expected node:')
-    //     // console.error(oldDescriptor.node)
+    //     // console.error(oldVNode.node)
     //     // console.error('Actual node:')
-    //     // console.error(existingNode)
+    //     // console.error(existingDomNode)
     // }
 
     // update existing node
-    switch (newDescriptor.__type) {
+    switch (newVNode.__type) {
         case 2:
-            updateElementAttributes(newDescriptor, oldDescriptor, existingNode)
-            renderChildNodes(newDescriptor, oldDescriptor, existingNode)
+            updateElementAttributes(newVNode, oldVNode, existingDomNode)
+            renderChildNodes(newVNode, oldVNode, existingDomNode)
             break
         case 1:
-            existingNode.textContent = newDescriptor.value
+            existingDomNode.textContent = newVNode.value
             break
         case 3:
-            updateComponent(newDescriptor, oldDescriptor as ComponentDescriptor<any>)
+            updateComponent(newVNode, oldVNode as ComponentVNode<any>)
             break
     }
 
-    if (typeof newDescriptor.node === 'undefined') {
+    if (typeof newVNode.domRef === 'undefined') {
         // add a reference to the node
-        newDescriptor.node = existingNode
+        newVNode.domRef = existingDomNode
     }
 
-    if (newDescriptor !== oldDescriptor) {
+    if (newVNode !== oldVNode) {
         // clean up
-        oldDescriptor.node = undefined
+        oldVNode.domRef = undefined
     }
 }
 
-/** Renders child descriptors. Will add/remove DOM nodes if needed. */
-function renderChildNodes(newDescriptor: ElementDescriptor<any>, oldDescriptor: NodeDescriptor, existingNode: Node) {
+/** Renders child virtual nodes. Will add/remove DOM nodes if needed. */
+function renderChildNodes(newVNode: ElementVNode<any>, oldVNode: VNode, existingDomNode: Node) {
 
     // Iterate over children and add/update/remove nodes
-    const newDescriptorChildLengh = newDescriptor.children.length
-    const oldDescriptorChildrenLength = oldDescriptor.__type === 2 ? oldDescriptor.children.length : 0
-    const maxIterations = max(newDescriptorChildLengh, oldDescriptorChildrenLength)
+    const noOfNewVNodeChildren = newVNode.children.length
+    const noOfOldVNodeChildren = oldVNode.__type === 2 ? oldVNode.children.length : 0
+    const maxIterations = max(noOfNewVNodeChildren, noOfOldVNodeChildren)
 
-    let childDescriptorIndex = 0
-    let childNode: Node | null = existingNode.firstChild
-    let childDescriptor: NodeDescriptor
+    let childVNodeIndex = 0
+    let childDomNode: Node | null = existingDomNode.firstChild
+    let childVNode: VNode
 
     for (let i = 0; i < maxIterations; i++) {
+        if (i < noOfNewVNodeChildren) {
 
-        if (i < newDescriptorChildLengh) {
+            childVNode = newVNode.children[i]
 
-            childDescriptor = newDescriptor.children[i]
-
-            const oldChildDescriptor = findOldChildDescriptor(childDescriptor, oldDescriptor, i)
-            if (typeof oldChildDescriptor.node !== 'undefined' && oldChildDescriptor.node !== childNode) {
-                existingNode.insertBefore(oldChildDescriptor.node, childNode)
+            const oldChildVNode = findOldChildVNode(childVNode, oldVNode, i)
+            if (typeof oldChildVNode.domRef !== 'undefined' && oldChildVNode.domRef !== childDomNode) {
+                existingDomNode.insertBefore(oldChildVNode.domRef, childDomNode)
             }
-            else if (childNode !== null) {
-                childNode = childNode!.nextSibling
+            else if (childDomNode !== null) {
+                childDomNode = childDomNode!.nextSibling
             }
 
-            render(existingNode as Element, childDescriptor, oldChildDescriptor, oldChildDescriptor.node)
+            render(existingDomNode as Element, childVNode, oldChildVNode, oldChildVNode.domRef)
 
-            childDescriptorIndex++
+            childVNodeIndex++
         }
-        else if (childNode !== null) {
-            const oldChildDescriptor = (oldDescriptor as ElementDescriptor<any>).children[i]
+        else if (childDomNode !== null) {
+            const oldChildVNode = (oldVNode as ElementVNode<any>).children[i]
 
             // Make sure that any components are unmounted correctly
-            findAndUnmountComponentsRec(oldChildDescriptor)
+            findAndUnmountComponentsRec(oldChildVNode)
 
             // Get a reference to the next sibling before the child node is
             // removed.
-            const nextSibling = childNode.nextSibling
-            existingNode.removeChild(childNode)
-            childNode = nextSibling
+            const nextDomSibling = childDomNode.nextSibling
+
+            existingDomNode.removeChild(childDomNode)
+
+            childDomNode = nextDomSibling
         }
 
     }
 }
 
 /** 
- * Tries to find an old "keyed" descriptor that matches the new descriptor. 
+ * Tries to find an old "keyed" virtual node that matches the new virtual node. 
  */
-function findOldChildDescriptor(childDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor, childIndex: number) {
-    if (oldDescriptor.__type === 2 || oldDescriptor.__type === 3) {
+function findOldChildVNode(newChildVNode: VNode, oldVNode: VNode, childIndex: number) {
 
-        const oldChildDescriptor = oldDescriptor.children[childIndex]
-
-        if (typeof childDescriptor !== 'undefined' && typeof oldChildDescriptor !== 'undefined') {
-
-            // If keyed ElementDescriptors...
-            if (childDescriptor.__type === 2 && oldChildDescriptor.__type === 2
-                && childDescriptor.attributes.key !== oldChildDescriptor.attributes.key) {
-
-                let child: ElementDescriptor<any>
-
-                for (let i = 0; i < oldDescriptor.children.length; i++) {
-
-                    child = oldDescriptor.children[i] as ElementDescriptor<any>
-
-                    if (child.__type === 2 && child.attributes.key === childDescriptor.attributes.key) {
-                        return child
-                    }
-                }
-            }
-            // If keyed ComponentDescriptors...
-            else if (childDescriptor.__type === 3 && oldChildDescriptor.__type === 3
-                && childDescriptor.props.key !== oldChildDescriptor.props.key) {
-
-                let child: ComponentDescriptor<any>
-
-                for (let i = 0; i < oldDescriptor.children.length; i++) {
-
-                    child = oldDescriptor.children[i] as ComponentDescriptor<any>
-
-                    if (child.__type === 3 && child.props.key === childDescriptor.props.key) {
-                        return child
-                    }
-                }
-            }
-        }
-        else if (typeof oldChildDescriptor === 'undefined') {
-            return childDescriptor
-        }
-
-        return oldChildDescriptor
+    if (oldVNode.__type !== 2 && oldVNode.__type !== 3) {
+        return newChildVNode
     }
-    return childDescriptor
+
+    const oldChildVNode = oldVNode.children[childIndex]
+    if (typeof oldChildVNode === 'undefined') {
+        return newChildVNode
+    }
+    else if (typeof newChildVNode !== 'undefined') {
+
+        const mayBeKeyed = newChildVNode.__type === 2 && oldChildVNode.__type === 2
+            || newChildVNode.__type === 3 && oldChildVNode.__type === 3
+
+        if (mayBeKeyed
+            && (newChildVNode as ElementVNode<any>).props.key !== (oldChildVNode as ElementVNode<any>).props.key) {
+
+            let child: ElementVNode<any>
+            for (let i = 0; i < oldVNode.children.length; i++) {
+
+                child = oldVNode.children[i] as ElementVNode<any>
+
+                if (child.__type === newChildVNode.__type && child.props.key === (newChildVNode as ElementVNode<any>).props.key) {
+                    return child
+                }
+            }
+        }
+    }
+
+    return oldChildVNode
 }
 
-
-/** Returns true if the node should be replaced, given the new and old descriptors. */
-function shouldReplaceNode(newDescriptor: NodeDescriptor, oldDescriptor: NodeDescriptor | undefined): boolean {
-    if (typeof oldDescriptor === 'undefined') {
+/** 
+ * Returns true if the node should be replaced, given the new and old virtual 
+ * nodes. 
+ */
+function shouldReplaceNode(newVNode: VNode, oldVNode: VNode | undefined): boolean {
+    if (typeof oldVNode === 'undefined') {
         return false
     }
-    else if (newDescriptor.__type !== oldDescriptor.__type) {
+    else if (newVNode.__type !== oldVNode.__type) {
         return true
     }
-    else if (newDescriptor.__type === 2 && oldDescriptor.__type === 2 &&
-        newDescriptor.tagName !== oldDescriptor.tagName) {
+    else if (newVNode.__type === 2 && oldVNode.__type === 2 &&
+        newVNode.tagName !== oldVNode.tagName) {
         return true
     }
-    else if (newDescriptor.__type === 3 && oldDescriptor.__type === 3 &&
-        newDescriptor.name !== oldDescriptor.name) {
+    else if (newVNode.__type === 3 && oldVNode.__type === 3 &&
+        newVNode.name !== oldVNode.name) {
         return true
     }
     return false
@@ -264,13 +251,13 @@ function setAttr(element: HTMLElement, attributeName: string, attributeValue: an
             ; (element as any)[attributeName] = attributeValue
         }
     }
-    else if (attributeName === 'value' && INPUT_TAG_NAMES.indexOf(element.tagName) >= 0) {
+    else if (attributeName === 'value' && (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA' || element.tagName === 'SELECT')) {
         (element as HTMLInputElement).value = attributeValue
     }
     else if (BOOL_ATTRS.indexOf(attributeName) >= 0) {
         (element as any)[attributeName] = !!attributeValue
     }
-    else if (attributeValue && CALLABLE_ATTRS.indexOf(attributeName) >= 0) {
+    else if (attributeValue && (attributeName === 'blur' || attributeName === 'click' || attributeName === 'focus')) {
         (element as any)[attributeName]()
     }
     else if (typeof attributeValue !== 'function' && typeof attributeValue !== 'object') {
@@ -289,69 +276,79 @@ function removeAttr(a: string, node: Element) {
 }
 
 /** Creates an event listener if the attribute name begins with 'on'. */
-function tryCreateEventListener(attributeName: string, eventListener: EventListener<any, any>, nodeDescriptor: ElementDescriptor<any>) {
+function tryCreateEventListener(attributeName: string, eventListener: EventListener<any, any>, vNode: ElementVNode<any>) {
     if (attributeName.indexOf('on') !== 0) {
         return undefined
     }
 
     return (ev: Event) => {
-        eventListener(ev, ev.target, nodeDescriptor)
+        eventListener(ev, ev.target, vNode)
     }
 }
 
-/** Creates a Node from a NodeDescriptor. */
-function createNode(descriptor: NodeDescriptor, parentNode: Element): Node {
-    switch (descriptor.__type) {
+/** Creates a Node from a VNode. */
+function createNode(vNode: VNode, parentNode: Element): Node {
+    switch (vNode.__type) {
         case 2:
-            return document.createElement(descriptor.tagName)
+            return document.createElement(vNode.tagName)
         case 1:
-            return document.createTextNode(descriptor.value)
+            return document.createTextNode(vNode.value)
         case 3:
-            initComponent(descriptor, parentNode)
-            return descriptor.node!
+            initComponent(vNode, parentNode)
+            return vNode.domRef!
         case 0:
             return document.createComment('Nothing')
     }
 }
 
-function getAttributesToRemove(newDescriptor: ElementDescriptor<any>, oldDescriptor: NodeDescriptor) {
+function getAttributesToRemove(newVNode: ElementVNode<any>, oldVNode: VNode) {
     const attributesToRemove = [] as string[]
-    for (const attributeName in (oldDescriptor as ElementDescriptor<any>).attributes) {
-        if (typeof (newDescriptor.attributes as any)[attributeName] === 'undefined' || attributeName.indexOf('on') === 0) {
+    for (const attributeName in (oldVNode as ElementVNode<any>).props) {
+        if (typeof (newVNode.props as any)[attributeName] === 'undefined' || attributeName.indexOf('on') === 0) {
             attributesToRemove.push(attributeName)
         }
     }
     return attributesToRemove
 }
 
-function updateElementAttributes(newDescriptor: ElementDescriptor<any>, oldDescriptor: NodeDescriptor, existingNode: Node) {
-    // remove any attributes that was added with the old node descriptor but does not exist in the new descriptor.
-    for (const attr of getAttributesToRemove(newDescriptor, oldDescriptor)) {
-        removeAttr(attr, existingNode as Element)
+function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, existingDomNode: Node) {
+    // remove any attributes that was added with the old virtual node but does 
+    // not exist in the new virtual node.
+    for (const attr of getAttributesToRemove(newVNode, oldVNode)) {
+        removeAttr(attr, existingDomNode as Element)
     }
 
     let attributeValue: any
     let oldAttributeValue: any
     let eventListener: EventListener<any, any> | undefined
+    let newValue: any
 
     // update any attribute where the attribute value has changed
-    for (const name in newDescriptor.attributes) {
-        if (newDescriptor.attributes.hasOwnProperty(name)) {
-            attributeValue = (newDescriptor.attributes as any)[name]
-            oldAttributeValue = ((oldDescriptor as ElementDescriptor<any>).attributes as any)[name]
-            if ((name.indexOf('on') === 0 || attributeValue !== oldAttributeValue ||
-                !(existingNode as Element).hasAttribute(name)) && typeof attributeValue !== 'undefined'
-            ) {
-                eventListener = tryCreateEventListener(name, attributeValue, newDescriptor)
-                setAttr(
-                    existingNode as HTMLElement,
-                    name,
-                    typeof eventListener === 'undefined' ? attributeValue : eventListener
-                )
+    for (const name in newVNode.props) {
+
+        attributeValue = (newVNode.props as any)[name]
+        oldAttributeValue = ((oldVNode as ElementVNode<any>).props as any)[name]
+
+        if ((name.indexOf('on') === 0 || attributeValue !== oldAttributeValue ||
+            !(existingDomNode as Element).hasAttribute(name)) && typeof attributeValue !== 'undefined'
+        ) {
+            eventListener = tryCreateEventListener(name, attributeValue, newVNode)
+
+            if (typeof eventListener === 'undefined') {
+                newValue = attributeValue
             }
-            else if (typeof attributeValue === 'undefined' && (existingNode as Element).hasAttribute(name)) {
-                (existingNode as Element).removeAttribute(name)
+            else {
+                newValue = eventListener
             }
+
+            setAttr(
+                existingDomNode as HTMLElement,
+                name,
+                newValue
+            )
+        }
+        else if (typeof attributeValue === 'undefined' && (existingDomNode as Element).hasAttribute(name)) {
+            (existingDomNode as Element).removeAttribute(name)
         }
     }
 }

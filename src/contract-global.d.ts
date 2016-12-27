@@ -11,8 +11,8 @@ declare namespace myra {
     interface ComponentSpec<TState, TProps extends {}> {
         readonly name: string
         readonly init: Result<TState>
-        readonly onAfterRender?: (rootNodeDescriptor: NodeDescriptor, state: TState) => void
-        readonly onBeforeRender?: (rootNodeDescriptor: NodeDescriptor, state: TState) => void
+        readonly onAfterRender?: (rootVNode: VNode, state: TState) => void
+        readonly onBeforeRender?: (rootVNode: VNode, state: TState) => void
         readonly onMount?: Update<TState, TProps>
         readonly onUnmount?: Update<TState, undefined>
         readonly view: View<TState, TProps>
@@ -27,12 +27,12 @@ declare namespace myra {
         isUpdating: boolean
         props: TProps | undefined
         state: TState | undefined
-        rendition?: NodeDescriptor
-        childNodes?: NodeDescriptor[]
+        rendition?: VNode
+        childNodes?: VNode[]
     }
 
     interface ComponentFactory<TProps extends {}> {
-        (props: TProps, children?: NodeDescriptor[]): ComponentDescriptor<TProps>
+        (props: TProps, children?: VNode[]): ComponentVNode<TProps>
     }
 
     type Effect = (apply: Apply) => void
@@ -54,43 +54,43 @@ declare namespace myra {
         readonly state: TState
         readonly apply: Apply
         readonly invoke: (effect: Effect) => void
-        readonly children?: NodeDescriptor[]
+        readonly children?: VNode[]
     }
     interface View<TState, TProps> {
-        (ctx: ViewContext<TState, TProps>): NodeDescriptor
+        (ctx: ViewContext<TState, TProps>): VNode
     }
 
     interface AttributeMap { [name: string]: string }
 
     type EventListener<TEvent extends Event, TElement extends Element> =
-        (event: TEvent, element: TElement, descriptor: ElementDescriptor<TElement>) => void
+        (event: TEvent, element: TElement, descriptor: ElementVNode<TElement>) => void
 
-    interface DescriptorBase {
-        node?: Node
+    interface VNodeBase {
+        domRef?: Node
     }
-    interface TextDescriptor extends DescriptorBase {
+    interface TextVNode extends VNodeBase {
         readonly __type: 1
         readonly value: string
     }
-    interface ElementDescriptor<TElement extends Element> extends DescriptorBase {
+    interface ElementVNode<TElement extends Element> extends VNodeBase {
         readonly __type: 2
         readonly tagName: string
-        readonly attributes: GlobalAttributes<TElement>
-        readonly children: NodeDescriptor[]
-        node?: TElement
+        readonly props: GlobalAttributes<TElement>
+        readonly children: VNode[]
+        domRef?: TElement
     }
-    interface ComponentDescriptor<TProps> extends DescriptorBase {
+    interface ComponentVNode<TProps> extends VNodeBase {
         readonly __type: 3
         readonly name: string
         id: number;
-        children: NodeDescriptor[]
-        rendition?: NodeDescriptor
+        children: VNode[]
+        rendition?: VNode
         props: TProps
     }
-    interface NothingDescriptor extends DescriptorBase {
+    interface NothingVNode extends VNodeBase {
         readonly __type: 0
     }
-    type NodeDescriptor = TextDescriptor | ElementDescriptor<any> | ComponentDescriptor<any> | NothingDescriptor
+    type VNode = TextVNode | ElementVNode<any> | ComponentVNode<any> | NothingVNode
 
     interface GlobalAttributes<TElement extends Element> {
         key?: any
@@ -407,7 +407,7 @@ declare namespace JSX {
 
     type GlobalAttributes<TElement extends HTMLElement> = myra.GlobalAttributes<TElement>
 
-    export type Element = myra.NodeDescriptor
+    export type Element = myra.VNode
 
     export interface ElementClass<TProps> {
         props: TProps

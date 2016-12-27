@@ -1,4 +1,4 @@
-import { ComponentFactory, ComponentDescriptor, ComponentSpec, ComponentContext, NodeDescriptor } from './contract'
+import { ComponentFactory, ComponentVNode, ComponentSpec, ComponentContext, VNode } from './contract'
 import { equal } from './helpers'
 import { dispatch } from './dispatch'
 import { render } from './view'
@@ -13,7 +13,7 @@ let nextId = 1
 class ComponentContextImpl<TState, TProps> implements ComponentContext<TState, TProps> {
     constructor(readonly parentNode: Element,
         readonly spec: ComponentSpec<TState, any>,
-        public childNodes?: NodeDescriptor[]) {
+        public childNodes?: VNode[]) {
     }
 
     private _mounted = false
@@ -30,30 +30,30 @@ class ComponentContextImpl<TState, TProps> implements ComponentContext<TState, T
     isUpdating = false
     props: TProps | undefined
     state: TState | undefined
-    rendition: NodeDescriptor | undefined
+    rendition: VNode | undefined
     rootNode: Node
 }
 
 /** 
- * Initializes a component from a descriptor.
+ * Initializes a component from a ComponentVNode.
  * 
  * Will create a ComponentContext for for the component instance and call 
  * dispatch with the intial value from the component spec. If spec.onMount is
  * set, it will also be applied.
  */
-export function initComponent<T>(descriptor: ComponentDescriptor<T>, parentNode: Element) {
+export function initComponent<T>(vNode: ComponentVNode<T>, parentNode: Element) {
 
-    const spec = componentSpecs[descriptor.name]
+    const spec = componentSpecs[vNode.name]
     const context = new ComponentContextImpl<any, any>(
         parentNode,
         spec,
-        descriptor.children
+        vNode.children
     )
 
-    context.props = descriptor.props
+    context.props = vNode.props
 
-    descriptor.id = nextId++
-    contexts[descriptor.id] = context
+    vNode.id = nextId++
+    contexts[vNode.id] = context
 
     // Dispatch once with init. The view won't be rendered.
     dispatch(context, render, () => spec.init, undefined)
@@ -65,35 +65,34 @@ export function initComponent<T>(descriptor: ComponentDescriptor<T>, parentNode:
         context,
         render,
         typeof spec.onMount === 'function' ? spec.onMount : (<S>(m: S) => ({ state: m })),
-        descriptor.props
+        vNode.props
     )
 
     if (context.rendition) {
-        descriptor.node = context.rendition.node
+        vNode.domRef = context.rendition.domRef
 
-        descriptor.rendition = context.rendition
+        vNode.rendition = context.rendition
     }
     else {
-        descriptor.node = undefined
+        vNode.domRef = undefined
     }
 }
 
-/** Updates a component by comparing the new and old descriptors. */
-export function updateComponent<T>(newDescriptor: ComponentDescriptor<T>,
-    oldDescriptor: ComponentDescriptor<T>) {
+/** Updates a component by comparing the new and old virtual nodes. */
+export function updateComponent<T>(newVNode: ComponentVNode<T>, oldVNode: ComponentVNode<T>) {
 
-    newDescriptor.id = oldDescriptor.id
+    newVNode.id = oldVNode.id
 
-    const context = contexts[oldDescriptor.id]
-    context.props = newDescriptor.props
+    const context = contexts[oldVNode.id]
+    context.props = newVNode.props
 
-    // The node might have changed if the descriptor was "keyed"
-    context.rendition!.node = oldDescriptor.node
+    // The node might have changed if the node was "keyed"
+    context.rendition!.domRef = oldVNode.domRef
 
-    if (typeof newDescriptor.props !== 'undefined' && newDescriptor.props !== null && (newDescriptor.props as any).forceUpdate
-        || !equal(oldDescriptor.props, newDescriptor.props)) {
+    if (typeof newVNode.props !== 'undefined' && newVNode.props !== null && (newVNode.props as any).forceUpdate
+        || !equal(oldVNode.props, newVNode.props)) {
 
-        context.childNodes = newDescriptor.children
+        context.childNodes = newVNode.children
 
         if (!context.isUpdating) {
             dispatch(
@@ -102,12 +101,12 @@ export function updateComponent<T>(newDescriptor: ComponentDescriptor<T>,
                 typeof context.spec.onMount !== 'undefined' ?
                     context.spec.onMount :
                     (<TState>(s: TState) => ({ state: s })),
-                newDescriptor.props)
+                newVNode.props)
         }
 
-        newDescriptor.node = context.rendition!.node
+        newVNode.domRef = context.rendition!.domRef
 
-        newDescriptor.rendition = context.rendition
+        newVNode.rendition = context.rendition
     }
 }
 
@@ -116,7 +115,7 @@ export function updateComponent<T>(newDescriptor: ComponentDescriptor<T>,
  * 
  * @param ComponentSpec<TState, TProps> spec - the component specification 
  * 
- * @returns a factory that creates ComponentDescriptor's of the component  
+ * @returns a factory that creates ComponentVNode's of the component  
  */
 export function defineComponent<TState, TProps>(spec: ComponentSpec<TState, TProps>): ComponentFactory<TProps> {
     if (componentSpecs[spec.name]) {
@@ -125,7 +124,7 @@ export function defineComponent<TState, TProps>(spec: ComponentSpec<TState, TPro
 
     componentSpecs[spec.name] = spec
 
-    return (props: TProps, childNodes: NodeDescriptor[] = []) => {
+    return (props: TProps, childNodes: VNode[] = []) => {
         return {
             __type: 3,
             name: spec.name,
@@ -133,7 +132,7 @@ export function defineComponent<TState, TProps>(spec: ComponentSpec<TState, TPro
             children: childNodes,
             rendition: undefined,
             props: props,
-            node: undefined
+            domRef: undefined
         }
     }
 }
@@ -147,20 +146,20 @@ export function mountComponent(componentFactory: ComponentFactory<any>, element:
 }
 
 /** 
- * Traverses the descriptor hierarchy and unmounts any components in the 
+ * Traverses the virtual node hierarchy and unmounts any components in the 
  * hierarchy.
  */
-export function findAndUnmountComponentsRec(descriptor: NodeDescriptor) {
-    if (descriptor.__type === 3) {
-        const ctx = contexts[descriptor.id]
+export function findAndUnmountComponentsRec(vNode: VNode) {
+    if (vNode.__type === 3) {
+        const ctx = contexts[vNode.id]
         if (typeof ctx.spec.onUnmount === 'function') {
             dispatch(ctx, render, ctx.spec.onUnmount, undefined)
         }
-        delete contexts[descriptor.id]
+        delete contexts[vNode.id]
         findAndUnmountComponentsRec(ctx.rendition!)
     }
-    else if (descriptor.__type === 2) {
-        for (const c of descriptor.children) {
+    else if (vNode.__type === 2) {
+        for (const c of vNode.children) {
             findAndUnmountComponentsRec(c)
         }
     }

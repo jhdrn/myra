@@ -1,4 +1,4 @@
-import { defineComponent, mountComponent, evolve, ComponentDescriptor } from 'core'
+import { defineComponent, mountComponent, evolve, ComponentVNode } from 'core'
 import { initComponent, updateComponent, findAndUnmountComponentsRec } from 'core/component'
 import * as jsxFactory from 'core/jsxFactory'
 
@@ -118,7 +118,7 @@ describe('unmountComponent', () => {
             onUnmount: mountMock.unmount,
             view: () => <div />
         })
-        const instance = <Component /> as ComponentDescriptor<{}>
+        const instance = <Component /> as ComponentVNode<{}>
 
         initComponent(instance, document.body)
         findAndUnmountComponentsRec(instance)
@@ -180,9 +180,9 @@ describe('updateComponent', () => {
             view: () => <div />
         })
 
-        const componentDescriptor = component(45)
-        initComponent(componentDescriptor, document.body)
-        updateComponent(component(45), componentDescriptor)
+        const vNode = component(45)
+        initComponent(vNode, document.body)
+        updateComponent(component(45), vNode)
 
         expect(mountMock.mount).toHaveBeenCalledTimes(1)
     })
@@ -201,11 +201,11 @@ describe('updateComponent', () => {
             view: () => <div />
         })
 
-        const componentDescriptor = component({})
-        initComponent(componentDescriptor, document.body)
+        const vNode = component({})
+        initComponent(vNode, document.body)
 
-        const newDescriptor = component({ forceUpdate: true })
-        updateComponent(newDescriptor, componentDescriptor)
+        const newVNode = component({ forceUpdate: true })
+        updateComponent(newVNode, vNode)
 
         expect(mountMock.mount).toHaveBeenCalledTimes(2)
     })
@@ -225,11 +225,11 @@ describe('updateComponent', () => {
             view: () => <div />
         })
 
-        const componentDescriptor = component({ prop: 'a value' })
-        initComponent(componentDescriptor, document.body)
+        const vNode = component({ prop: 'a value' })
+        initComponent(vNode, document.body)
 
-        const newDescriptor = component({ prop: 'a new value' })
-        updateComponent(newDescriptor, componentDescriptor)
+        const newVNode = component({ prop: 'a new value' })
+        updateComponent(newVNode, vNode)
 
         expect(mountMock.mount).toHaveBeenCalledTimes(2)
     })

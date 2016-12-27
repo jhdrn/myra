@@ -1,4 +1,4 @@
-import { defineComponent, mountComponent, evolve, ElementDescriptor } from 'core'
+import { defineComponent, mountComponent, evolve, ElementVNode } from 'core'
 import { render } from 'core/view'
 import { initComponent } from 'core/component'
 import * as jsxFactory from 'core/jsxFactory'
@@ -29,13 +29,13 @@ describe('core.view.render', () => {
         done()
     })
 
-    it('creates and returns a text node from a text node descriptor', (done) => {
+    it('creates and returns a text node from a text virtual node', (done) => {
         const view = <text>a text</text>
 
         render(document.body, view, view, undefined)
 
-        expect(view.node!.nodeType).toBe(Node.TEXT_NODE)
-        expect(view.node!.nodeValue).toBe('a text')
+        expect(view.domRef!.nodeType).toBe(Node.TEXT_NODE)
+        expect(view.domRef!.nodeValue).toBe('a text')
 
         done()
     })
@@ -45,28 +45,28 @@ describe('core.view.render', () => {
         const view2 = <text>a new text</text>
 
         render(document.body, view1, view1, undefined)
-        let node = view1.node!
+        let node = view1.domRef!
         expect(node.nodeValue).toBe('a text')
 
         render(document.body, view2, view1, node)
-        node = view2.node!
+        node = view2.domRef!
         expect(node.nodeValue).toBe('a new text')
 
         done()
     })
 
-    it('creates and returns a "nothing" comment node from a nothing node descriptor', (done) => {
+    it('creates and returns a "nothing" comment node from a nothing virtual node', (done) => {
         const view = <nothing />
 
         render(document.body, view, view, undefined)
-        const node = view.node!
+        const node = view.domRef!
         expect(node.nodeType).toBe(Node.COMMENT_NODE)
         expect(node.nodeValue).toBe('Nothing')
 
         done()
     })
 
-    it('mounts a component from a component node descriptor', (done) => {
+    it('mounts a component from a component virtual node', (done) => {
         const TestComponent = defineComponent({
             name: 'TestComponent1',
             init: { state: undefined },
@@ -76,7 +76,7 @@ describe('core.view.render', () => {
         const view = <div><TestComponent /></div>
 
         render(document.body, view, view, undefined)
-        const node = view.node as HTMLDivElement
+        const node = view.domRef as HTMLDivElement
         expect((node.childNodes[0] as HTMLDivElement).id).toBe('testComponent')
 
         done()
@@ -100,7 +100,7 @@ describe('core.view.render', () => {
         const view2 = testComponent({ forceUpdate: true })
 
         render(document.body, view1, view1, undefined)
-        const node = view1.node! as HTMLDivElement
+        const node = view1.domRef! as HTMLDivElement
         const componentId = view1.id
 
         render(document.body, view2, view1, node)
@@ -148,12 +148,12 @@ describe('core.view.render', () => {
             </div>
 
         render(document.body, view1, view1, undefined)
-        let node = view1.node as HTMLDivElement
+        let node = view1.domRef as HTMLDivElement
 
         expect(node.childElementCount).toBe(viewItems1.length)
 
         render(document.body, view2, view1, node)
-        node = view2.node as HTMLDivElement
+        node = view2.domRef as HTMLDivElement
 
         expect(node.childElementCount).toBe(viewItems2.length)
 
@@ -173,23 +173,23 @@ describe('core.view.render', () => {
             </div>
         render(document.body, view1, view1, undefined)
 
-        let node = view1.node as HTMLDivElement
+        let node = view1.domRef as HTMLDivElement
 
         expect(node.childElementCount).toBe(viewItems1.length)
 
         render(document.body, view2, view1, node)
-        node = view2.node as HTMLDivElement
+        node = view2.domRef as HTMLDivElement
 
         expect(node.childElementCount).toBe(viewItems2.length)
 
         done()
     })
 
-    it('creates and returns an element node from an element node descriptor', (done) => {
+    it('creates and returns an element node from an element virtual node', (done) => {
         const view = <div />
 
         render(document.body, view, view, undefined)
-        const node = view.node as Element
+        const node = view.domRef as Element
 
         expect(node.nodeType).toBe(Node.ELEMENT_NODE)
         expect(node.tagName).toBe('DIV')
@@ -209,7 +209,7 @@ describe('core.view.render', () => {
 
         render(document.body, view, view, undefined)
 
-        const node = view.node as HTMLInputElement
+        const node = view.domRef as HTMLInputElement
 
         expect(node.id).toBe('testId')
         expect(node.className).toBe('testClass')
@@ -234,7 +234,7 @@ describe('core.view.render', () => {
 
         render(document.body, view, view, undefined)
 
-        const node = view.node as HTMLButtonElement
+        const node = view.domRef as HTMLButtonElement
         expect(node.onclick).not.toBeNull()
 
         node.click()
@@ -261,11 +261,11 @@ describe('core.view.render', () => {
 
         render(document.body, view1, view1, undefined)
 
-        let node = view1.node as HTMLButtonElement
+        let node = view1.domRef as HTMLButtonElement
 
         render(document.body, view2, view1, node)
 
-        node = view2.node as HTMLButtonElement
+        node = view2.domRef as HTMLButtonElement
 
         node.click()
 
@@ -281,7 +281,7 @@ describe('core.view.render', () => {
 
         render(document.body, view, view, undefined)
 
-        const node = view.node as HTMLTextAreaElement
+        const node = view.domRef as HTMLTextAreaElement
 
         expect(node).toEqual(document.activeElement)
 
@@ -298,14 +298,14 @@ describe('core.view.render', () => {
 
         render(document.body, view1, view1, undefined)
 
-        let node = view1.node as HTMLDivElement
+        let node = view1.domRef as HTMLDivElement
 
         expect(node.className).toBe('foo')
         expect(node.id).toBe('bar')
 
         render(document.body, view2, view1, node)
 
-        node = view2.node as HTMLDivElement
+        node = view2.domRef as HTMLDivElement
 
         expect(node.className).toBe('bar')
         expect(node.id).toBe('foo')
@@ -322,13 +322,13 @@ describe('core.view.render', () => {
 
         render(document.body, view1, view1, undefined)
 
-        let node = view1.node as HTMLDivElement
+        let node = view1.domRef as HTMLDivElement
 
         expect(node.id).toBe('bar')
 
         render(document.body, view2, view1, node)
 
-        node = view2.node as HTMLDivElement
+        node = view2.domRef as HTMLDivElement
 
         expect(node.id).toBe('')
 
@@ -344,13 +344,13 @@ describe('core.view.render', () => {
 
         render(document.body, view1, view1, undefined)
 
-        let node = view1.node as HTMLDivElement
+        let node = view1.domRef as HTMLDivElement
 
         expect(node.id).toBe('bar')
 
         render(document.body, view2, view1, node)
 
-        node = view2.node as HTMLDivElement
+        node = view2.domRef as HTMLDivElement
 
         expect(node.id).toBe('')
 
@@ -364,14 +364,14 @@ describe('core.view.render', () => {
 
         render(document.body, view1, view1, undefined)
 
-        let node = view1.node as HTMLDivElement
+        let node = view1.domRef as HTMLDivElement
 
         (node as any)._id = 1
         expect(node.tagName).toBe('DIV')
 
         render(document.body, view2, view1, node)
 
-        node = view2.node as HTMLDivElement
+        node = view2.domRef as HTMLDivElement
 
         expect((node as any)._id).not.toBeDefined()
         expect(node.tagName).toBe('SPAN')
@@ -386,7 +386,7 @@ describe('core.view.render', () => {
 
         render(document.body, view1, view1, undefined)
 
-        const node = view1.node as HTMLButtonElement
+        const node = view1.domRef as HTMLButtonElement
 
         expect(node.onclick).not.toBeNull()
 
@@ -470,7 +470,7 @@ describe('core.view.render', () => {
 
         render(document.body, view1, view1, undefined)
 
-        let btn = (view1.node as HTMLDivElement).querySelector('button') !
+        let btn = (view1.domRef as HTMLDivElement).querySelector('button') !
         btn.click()
 
         expect(btn.className).toBe("clicked")
@@ -481,14 +481,14 @@ describe('core.view.render', () => {
                 {items.reverse().map(x => <div key={x.id}><ItemComponent forceUpdate item={x} /></div>)}
             </div>
 
-        render(document.body, view2, view1, view1.node)
+        render(document.body, view2, view1, view1.domRef)
 
-        btn = (view2.node as HTMLDivElement).querySelector('button') !
+        btn = (view2.domRef as HTMLDivElement).querySelector('button') !
         expect(btn.id).toBe("item-5")
         expect(btn.className).toBe("")
 
         // The last element shoul've been updated
-        btn = ((view2.node as HTMLDivElement).lastChild as HTMLDivElement).firstChild as HTMLButtonElement
+        btn = ((view2.domRef as HTMLDivElement).lastChild as HTMLDivElement).firstChild as HTMLButtonElement
 
         expect(btn.id).toBe("item-1")
         expect(btn.className).toBe("clicked")
@@ -531,7 +531,7 @@ describe('core.view.render', () => {
 
         render(document.body, view1, view1, undefined)
 
-        let btn = (view1.node as HTMLDivElement).querySelector('button') !
+        let btn = (view1.domRef as HTMLDivElement).querySelector('button') !
         btn.click()
 
         expect(btn.className).toBe("clicked")
@@ -542,14 +542,14 @@ describe('core.view.render', () => {
                 {items.reverse().map(x => <div><ItemComponent forceUpdate item={x} /></div>)}
             </div>
 
-        render(document.body, view2, view1, view1.node)
+        render(document.body, view2, view1, view1.domRef)
 
-        btn = (view2.node as HTMLDivElement).querySelector('button') !
+        btn = (view2.domRef as HTMLDivElement).querySelector('button') !
         expect(btn.id).toBe("item-5")
         expect(btn.className).toBe("clicked")
 
         // The last element shoul've been updated
-        btn = ((view2.node as HTMLDivElement).lastChild as HTMLDivElement).firstChild as HTMLButtonElement
+        btn = ((view2.domRef as HTMLDivElement).lastChild as HTMLDivElement).firstChild as HTMLButtonElement
 
         expect(btn.id).toBe("item-1")
         expect(btn.className).toBe("")
@@ -593,7 +593,7 @@ describe('core.view.render', () => {
 
         render(document.body, view1, view1, undefined)
 
-        let btn = (view1.node as HTMLDivElement).querySelector('button') !
+        let btn = (view1.domRef as HTMLDivElement).querySelector('button') !
         btn.click()
 
         expect(btn.className).toBe("clicked")
@@ -604,14 +604,14 @@ describe('core.view.render', () => {
                 {items.reverse().map(x => <ItemComponent key={x.id} item={x} />)}
             </div>
 
-        render(document.body, view2, view1, view1.node)
+        render(document.body, view2, view1, view1.domRef)
 
-        btn = (view2.node as HTMLDivElement).querySelector('button') !
+        btn = (view2.domRef as HTMLDivElement).querySelector('button') !
         expect(btn.className).toBe("")
         expect(btn.id).toBe("item-5")
 
         // The last element should've been updated
-        btn = (view2.node as HTMLDivElement).lastChild as HTMLButtonElement
+        btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
         expect(btn.className).toBe("clicked")
         expect(btn.id).toBe("item-1")
     })
@@ -654,7 +654,7 @@ describe('core.view.render', () => {
 
         render(document.body, view1, view1, undefined)
 
-        let btn = (view1.node as HTMLDivElement).querySelector('button') !
+        let btn = (view1.domRef as HTMLDivElement).querySelector('button') !
         btn.click()
 
         expect(btn.className).toBe("clicked")
@@ -665,14 +665,14 @@ describe('core.view.render', () => {
                 {items.reverse().map(x => <ItemComponent item={x} />)}
             </div>
 
-        render(document.body, view2, view1, view1.node)
+        render(document.body, view2, view1, view1.domRef)
 
-        btn = (view2.node as HTMLDivElement).querySelector('button') !
+        btn = (view2.domRef as HTMLDivElement).querySelector('button') !
         expect(btn.className).toBe("clicked")
         expect(btn.id).toBe("item-5")
 
         // The last element should've been updated
-        btn = (view2.node as HTMLDivElement).lastChild as HTMLButtonElement
+        btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
         expect(btn.className).toBe("")
         expect(btn.id).toBe("item-1")
     })
@@ -696,7 +696,7 @@ describe('core.view.render', () => {
         const setClicked = (s: State) =>
             evolve(s, x => x.clicked = true)
 
-        let btnDescriptor: ElementDescriptor<HTMLButtonElement> | undefined = undefined
+        let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
 
         const ItemComponent = defineComponent<State, Props>({
             name: randomName(),
@@ -707,7 +707,7 @@ describe('core.view.render', () => {
                     onclick={_ => ctx.apply(setClicked)}>
                 </button>
                 if (ctx.state.itemId === 1) {
-                    btnDescriptor = v as ElementDescriptor<HTMLButtonElement>
+                    btnVNode = v as ElementVNode<HTMLButtonElement>
                 }
                 return v
             }
@@ -716,11 +716,11 @@ describe('core.view.render', () => {
         const view1 =
             <div>
                 {items.map(x => <ItemComponent key={x.id} item={x} forceUpdate={true} />)}
-            </div> as ElementDescriptor<HTMLDivElement>
+            </div> as ElementVNode<HTMLDivElement>
 
         render(document.body, view1, view1, undefined)
 
-        let btn = view1.node!.querySelector('button') !
+        let btn = view1.domRef!.querySelector('button') !
         btn.click()
 
         expect(btn.className).toBe("clicked")
@@ -729,24 +729,24 @@ describe('core.view.render', () => {
         // Clear id so it's set from state
         btn.id = ""
         btn.className = ""
-        // We also need to modify the descriptor, else the attributes won't be updated
+        // We also need to modify the node, else the attributes won't be updated
 
-        delete btnDescriptor!.attributes.id
-        delete btnDescriptor!.attributes.class
+        delete btnVNode!.props.id
+        delete btnVNode!.props.class
         const reversedItems = items.reverse()
         const view2 =
             <div>
                 {reversedItems.map(x => <ItemComponent key={x.id} item={x} forceUpdate={true} />)}
-            </div> as ElementDescriptor<HTMLDivElement>
+            </div> as ElementVNode<HTMLDivElement>
 
-        render(document.body, view2, view1, view1.node)
+        render(document.body, view2, view1, view1.domRef)
 
-        btn = view2.node!.querySelector('button') !
+        btn = view2.domRef!.querySelector('button') !
         expect(btn.className).toBe("")
         expect(btn.id).toBe("item-5")
 
         // The last element should've been updated with the same values
-        btn = view2.node!.lastChild as HTMLButtonElement
+        btn = view2.domRef!.lastChild as HTMLButtonElement
         expect(btn.className).toBe("clicked")
         expect(btn.id).toBe("item-1")
     })
@@ -770,7 +770,7 @@ describe('core.view.render', () => {
         const setClicked = (s: State) =>
             evolve(s, x => x.clicked = true)
 
-        let btnDescriptor: ElementDescriptor<HTMLButtonElement> | undefined = undefined
+        let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
 
         const ItemComponent = defineComponent<State, Props>({
             name: randomName(),
@@ -781,7 +781,7 @@ describe('core.view.render', () => {
                     onclick={_ => ctx.apply(setClicked)}>
                 </button>
                 if (ctx.state.itemId === 1) {
-                    btnDescriptor = v as ElementDescriptor<HTMLButtonElement>
+                    btnVNode = v as ElementVNode<HTMLButtonElement>
                 }
                 return v
             }
@@ -790,11 +790,11 @@ describe('core.view.render', () => {
         const view1 =
             <div>
                 {items.map(x => <ItemComponent item={x} forceUpdate={true} />)}
-            </div> as ElementDescriptor<HTMLDivElement>
+            </div> as ElementVNode<HTMLDivElement>
 
         render(document.body, view1, view1, undefined)
 
-        let btn = view1.node!.querySelector('button') !
+        let btn = view1.domRef!.querySelector('button') !
         btn.click()
 
         expect(btn.className).toBe("clicked")
@@ -803,29 +803,32 @@ describe('core.view.render', () => {
         // Clear id so it's set from state
         btn.id = ""
         btn.className = ""
-        // We also need to modify the descriptor, else the attributes won't be updated
 
-        delete btnDescriptor!.attributes.id
-        delete btnDescriptor!.attributes.class
+        // We also need to modify the node, else the attributes won't be updated
+        delete btnVNode!.props.id
+        delete btnVNode!.props.class
+
         const reversedItems = items.reverse()
         const view2 =
             <div>
                 {reversedItems.map(x => <ItemComponent item={x} forceUpdate={true} />)}
-            </div> as ElementDescriptor<HTMLDivElement>
+            </div> as ElementVNode<HTMLDivElement>
 
-        render(document.body, view2, view1, view1.node)
+        render(document.body, view2, view1, view1.domRef)
 
-        btn = view2.node!.querySelector('button') !
+        btn = view2.domRef!.querySelector('button') !
+
         expect(btn.className).toBe("clicked")
         expect(btn.id).toBe("item-5")
 
         // The last element should've been updated with the same values
-        btn = view2.node!.lastChild as HTMLButtonElement
+        btn = view2.domRef!.lastChild as HTMLButtonElement
+
         expect(btn.className).toBe("")
         expect(btn.id).toBe("item-1")
     })
 
-    it('unmounts a component which is a child of removed descriptor', () => {
+    it('unmounts a component which is a child of removed virtual node', () => {
         const mountMock = {
             unmount: (x: number) => evolve(x)
         }
@@ -843,36 +846,36 @@ describe('core.view.render', () => {
         render(document.body, view1, view1, undefined)
 
         const view2 = <div></div>
-        render(document.body, view2, view1, view1.node)
+        render(document.body, view2, view1, view1.domRef)
 
         expect(mountMock.unmount).toHaveBeenCalledTimes(1)
     })
+
     // FIXME: This test is very hard to get working cross browser...
     // it('calls element.blur() when blur attribute is set to true', (done) => {
 
     //     const mocks = {
-    //         onEventTriggered: (m: any) => m
+    //         onEventTriggered: () => { }
     //     }
-    //     spyOn(mocks, 'onEventTriggered')
 
-    //     const el = document.createElement('input')
-    //     document.body.appendChild(el)
+    //     spyOn(mocks, 'onEventTriggered').and.callThrough()
 
-    //     el.onblur = mocks.onEventTriggered
-    //     const view1 = input({
-    //         focus: true
-    //     })
-    //     view1.node = el
+    //     // const el = document.createElement('input')
+    //     // document.body.appendChild(el)
 
+    //     // el.onblur = mocks.onEventTriggered
+
+    //     const view1 = <input onfocus={() => console.log('I was focused')} focus={true} />
+    //     render(document.body, view1, view1, undefined)
+    //     // view1.node = el
+    //     // view1.node.click()
+    //     // expect(view2.props.onblur).toEqual(mocks.onEventTriggered)
     //     setTimeout(() => {
 
-    //         const view2 = input({
-    //             focus: true,
-    //             blur: true
-    //         })
-    //         const node = render(document.body, view2, view1, el, dispatch) as HTMLTextAreaElement
+    //         const view2 = <input onblur={mocks.onEventTriggered} blur={true} />
+    //         render(document.body, view2, view1, view1.node)
 
-    //         expect(node.onblur).toEqual(mocks.onEventTriggered)
+    //         // expect(view2.props.onblur).toEqual(mocks.onEventTriggered)
 
     //         setTimeout(() => {
 
@@ -881,7 +884,7 @@ describe('core.view.render', () => {
     //             // node.focus()
 
     //             done()
-    //         }, 50)
-    //     }, 500)
+    //         }, 1500)
+    //     }, 1500)
     // })
 })

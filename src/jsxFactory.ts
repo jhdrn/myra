@@ -1,21 +1,21 @@
-import { ComponentFactory, NodeDescriptor, TextDescriptor } from './contract'
+import { ComponentFactory, VNode, TextVNode } from './contract'
 import { flatten } from './helpers'
 
-function flattenChildren(children: ((NodeDescriptor | string)[] | NodeDescriptor | string)[]) {
-    const flattenedChildren = [] as (NodeDescriptor | string)[]
+function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
+    const flattenedChildren = [] as (VNode | string)[]
 
     for (const child of children) {
         if (child === null) {
             continue
         }
         else if (Array.isArray(child)) {
-            for (const c of flatten(child as (NodeDescriptor | string)[])) {
+            for (const c of flatten(child as (VNode | string)[])) {
                 if (typeof c === 'string') {
 
                     flattenedChildren.push({
                         __type: 1,
                         value: child as any as string
-                    } as TextDescriptor)
+                    } as TextVNode)
                 }
                 else {
                     flattenedChildren.push(c)
@@ -23,28 +23,28 @@ function flattenChildren(children: ((NodeDescriptor | string)[] | NodeDescriptor
             }
         }
         else if (typeof child === 'object') {
-            if (typeof (child as NodeDescriptor).__type !== 'undefined') {
-                flattenedChildren.push(child as NodeDescriptor)
+            if (typeof (child as VNode).__type !== 'undefined') {
+                flattenedChildren.push(child as VNode)
             }
             else {
                 flattenedChildren.push({
                     __type: 1,
                     value: child as any as string
-                } as TextDescriptor)
+                } as TextVNode)
             }
         }
         else if (typeof child !== 'undefined') {
             flattenedChildren.push({
                 __type: 1,
                 value: child
-            } as TextDescriptor)
+            } as TextVNode)
         }
     }
 
-    return flattenedChildren as NodeDescriptor[]
+    return flattenedChildren as VNode[]
 }
 
-export function createElement<T>(tagNameOrComponent: string | ComponentFactory<T>, props: T, ...children: (string | NodeDescriptor)[]): JSX.Element {
+export function createElement<T>(tagNameOrComponent: string | ComponentFactory<T>, props: T, ...children: (string | VNode)[]): JSX.Element {
     if (tagNameOrComponent === 'nothing') {
         return { __type: 0 }
     }
@@ -53,14 +53,14 @@ export function createElement<T>(tagNameOrComponent: string | ComponentFactory<T
             return {
                 __type: 1,
                 value: children[0] as string
-            } as TextDescriptor
+            } as TextVNode
         }
         return {
             __type: 2,
             tagName: tagNameOrComponent,
-            attributes: props || {},
+            props: props || {},
             children: flattenChildren(children)
         }
     }
-    return tagNameOrComponent(props || undefined, children as NodeDescriptor[])
+    return tagNameOrComponent(props || undefined, children as VNode[])
 }

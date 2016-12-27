@@ -1,7 +1,7 @@
-import { Update, Effect, NodeDescriptor, ComponentContext, Result, ViewContext } from './contract'
+import { Update, Effect, VNode, ComponentContext, Result, ViewContext } from './contract'
 
 export interface Render {
-    (parentNode: Element, view: NodeDescriptor, oldView: NodeDescriptor | undefined, oldRootNode: Node | undefined): void
+    (parentNode: Element, view: VNode, oldView: VNode | undefined, oldRootNode: Node | undefined): void
 }
 
 export type DebugOptions = {
@@ -76,7 +76,7 @@ export function dispatch<TState, TArg>(context: ComponentContext<TState, any>, r
             context.spec.onBeforeRender(newView, ctx.state)
         }
 
-        const oldNode = context.rendition ? context.rendition.node : undefined
+        const oldNode = context.rendition ? context.rendition.domRef : undefined
         render(context.parentNode, newView, context.rendition, oldNode)
         context.rendition = newView
 
