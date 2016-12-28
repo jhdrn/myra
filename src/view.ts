@@ -14,7 +14,9 @@ const BOOL_ATTRS = [
     // TODO: add more
 ]
 
-/** Renders the view by walking the virtual node tree recursively */
+/** 
+ * Renders the view by walking the virtual node tree recursively 
+ */
 export function render(
     parentDomNode: Element,
     newVNode: VNode,
@@ -69,7 +71,7 @@ function renderNewNode(replaceNode: boolean, parentDomNode: Element, newVNode: V
 
                 const eventListener = tryCreateEventListener(name, attributeValue, newVNode)
 
-                let value
+                let value: any
                 if (typeof eventListener === 'undefined') {
                     value = attributeValue
                 }
@@ -93,7 +95,9 @@ function renderNewNode(replaceNode: boolean, parentDomNode: Element, newVNode: V
     }
 }
 
-/** Re-renders a virtual node by reusing a DOM node. */
+/** 
+ * Re-renders a virtual node by reusing a DOM node. 
+ */
 function reRenderNode(newVNode: VNode, oldVNode: VNode, existingDomNode: Node) {
 
     // if (!nodesEqual(oldVNode.node, existingDomNode)) {
@@ -130,7 +134,9 @@ function reRenderNode(newVNode: VNode, oldVNode: VNode, existingDomNode: Node) {
     }
 }
 
-/** Renders child virtual nodes. Will add/remove DOM nodes if needed. */
+/** 
+ * Renders child virtual nodes. Will add/remove DOM nodes if needed.
+ */
 function renderChildNodes(newVNode: ElementVNode<any>, oldVNode: VNode, existingDomNode: Node) {
 
     // Iterate over children and add/update/remove nodes
@@ -235,7 +241,9 @@ function shouldReplaceNode(newVNode: VNode, oldVNode: VNode | undefined): boolea
     return false
 }
 
-/** Sets an attribute or event listener on an HTMLElement. */
+/** 
+ * Sets an attribute or event listener on an HTMLElement. 
+ */
 function setAttr(element: HTMLElement, attributeName: string, attributeValue: any) {
     if (attributeName.indexOf('on') === 0) {
         if (typeof (element as any)[attributeName] === 'function') {
@@ -265,7 +273,9 @@ function setAttr(element: HTMLElement, attributeName: string, attributeValue: an
     }
 }
 
-/** Removes an attribute or event listener from an HTMLElement. */
+/** 
+ * Removes an attribute or event listener from an HTMLElement. 
+ */
 function removeAttr(a: string, node: Element) {
     if (a.indexOf('on') === 0) {
         (node as any)[a] = null
@@ -275,7 +285,9 @@ function removeAttr(a: string, node: Element) {
     }
 }
 
-/** Creates an event listener if the attribute name begins with 'on'. */
+/** 
+ * Creates an event listener if the attribute name begins with 'on'.
+ */
 function tryCreateEventListener(attributeName: string, eventListener: EventListener<any, any>, vNode: ElementVNode<any>) {
     if (attributeName.indexOf('on') !== 0) {
         return undefined
@@ -286,7 +298,9 @@ function tryCreateEventListener(attributeName: string, eventListener: EventListe
     }
 }
 
-/** Creates a Node from a VNode. */
+/** 
+ * Creates a Node from a VNode. 
+ */
 function createNode(vNode: VNode, parentNode: Element): Node {
     switch (vNode.__type) {
         case 2:
