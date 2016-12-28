@@ -22,7 +22,7 @@ declare namespace myra {
     interface ComponentContext<TState, TProps extends {}> {
         readonly spec: ComponentSpec<TState, any>
         readonly parentNode: Element
-        mounted: boolean
+        initialized: boolean
         dispatchLevel: number
         isUpdating: boolean
         props: TProps | undefined

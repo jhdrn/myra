@@ -1,28 +1,39 @@
-import { ComponentFactory, ComponentVNode, ComponentSpec, ComponentContext, VNode } from './contract'
+import { Update, ComponentFactory, ComponentVNode, ComponentSpec, ComponentContext, VNode } from './contract'
 import { equal } from './helpers'
 import { dispatch } from './dispatch'
 import { render } from './view'
 
-/** Holds all component specs. The component name is used as key. */
+/** 
+ * Holds all component specs. The component name is used as key.
+ */
 const componentSpecs = {} as { [name: string]: ComponentSpec<any, any> }
 
-/** Holds all component  */
+/** 
+ * Holds all component contexts, indexed by id.
+ */
 const contexts: { [key: number]: ComponentContext<any, any> } = {}
+
 let nextId = 1
-/** Internal class that holds component state. */
+
+/** 
+ * Internal class that holds component state. 
+ */
 class ComponentContextImpl<TState, TProps> implements ComponentContext<TState, TProps> {
-    constructor(readonly parentNode: Element,
+    constructor(
+        readonly parentNode: Element,
         readonly spec: ComponentSpec<TState, any>,
-        public childNodes?: VNode[]) {
+        public childNodes?: VNode[]
+    ) {
+        this.state = spec.init.state
     }
 
-    private _mounted = false
-    get mounted() {
-        return this._mounted
+    private _initialized = false
+    get initialized() {
+        return this._initialized
     }
-    set mounted(_) {
-        if (!this._mounted) {
-            this._mounted = true
+    set initialized(_) {
+        if (!this._initialized) {
+            this._initialized = true
         }
     }
 
@@ -44,7 +55,7 @@ class ComponentContextImpl<TState, TProps> implements ComponentContext<TState, T
 export function initComponent<T>(vNode: ComponentVNode<T>, parentNode: Element) {
 
     const spec = componentSpecs[vNode.name]
-    const context = new ComponentContextImpl<any, any>(
+    const context = new ComponentContextImpl<T, any>(
         parentNode,
         spec,
         vNode.children
@@ -55,22 +66,28 @@ export function initComponent<T>(vNode: ComponentVNode<T>, parentNode: Element) 
     vNode.id = nextId++
     contexts[vNode.id] = context
 
-    // Dispatch once with init. The view won't be rendered.
-    dispatch(context, render, () => spec.init, undefined)
+    if (typeof spec.init.effects !== 'undefined' && spec.init.effects.length) {
+        // Dispatch once with init. The view won't be rendered.
+        dispatch(context, render, function onInit() { return spec.init }, undefined)
+    }
 
-    context.mounted = true
+    context.initialized = true
 
-    // Dispatch again to render the view. 
-    dispatch(
-        context,
-        render,
-        typeof spec.onMount === 'function' ? spec.onMount : (<S>(m: S) => ({ state: m })),
-        vNode.props
-    )
+    let onMount: Update<T, any>
+    if (typeof spec.onMount === 'function') {
+        onMount = spec.onMount
+    }
+    else {
+        onMount = function onMount<S>(m: S) {
+            return { state: m }
+        }
+    }
+
+    // Dispatch to render the view. 
+    dispatch(context, render, onMount, vNode.props)
 
     if (context.rendition) {
         vNode.domRef = context.rendition.domRef
-
         vNode.rendition = context.rendition
     }
     else {
@@ -78,7 +95,9 @@ export function initComponent<T>(vNode: ComponentVNode<T>, parentNode: Element) 
     }
 }
 
-/** Updates a component by comparing the new and old virtual nodes. */
+/** 
+ * Updates a component by comparing the new and old virtual nodes. 
+ */
 export function updateComponent<T>(newVNode: ComponentVNode<T>, oldVNode: ComponentVNode<T>) {
 
     newVNode.id = oldVNode.id
@@ -111,11 +130,8 @@ export function updateComponent<T>(newVNode: ComponentVNode<T>, oldVNode: Compon
 }
 
 /** 
- * Defines a component from a ComponentSpec. 
- * 
- * @param ComponentSpec<TState, TProps> spec - the component specification 
- * 
- * @returns a factory that creates ComponentVNode's of the component  
+ * Defines a component from a ComponentSpec returning a factory that creates 
+ * ComponentVNode/JSXElement's for the component.
  */
 export function defineComponent<TState, TProps>(spec: ComponentSpec<TState, TProps>): ComponentFactory<TProps> {
     if (componentSpecs[spec.name]) {

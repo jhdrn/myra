@@ -63,9 +63,9 @@ export function dispatch<TState, TArg>(context: ComponentContext<TState, any>, r
         }
     }
 
-    // Update view if the component was already mounted and the dispatchLevel
-    // is at "lowest" level (i.e. 1).
-    if (context.mounted && context.dispatchLevel === 1) {
+    // Update view if the component was already initialized and the 
+    // dispatchLevel is at "lowest" level (i.e. 1).
+    if (context.initialized && context.dispatchLevel === 1) {
         const ctx = {
             props: context.props,
             state: context.state!,
