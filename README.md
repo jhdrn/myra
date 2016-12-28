@@ -1,16 +1,11 @@
 # Myra
 Myra is a simple and small [Typescript](http://www.typescriptlang.org/) 
 framework for building web interfaces. It targets the "middle ground" between
-[Elm](http://elm-lang.org/) and [React](https://facebook.github.io/react/) + 
-[Redux](http://redux.js.org/).
+[Elm](http://elm-lang.org/) and [React](https://facebook.github.io/react/).
 
 [![npm](https://img.shields.io/npm/v/myra.svg?maxAge=24000)](https://www.npmjs.com/package/myra)
 [![Travis](https://img.shields.io/travis/jhdrn/myra.svg?maxAge=36000)](https://travis-ci.org/jhdrn/myra)
 [![codecov](https://codecov.io/gh/jhdrn/myra/branch/master/graph/badge.svg)](https://codecov.io/gh/jhdrn/myra)
-
-## Disclaimer
-This project is currently in beta stage. It is quite stable but there might be
-some bugs here and there. Use at your own risk!
 
 ## Features
 * **Functional:** 
@@ -34,9 +29,11 @@ that the compiler options `strictNullChecks`, `noImplicitReturns` and
 `noImplicitAny` are set to true.
 
 ## Getting started
-Clone the repository and check the [examples](https://github.com/jhdrn/myra/tree/master/examples) folder. Open any example's folder
-in your terminal and execute `npm install` followed by `npm start`, then open 
-your favorite browser and point it to `localhost:8080`. 
+Clone the repository and check the 
+[examples](https://github.com/jhdrn/myra/tree/master/examples) 
+folder. Open any example's folder in your terminal and execute 
+`npm install && npm start`, then open your favorite browser and point it to 
+`localhost:8080`.
 
 The examples can be used as bootstrapping templates as they are set up with
 build and "watch" scripts using npm and Webpack.
@@ -48,8 +45,8 @@ either stateful or stateless.
 
 ### Stateful components
 A stateful component must have a unique name, a state of any type and a 
-view. Many times it also has associated `Update` functions that updates 
-it's state.
+view. Many times it also has associated [`Update`](#updating-the-state) 
+functions that updates it's state.
 
 To define a component, use `defineComponent` and then mount it to the DOM
 with `mountComponent`:
