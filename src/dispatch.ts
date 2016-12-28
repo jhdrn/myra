@@ -9,9 +9,13 @@ export type DebugOptions = {
 }
 
 let debugEnabled = false
+
 const debugOptions: DebugOptions = {}
 
 // TODO: enable custom logger
+/**
+ * Turns on/off debug mode.
+ */
 export function debug(debug: boolean = true, options?: DebugOptions) {
     debugEnabled = debug
     if (typeof options !== 'undefined') {
@@ -43,9 +47,9 @@ export function dispatch<TState, TArg>(context: ComponentContext<TState, any>, r
         if (typeof debugOptions.components === 'undefined' ||
             debugOptions.components!.indexOf(context.spec.name) !== -1) {
 
-            console.group(context.spec.name)
+            console.groupCollapsed(`${context.spec.name} ${(fn as any).name}`)
             console.debug('State before update: ', context.state)
-            console.debug(`Update '${(fn as any).name}' arguments: `, arg)
+            console.debug(`Update arguments: `, arg)
             console.debug('State after update: ', result.state)
             console.groupEnd()
         }
