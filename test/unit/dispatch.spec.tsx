@@ -1,5 +1,5 @@
 import { dispatch } from 'core/dispatch'
-import { evolve, VNode, Apply } from 'core'
+import { evolve, VNode, Apply, ComponentContext } from 'core'
 import * as jsxFactory from 'core/jsxFactory'
 
 /**
@@ -15,7 +15,7 @@ describe('core.dispatch', () => {
                 view: () => <div>a text</div>
             },
             parentNode: document.body,
-            mounted: false,
+            initialized: false,
             mountArg: undefined,
             dispatchLevel: 0,
             isUpdating: false,
@@ -23,7 +23,8 @@ describe('core.dispatch', () => {
             state: 1,
             oldView: undefined,
             rootNode: document.body
-        }
+        } as ComponentContext<any, any>
+
         const render = () => {
             expect(context.state).toBe(2)
             return null as any as Node
@@ -40,7 +41,7 @@ describe('core.dispatch', () => {
                 view: () => <div>a text</div>
             },
             parentNode: document.body,
-            mounted: false,
+            initialized: false,
             mountArg: undefined,
             dispatchLevel: 1,
             isUpdating: false,
@@ -48,7 +49,7 @@ describe('core.dispatch', () => {
             state: undefined,
             oldView: undefined,
             rootNode: document.body
-        }
+        } as ComponentContext<any, any>
         const renderMock = {
             render: () => {
                 return null as any as Node
@@ -71,7 +72,7 @@ describe('core.dispatch', () => {
                 view: () => <div>a text</div>
             },
             parentNode: document.body,
-            mounted: false,
+            initialized: false,
             mountArg: undefined,
             dispatchLevel: 0,
             isUpdating: true,
@@ -79,7 +80,8 @@ describe('core.dispatch', () => {
             state: 1,
             oldView: undefined,
             rootNode: document.body
-        }
+        } as ComponentContext<any, any>
+
         const render = () => {
             return null as any as Node
         }
@@ -135,7 +137,7 @@ describe('core.dispatch', () => {
                 view: () => <div>a text</div>
             },
             parentNode: document.body,
-            mounted: false,
+            initialized: false,
             mountArg: undefined,
             dispatchLevel: 0,
             isUpdating: false,
@@ -143,7 +145,8 @@ describe('core.dispatch', () => {
             state: 1,
             oldView: undefined,
             rootNode: document.body
-        }
+        } as ComponentContext<any, any>
+
         const render = () => null as any as Node
 
         dispatch(context, render, update, 2)
@@ -169,7 +172,7 @@ describe('core.dispatch', () => {
                 onBeforeRender: mock.onBeforeRender
             },
             parentNode: document.body,
-            mounted: true,
+            initialized: true,
             mountArg: undefined,
             dispatchLevel: 0,
             isUpdating: false,
@@ -177,10 +180,12 @@ describe('core.dispatch', () => {
             state: 1,
             oldView: undefined,
             rootNode: document.body
-        }
+        } as ComponentContext<any, any>
+
         const render = () => {
             return null as any as Node
         }
+
         dispatch(context, render, update, 2)
 
         expect(mock.onBeforeRender).toHaveBeenCalledTimes(1)
@@ -203,7 +208,7 @@ describe('core.dispatch', () => {
                 onAfterRender: mock.onAfterRender
             },
             parentNode: document.body,
-            mounted: true,
+            initialized: true,
             mountArg: undefined,
             dispatchLevel: 0,
             isUpdating: false,
@@ -211,10 +216,12 @@ describe('core.dispatch', () => {
             state: 1,
             oldView: undefined,
             rootNode: document.body
-        }
+        } as ComponentContext<any, any>
+
         const render = () => {
             return null as any as Node
         }
+
         dispatch(context, render, update, 2)
 
         expect(mock.onAfterRender).toHaveBeenCalledTimes(1)
