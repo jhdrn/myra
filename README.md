@@ -268,7 +268,7 @@ as any update arguments.
 ```typescript
     import * as myra from 'myra'
 
-    // Enabled debug logging
+    // Enable debug logging
     myra.debug(true)
 ```
 
