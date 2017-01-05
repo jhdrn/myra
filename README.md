@@ -248,7 +248,7 @@ children as arguments:
     import * as myra from 'myra'
 
     type Props = { test: string }
-    const StateLessComponent = (props: Props, children: NodeDescriptor[]) =>
+    const StateLessComponent = (props: Props, children: VNode[]) =>
         <div>
             {props.test}
             {...children}
@@ -260,21 +260,33 @@ children as arguments:
         </StateLessComponent>
 ```
 
-### HTTP requests
+## Debugging
+To help with debugging you can turn on debug logging (to the console) by using 
+the `debug` function. It will log the state before and after an update, aswell 
+as any update arguments.
+
+```typescript
+    import * as myra from 'myra'
+
+    // Enabled debug logging
+    myra.debug(true)
+```
+
+## HTTP requests
 The [myra-http](https://github.com/jhdrn/myra-http) package exposes the
 `httpRequest` function that is an `Effect` wrapper for 
 making XmlHttpRequests. Take a look at 
 [examples/kitchen-sink/src/components/http.tsx](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/http.tsx)
 for an example on how to use the module.
 
-### Timeouts and intervals
+## Timeouts and intervals
 The [myra-time](https://github.com/jhdrn/myra-time) package contains `Effect`
 wrappers for `setTimeout` and `setInterval`.
 Take a look at 
 [examples/kitchen-sink/src/components/time.tsx](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/time.tsx)
 for an example on how to use the module.
 
-### Routing
+## Routing
 Routing is supplied by the [myra-router](https://github.com/jhdrn/myra-router) 
 package (currently a work in progress).
 
