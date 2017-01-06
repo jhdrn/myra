@@ -20,7 +20,9 @@ module.exports = {
     // Enable sourcemaps for debugging webpack's output.
     devtool: "source-map",
     devServer: {
-        historyApiFallback: true
+        historyApiFallback: {
+            index: '404.html'
+        }
     },
     module: {
         rules: [
