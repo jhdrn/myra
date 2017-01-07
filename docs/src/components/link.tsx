@@ -21,7 +21,7 @@ export default myra.defineComponent<State, Props>({
         effects: [router.addListener(onRoute)]
     },
     view: ctx =>
-        <a href={ctx.props.href}
+        <a href={`/myra/${ctx.props.href}`}
             onclick={(ev) => ev.preventDefault() > ctx.invoke(router.routeTo(ctx.props.href))}>
             {ctx.props.title}
         </a>

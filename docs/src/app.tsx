@@ -12,6 +12,8 @@ type State = {
 }
 const init = {} as State
 
+router.setBasePath('/myra')
+
 const onRoute = (state: State, ctx: router.RouteContext) =>
     myra.evolve(state, x => x.routeCtx = ctx)
 
