@@ -15,6 +15,6 @@
   },
   "dependencies": {
     "myra": "^1.0.0-rc",
-    "myra-router": "0.0.5"
+    "myra-router": "^0.1.0"
   }
 }

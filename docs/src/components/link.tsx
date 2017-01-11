@@ -22,7 +22,7 @@ export default myra.defineComponent<State, Props>({
     },
     view: ctx =>
         <a href={`/myra/${ctx.props.href}`}
-            class={ctx.state.routeCtx.match(ctx.props.href).match ? 'active' : ''}
+            class={ctx.state.routeCtx.match(ctx.props.href).isMatch ? 'active' : ''}
             onclick={(ev) => ev.preventDefault() > ctx.invoke(router.routeTo(ctx.props.href))}>
             {ctx.props.title}
         </a>
