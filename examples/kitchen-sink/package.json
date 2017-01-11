@@ -16,7 +16,7 @@
   "dependencies": {
     "myra": "^1.0.0-rc",
     "myra-http": "0.0.2",
-    "myra-router": "0.0.5",
+    "myra-router": "^0.1.0",
     "myra-time": "0.0.1"
   }
 }

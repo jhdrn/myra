@@ -42,7 +42,7 @@ export default myra.defineComponent({
                 'test1/:param': (params: any) => <RouteComponent {...params} />
             }, <nothing />)}
 
-            {ctx.state.routeCtx.match('test1/:param') ?
+            {ctx.state.routeCtx.match('test1/:param').isMatch ?
                 <p>Location '/test2/:param' matched.</p> : <nothing />}
 
             <ul class="list-group">
