@@ -16,36 +16,6 @@ const contexts: { [key: number]: ComponentContext<any, any> } = {}
 let nextId = 1
 
 /** 
- * Internal class that holds component state. 
- */
-class ComponentContextImpl<TState, TProps> implements ComponentContext<TState, TProps> {
-    constructor(
-        readonly parentNode: Element,
-        readonly spec: ComponentSpec<TState, any>,
-        public childNodes?: VNode[]
-    ) {
-        this.state = spec.init.state
-    }
-
-    private _initialized = false
-    get initialized() {
-        return this._initialized
-    }
-    set initialized(_) {
-        if (!this._initialized) {
-            this._initialized = true
-        }
-    }
-
-    dispatchLevel = 0
-    isUpdating = false
-    props: TProps | undefined
-    state: TState | undefined
-    rendition: VNode | undefined
-    rootNode: Node
-}
-
-/** 
  * Initializes a component from a ComponentVNode.
  * 
  * Will create a ComponentContext for for the component instance and call 
@@ -55,13 +25,17 @@ class ComponentContextImpl<TState, TProps> implements ComponentContext<TState, T
 export function initComponent<T>(vNode: ComponentVNode<T>, parentNode: Element) {
 
     const spec = componentSpecs[vNode.name]
-    const context = new ComponentContextImpl<T, any>(
-        parentNode,
-        spec,
-        vNode.children
-    )
 
-    context.props = vNode.props
+    const context: ComponentContext<T, any> = {
+        parentNode: parentNode,
+        spec: spec,
+        childNodes: vNode.children,
+        props: vNode.props,
+        initialized: false,
+        dispatchLevel: 0,
+        isUpdating: false,
+        state: spec.init.state
+    }
 
     vNode.id = nextId++
     contexts[vNode.id] = context
