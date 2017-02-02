@@ -300,4 +300,4 @@ contains code examples for `myra-router`.
 
 [MIT](http://opensource.org/licenses/MIT)
 
-Copyright (c) 2016 Jonathan Hedrén
+Copyright (c) 2016-2017 Jonathan Hedrén
