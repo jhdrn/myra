@@ -1,6 +1,6 @@
 {
   "name": "myra-dev",
-  "version": "1.0.0-rc",
+  "version": "1.0.0",
   "private": true,
   "devDependencies": {
     "@types/jasmine": "^2.2.34",
