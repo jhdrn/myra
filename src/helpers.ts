@@ -23,7 +23,7 @@ export function typeOf(obj: any): Type {
     if (typeof obj === 'undefined') {
         return 'undefined'
     }
-    if (typeof obj === 'null') {
+    if (obj === null) {
         return 'null'
     }
     return ({}).toString.call(obj).slice(8, -1).toLowerCase()

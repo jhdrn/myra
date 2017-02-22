@@ -19,7 +19,7 @@
     "remap-istanbul": "^0.6.4",
     "rimraf": "^2.5.3",
     "systemjs": "^0.19.31",
-    "typescript": "^2.1.5"
+    "typescript": "^2.2.1"
   },
   "scripts": {
     "build": "rimraf build && tsc",
