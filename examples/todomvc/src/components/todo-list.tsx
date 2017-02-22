@@ -26,19 +26,20 @@ const applySavedFilter = (state: State, filter: TodosFilter) =>
 
 const applyFilterFromLocation = (state: State, routeCtx: router.RouteContext) => {
 
-    if (routeCtx.match('#/active')) {
+    if (routeCtx.match('#/active').isMatch) {
         return myra.evolve(state, x => {
             x.filter = 'active'
             x.location = routeCtx
         }).and(saveFilter('active'))
     }
-    else if (routeCtx.match('#/completed')) {
+    else if (routeCtx.match('#/completed').isMatch) {
+        console.log('completed')
         return myra.evolve(state, x => {
             x.filter = 'completed'
             x.location = routeCtx
         }).and(saveFilter('completed'))
     }
-    else if (routeCtx.match('#/') || routeCtx.match('')) {
+    else if (routeCtx.match('#/').isMatch || routeCtx.match('').isMatch) {
         return myra.evolve(state, x => {
             x.filter = 'all'
             x.location = routeCtx
