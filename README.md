@@ -2,6 +2,7 @@
     <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACIAAAAiCAMAAAANmfvwAAAANlBMVEVmRABmmQBmRABmRABmRABmRABmRABmcwBmdABmRABmRABmRABmRABmRABmRABmlABmRABmmQDkArD1AAAAEHRSTlMAAAkeNjk8YWV7foHh8PP+GiOcqAAAAKpJREFUeNql08EKg0AMhOGkdatdq67v/7LikjKQn7KHzimHD8IEYjm12iC1tYF5tzYyr/1v8xyauhcYdNmmeygyEK19HslAbMUsGQiPhPkh5jkZiuNIhuI8w2xfI2EhwpiMuoQIYzJqGyKMyaydTDdZRJabTJ2sJuPdhHCTkPFuQriETPFuQriEjE6XBA0ETRIw1iNBsxcKGgoaCBoImsE7rhQ03EJDQQNxAS1ZGHEGNN3tAAAAAElFTkSuQmCC" alt="" style="vertical-align: middle" />
     Myra
 </h1>
+
 Myra is a simple and small [Typescript](http://www.typescriptlang.org/) 
 framework for building web interfaces. It targets the "middle ground" between
 [Elm](http://elm-lang.org/) and [React](https://facebook.github.io/react/).
