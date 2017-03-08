@@ -409,6 +409,7 @@ declare namespace myra {
         name?: string
         placeholder?: string
         required?: boolean | 'true' | 'false'
+        rows?: number | string
         selectionDirection?: string
         selectionEnd?: number | string
         selectionStart?: number | string
