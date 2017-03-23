@@ -41,14 +41,17 @@ export function dispatch<TState extends {}, TArg>(context: ComponentContext<TSta
 
     context.isUpdating = true
 
-    const result = fn(context.state!, arg)
+    let result = fn(context.state!, arg)
 
-    let effect: Effect | undefined = undefined
-    if (typeOf(result) === 'array') {
-        effect = result[1] as Effect
+    const resultType = typeOf(result)
+    if (resultType === 'object') {
+        result = [result] as Result<TState>
+    }
+    else if (resultType !== 'array') {
+        throw `${context.spec.name}: The result of an update function must be an object literal or a tuple`
     }
 
-    const newState = { ...<any>context.state, ...<any>result[0] }
+    const newState = { ...<any>context.state, ...(result as any)[0] }
 
     context.isUpdating = false
 
@@ -68,8 +71,8 @@ export function dispatch<TState extends {}, TArg>(context: ComponentContext<TSta
 
     context.state = newState
 
-    if (typeof effect !== 'undefined') {
-        effect(apply)
+    if ((result as any).length === 2 && typeof (result as any)[1] === 'function') {
+        (result as any)[1](apply)
     }
 
     // Update view if the component was already initialized and the 

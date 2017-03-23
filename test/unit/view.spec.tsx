@@ -1,4 +1,4 @@
-import { defineComponent, mountComponent, evolve, ElementVNode } from 'core'
+import { defineComponent, mountComponent, ElementVNode } from 'core'
 import { render } from 'core/view'
 import { initComponent } from 'core/component'
 import * as jsxFactory from 'core/jsxFactory'
@@ -69,7 +69,7 @@ describe('core.view.render', () => {
     it('mounts a component from a component virtual node', (done) => {
         const TestComponent = defineComponent({
             name: 'TestComponent1',
-            init: { state: undefined },
+            init: {},
             view: (_) => <div id="testComponent"></div>
         })
 
@@ -84,14 +84,14 @@ describe('core.view.render', () => {
 
     it('remounts a component if forceUpdate is set to true', (done) => {
         const mocks = {
-            mount: (m: any) => evolve(m)
+            mount: (m: any) => m
         }
 
         spyOn(mocks, 'mount').and.callThrough()
 
         const testComponent = defineComponent({
             name: 'TestComponent2',
-            init: { state: undefined },
+            init: {},
             onMount: mocks.mount,
             view: (_) => <div id="testComponent"></div>
         })
@@ -115,7 +115,7 @@ describe('core.view.render', () => {
         const mocks = {
             unmount: (s: any) => {
                 done()
-                return evolve(s)
+                return s
             }
         }
 
@@ -123,7 +123,7 @@ describe('core.view.render', () => {
 
         const TestComponent = defineComponent({
             name: 'TestComponent3',
-            init: { state: undefined },
+            init: {},
             onUnmount: mocks.unmount,
             view: (_) => <div></div>
         })
@@ -411,11 +411,9 @@ describe('core.view.render', () => {
 
         spyOn(mocks, 'assertProps').and.callThrough()
 
-        const ChildComponent = defineComponent<undefined, ChildComponentProps>({
+        const ChildComponent = defineComponent<{}, ChildComponentProps>({
             name: 'ChildComponent',
-            init: {
-                state: undefined
-            },
+            init: {},
             view: ctx => {
                 mocks.assertProps(ctx.props)
                 return <nothing />
@@ -424,7 +422,7 @@ describe('core.view.render', () => {
 
         const ParentComponent = defineComponent({
             name: 'ParentComponent',
-            init: { state: undefined },
+            init: {},
             view: () => <ChildComponent test="test" />
         })
 
@@ -449,13 +447,12 @@ describe('core.view.render', () => {
         type State = { clicked: boolean; itemId: number }
         type Props = { item: Item; forceUpdate: boolean }
 
-        const setClicked = (s: State) =>
-            evolve(s, x => x.clicked = true)
+        const setClicked = () => ({ clicked: true })
 
         const ItemComponent = defineComponent<State, Props>({
             name: randomName(),
-            init: { state: { clicked: false, itemId: -1 } },
-            onMount: (s, p) => evolve(s, x => x.itemId = p.item.id),
+            init: { clicked: false, itemId: -1 },
+            onMount: (_, p) => ({ itemId: p.item.id }),
             view: ctx =>
                 <button id={`item-${ctx.state.itemId}`}
                     class={ctx.state.clicked ? "clicked" : ""}
@@ -470,7 +467,7 @@ describe('core.view.render', () => {
 
         render(document.body, view1, view1, undefined)
 
-        let btn = (view1.domRef as HTMLDivElement).querySelector('button') !
+        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
         btn.click()
 
         expect(btn.className).toBe("clicked")
@@ -483,7 +480,7 @@ describe('core.view.render', () => {
 
         render(document.body, view2, view1, view1.domRef)
 
-        btn = (view2.domRef as HTMLDivElement).querySelector('button') !
+        btn = (view2.domRef as HTMLDivElement).querySelector('button')!
         expect(btn.id).toBe("item-5")
         expect(btn.className).toBe("")
 
@@ -510,13 +507,12 @@ describe('core.view.render', () => {
         type State = { clicked: boolean; itemId: number }
         type Props = { item: Item; forceUpdate: boolean }
 
-        const setClicked = (s: State) =>
-            evolve(s, x => x.clicked = true)
+        const setClicked = () => ({ clicked: true })
 
         const ItemComponent = defineComponent<State, Props>({
             name: randomName(),
-            init: { state: { clicked: false, itemId: -1 } },
-            onMount: (s, p) => evolve(s, x => x.itemId = p.item.id),
+            init: { clicked: false, itemId: -1 },
+            onMount: (_, p) => ({ itemId: p.item.id }),
             view: ctx =>
                 <button id={`item-${ctx.state.itemId}`}
                     class={ctx.state.clicked ? "clicked" : ""}
@@ -531,7 +527,7 @@ describe('core.view.render', () => {
 
         render(document.body, view1, view1, undefined)
 
-        let btn = (view1.domRef as HTMLDivElement).querySelector('button') !
+        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
         btn.click()
 
         expect(btn.className).toBe("clicked")
@@ -544,7 +540,7 @@ describe('core.view.render', () => {
 
         render(document.body, view2, view1, view1.domRef)
 
-        btn = (view2.domRef as HTMLDivElement).querySelector('button') !
+        btn = (view2.domRef as HTMLDivElement).querySelector('button')!
         expect(btn.id).toBe("item-5")
         expect(btn.className).toBe("clicked")
 
@@ -571,13 +567,12 @@ describe('core.view.render', () => {
         type State = { clicked: boolean; itemId: number }
         type Props = { key: number; item: Item }
 
-        const setClicked = (s: State) =>
-            evolve(s, x => x.clicked = true)
+        const setClicked = () => ({ clicked: true })
 
         const ItemComponent = defineComponent<State, Props>({
             name: randomName(),
-            init: { state: { clicked: false, itemId: -1 } },
-            onMount: (s, p) => evolve(s, x => x.itemId = p.item.id),
+            init: { clicked: false, itemId: -1 },
+            onMount: (_, p) => ({ itemId: p.item.id }),
             view: ctx =>
                 <button
                     id={`item-${ctx.state.itemId}`}
@@ -593,7 +588,7 @@ describe('core.view.render', () => {
 
         render(document.body, view1, view1, undefined)
 
-        let btn = (view1.domRef as HTMLDivElement).querySelector('button') !
+        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
         btn.click()
 
         expect(btn.className).toBe("clicked")
@@ -606,7 +601,7 @@ describe('core.view.render', () => {
 
         render(document.body, view2, view1, view1.domRef)
 
-        btn = (view2.domRef as HTMLDivElement).querySelector('button') !
+        btn = (view2.domRef as HTMLDivElement).querySelector('button')!
         expect(btn.className).toBe("")
         expect(btn.id).toBe("item-5")
 
@@ -632,13 +627,12 @@ describe('core.view.render', () => {
         type State = { clicked: boolean; itemId: number }
         type Props = { item: Item }
 
-        const setClicked = (s: State) =>
-            evolve(s, x => x.clicked = true)
+        const setClicked = () => ({ clicked: true })
 
         const ItemComponent = defineComponent<State, Props>({
             name: randomName(),
-            init: { state: { clicked: false, itemId: -1 } },
-            onMount: (s, p) => evolve(s, x => x.itemId = p.item.id),
+            init: { clicked: false, itemId: -1 },
+            onMount: (_, p) => ({ itemId: p.item.id }),
             view: ctx =>
                 <button
                     id={`item-${ctx.state.itemId}`}
@@ -654,7 +648,7 @@ describe('core.view.render', () => {
 
         render(document.body, view1, view1, undefined)
 
-        let btn = (view1.domRef as HTMLDivElement).querySelector('button') !
+        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
         btn.click()
 
         expect(btn.className).toBe("clicked")
@@ -667,7 +661,7 @@ describe('core.view.render', () => {
 
         render(document.body, view2, view1, view1.domRef)
 
-        btn = (view2.domRef as HTMLDivElement).querySelector('button') !
+        btn = (view2.domRef as HTMLDivElement).querySelector('button')!
         expect(btn.className).toBe("clicked")
         expect(btn.id).toBe("item-5")
 
@@ -693,15 +687,14 @@ describe('core.view.render', () => {
         type State = { clicked: boolean; itemId: number }
         type Props = { key: number; item: Item; forceUpdate: boolean }
 
-        const setClicked = (s: State) =>
-            evolve(s, x => x.clicked = true)
+        const setClicked = () => ({ clicked: true })
 
         let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
 
         const ItemComponent = defineComponent<State, Props>({
             name: randomName(),
-            init: { state: { clicked: false, itemId: -1 } },
-            onMount: (s, p) => evolve(s, x => x.itemId = p.item.id),
+            init: { clicked: false, itemId: -1 },
+            onMount: (_, p) => ({ itemId: p.item.id }),
             view: ctx => {
                 const v = <button id={`item-${ctx.state.itemId}`} class={ctx.state.clicked ? "clicked" : ""}
                     onclick={_ => ctx.apply(setClicked)}>
@@ -720,7 +713,7 @@ describe('core.view.render', () => {
 
         render(document.body, view1, view1, undefined)
 
-        let btn = view1.domRef!.querySelector('button') !
+        let btn = view1.domRef!.querySelector('button')!
         btn.click()
 
         expect(btn.className).toBe("clicked")
@@ -741,7 +734,7 @@ describe('core.view.render', () => {
 
         render(document.body, view2, view1, view1.domRef)
 
-        btn = view2.domRef!.querySelector('button') !
+        btn = view2.domRef!.querySelector('button')!
         expect(btn.className).toBe("")
         expect(btn.id).toBe("item-5")
 
@@ -767,15 +760,14 @@ describe('core.view.render', () => {
         type State = { clicked: boolean; itemId: number }
         type Props = { item: Item; forceUpdate: boolean }
 
-        const setClicked = (s: State) =>
-            evolve(s, x => x.clicked = true)
+        const setClicked = () => ({ clicked: true })
 
         let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
 
         const ItemComponent = defineComponent<State, Props>({
             name: randomName(),
-            init: { state: { clicked: false, itemId: -1 } },
-            onMount: (s, p) => evolve(s, x => x.itemId = p.item.id),
+            init: { clicked: false, itemId: -1 },
+            onMount: (_s, p) => ({ itemId: p.item.id }),
             view: ctx => {
                 const v = <button id={`item-${ctx.state.itemId}`} class={ctx.state.clicked ? "clicked" : ""}
                     onclick={_ => ctx.apply(setClicked)}>
@@ -794,7 +786,7 @@ describe('core.view.render', () => {
 
         render(document.body, view1, view1, undefined)
 
-        let btn = view1.domRef!.querySelector('button') !
+        let btn = view1.domRef!.querySelector('button')!
         btn.click()
 
         expect(btn.className).toBe("clicked")
@@ -816,7 +808,7 @@ describe('core.view.render', () => {
 
         render(document.body, view2, view1, view1.domRef)
 
-        btn = view2.domRef!.querySelector('button') !
+        btn = view2.domRef!.querySelector('button')!
 
         expect(btn.className).toBe("clicked")
         expect(btn.id).toBe("item-5")
@@ -830,14 +822,14 @@ describe('core.view.render', () => {
 
     it('unmounts a component which is a child of removed virtual node', () => {
         const mountMock = {
-            unmount: (x: number) => evolve(x)
+            unmount: (x: { val: number }) => x
         }
 
         spyOn(mountMock, 'unmount').and.callThrough()
 
         const ChildComponent = defineComponent({
             name: randomName(),
-            init: { state: 0 },
+            init: { val: 0 },
             onUnmount: mountMock.unmount,
             view: () => <div />
         })

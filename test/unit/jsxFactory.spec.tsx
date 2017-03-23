@@ -50,7 +50,7 @@ describe('jsxFactory', () => {
 
     it('creates an ElementVNode and sets props', () => {
 
-        const fn = () => () => core.evolve(0)
+        const fn = () => () => ({})
         const view = <div class="test" id="test" onclick={fn}></div>
 
         expect(view).toEqual({
@@ -106,15 +106,16 @@ describe('jsxFactory', () => {
     })
 
     it('Object element creates a ComponentVNode', () => {
+        type State = {
+
+        }
         type TestProps = {
             test: string
         }
 
-        const TestComponent = core.defineComponent<undefined, TestProps>({
+        const TestComponent = core.defineComponent<State, TestProps>({
             name: 'JsxComponent',
-            init: {
-                state: undefined
-            },
+            init: {},
             view: () => <div></div>
         })
 

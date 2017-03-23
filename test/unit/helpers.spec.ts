@@ -1,4 +1,4 @@
-import { equal, max, typeOf, evolve, deepCopy, flatten } from 'core/helpers'
+import { equal, max, typeOf, flatten } from 'core/helpers'
 
 
 describe('core.helpers.equal', () => {
@@ -161,91 +161,6 @@ describe('core.helpers.typeOf', () => {
         expect(typeOf(undefined)).toBe('undefined')
     })
 })
-
-describe('core.helpers.deepCopy', () => {
-
-    it('copies a deep hierarchy', () => {
-        const obj = {
-            a: 'A string',
-            b: {
-                c: [1, 2, 6, 10]
-            },
-            d: new Date(),
-            e: () => 'foo'
-        }
-        const objCopy = deepCopy(obj)
-
-        expect(JSON.stringify(objCopy)).toEqual(JSON.stringify(obj))
-        expect(objCopy).not.toBe(obj)
-    })
-})
-
-
-describe('core.helpers.evolve', () => {
-    it('leaves the original object untouched', () => {
-        const obj = {
-            a: 'A string'
-        }
-        evolve(obj, x => x.a = 'A new string')
-        expect(obj).toEqual(obj)
-    })
-
-    it('only updates changed properties', () => {
-        type EvolveTestObj = {
-            a: string
-            b: number
-            c: string[]
-            d: {
-                e: string
-            }
-        }
-
-        const obj: EvolveTestObj = {
-            a: 'A string',
-            b: 6,
-            c: [],
-            d: {
-                e: 'Another string'
-            }
-        }
-
-        const result = evolve(obj, x => {
-            x.a = 'An updated string'
-        })
-
-        expect(JSON.stringify(result.state)).toEqual(JSON.stringify({
-            a: 'An updated string',
-            b: 6,
-            c: [],
-            d: {
-                e: 'Another string'
-            }
-        }))
-    })
-
-    it('adds an effect to the effects array', () => {
-        const mockTask = () => { }
-        const result = evolve(53).and(mockTask)
-
-        expect(result.state).toBe(53)
-        expect(result.effects!.length).toBe(1)
-        expect(result.effects![0]).toEqual(mockTask)
-        expect(result.and).toBeDefined()
-    })
-
-    it('adds multiple effects to the task array', () => {
-        const mockTask1 = () => { }
-        const mockTask2 = () => { }
-        const mockTask3 = () => { }
-        const result = evolve(53).and(mockTask1).and(mockTask2, mockTask3)
-
-        expect(result.effects!.length).toBe(3)
-        expect(result.effects![0]).toEqual(mockTask1)
-        expect(result.effects![1]).toEqual(mockTask2)
-        expect(result.effects![2]).toEqual(mockTask3)
-    })
-})
-
 
 describe('core.helpers.flatten', () => {
     it('flattens a multidimensional array', () => {

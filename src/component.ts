@@ -1,5 +1,5 @@
 import { Update, ComponentFactory, ComponentVNode, ComponentSpec, ComponentContext, VNode } from './contract'
-import { equal } from './helpers'
+import { equal, typeOf } from './helpers'
 import { dispatch } from './dispatch'
 import { render } from './view'
 
@@ -34,7 +34,7 @@ export function initComponent<T>(vNode: ComponentVNode<T>, parentNode: Element) 
         initialized: false,
         dispatchLevel: 0,
         isUpdating: false,
-        state: spec.init[0]
+        state: typeOf(spec.init) === 'array' ? spec.init[0] : spec.init
     }
 
     vNode.id = nextId++

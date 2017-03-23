@@ -43,7 +43,7 @@ declare namespace myra {
     /**
      * The result of an Update function.
      */
-    type Result<TState> = [Partial<TState>] | [Partial<TState>, Effect | undefined]
+    type Result<TState> = Partial<TState> | [Partial<TState>, Effect]
 
     /**
      * Function that updates a component's state.

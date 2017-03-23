@@ -1,5 +1,5 @@
 import { dispatch } from 'core/dispatch'
-import { evolve, VNode, Apply, ComponentContext } from 'core'
+import { VNode, Apply, ComponentContext } from 'core'
 import * as jsxFactory from 'core/jsxFactory'
 
 /**
@@ -7,11 +7,12 @@ import * as jsxFactory from 'core/jsxFactory'
  */
 describe('core.dispatch', () => {
     it('updates state and calls render', () => {
-        const update = (x: number, arg: number) => evolve(x + arg)
+        const update = (x: { val: number }, arg: number) =>
+            ({ val: x.val + arg })
         const context = {
             spec: {
                 name: '',
-                init: { state: undefined },
+                init: { val: 0 },
                 view: () => <div>a text</div>
             },
             parentNode: document.body,
@@ -20,7 +21,7 @@ describe('core.dispatch', () => {
             dispatchLevel: 0,
             isUpdating: false,
             props: undefined,
-            state: 1,
+            state: { val: 0 },
             oldView: undefined,
             rootNode: document.body
         } as ComponentContext<any, any>
@@ -33,11 +34,12 @@ describe('core.dispatch', () => {
     })
 
     it('does not call render if dispatchLevel > 1', () => {
-        const update = (x: number, arg: number) => evolve(x + arg)
+        const update = (x: { val: number }, arg: number) =>
+            ({ val: x.val + arg })
         const context = {
             spec: {
                 name: '',
-                init: { state: undefined },
+                init: { val: 0 },
                 view: () => <div>a text</div>
             },
             parentNode: document.body,
@@ -46,7 +48,7 @@ describe('core.dispatch', () => {
             dispatchLevel: 1,
             isUpdating: false,
             props: undefined,
-            state: undefined,
+            state: { val: 0 },
             oldView: undefined,
             rootNode: document.body
         } as ComponentContext<any, any>
@@ -64,11 +66,12 @@ describe('core.dispatch', () => {
     })
 
     it('throws if already updating', () => {
-        const update = (x: number, arg: number) => evolve(x + arg)
+        const update = (x: { val: number }, arg: number) =>
+            ({ val: x.val + arg })
         const context = {
             spec: {
                 name: '',
-                init: { state: undefined },
+                init: { val: 1 },
                 view: () => <div>a text</div>
             },
             parentNode: document.body,
@@ -77,7 +80,7 @@ describe('core.dispatch', () => {
             dispatchLevel: 0,
             isUpdating: true,
             props: undefined,
-            state: 1,
+            state: { val: 1 },
             oldView: undefined,
             rootNode: document.body
         } as ComponentContext<any, any>
@@ -94,7 +97,7 @@ describe('core.dispatch', () => {
         const context = {
             spec: {
                 name: '',
-                init: { state: undefined },
+                init: undefined,
                 view: () => <div>a text</div>
             },
             parentNode: document.body,
@@ -102,7 +105,7 @@ describe('core.dispatch', () => {
             mountArg: undefined,
             dispatchLevel: 0,
             isUpdating: true,
-            state: 1,
+            state: undefined,
             oldView: undefined,
             rootNode: document.body
         }
@@ -113,27 +116,23 @@ describe('core.dispatch', () => {
         expect(() => dispatch(context as any, render, update as any, 2)).toThrow()
     })
 
-    it('invokes effects with an Apply function', () => {
+    it('invokes effect with an Apply function', () => {
 
         const mockEffects = {
-            effect1: (apply: Apply) => {
+            effect: (apply: Apply) => {
                 expect(apply).toBeDefined()
             },
-            effect2: (apply: Apply) => {
-                expect(apply).toBeDefined()
-            }
         }
 
-        spyOn(mockEffects, 'effect1')
-        spyOn(mockEffects, 'effect2')
+        spyOn(mockEffects, 'effect')
 
-        const update = (x: number, arg: number) =>
-            evolve(x + arg).and(mockEffects.effect1, mockEffects.effect2)
+        const update = (x: { val: number }, arg: number) =>
+            [{ val: x.val + arg }, mockEffects.effect]
 
         const context = {
             spec: {
                 name: '',
-                init: { state: undefined },
+                init: { val: 0 },
                 view: () => <div>a text</div>
             },
             parentNode: document.body,
@@ -142,7 +141,7 @@ describe('core.dispatch', () => {
             dispatchLevel: 0,
             isUpdating: false,
             props: undefined,
-            state: 1,
+            state: { val: 0 },
             oldView: undefined,
             rootNode: document.body
         } as ComponentContext<any, any>
@@ -151,8 +150,7 @@ describe('core.dispatch', () => {
 
         dispatch(context, render, update, 2)
 
-        expect(mockEffects.effect1).toHaveBeenCalledTimes(1)
-        expect(mockEffects.effect2).toHaveBeenCalledTimes(1)
+        expect(mockEffects.effect).toHaveBeenCalledTimes(1)
     })
 
     it('call onBeforeRender if a listener is supplied', () => {
@@ -163,11 +161,12 @@ describe('core.dispatch', () => {
         }
         spyOn(mock, 'onBeforeRender').and.callThrough()
 
-        const update = (x: number, arg: number) => evolve(x + arg)
+        const update = (x: { val: number }, arg: number) =>
+            ({ val: x.val + arg })
         const context = {
             spec: {
                 name: '',
-                init: { state: undefined },
+                init: { val: 0 },
                 view: () => <div>a text</div>,
                 onBeforeRender: mock.onBeforeRender
             },
@@ -177,7 +176,7 @@ describe('core.dispatch', () => {
             dispatchLevel: 0,
             isUpdating: false,
             props: undefined,
-            state: 1,
+            state: { val: 0 },
             oldView: undefined,
             rootNode: document.body
         } as ComponentContext<any, any>
@@ -199,11 +198,12 @@ describe('core.dispatch', () => {
         }
         spyOn(mock, 'onAfterRender').and.callThrough()
 
-        const update = (x: number, arg: number) => evolve(x + arg)
+        const update = (x: { val: number }, arg: number) =>
+            ({ val: x.val + arg })
         const context = {
             spec: {
                 name: '',
-                init: { state: undefined },
+                init: { val: 0 },
                 view: () => <div>a text</div>,
                 onAfterRender: mock.onAfterRender
             },
@@ -213,7 +213,7 @@ describe('core.dispatch', () => {
             dispatchLevel: 0,
             isUpdating: false,
             props: undefined,
-            state: 1,
+            state: { val: 0 },
             oldView: undefined,
             rootNode: document.body
         } as ComponentContext<any, any>
