@@ -4,14 +4,14 @@ import * as myra from 'myra'
 /**
  * State
  */
-type State = string | undefined
+type State = { param: string | undefined }
 
 
 /**
  * Updates
  */
 const mount = (_: State, paramsFromRoute: { param: string }) =>
-    myra.evolve(paramsFromRoute.param)
+    ({ param: paramsFromRoute.param })
 
 
 /**
@@ -22,8 +22,8 @@ export default myra.defineComponent({
     name: 'RouteComponent',
 
     // Init takes either an initial model or a tuple of an initial model 
-    // and one or more tasks to execute when the component is initialized.
-    init: { state: undefined },
+    // and an effect to execute when the component is initialized.
+    init: {},
 
     // The mount update function is called when the component is mounted.
     // It will not be called again unless it's arguments has changed or 
@@ -32,5 +32,5 @@ export default myra.defineComponent({
 
     // The view function is called after update. 
     view: ctx =>
-        <p>Hello route, with param: {ctx.state}</p>
+        <p>Hello route, with param: {ctx.state.param}</p>
 })

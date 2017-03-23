@@ -4,10 +4,7 @@ import * as todos from '../models/todos'
 
 type Todo = todos.Todo
 
-/**
- * State
- */
-type State = undefined
+type State = {}
 
 /**
  * Updates
@@ -24,9 +21,9 @@ const addNewTodo = (m: State, value: string) => {
             title: newTodo
         }
 
-        return myra.evolve(m).and(todos.add(todo))
+        return [m, todos.add(todo)]
     }
-    return myra.evolve(m)
+    return m
 }
 
 /**
@@ -34,7 +31,7 @@ const addNewTodo = (m: State, value: string) => {
  */
 export default myra.defineComponent<State, undefined>({
     name: 'MainComponent',
-    init: { state: undefined },
+    init: {},
     view: ctx =>
         <div>
             <section class="todoapp">

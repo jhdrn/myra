@@ -28,39 +28,30 @@ const init: State = {
 /**
  * Updates
  */
-const mount = (state: State, props: Props) =>
-    myra.evolve(state, x => {
-        x.todo = props.todo
-    })
+const mount = (_state: State, props: Props) =>
+    ({ todo: props.todo })
 
 const saveTodo = (state: State, value: string) => {
     const todo = value.trim()
     if (todo) {
-        const updatedTodo = myra.evolve(state.todo, t => {
-            t.title = todo
-        }).state
-        return myra.evolve(state, x => {
-            x.editing = false
-            x.todo = updatedTodo
-        }).and(todos.save(updatedTodo))
+        const updatedTodo = { ...state.todo, title: todo }
+        return [{
+            editing: false,
+            todo: updatedTodo
+        }, todos.save(updatedTodo)]
     }
     else {
-        return myra.evolve(state).and(todos.remove(state.todo.id))
+        return [state, todos.remove(state.todo.id)]
     }
 }
 
-const editTodo = (m: State) =>
-    myra.evolve(m, x => x.editing = true)
+const editTodo = () => ({ editing: true })
 
-const undoEditTodo = (m: State) =>
-    myra.evolve(m, x => x.editing = false)
+const undoEditTodo = () => ({ editing: false })
 
 const toggleTodoCompleted = (m: State) => {
-    const updatedTodo = myra.evolve(
-        m.todo,
-        t => t.completed = !m.todo.completed
-    ).state
-    return myra.evolve(m, x => x.todo = updatedTodo).and(todos.save(updatedTodo))
+    const updatedTodo = { ...m.todo, completed: !m.todo.completed }
+    return [{ todo: updatedTodo }, todos.save(updatedTodo)]
 }
 
 
@@ -83,7 +74,7 @@ const todoClass = (m: State) => {
  */
 export default myra.defineComponent<State, Props>({
     name: 'TodoItemComponent',
-    init: { state: init },
+    init: init,
     onMount: mount,
     view: ctx =>
         <li class={todoClass(ctx.state)}>
@@ -111,7 +102,7 @@ export default myra.defineComponent<State, Props>({
                             else if (ev.keyCode === 27) {
                                 ctx.apply(undoEditTodo)
                             }
-                        } } />
+                        }} />
                     : <nothing />
             }
         </li>

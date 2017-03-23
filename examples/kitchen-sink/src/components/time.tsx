@@ -18,32 +18,32 @@ const init = {
 /**
  * Updates
  */
-const timeoutStarted = (state: State, handle: number) =>
-    myra.evolve(state, m => m.timeoutHandle = handle)
-const timeoutEnded = (state: State) =>
-    myra.evolve(state, m => m.timeoutHandle = undefined)
-const timeoutCancelled = (state: State) =>
-    myra.evolve(state, m => m.timeoutHandle = undefined)
+const timeoutStarted = (_state: State, handle: number) =>
+    ({ timeoutHandle: handle })
+const timeoutEnded = (_state: State) =>
+    ({ timeoutHandle: undefined })
+const timeoutCancelled = (_state: State) =>
+    ({ timeoutHandle: undefined })
 
-const intervalStarted = (state: State, handle: number) =>
-    myra.evolve(state, m => m.intervalHandle = handle)
+const intervalStarted = (_state: State, handle: number) =>
+    ({ intervalHandle: handle })
 const intervalTick = (state: State) =>
-    myra.evolve(state, m => m.intervalTickValue += 100)
-const intervalCancelled = (state: State) =>
-    myra.evolve(state, m => {
-        m.intervalHandle = undefined
-        m.intervalTickValue = 0
+    ({ intervalTickValue: state.intervalTickValue + 100 })
+const intervalCancelled = (_state: State) =>
+    ({
+        intervalHandle: undefined,
+        intervalTickValue: 0
     })
 
 
 /**
- * Tasks
+ * Effects
  */
-const startTimeoutTask = startTimeout(5000, timeoutStarted, timeoutEnded)
-const cancelTimeoutTask = (handle: number) => cancelTimeout(handle, timeoutCancelled)
+const startTimeoutEffect = startTimeout(5000, timeoutStarted, timeoutEnded)
+const cancelTimeoutEffect = (handle: number) => cancelTimeout(handle, timeoutCancelled)
 
-const startIntervalTask = startInterval(100, intervalStarted, intervalTick)
-const cancelIntervalTask = (handle: number) => cancelInterval(handle, intervalCancelled)
+const startIntervalEffect = startInterval(100, intervalStarted, intervalTick)
+const cancelIntervalEffect = (handle: number) => cancelInterval(handle, intervalCancelled)
 
 
 /**
@@ -54,10 +54,8 @@ export default myra.defineComponent({
     name: 'TimeComponent',
 
     // Init takes either an initial model or a tuple of an initial model 
-    // and one or more tasks to execute when the component is initialized.
-    init: {
-        state: init
-    },
+    // and an effect to execute when the component is initialized.
+    init: init,
 
     // The view function is called after update. 
     view: ctx =>
@@ -67,12 +65,12 @@ export default myra.defineComponent({
                 {ctx.state.timeoutHandle ?
                     <button type="button"
                         class="btn btn-sm btn-default"
-                        onclick={() => ctx.invoke(cancelTimeoutTask(ctx.state.timeoutHandle!))}>
+                        onclick={() => ctx.invoke(cancelTimeoutEffect(ctx.state.timeoutHandle!))}>
                         Cancel timeout
                     </button>
                     : <button type="button"
                         class="btn btn-sm btn-default"
-                        onclick={() => ctx.invoke(startTimeoutTask)}>
+                        onclick={() => ctx.invoke(startTimeoutEffect)}>
                         Set a timeout of 5 seconds
                       </button>
                 }
@@ -81,12 +79,12 @@ export default myra.defineComponent({
                 {ctx.state.intervalHandle ?
                     <button type="button"
                         class="btn btn-sm btn-default"
-                        onclick={() => ctx.invoke(cancelIntervalTask(ctx.state.intervalHandle!))}>
+                        onclick={() => ctx.invoke(cancelIntervalEffect(ctx.state.intervalHandle!))}>
                         Cancel interval
                     </button>
                     : <button type="button"
                         class="btn btn-sm btn-default"
-                        onclick={() => ctx.invoke(startIntervalTask)}>
+                        onclick={() => ctx.invoke(startIntervalEffect)}>
                         Start interval
                       </button>
                 }

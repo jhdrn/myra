@@ -4,15 +4,15 @@ import * as myra from 'myra'
 /**
  * State
  */
-type State = number
-const init = myra.evolve(0)
+type State = { val: number }
+const init = { val: 0 }
 
 
 /**
  * Updates
  */
-const increase = (state: State) => myra.evolve(state + 1)
-const decrease = (state: State) => myra.evolve(state - 1)
+const increase = (state: State) => ({ val: state.val + 1 })
+const decrease = (state: State) => ({ val: state.val - 1 })
 
 
 /**

@@ -17,13 +17,12 @@ export default myra.defineComponent({
 
     // Init takes either an initial model or a tuple of an initial model 
     // and one or more tasks to execute when the component is initialized.
-    init: { state: "" },
+    init: {},
 
     // This callback is optional and is called when the component is mounted or
     // re-mounted (if it's arguments has changed or if it's explicitly forced to 
     // re-mount). The props of the component are passed as the second argument.
-    onMount: (_: string, props: Props) =>
-        myra.evolve(props.foo),
+    onMount: (state, _props: Props) => state,
 
     // The view function is called after update. 
     view: ctx =>

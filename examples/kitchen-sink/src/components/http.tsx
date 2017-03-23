@@ -23,15 +23,15 @@ const httpRequestEffect =
         method: 'GET',
         url: 'https://api.github.com/repos/jhdrn/myra',
         responseType: 'text',
-        onSuccess: (state: State, response: HttpResponse<any>) =>
-            myra.evolve(state, m => {
-                m.responseStatus = 'success'
-                m.response = response
+        onSuccess: (_state: State, response: HttpResponse<any>) =>
+            ({
+                responseStatus: 'success',
+                response: response
             }),
-        onFailure: (state: State, response: HttpResponse<any>) =>
-            myra.evolve(state, m => {
-                m.responseStatus = 'failure'
-                m.response = response
+        onFailure: (_state: State, response: HttpResponse<any>) =>
+            ({
+                responseStatus: 'failure',
+                response: response
             })
     })
 
@@ -43,8 +43,8 @@ export default myra.defineComponent({
     name: 'HttpComponent',
 
     // Init takes either an initial model or a tuple of an initial model 
-    // and one or more tasks to execute when the component is initialized.
-    init: { state: init },
+    // and an effect to execute when the component is initialized.
+    init: init,
 
     // The view function is called after update. 
     view: ctx =>
