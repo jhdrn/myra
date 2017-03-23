@@ -5,8 +5,8 @@ import * as myra from 'myra'
  * either a string or undefined. The initial state is undefined, but it will
  * be updated when the component is mounted, see below.
  */
-type State = string | undefined
-const init: State = undefined
+type State = { hello: string | undefined }
+const init: State = { hello: undefined }
 
 
 /**
@@ -19,7 +19,7 @@ const init: State = undefined
  * is more complex. It copies the state and returns a Result<State>.
  */
 const mount = (_: State) =>
-    myra.evolve('Hello world!')
+    ({ hello: 'Hello world!' })
 
 
 /**
@@ -29,7 +29,7 @@ const mount = (_: State) =>
  * This function is applied when the <p>-tag in the view is clicked, see below.
  */
 const updateHelloWorld = (s: State, arg: string) =>
-    myra.evolve(`${s} again ${arg}`)
+    ({ hello: `${s.hello} again ${arg}` })
 
 
 /**
@@ -39,7 +39,7 @@ const AppComponent = myra.defineComponent({
     // The name is required. It should be unique within your application.
     name: 'HelloWorldApp',
     // The initial state (also required).
-    init: { state: init },
+    init: init,
     // This callback is optional and is called when the component is mounted or
     // re-mounted (if it's arguments has changed or if it's explicitly forced to 
     // re-mount)
@@ -49,7 +49,7 @@ const AppComponent = myra.defineComponent({
     // update the state. 
     view: ctx =>
         <p onclick={() => ctx.apply(updateHelloWorld, 'with an argument')}>
-            {ctx.state}
+            {ctx.state.hello}
         </p>
 })
 
