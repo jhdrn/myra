@@ -1,5 +1,3 @@
-import { Result, Effect } from './contract'
-
 export const isIE9 = document.all && !window.atob
 
 export type Type = 'array' | 'object' | 'string' | 'date' | 'regexp' | 'function' | 'boolean' | 'number' | 'null' | 'undefined'
@@ -90,61 +88,4 @@ export function flatten<T>(arg: T[]): T[] {
         acc.push(x)
         return acc
     }, [] as T[])
-}
-
-/**
- * Does a deep copy of an object.
- */
-export function deepCopy<T>(value: T): T {
-    const type = typeOf(value)
-    switch (type) {
-        case 'array':
-            return (value as any as Array<any>).map(x => deepCopy(x)) as any as T
-        case 'object':
-            const copy = {}
-            for (const key in value) {
-                if (value.hasOwnProperty(key)) {
-                    (copy as any)[key] = deepCopy((value as any)[key])
-                }
-            }
-            return copy as T
-        case 'date':
-            return new Date((value as any as Date).valueOf()) as any as T
-        case 'function': // Should this case be handled differently?
-        default:
-            return value
-    }
-}
-
-export interface Evolved<T> extends Result<T> {
-    and: (effect: Effect, ...effects: Effect[]) => Evolved<T>
-}
-
-/**
- * Creates a new object by deep copying "original". The evolve function is used 
- * to update the copy with new data.
- */
-export function evolve<T>(original: T, evolve?: ((obj: T) => void)): Evolved<T> {
-    const copy = deepCopy(original)
-
-    if (evolve) {
-        evolve(copy)
-    }
-
-    const result = {
-        state: copy,
-        effects: [] as Effect[]
-    } as Result<T>
-
-    (result as Evolved<T>).and = (effect: Effect, ...effects: Effect[]) => {
-        result.effects!.push(effect)
-        if (typeof effects !== 'undefined') {
-            for (let i = 0; i < effects.length; i++) {
-                result.effects!.push(effects[i])
-            }
-        }
-        return result as Evolved<T>
-    }
-
-    return result as Evolved<T>
 }

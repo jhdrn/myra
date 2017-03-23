@@ -1,4 +1,12 @@
-import { Update, Effect, VNode, ComponentContext, Result, ViewContext } from './contract'
+import {
+    Update,
+    Effect,
+    VNode,
+    ComponentContext,
+    Result,
+    ViewContext
+} from './contract'
+import { typeOf } from './helpers'
 
 export interface Render {
     (parentNode: Element, view: VNode, oldView: VNode | undefined, oldRootNode: Node | undefined): void
@@ -23,7 +31,7 @@ export function debug(debug: boolean = true, options?: DebugOptions) {
     }
 }
 
-export function dispatch<TState, TArg>(context: ComponentContext<TState, any>, render: Render, fn: (state: TState, arg: TArg) => Result<TState>, arg: TArg) {
+export function dispatch<TState extends {}, TArg>(context: ComponentContext<TState, any>, render: Render, fn: (state: TState, arg: TArg) => Result<TState>, arg: TArg) {
 
     if (context.isUpdating) {
         throw `${context.spec.name}: Dispatch error - the dispatch function may not be called during an update. Doing so would most likely corrupt the state.`
@@ -35,9 +43,12 @@ export function dispatch<TState, TArg>(context: ComponentContext<TState, any>, r
 
     const result = fn(context.state!, arg)
 
-    if (typeof result !== 'object') {
-        throw 'Invalid result.'
+    let effect: Effect | undefined = undefined
+    if (typeOf(result) === 'array') {
+        effect = result[1] as Effect
     }
+
+    const newState = { ...<any>context.state, ...<any>result[0] }
 
     context.isUpdating = false
 
@@ -50,17 +61,15 @@ export function dispatch<TState, TArg>(context: ComponentContext<TState, any>, r
             console.groupCollapsed(`${context.spec.name} ${(fn as any).name}`)
             console.debug('State before update: ', context.state)
             console.debug(`Update arguments: `, arg)
-            console.debug('State after update: ', result.state)
+            console.debug('State after update: ', newState)
             console.groupEnd()
         }
     }
 
-    context.state = result.state
+    context.state = newState
 
-    if (typeof result.effects !== 'undefined' && result.effects.length) {
-        for (let i = 0; i < result.effects.length; i++) {
-            result.effects[i](apply)
-        }
+    if (typeof effect !== 'undefined') {
+        effect(apply)
     }
 
     // Update view if the component was already initialized and the 

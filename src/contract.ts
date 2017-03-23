@@ -10,7 +10,7 @@ export interface ComponentContext<TState, TProps> extends myra.ComponentContext<
 export type ComponentFactory<T> = myra.ComponentFactory<T>
 
 export type Effect = myra.Effect
-export interface Result<S> extends myra.Result<S> { }
+export type Result<S> = myra.Result<S>
 export type Update<S, A> = myra.Update<S, A>
 export type Apply = <S, A>(fn: Update<S, A>, ...args: any[]) => void
 

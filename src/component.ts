@@ -34,13 +34,13 @@ export function initComponent<T>(vNode: ComponentVNode<T>, parentNode: Element) 
         initialized: false,
         dispatchLevel: 0,
         isUpdating: false,
-        state: spec.init.state
+        state: spec.init[0]
     }
 
     vNode.id = nextId++
     contexts[vNode.id] = context
 
-    if (typeof spec.init.effects !== 'undefined' && spec.init.effects.length) {
+    if (typeof spec.init[1] !== 'undefined') {
         // Dispatch once with init. The view won't be rendered.
         dispatch(context, render, function onInit() { return spec.init }, undefined)
     }
@@ -53,7 +53,7 @@ export function initComponent<T>(vNode: ComponentVNode<T>, parentNode: Element) 
     }
     else {
         onMount = function onMount<S>(m: S) {
-            return { state: m }
+            return m
         }
     }
 
@@ -93,7 +93,7 @@ export function updateComponent<T>(newVNode: ComponentVNode<T>, oldVNode: Compon
                 render,
                 typeof context.spec.onMount !== 'undefined' ?
                     context.spec.onMount :
-                    (<TState>(s: TState) => ({ state: s })),
+                    (<TState>(s: TState) => [s]),
                 newVNode.props)
         }
 
@@ -107,6 +107,7 @@ export function updateComponent<T>(newVNode: ComponentVNode<T>, oldVNode: Compon
  * Defines a component from a ComponentSpec returning a factory that creates 
  * ComponentVNode/JSXElement's for the component.
  */
+// export function defineComponent<TState, TProps>(name: string, view: View<TState, TProps>): ComponentFactory<TProps>
 export function defineComponent<TState, TProps>(spec: ComponentSpec<TState, TProps>): ComponentFactory<TProps> {
     if (componentSpecs[spec.name]) {
         throw `A component with name '${spec.name}' is already defined!`
