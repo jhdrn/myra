@@ -95,7 +95,7 @@ declare namespace myra {
      * A virtual node that represents a text DOM node. 
      */
     interface TextVNode extends VNodeBase {
-        readonly __type: 1
+        readonly _: 1
         readonly value: string
     }
 
@@ -103,7 +103,7 @@ declare namespace myra {
      * A virtual node representing a DOM Element. 
      */
     interface ElementVNode<TElement extends Element> extends VNodeBase {
-        readonly __type: 2
+        readonly _: 2
         readonly tagName: string
         readonly props: GlobalAttributes<TElement>
         readonly children: VNode[]
@@ -114,7 +114,7 @@ declare namespace myra {
      * A virtual node representing a component.
      */
     interface ComponentVNode<TProps> extends VNodeBase {
-        readonly __type: 3
+        readonly _: 3
         readonly name: string
         id: number;
         children: VNode[]
@@ -127,7 +127,7 @@ declare namespace myra {
      * node.
      */
     interface NothingVNode extends VNodeBase {
-        readonly __type: 0
+        readonly _: 0
     }
 
     /**

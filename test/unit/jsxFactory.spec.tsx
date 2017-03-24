@@ -8,7 +8,7 @@ describe('jsxFactory', () => {
         const view = <div>{'some text'}</div> as core.ElementVNode<any>
 
         expect(view.children[0]).toEqual({
-            __type: 1,
+            _: 1,
             value: 'some text'
         } as core.TextVNode)
     })
@@ -18,7 +18,7 @@ describe('jsxFactory', () => {
         const view = <nothing />
 
         expect(view).toEqual({
-            __type: 0
+            _: 0
         } as core.NothingVNode)
     })
 
@@ -41,7 +41,7 @@ describe('jsxFactory', () => {
         const view = <div></div>
 
         expect(view).toEqual({
-            __type: 2,
+            _: 2,
             tagName: 'div',
             props: {},
             children: []
@@ -54,7 +54,7 @@ describe('jsxFactory', () => {
         const view = <div class="test" id="test" onclick={fn}></div>
 
         expect(view).toEqual({
-            __type: 2,
+            _: 2,
             tagName: 'div',
             props: {
                 'class': 'test',
@@ -66,7 +66,7 @@ describe('jsxFactory', () => {
     })
 
     const childVNode = {
-        __type: 2,
+        _: 2,
         tagName: 'div',
         props: {},
         children: []
@@ -77,7 +77,7 @@ describe('jsxFactory', () => {
         const view = <div><div></div></div>
 
         expect(view).toEqual({
-            __type: 2,
+            _: 2,
             tagName: 'div',
             props: {},
             children: [
@@ -91,14 +91,14 @@ describe('jsxFactory', () => {
         const view = <div><div></div><div></div>abc</div>
 
         expect(view).toEqual({
-            __type: 2,
+            _: 2,
             tagName: 'div',
             props: {},
             children: [
                 childVNode,
                 childVNode,
                 {
-                    __type: 1,
+                    _: 1,
                     value: 'abc'
                 } as core.TextVNode
             ]
@@ -121,7 +121,7 @@ describe('jsxFactory', () => {
 
         const view = <TestComponent test="test" /> as core.ComponentVNode<TestProps>
 
-        expect(view.__type).toBe(3)
+        expect(view._).toBe(3)
         expect(view.name).toBe('JsxComponent')
         expect(view.props).toEqual({ test: 'test' })
     })
@@ -133,7 +133,7 @@ describe('jsxFactory', () => {
 
         const view = <TestComponent test="test" /> as core.ElementVNode<HTMLDivElement>
 
-        expect(view.__type).toBe(2)
+        expect(view._).toBe(2)
         expect(view.tagName).toBe('div')
     })
 })

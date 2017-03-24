@@ -145,7 +145,7 @@ export function defineComponent<TState, TProps>(spec: ComponentSpec<TState, TPro
 
     return (props: TProps, childNodes: VNode[] = []) => {
         return {
-            __type: 3,
+            _: 3,
             name: spec.name,
             id: 0,
             children: childNodes,
@@ -169,7 +169,7 @@ export function mountComponent(componentFactory: ComponentFactory<any>, element:
  * hierarchy.
  */
 export function findAndUnmountComponentsRec(vNode: VNode) {
-    if (vNode.__type === 3) {
+    if (vNode._ === 3) {
         const ctx = contexts[vNode.id]
         if (typeof ctx.spec.onUnmount === 'function') {
             dispatch(ctx, render, ctx.spec.onUnmount, undefined)
@@ -177,7 +177,7 @@ export function findAndUnmountComponentsRec(vNode: VNode) {
         delete contexts[vNode.id]
         findAndUnmountComponentsRec(ctx.rendition!)
     }
-    else if (vNode.__type === 2) {
+    else if (vNode._ === 2) {
         for (const c of vNode.children) {
             findAndUnmountComponentsRec(c)
         }

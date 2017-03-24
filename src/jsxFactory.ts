@@ -13,7 +13,7 @@ function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
                 if (typeof c === 'string') {
 
                     flattenedChildren.push({
-                        __type: 1,
+                        _: 1,
                         value: child as any as string
                     } as TextVNode)
                 }
@@ -23,19 +23,19 @@ function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
             }
         }
         else if (typeof child === 'object') {
-            if (typeof (child as VNode).__type !== 'undefined') {
+            if (typeof (child as VNode)._ !== 'undefined') {
                 flattenedChildren.push(child as VNode)
             }
             else {
                 flattenedChildren.push({
-                    __type: 1,
+                    _: 1,
                     value: child as any as string
                 } as TextVNode)
             }
         }
         else if (typeof child !== 'undefined') {
             flattenedChildren.push({
-                __type: 1,
+                _: 1,
                 value: child
             } as TextVNode)
         }
@@ -50,13 +50,13 @@ function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
 export function createElement<T>(tagNameOrComponent: string | ComponentFactory<T>, props: T, ...children: (string | VNode)[]): JSX.Element {
 
     if (tagNameOrComponent === 'nothing') {
-        return { __type: 0 }
+        return { _: 0 }
     }
     else if (typeof tagNameOrComponent === 'string') {
 
         if (tagNameOrComponent === 'text') {
             return {
-                __type: 1,
+                _: 1,
                 value: children[0] as string
             } as TextVNode
         }
@@ -66,7 +66,7 @@ export function createElement<T>(tagNameOrComponent: string | ComponentFactory<T
         }
 
         return {
-            __type: 2,
+            _: 2,
             tagName: tagNameOrComponent,
             props: props,
             children: flattenChildren(children)

@@ -24,113 +24,98 @@ export function render(
     existingDomNode: Node | undefined): void {
 
     const replaceNode = shouldReplaceNode(newVNode, oldVNode)
-    if (replaceNode && oldVNode.__type === 3) {
+    if (replaceNode && oldVNode._ === 3) {
         findAndUnmountComponentsRec(oldVNode)
     }
 
     if (typeof existingDomNode === 'undefined' || typeof oldVNode === 'undefined' || replaceNode) {
-        renderNewNode(replaceNode, parentDomNode, newVNode, oldVNode, existingDomNode)
+        // if no existing DOM node, create one
+        const newNode = createNode(newVNode, parentDomNode)
+
+        newVNode.domRef = newNode
+
+        if (replaceNode) {
+            if (oldVNode._ === 2) {
+                // Remove old event listeners before replacing the node. 
+                for (const attr in oldVNode.props) {
+                    if (attr.indexOf('on') === 0) {
+                        removeAttr(attr, existingDomNode as Element)
+                    }
+                }
+            }
+
+            parentDomNode.replaceChild(newNode, existingDomNode!)
+        }
+        else {
+            parentDomNode.appendChild(newNode)
+        }
+
+        if (newVNode._ === 2) {
+
+            for (const name in newVNode.props) {
+                const attributeValue = (newVNode.props as any)[name]
+
+                if (typeof attributeValue !== 'undefined') {
+
+                    const eventListener = tryCreateEventListener(name, attributeValue, newVNode)
+
+                    let value: any
+                    if (typeof eventListener === 'undefined') {
+                        value = attributeValue
+                    }
+                    else {
+                        value = eventListener
+                    }
+
+                    setAttr(
+                        newNode as HTMLElement,
+                        name,
+                        value
+                    )
+                }
+            }
+
+            for (const c of newVNode.children) {
+                if (typeof c !== 'undefined') {
+                    render(newNode as Element, c, c, undefined)
+                }
+            }
+        }
     }
     else { // reuse the old node
-        reRenderNode(newVNode, oldVNode, existingDomNode)
-    }
-}
 
-/** 
- * Renders a new virtual node by creating a new DOM node and attaching it to 
- * it's parent.
- */
-function renderNewNode(replaceNode: boolean, parentDomNode: Element, newVNode: VNode, oldVNode: VNode, existingDomNode: Node | undefined) {
-    // if no existing DOM node, create one
-    const newNode = createNode(newVNode, parentDomNode)
+        // if (!nodesEqual(oldVNode.node, existingDomNode)) {
+        //     // TODO: "debug mode" with logging
+        //     // console.error('The view is not matching the DOM. Are outside forces tampering with it?')
+        //     // console.error('Expected node:')
+        //     // console.error(oldVNode.node)
+        //     // console.error('Actual node:')
+        //     // console.error(existingDomNode)
+        // }
 
-    newVNode.domRef = newNode
-
-    if (replaceNode) {
-        if (oldVNode.__type === 2) {
-            // Remove old event listeners before replacing the node. 
-            for (const attr in oldVNode.props) {
-                if (attr.indexOf('on') === 0) {
-                    removeAttr(attr, existingDomNode as Element)
-                }
-            }
+        // update existing node
+        switch (newVNode._) {
+            case 2:
+                updateElementAttributes(newVNode, oldVNode, existingDomNode)
+                renderChildNodes(newVNode, oldVNode, existingDomNode)
+                break
+            case 1:
+                existingDomNode.textContent = newVNode.value
+                break
+            case 3:
+                updateComponent(newVNode, oldVNode as ComponentVNode<any>)
+                break
         }
 
-        parentDomNode.replaceChild(newNode, existingDomNode!)
-    }
-    else {
-        parentDomNode.appendChild(newNode)
-    }
-
-    if (newVNode.__type === 2) {
-
-        for (const name in newVNode.props) {
-            const attributeValue = (newVNode.props as any)[name]
-
-            if (typeof attributeValue !== 'undefined') {
-
-                const eventListener = tryCreateEventListener(name, attributeValue, newVNode)
-
-                let value: any
-                if (typeof eventListener === 'undefined') {
-                    value = attributeValue
-                }
-                else {
-                    value = eventListener
-                }
-
-                setAttr(
-                    newNode as HTMLElement,
-                    name,
-                    value
-                )
-            }
+        if (typeof newVNode.domRef === 'undefined') {
+            // add a reference to the node
+            newVNode.domRef = existingDomNode
         }
 
-        for (const c of newVNode.children) {
-            if (typeof c !== 'undefined') {
-                render(newNode as Element, c, c, undefined)
-            }
+        if (newVNode !== oldVNode) {
+            // clean up
+            oldVNode.domRef = undefined
         }
-    }
-}
-
-/** 
- * Re-renders a virtual node by reusing a DOM node. 
- */
-function reRenderNode(newVNode: VNode, oldVNode: VNode, existingDomNode: Node) {
-
-    // if (!nodesEqual(oldVNode.node, existingDomNode)) {
-    //     // TODO: "debug mode" with logging
-    //     // console.error('The view is not matching the DOM. Are outside forces tampering with it?')
-    //     // console.error('Expected node:')
-    //     // console.error(oldVNode.node)
-    //     // console.error('Actual node:')
-    //     // console.error(existingDomNode)
-    // }
-
-    // update existing node
-    switch (newVNode.__type) {
-        case 2:
-            updateElementAttributes(newVNode, oldVNode, existingDomNode)
-            renderChildNodes(newVNode, oldVNode, existingDomNode)
-            break
-        case 1:
-            existingDomNode.textContent = newVNode.value
-            break
-        case 3:
-            updateComponent(newVNode, oldVNode as ComponentVNode<any>)
-            break
-    }
-
-    if (typeof newVNode.domRef === 'undefined') {
-        // add a reference to the node
-        newVNode.domRef = existingDomNode
-    }
-
-    if (newVNode !== oldVNode) {
-        // clean up
-        oldVNode.domRef = undefined
     }
 }
 
@@ -141,7 +126,7 @@ function renderChildNodes(newVNode: ElementVNode<any>, oldVNode: VNode, existing
 
     // Iterate over children and add/update/remove nodes
     const noOfNewVNodeChildren = newVNode.children.length
-    const noOfOldVNodeChildren = oldVNode.__type === 2 ? oldVNode.children.length : 0
+    const noOfOldVNodeChildren = oldVNode._ === 2 ? oldVNode.children.length : 0
     const maxIterations = max(noOfNewVNodeChildren, noOfOldVNodeChildren)
 
     let childVNodeIndex = 0
@@ -188,7 +173,7 @@ function renderChildNodes(newVNode: ElementVNode<any>, oldVNode: VNode, existing
  */
 function findOldChildVNode(newChildVNode: VNode, oldVNode: VNode, childIndex: number) {
 
-    if (oldVNode.__type !== 2 && oldVNode.__type !== 3) {
+    if (oldVNode._ !== 2 && oldVNode._ !== 3) {
         return newChildVNode
     }
 
@@ -198,8 +183,8 @@ function findOldChildVNode(newChildVNode: VNode, oldVNode: VNode, childIndex: nu
     }
     else if (typeof newChildVNode !== 'undefined') {
 
-        const mayBeKeyed = newChildVNode.__type === 2 && oldChildVNode.__type === 2
-            || newChildVNode.__type === 3 && oldChildVNode.__type === 3
+        const mayBeKeyed = newChildVNode._ === 2 && oldChildVNode._ === 2
+            || newChildVNode._ === 3 && oldChildVNode._ === 3
 
         if (mayBeKeyed
             && (newChildVNode as ElementVNode<any>).props.key !== (oldChildVNode as ElementVNode<any>).props.key) {
@@ -209,7 +194,7 @@ function findOldChildVNode(newChildVNode: VNode, oldVNode: VNode, childIndex: nu
 
                 child = oldVNode.children[i] as ElementVNode<any>
 
-                if (child.__type === newChildVNode.__type && child.props.key === (newChildVNode as ElementVNode<any>).props.key) {
+                if (child._ === newChildVNode._ && child.props.key === (newChildVNode as ElementVNode<any>).props.key) {
                     return child
                 }
             }
@@ -227,14 +212,14 @@ function shouldReplaceNode(newVNode: VNode, oldVNode: VNode | undefined): boolea
     if (typeof oldVNode === 'undefined') {
         return false
     }
-    else if (newVNode.__type !== oldVNode.__type) {
+    else if (newVNode._ !== oldVNode._) {
         return true
     }
-    else if (newVNode.__type === 2 && oldVNode.__type === 2 &&
+    else if (newVNode._ === 2 && oldVNode._ === 2 &&
         newVNode.tagName !== oldVNode.tagName) {
         return true
     }
-    else if (newVNode.__type === 3 && oldVNode.__type === 3 &&
+    else if (newVNode._ === 3 && oldVNode._ === 3 &&
         newVNode.name !== oldVNode.name) {
         return true
     }
@@ -259,14 +244,14 @@ function setAttr(element: HTMLElement, attributeName: string, attributeValue: an
             ; (element as any)[attributeName] = attributeValue
         }
     }
+    else if (attributeValue && (attributeName === 'click' || attributeName === 'blur' || attributeName === 'focus')) {
+        (element as any)[attributeName]()
+    }
     else if (attributeName === 'value' && (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA' || element.tagName === 'SELECT')) {
         (element as HTMLInputElement).value = attributeValue
     }
     else if (BOOL_ATTRS.indexOf(attributeName) >= 0) {
         (element as any)[attributeName] = !!attributeValue
-    }
-    else if (attributeValue && (attributeName === 'blur' || attributeName === 'click' || attributeName === 'focus')) {
-        (element as any)[attributeName]()
     }
     else if (typeof attributeValue !== 'function' && typeof attributeValue !== 'object') {
         element.setAttribute(attributeName, attributeValue)
@@ -302,7 +287,7 @@ function tryCreateEventListener(attributeName: string, eventListener: EventListe
  * Creates a Node from a VNode. 
  */
 function createNode(vNode: VNode, parentNode: Element): Node {
-    switch (vNode.__type) {
+    switch (vNode._) {
         case 2:
             return document.createElement(vNode.tagName)
         case 1:
