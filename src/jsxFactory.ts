@@ -14,7 +14,7 @@ function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
 
                     flattenedChildren.push({
                         _: 1,
-                        value: child as any as string
+                        value: c as any as string
                     } as TextVNode)
                 }
                 else {
