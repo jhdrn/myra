@@ -1,5 +1,3 @@
-export const isIE9 = document.all && !window.atob
-
 export type Type = 'array' | 'object' | 'string' | 'date' | 'regexp' | 'function' | 'boolean' | 'number' | 'null' | 'undefined'
 
 /**
