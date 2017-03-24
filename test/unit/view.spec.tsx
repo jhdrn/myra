@@ -29,32 +29,6 @@ describe('core.view.render', () => {
         done()
     })
 
-    it('creates and returns a text node from a text virtual node', (done) => {
-        const view = <text>a text</text>
-
-        render(document.body, view, view, undefined)
-
-        expect(view.domRef!.nodeType).toBe(Node.TEXT_NODE)
-        expect(view.domRef!.nodeValue).toBe('a text')
-
-        done()
-    })
-
-    it('updates a text node with a new value', (done) => {
-        const view1 = <text>a text</text>
-        const view2 = <text>a new text</text>
-
-        render(document.body, view1, view1, undefined)
-        let node = view1.domRef!
-        expect(node.nodeValue).toBe('a text')
-
-        render(document.body, view2, view1, node)
-        node = view2.domRef!
-        expect(node.nodeValue).toBe('a new text')
-
-        done()
-    })
-
     it('creates and returns a "nothing" comment node from a nothing virtual node', (done) => {
         const view = <nothing />
 

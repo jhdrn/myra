@@ -22,7 +22,7 @@ function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
                 }
             }
         }
-        else if (typeof child === 'object') {
+        else if (typeof child !== 'undefined') {
             if (typeof (child as VNode)._ !== 'undefined') {
                 flattenedChildren.push(child as VNode)
             }
@@ -33,12 +33,6 @@ function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
                 } as TextVNode)
             }
         }
-        else if (typeof child !== 'undefined') {
-            flattenedChildren.push({
-                _: 1,
-                value: child
-            } as TextVNode)
-        }
     }
 
     return flattenedChildren as VNode[]
@@ -47,23 +41,20 @@ function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
 /**
  * Creates a JSX.Element/VNode from a JSX tag.
  */
-export function createElement<T>(tagNameOrComponent: string | ComponentFactory<T>, props: T, ...children: (string | VNode)[]): JSX.Element {
+export function createElement<T>(
+    tagNameOrComponent: string | ComponentFactory<T>,
+    props: T,
+    ...children: (string | VNode)[]): JSX.Element {
 
     if (tagNameOrComponent === 'nothing') {
         return { _: 0 }
     }
-    else if (typeof tagNameOrComponent === 'string') {
 
-        if (tagNameOrComponent === 'text') {
-            return {
-                _: 1,
-                value: children[0] as string
-            } as TextVNode
-        }
+    if (props === null) {
+        props = {} as T
+    }
 
-        if (props === null) {
-            props = {} as T
-        }
+    if (typeof tagNameOrComponent === 'string') {
 
         return {
             _: 2,
@@ -71,10 +62,6 @@ export function createElement<T>(tagNameOrComponent: string | ComponentFactory<T
             props: props,
             children: flattenChildren(children)
         }
-    }
-
-    if (props === null) {
-        props = {} as T
     }
 
     return tagNameOrComponent(props, children as VNode[])

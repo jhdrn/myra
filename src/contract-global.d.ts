@@ -461,7 +461,6 @@ declare namespace JSX {
     }
     export interface IntrinsicElements {
         nothing: never
-        text: never
 
         a: myra.AAttributes
         attr: GlobalAttributes<HTMLElement>
