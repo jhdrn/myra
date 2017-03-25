@@ -7,10 +7,11 @@ import {
     VNode,
     ComponentContext,
     Result,
+    Render,
     ViewContext
 } from './contract'
 import { equal, typeOf } from './helpers'
-import { render } from './view'
+import { render } from './renderer'
 
 export type DebugOptions = {
     components?: string[]
@@ -135,8 +136,21 @@ export function updateComponent<T>(newVNode: ComponentVNode<T>, oldVNode: Compon
  * Defines a component from a ComponentSpec returning a factory that creates 
  * ComponentVNode/JSXElement's for the component.
  */
-// export function defineComponent<TState, TProps>(name: string, view: View<TState, TProps>): ComponentFactory<TProps>
-export function defineComponent<TState, TProps>(spec: ComponentSpec<TState, TProps>): ComponentFactory<TProps> {
+export function define<TState, TProps>(name: string, init: Result<TState>, render: Render<TState, TProps>): ComponentFactory<TProps>
+export function define<TState, TProps>(spec: ComponentSpec<TState, TProps>): ComponentFactory<TProps>
+export function define<TState, TProps>(): ComponentFactory<TProps> {
+    let spec: ComponentSpec<TState, TProps>
+    if (typeof arguments[0] === 'object') {
+        spec = arguments[0]
+    }
+    else {
+        spec = {
+            name: arguments[0],
+            init: arguments[1],
+            render: arguments[2]
+        }
+    }
+
     if (componentSpecs[spec.name]) {
         throw `A component with name '${spec.name}' is already defined!`
     }
@@ -160,7 +174,7 @@ export function defineComponent<TState, TProps>(spec: ComponentSpec<TState, TPro
  * Mounts the component onto the supplied element by calling the supplied 
  * component factory. 
  */
-export function mountComponent(componentFactory: ComponentFactory<any>, element: Element) {
+export function mount(componentFactory: ComponentFactory<any>, element: Element) {
     initComponent(componentFactory({}), element)
 }
 
@@ -244,7 +258,7 @@ function dispatch<TState extends {}, TArg>(
             parentElement: context.parentElement
         } as ViewContext<TState, any>
 
-        const newView = context.spec.view(ctx)
+        const newView = context.spec.render(ctx)
 
         const oldNode = context.rendition ? context.rendition.domRef : undefined
         render(context.parentElement, newView, context.rendition, oldNode)

@@ -72,35 +72,35 @@ const todoClass = (m: State) => {
 /**
  * Component
  */
-export default myra.defineComponent<State, Props>({
+export default myra.define<State, Props>({
     name: 'TodoItemComponent',
-    init: init,
-    onMount: mount,
-    view: ctx =>
-        <li class={todoClass(ctx.state)}>
+    init: {},
+    // onMount: mount,
+    render: ({ state, props, apply, invoke }) =>
+        <li class={todoClass(state)}>
             <div class="view">
                 <input class="toggle"
                     type="checkbox"
-                    checked={ctx.state.todo.completed}
-                    onclick={() => ctx.apply(toggleTodoCompleted) > ctx.props.onchange()} />
+                    checked={state.todo.completed}
+                    onclick={() => apply(toggleTodoCompleted) > props.onchange()} />
 
-                <label ondblclick={ctx.state.todo.completed ? undefined : () => ctx.apply(editTodo)}>
-                    {ctx.state.todo.title}
+                <label ondblclick={state.todo.completed ? undefined : () => apply(editTodo)}>
+                    {state.todo.title}
                 </label>
-                <button class="destroy" onclick={() => ctx.invoke(todos.remove(ctx.state.todo.id)) > ctx.props.onchange()}></button>
+                <button class="destroy" onclick={() => invoke(todos.remove(state.todo.id)) > props.onchange()}></button>
             </div>
             {
-                ctx.state.editing ?
+                state.editing ?
                     <input class="edit"
                         focus
-                        value={ctx.state.todo.title}
-                        onblur={(_, el) => ctx.apply(saveTodo, el.value)}
+                        value={state.todo.title}
+                        onblur={(_, el) => apply(saveTodo, el.value)}
                         onkeyup={(ev, el) => {
                             if (ev.keyCode === 13) {
-                                ctx.apply(saveTodo, el.value)
+                                apply(saveTodo, el.value)
                             }
                             else if (ev.keyCode === 27) {
-                                ctx.apply(undoEditTodo)
+                                apply(undoEditTodo)
                             }
                         }} />
                     : <nothing />

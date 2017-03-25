@@ -18,26 +18,26 @@ const decrease = (state: State) => ({ val: state.val - 1 })
 /**
  * Component
  */
-export default myra.defineComponent({
+export default myra.define(
     // The name of the component. Used for debugging purposes.
-    name: 'CounterComponent',
+    'CounterComponent',
 
     // Init takes either an initial model or a tuple of an initial model 
-    // and one or more tasks to execute when the component is initialized.
-    init: init,
+    // and an effect to execute when the component is initialized.
+    init,
 
-    // The view function is called after update. 
-    view: ctx =>
+    // The render function is called after an update. 
+    ({ state, apply }) =>
         <section>
             <h2>Counter example</h2>
             <button type="button"
                 class="btn btn-sm btn-default"
-                onclick={() => ctx.apply(increase)}>+</button>
+                onclick={() => apply(increase)}>+</button>
 
-            <span> {ctx.state} </span>
+            <span> {state.val} </span>
 
             <button type="button"
                 class="btn btn-sm btn-default"
-                onclick={() => ctx.apply(decrease)}>-</button>
+                onclick={() => apply(decrease)}>-</button>
         </section>
-})
+)

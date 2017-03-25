@@ -35,7 +35,7 @@ const updateHelloWorld = (s: State, arg: string) =>
 /**
  * This is the actual component definition.
  */
-const AppComponent = myra.defineComponent({
+const AppComponent = myra.define({
     // The name is required. It should be unique within your application.
     name: 'HelloWorldApp',
     // The initial state (also required).
@@ -44,10 +44,10 @@ const AppComponent = myra.defineComponent({
     // re-mounted (if it's arguments has changed or if it's explicitly forced to 
     // re-mount)
     onMount: mount,
-    // The required view of the component. It is passed a ViewContext<State> 
-    // argument which holds the state, any child nodes and some functions to
-    // update the state. 
-    view: ctx =>
+    // The required render function of the component. It is passed a 
+    // ViewContext<State> argument which holds the state, any child nodes and 
+    // some functions to update the state. 
+    render: ctx =>
         <p onclick={() => ctx.apply(updateHelloWorld, 'with an argument')}>
             {ctx.state.hello}
         </p>
@@ -57,4 +57,4 @@ const AppComponent = myra.defineComponent({
 /**
  * Mounts the component to a DOM element.
  */
-myra.mountComponent(AppComponent, document.body)
+myra.mount(AppComponent, document.body)

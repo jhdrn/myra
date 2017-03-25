@@ -1,4 +1,5 @@
 import * as myra from 'myra'
+
 import PropsComponent from './props'
 import StatelessComponent from './stateless-component'
 import CounterComponent from './counter'
@@ -10,7 +11,7 @@ import RoutingComponent from './routing'
 /**
  * View
  */
-const view = () =>
+export default myra.define('MainComponent', {}, () =>
     <div class="container">
         <h1>Kitchen sink demo</h1>
         <hr />
@@ -25,20 +26,4 @@ const view = () =>
         <TimeComponent />
         <hr />
         <RoutingComponent />
-    </div>
-
-
-/**
- * Component
- */
-export default myra.defineComponent({
-    // The name of the component. Used for debugging purposes.
-    name: 'KitchenSinkApp',
-
-    // Init takes either an initial model or a tuple of an initial model 
-    // and one or more tasks to execute when the component is initialized.
-    init: { state: undefined },
-
-    // The view function is called after update. 
-    view: view
-})
+    </div>)

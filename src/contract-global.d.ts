@@ -13,7 +13,7 @@ declare namespace myra {
         readonly init: Result<TState>
         readonly onMount?: Update<TState, TProps>
         readonly onUnmount?: Update<TState, undefined>
-        readonly view: View<TState, TProps>
+        readonly render: Render<TState, TProps>
     }
 
     /** "Component state holder" interface */
@@ -68,7 +68,7 @@ declare namespace myra {
     /**
      * Function that is responsible of creating a component's view.
      */
-    interface View<TState, TProps> {
+    interface Render<TState, TProps> {
         (ctx: ViewContext<TState, TProps>): VNode
     }
 

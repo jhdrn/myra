@@ -60,18 +60,18 @@ const loadTodos = (state: State) =>
 /**
  * Init model
  */
-const init = {
-    state: {
+const init = [
+    {
         todos: [],
         itemsLeft: 0,
         filter: 'all',
         location: {} as router.RouteContext
-    } as State,
-    effects: [
-        loadFilter(applySavedFilter),
-        router.addListener(applyFilterFromLocation)
-    ]
-}
+    },
+    ((apply: myra.Apply) => {
+        loadFilter(applySavedFilter)(apply)
+        router.addListener(applyFilterFromLocation)(apply)
+    }) as myra.Effect
+]
 
 /**
  * View
@@ -94,24 +94,24 @@ const filterLink = (href: string, txt: string, routeCtx: router.RouteContext) =>
 /**
  * Component
  */
-export default myra.defineComponent<State, any>({
+export default myra.define<State, {}>({
     name: 'TodoListComponent',
     init: init,
     onMount: loadTodos,
-    view: ({ state, update }) =>
+    render: ({ state, apply }) =>
         state.todos.length ?
             <div>
                 <section class="main">
                     <input class="toggle-all"
                         type="checkbox"
                         checked={state.todos.every(t => t.completed)}
-                        onclick={() => update(todos.toggleAll(!state.todos.every(t => t.completed), loadTodos))} />
+                        onclick={() => apply(todos.toggleAll(!state.todos.every(t => t.completed), loadTodos))} />
 
                     <label for="toggle-all">Mark all as complete</label>
                     <ul class="todo-list">
                         {
                             state.todos.filter(filterTodos(state)).map(todo =>
-                                <TodoItemComponent onchange={() => todos.getAll(todosLoaded).then(update)} todo={todo} />
+                                <TodoItemComponent onchange={() => apply(todos.getAll(todosLoaded))} todo={todo} />
                             )
                         }
                     </ul>
@@ -135,7 +135,7 @@ export default myra.defineComponent<State, any>({
                     {
                         state.todos.filter(t => t.completed).length ?
                             <button class="clear-completed"
-                                onclick={() => update(todos.removeCompleted(loadTodos))}>
+                                onclick={() => apply(todos.removeCompleted(loadTodos))}>
                                 Clear completed
                             </button> : <nothing />
                     }

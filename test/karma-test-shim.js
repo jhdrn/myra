@@ -16,12 +16,8 @@ System.config({
                 'core': './src/index',
                 'core/component': './src/component',
                 'core/contract': './src/contract',
-                'core/dispatch': './src/dispatch',
-                'core/task': './src/task',
                 'core/helpers': './src/helpers',
-                'core/subscriptions': './src/subscriptions',
-                'core/validation': './src/validation',
-                'core/view': './src/view',
+                'core/renderer': './src/renderer',
                 'core/jsxFactory': './src/jsxFactory'
             }
         }

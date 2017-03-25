@@ -1,4 +1,4 @@
-import { defineComponent, mountComponent, ComponentVNode, Apply } from 'core'
+import { define, mount, ComponentVNode, Apply } from 'core'
 import { initComponent, updateComponent, findAndUnmountComponentsRec } from 'core/component'
 import * as jsxFactory from 'core/jsxFactory'
 
@@ -11,10 +11,10 @@ const randomName = () => Math.random().toString()
  */
 describe('defineComponent', () => {
     const componentName = randomName()
-    const component1 = defineComponent({
+    const component1 = define({
         name: componentName,
         init: {},
-        view: () => <div />
+        render: () => <div />
     })
 
     it('has a name', () => {
@@ -22,10 +22,10 @@ describe('defineComponent', () => {
     })
 
     it('throws if a component with the same name is already defined', () => {
-        expect(() => defineComponent({
+        expect(() => define({
             name: componentName,
             init: {},
-            view: () => <div />
+            render: () => <div />
         })).toThrow()
     })
 })
@@ -37,13 +37,13 @@ describe('mountComponent', () => {
 
     it('mounts the compontent', () => {
 
-        const component = defineComponent({
+        const component = define({
             name: randomName(),
             init: {},
-            view: () => <div id="root" />
+            render: () => <div id="root" />
         })
 
-        mountComponent(component, document.body)
+        mount(component, document.body)
 
         const rootNode = q('#root')
 
@@ -57,14 +57,14 @@ describe('mountComponent', () => {
 
         spyOn(mountMock, 'mount').and.callThrough()
 
-        const component = defineComponent({
+        const component = define({
             name: randomName(),
             init: { val: 0 },
             onMount: mountMock.mount,
-            view: () => <div />
+            render: () => <div />
         })
 
-        mountComponent(component, document.body)
+        mount(component, document.body)
 
         expect(mountMock.mount).toHaveBeenCalled()
     })
@@ -79,19 +79,19 @@ describe('mountComponent', () => {
 
         spyOn(viewMock, 'view').and.callThrough()
 
-        const component = defineComponent<any, any>({
+        const component = define<any, any>({
             name: randomName(),
             init: {},
-            view: viewMock.view
+            render: viewMock.view
         })
 
-        const parent = defineComponent({
+        const parent = define({
             name: randomName(),
             init: {},
-            view: () => component(undefined, [<div id="divTestId" />])
+            render: () => component(undefined, [<div id="divTestId" />])
         })
 
-        mountComponent(parent, document.body)
+        mount(parent, document.body)
 
         expect(q('#divTestId')).not.toBeNull()
 
@@ -112,11 +112,11 @@ describe('unmountComponent', () => {
 
         spyOn(mountMock, 'unmount').and.callThrough()
 
-        const Component = defineComponent({
+        const Component = define({
             name: randomName(),
             init: { val: 0 },
             onUnmount: mountMock.unmount,
-            view: () => <div />
+            render: () => <div />
         })
         const instance = <Component /> as ComponentVNode<{}>
 
@@ -133,24 +133,24 @@ describe('unmountComponent', () => {
 
         spyOn(mountMock, 'unmount').and.callThrough()
 
-        const ChildChildComponent = defineComponent({
+        const ChildChildComponent = define({
             name: randomName(),
             init: { val: 0 },
             onUnmount: mountMock.unmount,
-            view: () => <div />
+            render: () => <div />
         })
 
-        const ChildComponent = defineComponent({
+        const ChildComponent = define({
             name: randomName(),
             init: { val: 0 },
             onUnmount: mountMock.unmount,
-            view: () => <ChildChildComponent />
+            render: () => <ChildChildComponent />
         })
 
-        const component = defineComponent({
+        const component = define({
             name: randomName(),
             init: { val: 0 },
-            view: () => <div><ChildComponent /></div>
+            render: () => <div><ChildComponent /></div>
         })
 
         const instance = component({})
@@ -173,11 +173,11 @@ describe('updateComponent', () => {
 
         spyOn(mountMock, 'mount').and.callThrough()
 
-        const component = defineComponent({
+        const component = define({
             name: randomName(),
             init: { val: 0 },
             onMount: mountMock.mount,
-            view: () => <div />
+            render: () => <div />
         })
 
         const vNode = component(45)
@@ -194,11 +194,11 @@ describe('updateComponent', () => {
 
         spyOn(mountMock, 'mount').and.callThrough()
 
-        const component = defineComponent({
+        const component = define({
             name: randomName(),
             init: { val: 0 },
             onMount: mountMock.mount,
-            view: () => <div />
+            render: () => <div />
         })
 
         const vNode = component({})
@@ -218,11 +218,11 @@ describe('updateComponent', () => {
 
         spyOn(mountMock, 'mount').and.callThrough()
 
-        const component = defineComponent({
+        const component = define({
             name: 'Test',
             init: { val: 0 },
             onMount: mountMock.mount,
-            view: () => <div />
+            render: () => <div />
         })
 
         const vNode = component({ prop: 'a value' })
@@ -241,11 +241,11 @@ describe('updateComponent', () => {
 
         spyOn(mountMock, 'mount').and.callThrough()
 
-        const component = defineComponent({
+        const component = define({
             name: 'ThrowsOnUpdateReturningString',
             init: { val: 0 },
             onMount: mountMock.mount,
-            view: () => <div />
+            render: () => <div />
         })
 
         const vNode = component({ prop: 'a value' })
@@ -265,11 +265,11 @@ describe('updateComponent', () => {
         const update = (x: { val: number }) =>
             [{ val: x.val }, mockEffects.effect]
 
-        const component = defineComponent({
+        const component = define({
             name: 'InvokesEffect',
             init: { val: 0 },
             onMount: update,
-            view: () => <div />
+            render: () => <div />
         })
 
         const vNode = component({})

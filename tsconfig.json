@@ -31,8 +31,8 @@
             "core/helpers": [
                 "src/helpers"
             ],
-            "core/view": [
-                "src/view"
+            "core/renderer": [
+                "src/renderer"
             ],
             "core/jsxFactory": [
                 "src/jsxFactory"

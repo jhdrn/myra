@@ -11,7 +11,7 @@ type Props = {
 /**
  * Component
  */
-export default myra.defineComponent({
+export default myra.define({
     // The name of the component. Used for debugging purposes.
     name: 'PropsComponent',
 
@@ -24,15 +24,15 @@ export default myra.defineComponent({
     // re-mount). The props of the component are passed as the second argument.
     onMount: (state, _props: Props) => state,
 
-    // The view function is called after update. 
-    view: ctx =>
+    // The render function is called after an update. 
+    render: ({ props }) =>
         <section>
             <h2>Props example</h2>
             <dl>
                 <dt>The value of <code>props.foo</code> is:</dt>
-                <dd>{ctx.props.foo}</dd>
+                <dd>{props.foo}</dd>
                 <dt>The value of <code>props.bar</code> is:</dt>
-                <dd>{ctx.props.bar}</dd>
+                <dd>{props.bar}</dd>
             </dl>
         </section>
 })
