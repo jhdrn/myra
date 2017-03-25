@@ -50,13 +50,13 @@ let nextId = 1
  * dispatch with the intial value from the component spec. If spec.onMount is
  * set, it will also be applied.
  */
-export function initComponent<T>(vNode: ComponentVNode<T>, parentNode: Element) {
+export function initComponent<T>(vNode: ComponentVNode<T>, parentElement: Element) {
 
     const spec = componentSpecs[vNode.name]
 
     const context: ComponentContext<T, any> = {
-        parentNode: parentNode,
         spec: spec,
+        parentElement: parentElement,
         childNodes: vNode.children,
         props: vNode.props,
         initialized: false,
@@ -184,11 +184,11 @@ export function findAndUnmountComponentsRec(vNode: VNode) {
     }
 }
 
-interface Render {
-    (parentNode: Element, view: VNode, oldView: VNode | undefined, oldRootNode: Node | undefined): void
-}
-
-function dispatch<TState extends {}, TArg>(context: ComponentContext<TState, any>, render: Render, fn: (state: TState, arg: TArg) => Result<TState>, arg: TArg) {
+function dispatch<TState extends {}, TArg>(
+    context: ComponentContext<TState, any>,
+    render: (parentNode: Element, view: VNode, oldView: VNode | undefined, oldRootNode: Node | undefined) => void,
+    fn: (state: TState, arg: TArg) => Result<TState>,
+    arg: TArg) {
 
     if (context.isUpdating) {
         throw `${context.spec.name}: Dispatch error - the dispatch function may not be called during an update. Doing so would most likely corrupt the state.`
@@ -240,22 +240,15 @@ function dispatch<TState extends {}, TArg>(context: ComponentContext<TState, any
             state: context.state!,
             apply: apply,
             invoke: (fn: Effect) => fn(apply),
-            children: context.childNodes
+            children: context.childNodes,
+            parentElement: context.parentElement
         } as ViewContext<TState, any>
 
         const newView = context.spec.view(ctx)
 
-        if (typeof context.spec.onBeforeRender !== 'undefined') {
-            context.spec.onBeforeRender(newView, ctx.state)
-        }
-
         const oldNode = context.rendition ? context.rendition.domRef : undefined
-        render(context.parentNode, newView, context.rendition, oldNode)
+        render(context.parentElement, newView, context.rendition, oldNode)
         context.rendition = newView
-
-        if (typeof context.spec.onAfterRender !== 'undefined') {
-            context.spec.onAfterRender(newView, ctx.state)
-        }
     }
     context.dispatchLevel--
 }

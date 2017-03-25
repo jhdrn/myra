@@ -1,4 +1,4 @@
-import { defineComponent, mountComponent, ComponentVNode, VNode, Apply } from 'core'
+import { defineComponent, mountComponent, ComponentVNode, Apply } from 'core'
 import { initComponent, updateComponent, findAndUnmountComponentsRec } from 'core/component'
 import * as jsxFactory from 'core/jsxFactory'
 
@@ -276,55 +276,5 @@ describe('updateComponent', () => {
         initComponent(vNode, document.body)
 
         expect(mockEffects.effect).toHaveBeenCalledTimes(1)
-    })
-
-    it('call onBeforeRender if a listener is supplied', () => {
-        const mock = {
-            onBeforeRender: (vNode: VNode) => {
-                expect(vNode._).toBe(2)
-            }
-        }
-        spyOn(mock, 'onBeforeRender').and.callThrough()
-
-        const update = (x: { val: number }) =>
-            ({ val: x.val })
-
-        const component = defineComponent({
-            name: 'onBeforeRender',
-            init: { val: 0 },
-            onMount: update,
-            onBeforeRender: mock.onBeforeRender,
-            view: () => <div />
-        })
-
-        const vNode = component({})
-        initComponent(vNode, document.body)
-
-        expect(mock.onBeforeRender).toHaveBeenCalledTimes(1)
-    })
-
-    it('call onAfterRender if a listener is supplied', () => {
-        const mock = {
-            onAfterRender: (vNode: VNode) => {
-                expect(vNode._).toBe(2)
-            }
-        }
-        spyOn(mock, 'onAfterRender').and.callThrough()
-
-        const update = (x: { val: number }) =>
-            ({ val: x.val })
-
-        const component = defineComponent({
-            name: 'onAfterRender',
-            init: { val: 0 },
-            onMount: update,
-            onAfterRender: mock.onAfterRender,
-            view: () => <div />
-        })
-
-        const vNode = component({})
-        initComponent(vNode, document.body)
-
-        expect(mock.onAfterRender).toHaveBeenCalledTimes(1)
     })
 })
