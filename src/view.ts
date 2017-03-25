@@ -24,6 +24,8 @@ export function render(
     existingDomNode: Node | undefined): void {
 
     const replaceNode = shouldReplaceNode(newVNode, oldVNode)
+
+    // If it's a component node and i should be replaced, unmount any components
     if (replaceNode && oldVNode._ === 3) {
         findAndUnmountComponentsRec(oldVNode)
     }
@@ -35,8 +37,9 @@ export function render(
         newVNode.domRef = newNode
 
         if (replaceNode) {
+            // If it's an element node remove old event listeners before 
+            // replacing the node. 
             if (oldVNode._ === 2) {
-                // Remove old event listeners before replacing the node. 
                 for (const attr in oldVNode.props) {
                     if (attr.indexOf('on') === 0) {
                         removeAttr(attr, existingDomNode as Element)
@@ -50,6 +53,7 @@ export function render(
             parentDomNode.appendChild(newNode)
         }
 
+        // If it's an element node set attributes and event listeners
         if (newVNode._ === 2) {
 
             for (const name in newVNode.props) {
@@ -95,14 +99,14 @@ export function render(
 
         // update existing node
         switch (newVNode._) {
-            case 2:
+            case 2: // element node
                 updateElementAttributes(newVNode, oldVNode, existingDomNode)
                 renderChildNodes(newVNode, oldVNode, existingDomNode)
                 break
-            case 1:
+            case 1: // text node
                 existingDomNode.textContent = newVNode.value
                 break
-            case 3:
+            case 3: // component node
                 updateComponent(newVNode, oldVNode as ComponentVNode<any>)
                 break
         }
