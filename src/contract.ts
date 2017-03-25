@@ -18,7 +18,7 @@ export type Apply = <S, A>(fn: Update<S, A>, ...args: any[]) => void
  * View types
  */
 export interface ViewContext<TState, TProps> extends myra.ViewContext<TState, TProps> { }
-export interface View<TState, TProps> extends myra.View<TState, TProps> { }
+export interface Render<TState, TProps> extends myra.Render<TState, TProps> { }
 
 export type EventListener<T extends Event, E extends Element> = myra.EventListener<T, E>
 

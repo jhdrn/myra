@@ -11,17 +11,15 @@ declare namespace myra {
     interface ComponentSpec<TState, TProps extends {}> {
         readonly name: string
         readonly init: Result<TState>
-        readonly onAfterRender?: (rootVNode: VNode, state: TState) => void
-        readonly onBeforeRender?: (rootVNode: VNode, state: TState) => void
         readonly onMount?: Update<TState, TProps>
         readonly onUnmount?: Update<TState, undefined>
-        readonly view: View<TState, TProps>
+        readonly render: Render<TState, TProps>
     }
 
     /** "Component state holder" interface */
     interface ComponentContext<TState, TProps extends {}> {
         readonly spec: ComponentSpec<TState, any>
-        readonly parentNode: Element
+        readonly parentElement: Element
         initialized: boolean
         dispatchLevel: number
         isUpdating: boolean
@@ -64,12 +62,13 @@ declare namespace myra {
         readonly apply: Apply
         readonly invoke: (effect: Effect) => void
         readonly children?: VNode[]
+        readonly parentElement: Element
     }
 
     /**
      * Function that is responsible of creating a component's view.
      */
-    interface View<TState, TProps> {
+    interface Render<TState, TProps> {
         (ctx: ViewContext<TState, TProps>): VNode
     }
 

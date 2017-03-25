@@ -17,7 +17,7 @@ const mount = (_: State, paramsFromRoute: { param: string }) =>
 /**
  * Component
  */
-export default myra.defineComponent({
+export default myra.define({
     // The name of the component. Used for debugging purposes.
     name: 'RouteComponent',
 
@@ -30,7 +30,7 @@ export default myra.defineComponent({
     // the "forceMount" parameter was set to true when mounting the component.
     onMount: mount,
 
-    // The view function is called after update. 
-    view: ctx =>
-        <p>Hello route, with param: {ctx.state.param}</p>
+    // The render function is called after an update. 
+    render: ({ state }) =>
+        <p>Hello route, with param: {state.param}</p>
 })

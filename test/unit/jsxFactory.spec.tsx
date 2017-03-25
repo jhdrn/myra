@@ -113,10 +113,10 @@ describe('jsxFactory', () => {
             test: string
         }
 
-        const TestComponent = core.defineComponent<State, TestProps>({
+        const TestComponent = core.define<State, TestProps>({
             name: 'JsxComponent',
             init: {},
-            view: () => <div></div>
+            render: () => <div></div>
         })
 
         const view = <TestComponent test="test" /> as core.ComponentVNode<TestProps>

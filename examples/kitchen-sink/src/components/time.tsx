@@ -49,46 +49,46 @@ const cancelIntervalEffect = (handle: number) => cancelInterval(handle, interval
 /**
  * Component
  */
-export default myra.defineComponent({
+export default myra.define(
     // The name of the component. Used for debugging purposes.
-    name: 'TimeComponent',
+    'TimeComponent',
 
     // Init takes either an initial model or a tuple of an initial model 
     // and an effect to execute when the component is initialized.
-    init: init,
+    init,
 
     // The view function is called after update. 
-    view: ctx =>
+    ({ state, invoke }) =>
         <section>
             <h2>Time examples</h2>
             <p>
-                {ctx.state.timeoutHandle ?
+                {state.timeoutHandle ?
                     <button type="button"
                         class="btn btn-sm btn-default"
-                        onclick={() => ctx.invoke(cancelTimeoutEffect(ctx.state.timeoutHandle!))}>
+                        onclick={() => invoke(cancelTimeoutEffect(state.timeoutHandle!))}>
                         Cancel timeout
                     </button>
                     : <button type="button"
                         class="btn btn-sm btn-default"
-                        onclick={() => ctx.invoke(startTimeoutEffect)}>
+                        onclick={() => invoke(startTimeoutEffect)}>
                         Set a timeout of 5 seconds
                       </button>
                 }
             </p>
             <p>
-                {ctx.state.intervalHandle ?
+                {state.intervalHandle ?
                     <button type="button"
                         class="btn btn-sm btn-default"
-                        onclick={() => ctx.invoke(cancelIntervalEffect(ctx.state.intervalHandle!))}>
+                        onclick={() => invoke(cancelIntervalEffect(state.intervalHandle!))}>
                         Cancel interval
                     </button>
                     : <button type="button"
                         class="btn btn-sm btn-default"
-                        onclick={() => ctx.invoke(startIntervalEffect)}>
+                        onclick={() => invoke(startIntervalEffect)}>
                         Start interval
                       </button>
                 }
             </p>
-            <p>Milliseconds since interval started: {ctx.state.intervalTickValue}</p>
+            <p>Milliseconds since interval started: {state.intervalTickValue}</p>
         </section>
-})
+)

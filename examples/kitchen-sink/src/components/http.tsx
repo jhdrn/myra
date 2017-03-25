@@ -38,36 +38,27 @@ const httpRequestEffect =
 /**
  * Component
  */
-export default myra.defineComponent({
-    // The name of the component. Used for debugging purposes.
-    name: 'HttpComponent',
-
-    // Init takes either an initial model or a tuple of an initial model 
-    // and an effect to execute when the component is initialized.
-    init: init,
-
-    // The view function is called after update. 
-    view: ctx =>
-        <section>
-            <h2>HTTP example</h2>
-            <button type="button"
-                class="btn btn-sm btn-default"
-                onclick={() => ctx.invoke(httpRequestEffect)}>
-                Make HTTP request
+export default myra.define('HttpComponent', init, ({ state, invoke }) =>
+    <section>
+        <h2>HTTP example</h2>
+        <button type="button"
+            class="btn btn-sm btn-default"
+            onclick={() => invoke(httpRequestEffect)}>
+            Make HTTP request
             </button>
 
-            <p>Response status:{ctx.state.responseStatus}</p>
-            {ctx.state.response ?
-                <div>
-                    {ctx.state.response.status}
-                    {ctx.state.response.statusText}
-                    {ctx.state.responseStatus === 'success' ?
-                        <p><strong>Response text:</strong>{ctx.state.response.data}</p>
-                        : <nothing />
-                    }
-                </div>
-                : <nothing />
-            }
+        <p>Response status:{state.responseStatus}</p>
+        {state.response ?
+            <div>
+                {state.response.status}
+                {state.response.statusText}
+                {state.responseStatus === 'success' ?
+                    <p><strong>Response text:</strong>{state.response.data}</p>
+                    : <nothing />
+                }
+            </div>
+            : <nothing />
+        }
 
-        </section>
-})
+    </section>
+)

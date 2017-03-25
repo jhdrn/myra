@@ -1,5 +1,5 @@
-import { defineComponent, mountComponent, ElementVNode } from 'core'
-import { render } from 'core/view'
+import { define, mount, ElementVNode } from 'core'
+import { render } from 'core/renderer'
 import { initComponent } from 'core/component'
 import * as jsxFactory from 'core/jsxFactory'
 
@@ -41,10 +41,10 @@ describe('core.view.render', () => {
     })
 
     it('mounts a component from a component virtual node', (done) => {
-        const TestComponent = defineComponent({
+        const TestComponent = define({
             name: 'TestComponent1',
             init: {},
-            view: (_) => <div id="testComponent"></div>
+            render: (_) => <div id="testComponent"></div>
         })
 
         const view = <div><TestComponent /></div>
@@ -63,11 +63,11 @@ describe('core.view.render', () => {
 
         spyOn(mocks, 'mount').and.callThrough()
 
-        const testComponent = defineComponent({
+        const testComponent = define({
             name: 'TestComponent2',
             init: {},
             onMount: mocks.mount,
-            view: (_) => <div id="testComponent"></div>
+            render: (_) => <div id="testComponent"></div>
         })
 
         const view1 = testComponent({})
@@ -95,11 +95,11 @@ describe('core.view.render', () => {
 
         spyOn(mocks, 'unmount').and.callThrough()
 
-        const TestComponent = defineComponent({
+        const TestComponent = define({
             name: 'TestComponent3',
             init: {},
             onUnmount: mocks.unmount,
-            view: (_) => <div></div>
+            render: (_) => <div></div>
         })
         const instance = TestComponent({})
         initComponent(instance, document.body)
@@ -385,22 +385,22 @@ describe('core.view.render', () => {
 
         spyOn(mocks, 'assertProps').and.callThrough()
 
-        const ChildComponent = defineComponent<{}, ChildComponentProps>({
+        const ChildComponent = define<{}, ChildComponentProps>({
             name: 'ChildComponent',
             init: {},
-            view: ctx => {
+            render: ctx => {
                 mocks.assertProps(ctx.props)
                 return <nothing />
             }
         })
 
-        const ParentComponent = defineComponent({
+        const ParentComponent = define({
             name: 'ParentComponent',
             init: {},
-            view: () => <ChildComponent test="test" />
+            render: () => <ChildComponent test="test" />
         })
 
-        mountComponent(ParentComponent, document.body)
+        mount(ParentComponent, document.body)
 
         expect(mocks.assertProps).toHaveBeenCalledTimes(1)
     })
@@ -423,11 +423,11 @@ describe('core.view.render', () => {
 
         const setClicked = () => ({ clicked: true })
 
-        const ItemComponent = defineComponent<State, Props>({
+        const ItemComponent = define<State, Props>({
             name: randomName(),
             init: { clicked: false, itemId: -1 },
             onMount: (_, p) => ({ itemId: p.item.id }),
-            view: ctx =>
+            render: ctx =>
                 <button id={`item-${ctx.state.itemId}`}
                     class={ctx.state.clicked ? "clicked" : ""}
                     onclick={_ => ctx.apply(setClicked)}>
@@ -483,11 +483,11 @@ describe('core.view.render', () => {
 
         const setClicked = () => ({ clicked: true })
 
-        const ItemComponent = defineComponent<State, Props>({
+        const ItemComponent = define<State, Props>({
             name: randomName(),
             init: { clicked: false, itemId: -1 },
             onMount: (_, p) => ({ itemId: p.item.id }),
-            view: ctx =>
+            render: ctx =>
                 <button id={`item-${ctx.state.itemId}`}
                     class={ctx.state.clicked ? "clicked" : ""}
                     onclick={_ => ctx.apply(setClicked)}>
@@ -543,11 +543,11 @@ describe('core.view.render', () => {
 
         const setClicked = () => ({ clicked: true })
 
-        const ItemComponent = defineComponent<State, Props>({
+        const ItemComponent = define<State, Props>({
             name: randomName(),
             init: { clicked: false, itemId: -1 },
             onMount: (_, p) => ({ itemId: p.item.id }),
-            view: ctx =>
+            render: ctx =>
                 <button
                     id={`item-${ctx.state.itemId}`}
                     class={ctx.state.clicked ? "clicked" : ""}
@@ -603,11 +603,11 @@ describe('core.view.render', () => {
 
         const setClicked = () => ({ clicked: true })
 
-        const ItemComponent = defineComponent<State, Props>({
+        const ItemComponent = define<State, Props>({
             name: randomName(),
             init: { clicked: false, itemId: -1 },
             onMount: (_, p) => ({ itemId: p.item.id }),
-            view: ctx =>
+            render: ctx =>
                 <button
                     id={`item-${ctx.state.itemId}`}
                     class={ctx.state.clicked ? "clicked" : ""}
@@ -665,11 +665,11 @@ describe('core.view.render', () => {
 
         let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
 
-        const ItemComponent = defineComponent<State, Props>({
+        const ItemComponent = define<State, Props>({
             name: randomName(),
             init: { clicked: false, itemId: -1 },
             onMount: (_, p) => ({ itemId: p.item.id }),
-            view: ctx => {
+            render: ctx => {
                 const v = <button id={`item-${ctx.state.itemId}`} class={ctx.state.clicked ? "clicked" : ""}
                     onclick={_ => ctx.apply(setClicked)}>
                 </button>
@@ -738,11 +738,11 @@ describe('core.view.render', () => {
 
         let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
 
-        const ItemComponent = defineComponent<State, Props>({
+        const ItemComponent = define<State, Props>({
             name: randomName(),
             init: { clicked: false, itemId: -1 },
             onMount: (_s, p) => ({ itemId: p.item.id }),
-            view: ctx => {
+            render: ctx => {
                 const v = <button id={`item-${ctx.state.itemId}`} class={ctx.state.clicked ? "clicked" : ""}
                     onclick={_ => ctx.apply(setClicked)}>
                 </button>
@@ -801,11 +801,11 @@ describe('core.view.render', () => {
 
         spyOn(mountMock, 'unmount').and.callThrough()
 
-        const ChildComponent = defineComponent({
+        const ChildComponent = define({
             name: randomName(),
             init: { val: 0 },
             onUnmount: mountMock.unmount,
-            view: () => <div />
+            render: () => <div />
         })
 
         const view1 = <div><div><ChildComponent /></div></div>

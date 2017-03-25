@@ -7,10 +7,11 @@ import {
     VNode,
     ComponentContext,
     Result,
+    Render,
     ViewContext
 } from './contract'
 import { equal, typeOf } from './helpers'
-import { render } from './view'
+import { render } from './renderer'
 
 export type DebugOptions = {
     components?: string[]
@@ -50,13 +51,13 @@ let nextId = 1
  * dispatch with the intial value from the component spec. If spec.onMount is
  * set, it will also be applied.
  */
-export function initComponent<T>(vNode: ComponentVNode<T>, parentNode: Element) {
+export function initComponent<T>(vNode: ComponentVNode<T>, parentElement: Element) {
 
     const spec = componentSpecs[vNode.name]
 
     const context: ComponentContext<T, any> = {
-        parentNode: parentNode,
         spec: spec,
+        parentElement: parentElement,
         childNodes: vNode.children,
         props: vNode.props,
         initialized: false,
@@ -135,8 +136,21 @@ export function updateComponent<T>(newVNode: ComponentVNode<T>, oldVNode: Compon
  * Defines a component from a ComponentSpec returning a factory that creates 
  * ComponentVNode/JSXElement's for the component.
  */
-// export function defineComponent<TState, TProps>(name: string, view: View<TState, TProps>): ComponentFactory<TProps>
-export function defineComponent<TState, TProps>(spec: ComponentSpec<TState, TProps>): ComponentFactory<TProps> {
+export function define<TState, TProps>(name: string, init: Result<TState>, render: Render<TState, TProps>): ComponentFactory<TProps>
+export function define<TState, TProps>(spec: ComponentSpec<TState, TProps>): ComponentFactory<TProps>
+export function define<TState, TProps>(): ComponentFactory<TProps> {
+    let spec: ComponentSpec<TState, TProps>
+    if (typeof arguments[0] === 'object') {
+        spec = arguments[0]
+    }
+    else {
+        spec = {
+            name: arguments[0],
+            init: arguments[1],
+            render: arguments[2]
+        }
+    }
+
     if (componentSpecs[spec.name]) {
         throw `A component with name '${spec.name}' is already defined!`
     }
@@ -160,7 +174,7 @@ export function defineComponent<TState, TProps>(spec: ComponentSpec<TState, TPro
  * Mounts the component onto the supplied element by calling the supplied 
  * component factory. 
  */
-export function mountComponent(componentFactory: ComponentFactory<any>, element: Element) {
+export function mount(componentFactory: ComponentFactory<any>, element: Element) {
     initComponent(componentFactory({}), element)
 }
 
@@ -184,11 +198,11 @@ export function findAndUnmountComponentsRec(vNode: VNode) {
     }
 }
 
-interface Render {
-    (parentNode: Element, view: VNode, oldView: VNode | undefined, oldRootNode: Node | undefined): void
-}
-
-function dispatch<TState extends {}, TArg>(context: ComponentContext<TState, any>, render: Render, fn: (state: TState, arg: TArg) => Result<TState>, arg: TArg) {
+function dispatch<TState extends {}, TArg>(
+    context: ComponentContext<TState, any>,
+    render: (parentNode: Element, view: VNode, oldView: VNode | undefined, oldRootNode: Node | undefined) => void,
+    fn: (state: TState, arg: TArg) => Result<TState>,
+    arg: TArg) {
 
     if (context.isUpdating) {
         throw `${context.spec.name}: Dispatch error - the dispatch function may not be called during an update. Doing so would most likely corrupt the state.`
@@ -240,22 +254,15 @@ function dispatch<TState extends {}, TArg>(context: ComponentContext<TState, any
             state: context.state!,
             apply: apply,
             invoke: (fn: Effect) => fn(apply),
-            children: context.childNodes
+            children: context.childNodes,
+            parentElement: context.parentElement
         } as ViewContext<TState, any>
 
-        const newView = context.spec.view(ctx)
-
-        if (typeof context.spec.onBeforeRender !== 'undefined') {
-            context.spec.onBeforeRender(newView, ctx.state)
-        }
+        const newView = context.spec.render(ctx)
 
         const oldNode = context.rendition ? context.rendition.domRef : undefined
-        render(context.parentNode, newView, context.rendition, oldNode)
+        render(context.parentElement, newView, context.rendition, oldNode)
         context.rendition = newView
-
-        if (typeof context.spec.onAfterRender !== 'undefined') {
-            context.spec.onAfterRender(newView, ctx.state)
-        }
     }
     context.dispatchLevel--
 }

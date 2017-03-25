@@ -29,27 +29,24 @@ const addNewTodo = (m: State, value: string) => {
 /**
  * Component
  */
-export default myra.defineComponent<State, undefined>({
-    name: 'MainComponent',
-    init: {},
-    view: ctx =>
-        <div>
-            <section class="todoapp">
-                <header class="header">
-                    <h1>todos</h1>
-                    <input class="new-todo"
-                        placeholder="What needs to be done?"
-                        autofocus
-                        value=""
-                        onkeydown={(ev, el) =>
-                            ev.keyCode === 13 && ctx.apply(addNewTodo, el.value)} />
-                </header>
-                <TodoListComponent forceUpdate />
-            </section>
-            <footer class="info">
-                <p>Double-click to edit a todo</p>
-                <p>Created by <a href="https://github.com/jhdrn/myra">Jonathan Hedrén</a></p>
-                <p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
-            </footer>
-        </div>
-})
+export default myra.define('MainComponent', {}, ({ apply }) =>
+    <div>
+        <section class="todoapp">
+            <header class="header">
+                <h1>todos</h1>
+                <input class="new-todo"
+                    placeholder="What needs to be done?"
+                    autofocus
+                    value=""
+                    onkeydown={(ev, el) =>
+                        ev.keyCode === 13 && apply(addNewTodo, el.value)} />
+            </header>
+            <TodoListComponent forceUpdate />
+        </section>
+        <footer class="info">
+            <p>Double-click to edit a todo</p>
+            <p>Created by <a href="https://github.com/jhdrn/myra">Jonathan Hedrén</a></p>
+            <p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
+        </footer>
+    </div>
+)
