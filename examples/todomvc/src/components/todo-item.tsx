@@ -74,8 +74,8 @@ const todoClass = (m: State) => {
  */
 export default myra.define<State, Props>({
     name: 'TodoItemComponent',
-    init: {},
-    // onMount: mount,
+    init: init,
+    onMount: mount,
     render: ({ state, props, apply, invoke }) =>
         <li class={todoClass(state)}>
             <div class="view">

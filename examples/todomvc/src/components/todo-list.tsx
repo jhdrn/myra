@@ -21,10 +21,10 @@ type State = {
 /**
  * Updates
  */
-const applySavedFilter = (state: State, filter: TodosFilter) =>
+const applySavedFilter = (state: State, filter: TodosFilter): myra.Result<State> =>
     [state, router.routeTo(`#/${filter === 'all' ? '' : filter || ''}`, undefined, true)]
 
-const applyFilterFromLocation = (_: State, routeCtx: router.RouteContext) => {
+const applyFilterFromLocation = (_: State, routeCtx: router.RouteContext): myra.Result<State> => {
 
     if (routeCtx.match('#/active').isMatch) {
         return [{
@@ -47,20 +47,20 @@ const applyFilterFromLocation = (_: State, routeCtx: router.RouteContext) => {
     return { location: routeCtx }
 }
 
-const todosLoaded = (_: State, todos: Todo[]) =>
+const todosLoaded = (_: State, todos: Todo[]): myra.Result<State> =>
     ({
         todos: todos,
         itemsLeft: todos.filter(t => !t.completed).length
     })
 
 // Mount function: load all todos
-const loadTodos = (state: State) =>
+const loadTodos = (state: State): myra.Result<State> =>
     [state, todos.getAll(todosLoaded)]
 
 /**
  * Init model
  */
-const init = [
+const init: myra.Result<State> = [
     {
         todos: [],
         itemsLeft: 0,
@@ -94,24 +94,24 @@ const filterLink = (href: string, txt: string, routeCtx: router.RouteContext) =>
 /**
  * Component
  */
-export default myra.define<State, {}>({
+export default myra.define<State, { forceUpdate: boolean }>({
     name: 'TodoListComponent',
     init: init,
     onMount: loadTodos,
-    render: ({ state, apply }) =>
+    render: ({ state, invoke }) =>
         state.todos.length ?
             <div>
                 <section class="main">
                     <input class="toggle-all"
                         type="checkbox"
                         checked={state.todos.every(t => t.completed)}
-                        onclick={() => apply(todos.toggleAll(!state.todos.every(t => t.completed), loadTodos))} />
+                        onclick={() => invoke(todos.toggleAll(!state.todos.every(t => t.completed), loadTodos))} />
 
                     <label for="toggle-all">Mark all as complete</label>
                     <ul class="todo-list">
                         {
                             state.todos.filter(filterTodos(state)).map(todo =>
-                                <TodoItemComponent onchange={() => apply(todos.getAll(todosLoaded))} todo={todo} />
+                                <TodoItemComponent onchange={() => invoke(todos.getAll(todosLoaded))} todo={todo} />
                             )
                         }
                     </ul>
@@ -135,7 +135,7 @@ export default myra.define<State, {}>({
                     {
                         state.todos.filter(t => t.completed).length ?
                             <button class="clear-completed"
-                                onclick={() => apply(todos.removeCompleted(loadTodos))}>
+                                onclick={() => invoke(todos.removeCompleted(loadTodos))}>
                                 Clear completed
                             </button> : <nothing />
                     }
