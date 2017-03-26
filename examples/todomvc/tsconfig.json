@@ -1,23 +1,24 @@
 {
-    "compileOnSave": true,
-    "compilerOptions": {
-        "sourceMap": true,
-        "target": "es5",
-        "module": "commonjs",
-        "noFallthroughCasesInSwitch": true,
-        "noImplicitAny": true,
-        "noImplicitReturns": true,
-        "noImplicitThis": true,
-        "noUnusedParameters": true,
-        "noUnusedLocals": true,
-        "strictNullChecks": true,
-        "moduleResolution": "node",
-        "pretty": true,
-        "reactNamespace": "myra",
-        "jsx": "react"
-    },
-    "include": [
-        "src/**/*",
-        "node_modules/myra/**/*.ts"
-    ]
+	"compileOnSave": true,
+	"compilerOptions": {
+		"sourceMap": true,
+		"target": "es5",
+		"module": "commonjs",
+		"noFallthroughCasesInSwitch": true,
+		"noImplicitAny": true,
+		"noImplicitReturns": true,
+		"noImplicitThis": true,
+		"noUnusedParameters": true,
+		"noUnusedLocals": true,
+		"strictNullChecks": true,
+		"moduleResolution": "node",
+		"pretty": true,
+		"reactNamespace": "myra",
+		"jsx": "react",
+		"lib": ["es5", "dom", "es2015.promise"]
+	},
+	"include": [
+		"src/**/*",
+		"node_modules/myra/**/*.ts"
+	]
 }

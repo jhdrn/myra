@@ -27,17 +27,17 @@ export default myra.define(
     init,
 
     // The render function is called after an update. 
-    ({ state, apply }) =>
+    ({ state }) =>
         <section>
             <h2>Counter example</h2>
             <button type="button"
                 class="btn btn-sm btn-default"
-                onclick={() => apply(increase)}>+</button>
+                onclick={() => increase(state)}>+</button>
 
             <span> {state.val} </span>
 
             <button type="button"
                 class="btn btn-sm btn-default"
-                onclick={() => apply(decrease)}>-</button>
-        </section>
+                onclick={() => decrease(state)}>-</button>
+        </section >
 )

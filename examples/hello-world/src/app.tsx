@@ -47,9 +47,9 @@ const AppComponent = myra.define({
     // The required render function of the component. It is passed a 
     // ViewContext<State> argument which holds the state, any child nodes and 
     // some functions to update the state. 
-    render: ctx =>
-        <p onclick={() => ctx.apply(updateHelloWorld, 'with an argument')}>
-            {ctx.state.hello}
+    render: ({ state }) =>
+        <p onclick={() => updateHelloWorld(state, 'with an argument')}>
+            {state.hello}
         </p>
 })
 

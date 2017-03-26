@@ -3,10 +3,10 @@ import {
     ComponentFactory,
     ComponentVNode,
     ComponentSpec,
-    Effect,
     VNode,
     ComponentContext,
     Result,
+    Apply,
     Render,
     ViewContext
 } from './contract'
@@ -200,7 +200,7 @@ export function findAndUnmountComponentsRec(vNode: VNode) {
 
 function dispatch<TState extends {}, TArg>(
     context: ComponentContext<TState, any>,
-    render: (parentNode: Element, view: VNode, oldView: VNode | undefined, oldRootNode: Node | undefined) => void,
+    render: (parentNode: Element, view: VNode, oldView: VNode | undefined, oldRootNode: Node | undefined, apply: Apply) => void,
     fn: (state: TState, arg: TArg) => Result<TState>,
     arg: TArg) {
 
@@ -226,7 +226,8 @@ function dispatch<TState extends {}, TArg>(
 
     context.isUpdating = false
 
-    const apply = <T>(fn: Update<TState, T>, arg: T) => dispatch(context, render, fn, arg)
+    // const apply = <T>(fn: Update<TState, T>, arg: T) => dispatch(context, render, fn, arg)
+    const apply = (partialState: Partial<TState>) => dispatch(context, render, () => partialState, undefined)
 
     if (debugEnabled) {
         if (typeof debugOptions.components === 'undefined' ||
@@ -252,8 +253,6 @@ function dispatch<TState extends {}, TArg>(
         const ctx = {
             props: context.props,
             state: context.state!,
-            apply: apply,
-            invoke: (fn: Effect) => fn(apply),
             children: context.childNodes,
             parentElement: context.parentElement
         } as ViewContext<TState, any>
@@ -261,7 +260,7 @@ function dispatch<TState extends {}, TArg>(
         const newView = context.spec.render(ctx)
 
         const oldNode = context.rendition ? context.rendition.domRef : undefined
-        render(context.parentElement, newView, context.rendition, oldNode)
+        render(context.parentElement, newView, context.rendition, oldNode, apply)
         context.rendition = newView
     }
     context.dispatchLevel--

@@ -32,7 +32,7 @@ describe('core.view.render', () => {
     it('creates and returns a "nothing" comment node from a nothing virtual node', (done) => {
         const view = <nothing />
 
-        render(document.body, view, view, undefined)
+        render(document.body, view, view, undefined, () => { })
         const node = view.domRef!
         expect(node.nodeType).toBe(Node.COMMENT_NODE)
         expect(node.nodeValue).toBe('Nothing')
@@ -49,7 +49,7 @@ describe('core.view.render', () => {
 
         const view = <div><TestComponent /></div>
 
-        render(document.body, view, view, undefined)
+        render(document.body, view, view, undefined, () => { })
         const node = view.domRef as HTMLDivElement
         expect((node.childNodes[0] as HTMLDivElement).id).toBe('testComponent')
 
@@ -73,11 +73,11 @@ describe('core.view.render', () => {
         const view1 = testComponent({})
         const view2 = testComponent({ forceUpdate: true })
 
-        render(document.body, view1, view1, undefined)
+        render(document.body, view1, view1, undefined, () => { })
         const node = view1.domRef! as HTMLDivElement
         const componentId = view1.id
 
-        render(document.body, view2, view1, node)
+        render(document.body, view2, view1, node, () => { })
 
         expect(view2.id).toBe(componentId)
         expect(mocks.mount).toHaveBeenCalledTimes(2)
@@ -104,7 +104,7 @@ describe('core.view.render', () => {
         const instance = TestComponent({})
         initComponent(instance, document.body)
 
-        render(document.body, <nothing />, instance, undefined)
+        render(document.body, <nothing />, instance, undefined, () => { })
 
         expect(mocks.unmount).toHaveBeenCalledTimes(1)
     })
@@ -121,12 +121,12 @@ describe('core.view.render', () => {
                 {viewItems2.map(item => <div>{item}</div>)}
             </div>
 
-        render(document.body, view1, view1, undefined)
+        render(document.body, view1, view1, undefined, () => { })
         let node = view1.domRef as HTMLDivElement
 
         expect(node.childElementCount).toBe(viewItems1.length)
 
-        render(document.body, view2, view1, node)
+        render(document.body, view2, view1, node, () => { })
         node = view2.domRef as HTMLDivElement
 
         expect(node.childElementCount).toBe(viewItems2.length)
@@ -145,13 +145,13 @@ describe('core.view.render', () => {
             <div>
                 {viewItems2.map(item => <div>{item}</div>)}
             </div>
-        render(document.body, view1, view1, undefined)
+        render(document.body, view1, view1, undefined, () => { })
 
         let node = view1.domRef as HTMLDivElement
 
         expect(node.childElementCount).toBe(viewItems1.length)
 
-        render(document.body, view2, view1, node)
+        render(document.body, view2, view1, node, () => { })
         node = view2.domRef as HTMLDivElement
 
         expect(node.childElementCount).toBe(viewItems2.length)
@@ -162,7 +162,7 @@ describe('core.view.render', () => {
     it('creates and returns an element node from an element virtual node', (done) => {
         const view = <div />
 
-        render(document.body, view, view, undefined)
+        render(document.body, view, view, undefined, () => { })
         const node = view.domRef as Element
 
         expect(node.nodeType).toBe(Node.ELEMENT_NODE)
@@ -181,7 +181,7 @@ describe('core.view.render', () => {
                 checked={true}
                 value="5" />
 
-        render(document.body, view, view, undefined)
+        render(document.body, view, view, undefined, () => { })
 
         const node = view.domRef as HTMLInputElement
 
@@ -206,7 +206,7 @@ describe('core.view.render', () => {
         const view =
             <button onclick={mocks.onclickUpdate}></button>
 
-        render(document.body, view, view, undefined)
+        render(document.body, view, view, undefined, () => { })
 
         const node = view.domRef as HTMLButtonElement
         expect(node.onclick).not.toBeNull()
@@ -233,11 +233,11 @@ describe('core.view.render', () => {
 
         const view2 = <button onclick={mocks.onclickUpdate2}></button>
 
-        render(document.body, view1, view1, undefined)
+        render(document.body, view1, view1, undefined, () => { })
 
         let node = view1.domRef as HTMLButtonElement
 
-        render(document.body, view2, view1, node)
+        render(document.body, view2, view1, node, () => { })
 
         node = view2.domRef as HTMLButtonElement
 
@@ -253,7 +253,7 @@ describe('core.view.render', () => {
 
         const view = <input focus={true} />
 
-        render(document.body, view, view, undefined)
+        render(document.body, view, view, undefined, () => { })
 
         const node = view.domRef as HTMLTextAreaElement
 
@@ -270,14 +270,14 @@ describe('core.view.render', () => {
         const view2 =
             <div class="bar" id="foo"></div>
 
-        render(document.body, view1, view1, undefined)
+        render(document.body, view1, view1, undefined, () => { })
 
         let node = view1.domRef as HTMLDivElement
 
         expect(node.className).toBe('foo')
         expect(node.id).toBe('bar')
 
-        render(document.body, view2, view1, node)
+        render(document.body, view2, view1, node, () => { })
 
         node = view2.domRef as HTMLDivElement
 
@@ -294,13 +294,13 @@ describe('core.view.render', () => {
         const view2 =
             <div class="foo"></div>
 
-        render(document.body, view1, view1, undefined)
+        render(document.body, view1, view1, undefined, () => { })
 
         let node = view1.domRef as HTMLDivElement
 
         expect(node.id).toBe('bar')
 
-        render(document.body, view2, view1, node)
+        render(document.body, view2, view1, node, () => { })
 
         node = view2.domRef as HTMLDivElement
 
@@ -316,13 +316,13 @@ describe('core.view.render', () => {
         const view2 =
             <div class="foo" id={undefined}></div>
 
-        render(document.body, view1, view1, undefined)
+        render(document.body, view1, view1, undefined, () => { })
 
         let node = view1.domRef as HTMLDivElement
 
         expect(node.id).toBe('bar')
 
-        render(document.body, view2, view1, node)
+        render(document.body, view2, view1, node, () => { })
 
         node = view2.domRef as HTMLDivElement
 
@@ -336,14 +336,14 @@ describe('core.view.render', () => {
 
         const view2 = <span />
 
-        render(document.body, view1, view1, undefined)
+        render(document.body, view1, view1, undefined, () => { })
 
         let node = view1.domRef as HTMLDivElement
 
         (node as any)._id = 1
         expect(node.tagName).toBe('DIV')
 
-        render(document.body, view2, view1, node)
+        render(document.body, view2, view1, node, () => { })
 
         node = view2.domRef as HTMLDivElement
 
@@ -358,13 +358,13 @@ describe('core.view.render', () => {
 
         const view2 = <nothing />
 
-        render(document.body, view1, view1, undefined)
+        render(document.body, view1, view1, undefined, () => { })
 
         const node = view1.domRef as HTMLButtonElement
 
         expect(node.onclick).not.toBeNull()
 
-        render(document.body, view2, view1, node)
+        render(document.body, view2, view1, node, () => { })
 
         expect(node.onclick).toBeNull()
 
@@ -430,7 +430,7 @@ describe('core.view.render', () => {
             render: ctx =>
                 <button id={`item-${ctx.state.itemId}`}
                     class={ctx.state.clicked ? "clicked" : ""}
-                    onclick={_ => ctx.apply(setClicked)}>
+                    onclick={() => setClicked}>
                 </button>
         })
 
@@ -439,7 +439,7 @@ describe('core.view.render', () => {
                 {items.map(x => <div key={x.id}><ItemComponent forceUpdate item={x} /></div>)}
             </div>
 
-        render(document.body, view1, view1, undefined)
+        render(document.body, view1, view1, undefined, () => { })
 
         let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
         btn.click()
@@ -452,7 +452,7 @@ describe('core.view.render', () => {
                 {items.reverse().map(x => <div key={x.id}><ItemComponent forceUpdate item={x} /></div>)}
             </div>
 
-        render(document.body, view2, view1, view1.domRef)
+        render(document.body, view2, view1, view1.domRef, () => { })
 
         btn = (view2.domRef as HTMLDivElement).querySelector('button')!
         expect(btn.id).toBe("item-5")
@@ -490,7 +490,7 @@ describe('core.view.render', () => {
             render: ctx =>
                 <button id={`item-${ctx.state.itemId}`}
                     class={ctx.state.clicked ? "clicked" : ""}
-                    onclick={_ => ctx.apply(setClicked)}>
+                    onclick={() => setClicked}>
                 </button>
         })
 
@@ -499,7 +499,7 @@ describe('core.view.render', () => {
                 {items.map(x => <div><ItemComponent forceUpdate item={x} /></div>)}
             </div>
 
-        render(document.body, view1, view1, undefined)
+        render(document.body, view1, view1, undefined, () => { })
 
         let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
         btn.click()
@@ -512,7 +512,7 @@ describe('core.view.render', () => {
                 {items.reverse().map(x => <div><ItemComponent forceUpdate item={x} /></div>)}
             </div>
 
-        render(document.body, view2, view1, view1.domRef)
+        render(document.body, view2, view1, view1.domRef, () => { })
 
         btn = (view2.domRef as HTMLDivElement).querySelector('button')!
         expect(btn.id).toBe("item-5")
@@ -551,7 +551,7 @@ describe('core.view.render', () => {
                 <button
                     id={`item-${ctx.state.itemId}`}
                     class={ctx.state.clicked ? "clicked" : ""}
-                    onclick={_ => ctx.apply(setClicked)}>
+                    onclick={() => setClicked}>
                 </button>
         })
 
@@ -560,7 +560,7 @@ describe('core.view.render', () => {
                 {items.map(x => <ItemComponent key={x.id} item={x} />)}
             </div>
 
-        render(document.body, view1, view1, undefined)
+        render(document.body, view1, view1, undefined, () => { })
 
         let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
         btn.click()
@@ -573,7 +573,7 @@ describe('core.view.render', () => {
                 {items.reverse().map(x => <ItemComponent key={x.id} item={x} />)}
             </div>
 
-        render(document.body, view2, view1, view1.domRef)
+        render(document.body, view2, view1, view1.domRef, () => { })
 
         btn = (view2.domRef as HTMLDivElement).querySelector('button')!
         expect(btn.className).toBe("")
@@ -611,7 +611,7 @@ describe('core.view.render', () => {
                 <button
                     id={`item-${ctx.state.itemId}`}
                     class={ctx.state.clicked ? "clicked" : ""}
-                    onclick={_ => ctx.apply(setClicked)}>
+                    onclick={() => setClicked}>
                 </button>
         })
 
@@ -620,7 +620,7 @@ describe('core.view.render', () => {
                 {items.map(x => <ItemComponent item={x} />)}
             </div>
 
-        render(document.body, view1, view1, undefined)
+        render(document.body, view1, view1, undefined, () => { })
 
         let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
         btn.click()
@@ -633,7 +633,7 @@ describe('core.view.render', () => {
                 {items.reverse().map(x => <ItemComponent item={x} />)}
             </div>
 
-        render(document.body, view2, view1, view1.domRef)
+        render(document.body, view2, view1, view1.domRef, () => { })
 
         btn = (view2.domRef as HTMLDivElement).querySelector('button')!
         expect(btn.className).toBe("clicked")
@@ -671,7 +671,7 @@ describe('core.view.render', () => {
             onMount: (_, p) => ({ itemId: p.item.id }),
             render: ctx => {
                 const v = <button id={`item-${ctx.state.itemId}`} class={ctx.state.clicked ? "clicked" : ""}
-                    onclick={_ => ctx.apply(setClicked)}>
+                    onclick={() => setClicked}>
                 </button>
                 if (ctx.state.itemId === 1) {
                     btnVNode = v as ElementVNode<HTMLButtonElement>
@@ -685,7 +685,7 @@ describe('core.view.render', () => {
                 {items.map(x => <ItemComponent key={x.id} item={x} forceUpdate={true} />)}
             </div> as ElementVNode<HTMLDivElement>
 
-        render(document.body, view1, view1, undefined)
+        render(document.body, view1, view1, undefined, () => { })
 
         let btn = view1.domRef!.querySelector('button')!
         btn.click()
@@ -706,7 +706,7 @@ describe('core.view.render', () => {
                 {reversedItems.map(x => <ItemComponent key={x.id} item={x} forceUpdate={true} />)}
             </div> as ElementVNode<HTMLDivElement>
 
-        render(document.body, view2, view1, view1.domRef)
+        render(document.body, view2, view1, view1.domRef, () => { })
 
         btn = view2.domRef!.querySelector('button')!
         expect(btn.className).toBe("")
@@ -744,7 +744,7 @@ describe('core.view.render', () => {
             onMount: (_s, p) => ({ itemId: p.item.id }),
             render: ctx => {
                 const v = <button id={`item-${ctx.state.itemId}`} class={ctx.state.clicked ? "clicked" : ""}
-                    onclick={_ => ctx.apply(setClicked)}>
+                    onclick={() => setClicked}>
                 </button>
                 if (ctx.state.itemId === 1) {
                     btnVNode = v as ElementVNode<HTMLButtonElement>
@@ -758,7 +758,7 @@ describe('core.view.render', () => {
                 {items.map(x => <ItemComponent item={x} forceUpdate={true} />)}
             </div> as ElementVNode<HTMLDivElement>
 
-        render(document.body, view1, view1, undefined)
+        render(document.body, view1, view1, undefined, () => { })
 
         let btn = view1.domRef!.querySelector('button')!
         btn.click()
@@ -780,7 +780,7 @@ describe('core.view.render', () => {
                 {reversedItems.map(x => <ItemComponent item={x} forceUpdate={true} />)}
             </div> as ElementVNode<HTMLDivElement>
 
-        render(document.body, view2, view1, view1.domRef)
+        render(document.body, view2, view1, view1.domRef, () => { })
 
         btn = view2.domRef!.querySelector('button')!
 
@@ -809,10 +809,10 @@ describe('core.view.render', () => {
         })
 
         const view1 = <div><div><ChildComponent /></div></div>
-        render(document.body, view1, view1, undefined)
+        render(document.body, view1, view1, undefined, () => { })
 
         const view2 = <div></div>
-        render(document.body, view2, view1, view1.domRef)
+        render(document.body, view2, view1, view1.domRef, () => { })
 
         expect(mountMock.unmount).toHaveBeenCalledTimes(1)
     })

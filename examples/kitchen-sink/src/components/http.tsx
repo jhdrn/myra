@@ -38,12 +38,12 @@ const httpRequestEffect =
 /**
  * Component
  */
-export default myra.define('HttpComponent', init, ({ state, invoke }) =>
+export default myra.define('HttpComponent', init, ({ state }) =>
     <section>
         <h2>HTTP example</h2>
         <button type="button"
             class="btn btn-sm btn-default"
-            onclick={() => invoke(httpRequestEffect)}>
+            onclick={() => httpRequestEffect}>
             Make HTTP request
             </button>
 

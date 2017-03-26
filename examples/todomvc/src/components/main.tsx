@@ -11,7 +11,7 @@ type State = {}
  */
 
 // Adds a new todo with a title of the value of the "new todo" input field
-const addNewTodo = (m: State, value: string) => {
+const addNewTodo = (value: string) => {
     const newTodo = value.trim()
     if (newTodo) {
 
@@ -21,15 +21,15 @@ const addNewTodo = (m: State, value: string) => {
             title: newTodo
         }
 
-        return [m, todos.add(todo)]
+        return todos.add(todo)
     }
-    return m
+    return undefined
 }
 
 /**
  * Component
  */
-export default myra.define('MainComponent', {}, ({ apply }) =>
+export default myra.define('MainComponent', {}, () =>
     <div>
         <section class="todoapp">
             <header class="header">
@@ -39,7 +39,7 @@ export default myra.define('MainComponent', {}, ({ apply }) =>
                     autofocus
                     value=""
                     onkeydown={(ev, el) =>
-                        ev.keyCode === 13 && apply(addNewTodo, el.value)} />
+                        ev.keyCode === 13 && addNewTodo(el.value)} />
             </header>
             <TodoListComponent forceUpdate />
         </section>

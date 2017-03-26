@@ -36,12 +36,12 @@ declare namespace myra {
         (props: TProps, children?: VNode[]): ComponentVNode<TProps>
     }
 
-    type Effect = (apply: Apply) => void
+    type Effect<TState> = (() => Promise<Partial<TState>>) | ((apply: Apply) => void)
 
     /**
      * The result of an Update function.
      */
-    type Result<TState> = Partial<TState> | [Partial<TState>, Effect]
+    type Result<TState> = Partial<TState> | Effect<TState> | [Partial<TState>, Effect<TState>]
 
     /**
      * Function that updates a component's state.
@@ -51,7 +51,7 @@ declare namespace myra {
     /**
      * Function that is used to apply an Update function.
      */
-    type Apply = <TState, TArg>(fn: Update<TState, TArg>, arg?: TArg) => void
+    type Apply = <TState>(partialState: Partial<TState>) => void
 
     /**
      * Holds data and functions used in a View.
@@ -59,8 +59,6 @@ declare namespace myra {
     interface ViewContext<TState, TProps> {
         readonly props: TProps
         readonly state: TState
-        readonly apply: Apply
-        readonly invoke: (effect: Effect) => void
         readonly children?: VNode[]
         readonly parentElement: Element
     }
@@ -78,7 +76,7 @@ declare namespace myra {
      * A function used as callback for event triggers.
      */
     type EventListener<TEvent extends Event, TElement extends Element> =
-        (event: TEvent, element: TElement, descriptor: ElementVNode<TElement>) => void
+        <TState>(event: TEvent, element: TElement, descriptor: ElementVNode<TElement>) => void | Result<TState>
 
     /**
      * Base interface for a virtual node.
