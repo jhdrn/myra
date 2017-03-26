@@ -10,13 +10,14 @@
     "awesome-typescript-loader": "^3.0.7",
     "source-map-loader": "^0.1.6",
     "typescript": "^2.2.1",
-    "webpack": "^2.2.1",
+    "webpack": "^2.3.2",
     "webpack-dev-server": "^2.4.1"
   },
   "dependencies": {
+    "es6-promise": "^4.1.0",
     "myra": "^1.0.1",
-    "myra-http": "0.0.2",
     "myra-router": "^0.1.0",
-    "myra-time": "0.0.1"
+    "myra-time": "0.0.1",
+    "whatwg-fetch": "^2.0.3"
   }
 }

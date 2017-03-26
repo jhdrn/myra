@@ -49,7 +49,7 @@ const cancelIntervalEffect = (handle: number) => cancelInterval(handle, interval
 /**
  * Component
  */
-export default myra.define(
+export default myra.define<State, {}>(
     // The name of the component. Used for debugging purposes.
     'TimeComponent',
 
@@ -58,19 +58,19 @@ export default myra.define(
     init,
 
     // The view function is called after update. 
-    ({ state, invoke }) =>
+    ({ state }) =>
         <section>
             <h2>Time examples</h2>
             <p>
                 {state.timeoutHandle ?
                     <button type="button"
                         class="btn btn-sm btn-default"
-                        onclick={() => invoke(cancelTimeoutEffect(state.timeoutHandle!))}>
+                        onclick={() => cancelTimeoutEffect(state.timeoutHandle!)}>
                         Cancel timeout
                     </button>
                     : <button type="button"
                         class="btn btn-sm btn-default"
-                        onclick={() => invoke(startTimeoutEffect)}>
+                        onclick={() => startTimeoutEffect}>
                         Set a timeout of 5 seconds
                       </button>
                 }
@@ -79,12 +79,12 @@ export default myra.define(
                 {state.intervalHandle ?
                     <button type="button"
                         class="btn btn-sm btn-default"
-                        onclick={() => invoke(cancelIntervalEffect(state.intervalHandle!))}>
+                        onclick={() => cancelIntervalEffect(state.intervalHandle!)}>
                         Cancel interval
                     </button>
                     : <button type="button"
                         class="btn btn-sm btn-default"
-                        onclick={() => invoke(startIntervalEffect)}>
+                        onclick={() => startIntervalEffect}>
                         Start interval
                       </button>
                 }

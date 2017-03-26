@@ -30,7 +30,7 @@ export default myra.define<State, {}>({
     init: [init, router.addListener(onRoute)],
 
     // The render function is called after an update. 
-    render: ({ state, invoke }) =>
+    render: ({ state }) =>
         <section>
             <h2>Router examples</h2>
 
@@ -44,22 +44,22 @@ export default myra.define<State, {}>({
 
             <ul class="list-group">
                 <li class="list-group-item">
-                    <a href="" onclick={(ev: Event) => { ev.preventDefault() > invoke(router.routeTo('/test1')) }}>
+                    <a href="" onclick={(ev: Event) => { ev.preventDefault(); return router.routeTo('/test1') }}>
                         Update location to '/test1'
                 </a>
                 </li>
                 <li class="list-group-item">
-                    <a href="" onclick={(ev: Event) => { ev.preventDefault() > invoke(router.routeTo('/test1/test2')) }}>
+                    <a href="" onclick={(ev: Event) => { ev.preventDefault(); return router.routeTo('/test1/test2') }}>
                         Update location to '/test1/test2'
                 </a>
                 </li>
                 <li class="list-group-item">
-                    <a href="" onclick={(ev: Event) => { ev.preventDefault() > invoke(router.goBack()) }}>
+                    <a href="" onclick={(ev: Event) => { ev.preventDefault(); return router.goBack() }}>
                         Go back
                 </a>
                 </li>
                 <li class="list-group-item">
-                    <a href="" onclick={(ev: Event) => { ev.preventDefault() > invoke(router.goForward()) }}>
+                    <a href="" onclick={(ev: Event) => { ev.preventDefault(); return router.goForward() }}>
                         Go forward
                 </a>
                 </li>

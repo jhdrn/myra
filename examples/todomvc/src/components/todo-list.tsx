@@ -70,7 +70,7 @@ const init: myra.Result<State> = [
     ((apply: myra.Apply) => {
         loadFilter(applySavedFilter)(apply)
         router.addListener(applyFilterFromLocation)(apply)
-    }) as myra.Effect
+    }) as myra.Effect<State>
 ]
 
 /**
@@ -98,20 +98,20 @@ export default myra.define<State, { forceUpdate: boolean }>({
     name: 'TodoListComponent',
     init: init,
     onMount: loadTodos,
-    render: ({ state, invoke }) =>
+    render: ({ state }) =>
         state.todos.length ?
             <div>
                 <section class="main">
                     <input class="toggle-all"
                         type="checkbox"
                         checked={state.todos.every(t => t.completed)}
-                        onclick={() => invoke(todos.toggleAll(!state.todos.every(t => t.completed), loadTodos))} />
+                        onclick={() => () => todos.toggleAll(!state.todos.every(t => t.completed).then(loadTodos)} />
 
                     <label for="toggle-all">Mark all as complete</label>
                     <ul class="todo-list">
                         {
                             state.todos.filter(filterTodos(state)).map(todo =>
-                                <TodoItemComponent onchange={() => invoke(todos.getAll(todosLoaded))} todo={todo} />
+                                <TodoItemComponent onchange={() => todos.getAll(todosLoaded)} todo={todo} />
                             )
                         }
                     </ul>
@@ -135,7 +135,7 @@ export default myra.define<State, { forceUpdate: boolean }>({
                     {
                         state.todos.filter(t => t.completed).length ?
                             <button class="clear-completed"
-                                onclick={() => invoke(todos.removeCompleted(loadTodos))}>
+                                onclick={() => todos.removeCompleted(loadTodos)}>
                                 Clear completed
                             </button> : <nothing />
                     }

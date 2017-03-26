@@ -4,8 +4,6 @@ import * as todos from '../models/todos'
 
 type Todo = todos.Todo
 
-type State = {}
-
 /**
  * Updates
  */
@@ -39,7 +37,8 @@ export default myra.define('MainComponent', {}, () =>
                     autofocus
                     value=""
                     onkeydown={(ev, el) =>
-                        ev.keyCode === 13 && addNewTodo(el.value)} />
+                        ev.keyCode === 13 ? addNewTodo(el.value) : undefined
+                    } />
             </header>
             <TodoListComponent forceUpdate />
         </section>

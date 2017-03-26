@@ -27,7 +27,7 @@ framework for building web interfaces. It targets the "middle ground" between
   Hello World example is ~9kb minified/~4kb minified and gzipped
 
 ## Requirements
-Myra requires Typescript 2.0 to function properly. It is also highly advised 
+Myra requires Typescript 2.2 to function properly. It is also highly advised 
 that the compiler options `strictNullChecks`, `noImplicitReturns` and 
 `noImplicitAny` are set to true.
 

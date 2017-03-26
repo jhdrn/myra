@@ -1,5 +1,4 @@
 import * as myra from 'myra'
-import { request, HttpResponse } from 'myra-http'
 
 
 /**
@@ -8,7 +7,7 @@ import { request, HttpResponse } from 'myra-http'
 type ResponseStatus = 'init' | 'success' | 'failure'
 type State = {
     responseStatus: ResponseStatus
-    response?: HttpResponse<any>
+    response?: Response
 }
 const init = {
     responseStatus: 'init'
@@ -18,22 +17,12 @@ const init = {
 /**
  * Effects
  */
-const httpRequestEffect =
-    request({
-        method: 'GET',
-        url: 'https://api.github.com/repos/jhdrn/myra',
-        responseType: 'text',
-        onSuccess: (_state: State, response: HttpResponse<any>) =>
-            ({
-                responseStatus: 'success',
-                response: response
-            }),
-        onFailure: (_state: State, response: HttpResponse<any>) =>
-            ({
-                responseStatus: 'failure',
-                response: response
-            })
-    })
+const httpRequestEffect = () =>
+    fetch('https://api.github.com/repos/jhdrn/myra')
+        .then(
+        r => ({ responseStatus: 'success', response: r }),
+        r => ({ responseStatus: 'failure', response: r })
+        )
 
 /**
  * Component
@@ -53,7 +42,7 @@ export default myra.define('HttpComponent', init, ({ state }) =>
                 {state.response.status}
                 {state.response.statusText}
                 {state.responseStatus === 'success' ?
-                    <p><strong>Response text:</strong>{state.response.data}</p>
+                    <p><strong>Response text:</strong>{state.response}</p>
                     : <nothing />
                 }
             </div>
