@@ -1,6 +1,6 @@
 import { initComponent, updateComponent, findAndUnmountComponentsRec } from './component'
 import { max } from './helpers'
-import { EventListener, VNode, ElementVNode, ComponentVNode, Apply } from './contract'
+import { EventListener, EventListenerReturningState, VNode, ElementVNode, ComponentVNode, Apply } from './contract'
 
 const BOOL_ATTRS = [
     'checked',
@@ -280,7 +280,7 @@ function removeAttr(a: string, node: Element) {
  */
 function tryCreateEventListener(
     attributeName: string,
-    eventListener: EventListener<any, any>,
+    eventListener: EventListenerReturningState<any, any>,
     vNode: ElementVNode<any>,
     apply: Apply) {
 

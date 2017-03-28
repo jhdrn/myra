@@ -4,7 +4,6 @@ import {
     ComponentVNode,
     ComponentSpec,
     VNode,
-    ComponentContext,
     Result,
     Apply,
     Render,
@@ -12,6 +11,20 @@ import {
 } from './contract'
 import { equal, typeOf } from './helpers'
 import { render } from './renderer'
+
+
+/** "Component state holder" interface */
+interface ComponentContext<TState, TProps extends {}> {
+    readonly spec: ComponentSpec<TState, any>
+    readonly parentElement: Element
+    initialized: boolean
+    dispatchLevel: number
+    isUpdating: boolean
+    props: TProps | undefined
+    state: TState | undefined
+    rendition?: VNode
+    childNodes?: VNode[]
+}
 
 export type DebugOptions = {
     components?: string[]

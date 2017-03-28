@@ -11,25 +11,12 @@ declare namespace myra {
     /**
      * Component types
      */
-    interface ComponentSpec<TState, TProps extends {}> {
+    interface ComponentSpec<TState extends {}, TProps extends {}> {
         readonly name: string
         readonly init: TState | [TState, Effect<TState>]
         readonly onMount?: OnMount<TState, TProps>
         readonly onUnmount?: OnUnmount<TState>
         readonly render: Render<TState, TProps>
-    }
-
-    /** "Component state holder" interface */
-    interface ComponentContext<TState, TProps extends {}> {
-        readonly spec: ComponentSpec<TState, any>
-        readonly parentElement: Element
-        initialized: boolean
-        dispatchLevel: number
-        isUpdating: boolean
-        props: TProps | undefined
-        state: TState | undefined
-        rendition?: VNode
-        childNodes?: VNode[]
     }
 
     /**
@@ -39,24 +26,24 @@ declare namespace myra {
         (props: TProps, children?: VNode[]): ComponentVNode<TProps>
     }
 
-    interface Effect<TState> {
+    interface Effect<TState extends {}> {
         (): Promise<Partial<TState>>
     }
 
     /**
      * The result of an Update function.
      */
-    type Result<TState> = Partial<TState> | Effect<TState> | [Partial<TState>, Effect<TState>]
+    type Result<TState extends {}> = Partial<TState> | Effect<TState> | [Partial<TState>, Effect<TState>]
 
     /**
      * Function that is used to apply an Update function.
      */
-    type Apply = <TState>(partialState: Partial<TState>) => void
+    type Apply = <TState extends {}>(partialState: Partial<TState>) => void
 
     /**
      * Holds data and functions used in a View.
      */
-    interface ViewContext<TState, TProps> {
+    interface ViewContext<TState extends {}, TProps extends {}> {
         readonly props: TProps
         readonly state: TState
         readonly children?: VNode[]
@@ -67,7 +54,7 @@ declare namespace myra {
     /**
      * Function that is responsible of creating a component's view.
      */
-    interface Render<TState, TProps> {
+    interface Render<TState extends {}, TProps extends {}> {
         (ctx: ViewContext<TState, TProps>): VNode
     }
 
@@ -76,9 +63,17 @@ declare namespace myra {
     /**
      * A function used as callback for event triggers.
      */
-    interface EventListener<TEvent extends Event, TElement extends Element> {
-        <TState>(event: TEvent, element: TElement, descriptor: ElementVNode<TElement>): void | Result<TState>
+    type EventListener<TEvent extends Event, TElement extends Element> =
+        EventListenerReturningState<TEvent, TElement> | EventListenerReturningVoid<TEvent, TElement>
+
+    interface EventListenerReturningVoid<TEvent extends Event, TElement extends Element> {
+        (event: TEvent, element: TElement, descriptor: ElementVNode<TElement>): void
     }
+
+    interface EventListenerReturningState<TEvent extends Event, TElement extends Element> {
+        <TState extends {}>(event: TEvent, element: TElement, descriptor: ElementVNode<TElement>): Result<TState>
+    }
+
 
     /**
      * Base interface for a virtual node.
@@ -112,7 +107,7 @@ declare namespace myra {
     /**
      * A virtual node representing a component.
      */
-    interface ComponentVNode<TProps> extends VNodeBase {
+    interface ComponentVNode<TProps extends {}> extends VNodeBase {
         readonly _: 3
         readonly name: string
         id: number;
