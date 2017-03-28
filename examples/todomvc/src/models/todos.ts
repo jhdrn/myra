@@ -16,13 +16,14 @@ export const getAll = <M>(todosLoaded: Update<M, Todo[]>) => (apply: Apply) => {
     apply(todosLoaded, get())
 }
 
-export const add = (todo: Todo) => (_apply: Apply) => {
+export const add = (todo: Todo) => new Promise((resolve) => {
     const todos = get()
     const maxId = todos.length > 0 ? Math.max(...todos.map(t => t.id)) : 0
     todo.id = maxId + 1
     todos.push(todo)
     set(todos)
-}
+    resolve()
+})
 
 export const save = (todo: Todo) => (_apply: Apply) => {
     const todos = get()

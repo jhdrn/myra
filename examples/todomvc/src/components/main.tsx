@@ -21,7 +21,7 @@ const addNewTodo = (value: string) => {
 
         return todos.add(todo)
     }
-    return undefined
+    return Promise.reject<{}>('')
 }
 
 /**
@@ -38,7 +38,8 @@ export default myra.define('MainComponent', {}, () =>
                     value=""
                     onkeydown={(ev, el) =>
                         ev.keyCode === 13 ? addNewTodo(el.value) : undefined
-                    } />
+                    }
+                />
             </header>
             <TodoListComponent forceUpdate />
         </section>

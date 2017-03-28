@@ -5,14 +5,17 @@ declare namespace myra {
         [key: string]: TValue
     }
 
+    type OnMount<TState, TProps> = (state: TState, props: TProps) => Result<TState>
+    type OnUnmount<TState> = (state: TState) => Result<TState>
+
     /**
      * Component types
      */
     interface ComponentSpec<TState, TProps extends {}> {
         readonly name: string
-        readonly init: Result<TState>
-        readonly onMount?: Update<TState, TProps>
-        readonly onUnmount?: Update<TState, undefined>
+        readonly init: TState | [TState, Effect<TState>]
+        readonly onMount?: OnMount<TState, TProps>
+        readonly onUnmount?: OnUnmount<TState>
         readonly render: Render<TState, TProps>
     }
 
@@ -36,17 +39,14 @@ declare namespace myra {
         (props: TProps, children?: VNode[]): ComponentVNode<TProps>
     }
 
-    type Effect<TState> = (() => Promise<Partial<TState>>) | ((apply: Apply) => void)
+    interface Effect<TState> {
+        (): Promise<Partial<TState>>
+    }
 
     /**
      * The result of an Update function.
      */
     type Result<TState> = Partial<TState> | Effect<TState> | [Partial<TState>, Effect<TState>]
-
-    /**
-     * Function that updates a component's state.
-     */
-    type Update<TState, TArg> = (state: TState, arg: TArg) => Result<TState>
 
     /**
      * Function that is used to apply an Update function.
@@ -61,6 +61,7 @@ declare namespace myra {
         readonly state: TState
         readonly children?: VNode[]
         readonly parentElement: Element
+        readonly apply: Apply
     }
 
     /**
@@ -75,8 +76,9 @@ declare namespace myra {
     /**
      * A function used as callback for event triggers.
      */
-    type EventListener<TEvent extends Event, TElement extends Element> =
-        <TState>(event: TEvent, element: TElement, descriptor: ElementVNode<TElement>) => void | Result<TState>
+    interface EventListener<TEvent extends Event, TElement extends Element> {
+        <TState>(event: TEvent, element: TElement, descriptor: ElementVNode<TElement>): void | Result<TState>
+    }
 
     /**
      * Base interface for a virtual node.

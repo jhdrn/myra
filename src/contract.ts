@@ -9,9 +9,11 @@ export interface ComponentSpec<TState, TProps> extends myra.ComponentSpec<TState
 export interface ComponentContext<TState, TProps> extends myra.ComponentContext<TState, TProps> { }
 export type ComponentFactory<T> = myra.ComponentFactory<T>
 
-export type Effect<TState> = myra.Effect<TState>
+export type OnMount<TState, TProps> = myra.OnMount<TState, TProps>
+export type OnUnmount<TState> = myra.OnUnmount<TState>
+
+export interface Effect<TState> extends myra.Effect<TState> { }
 export type Result<S> = myra.Result<S>
-export type Update<S, A> = myra.Update<S, A>
 export type Apply = myra.Apply
 
 /**
@@ -20,7 +22,7 @@ export type Apply = myra.Apply
 export interface ViewContext<TState, TProps> extends myra.ViewContext<TState, TProps> { }
 export interface Render<TState, TProps> extends myra.Render<TState, TProps> { }
 
-export type EventListener<T extends Event, E extends Element> = myra.EventListener<T, E>
+export interface EventListener<T extends Event, E extends Element> extends myra.EventListener<T, E> { }
 
 export interface VNodeBase extends myra.VNodeBase { }
 export interface TextVNode extends myra.TextVNode { }

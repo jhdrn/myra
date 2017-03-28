@@ -1,5 +1,5 @@
 import {
-    Update,
+    OnMount,
     ComponentFactory,
     ComponentVNode,
     ComponentSpec,
@@ -76,7 +76,7 @@ export function initComponent<T>(vNode: ComponentVNode<T>, parentElement: Elemen
 
     context.initialized = true
 
-    let onMount: Update<T, any>
+    let onMount: OnMount<T, any>
     if (typeof spec.onMount === 'function') {
         onMount = spec.onMount
     }
@@ -254,7 +254,8 @@ function dispatch<TState extends {}, TArg>(
             props: context.props,
             state: context.state!,
             children: context.childNodes,
-            parentElement: context.parentElement
+            parentElement: context.parentElement,
+            apply: apply
         } as ViewContext<TState, any>
 
         const newView = context.spec.render(ctx)
