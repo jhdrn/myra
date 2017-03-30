@@ -12,8 +12,9 @@ export type OnMount<TState, TProps> = myra.OnMount<TState, TProps>
 export type OnUnmount<TState> = myra.OnUnmount<TState>
 
 export interface Effect<TState> extends myra.Effect<TState> { }
-export type Result<S> = myra.Result<S>
-export type Apply = myra.Apply
+export type Update<TState> = myra.Update<TState>
+export type Result<TState> = myra.Result<TState>
+export type Apply<TState> = myra.Apply<TState>
 
 /**
  * View types

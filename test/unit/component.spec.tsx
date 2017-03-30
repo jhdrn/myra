@@ -255,7 +255,7 @@ describe('updateComponent', () => {
     it('invokes effect with an Apply function', () => {
 
         const mockEffects = {
-            effect: (apply: Apply) => {
+            effect: (apply: Apply<any>) => {
                 expect(apply).toBeDefined()
             }
         }

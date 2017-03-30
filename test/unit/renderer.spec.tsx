@@ -1,4 +1,4 @@
-import { define, mount, ElementVNode } from 'core'
+import { define, mount/*, ElementVNode*/ } from 'core'
 import { render } from 'core/renderer'
 import { initComponent } from 'core/component'
 import * as jsxFactory from 'core/jsxFactory'
@@ -404,395 +404,395 @@ describe('core.view.render', () => {
 
         expect(mocks.assertProps).toHaveBeenCalledTimes(1)
     })
-
-    it('retains view state when element children are reordered with keys', () => {
-
-        type Item = {
-            id: number
-        }
-        const items = [
-            { id: 1 },
-            { id: 2 },
-            { id: 3 },
-            { id: 4 },
-            { id: 5 },
-        ] as Item[]
-
-        type State = { clicked: boolean; itemId: number }
-        type Props = { item: Item; forceUpdate: boolean }
-
-        const setClicked = () => ({ clicked: true })
-
-        const ItemComponent = define<State, Props>({
-            name: randomName(),
-            init: { clicked: false, itemId: -1 },
-            onMount: (_, p) => ({ itemId: p.item.id }),
-            render: ctx =>
-                <button id={`item-${ctx.state.itemId}`}
-                    class={ctx.state.clicked ? "clicked" : ""}
-                    onclick={() => setClicked}>
-                </button>
-        })
-
-        const view1 =
-            <div>
-                {items.map(x => <div key={x.id}><ItemComponent forceUpdate item={x} /></div>)}
-            </div>
-
-        render(document.body, view1, view1, undefined, () => { })
-
-        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
-        btn.click()
-
-        expect(btn.className).toBe("clicked")
-        expect(btn.id).toBe("item-1")
-
-        const view2 =
-            <div>
-                {items.reverse().map(x => <div key={x.id}><ItemComponent forceUpdate item={x} /></div>)}
-            </div>
-
-        render(document.body, view2, view1, view1.domRef, () => { })
-
-        btn = (view2.domRef as HTMLDivElement).querySelector('button')!
-        expect(btn.id).toBe("item-5")
-        expect(btn.className).toBe("")
-
-        // The last element shoul've been updated
-        btn = ((view2.domRef as HTMLDivElement).lastChild as HTMLDivElement).firstChild as HTMLButtonElement
-
-        expect(btn.id).toBe("item-1")
-        expect(btn.className).toBe("clicked")
-    })
-
-    it('does not retain view state when element children are reordered without keys', () => {
-
-        type Item = {
-            id: number
-        }
-        const items = [
-            { id: 1 },
-            { id: 2 },
-            { id: 3 },
-            { id: 4 },
-            { id: 5 },
-        ] as Item[]
-
-        type State = { clicked: boolean; itemId: number }
-        type Props = { item: Item; forceUpdate: boolean }
-
-        const setClicked = () => ({ clicked: true })
-
-        const ItemComponent = define<State, Props>({
-            name: randomName(),
-            init: { clicked: false, itemId: -1 },
-            onMount: (_, p) => ({ itemId: p.item.id }),
-            render: ctx =>
-                <button id={`item-${ctx.state.itemId}`}
-                    class={ctx.state.clicked ? "clicked" : ""}
-                    onclick={() => setClicked}>
-                </button>
-        })
-
-        const view1 =
-            <div>
-                {items.map(x => <div><ItemComponent forceUpdate item={x} /></div>)}
-            </div>
-
-        render(document.body, view1, view1, undefined, () => { })
-
-        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
-        btn.click()
-
-        expect(btn.className).toBe("clicked")
-        expect(btn.id).toBe("item-1")
-
-        const view2 =
-            <div>
-                {items.reverse().map(x => <div><ItemComponent forceUpdate item={x} /></div>)}
-            </div>
-
-        render(document.body, view2, view1, view1.domRef, () => { })
-
-        btn = (view2.domRef as HTMLDivElement).querySelector('button')!
-        expect(btn.id).toBe("item-5")
-        expect(btn.className).toBe("clicked")
-
-        // The last element shoul've been updated
-        btn = ((view2.domRef as HTMLDivElement).lastChild as HTMLDivElement).firstChild as HTMLButtonElement
-
-        expect(btn.id).toBe("item-1")
-        expect(btn.className).toBe("")
-    })
-
-    it('retains view state when component children are reordered with keys', () => {
-
-        type Item = {
-            id: number
-        }
-        const items = [
-            { id: 1 },
-            { id: 2 },
-            { id: 3 },
-            { id: 4 },
-            { id: 5 },
-        ] as Item[]
-
-        type State = { clicked: boolean; itemId: number }
-        type Props = { key: number; item: Item }
-
-        const setClicked = () => ({ clicked: true })
-
-        const ItemComponent = define<State, Props>({
-            name: randomName(),
-            init: { clicked: false, itemId: -1 },
-            onMount: (_, p) => ({ itemId: p.item.id }),
-            render: ctx =>
-                <button
-                    id={`item-${ctx.state.itemId}`}
-                    class={ctx.state.clicked ? "clicked" : ""}
-                    onclick={() => setClicked}>
-                </button>
-        })
-
-        const view1 =
-            <div>
-                {items.map(x => <ItemComponent key={x.id} item={x} />)}
-            </div>
-
-        render(document.body, view1, view1, undefined, () => { })
-
-        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
-        btn.click()
-
-        expect(btn.className).toBe("clicked")
-        expect(btn.id).toBe("item-1")
-
-        const view2 =
-            <div>
-                {items.reverse().map(x => <ItemComponent key={x.id} item={x} />)}
-            </div>
-
-        render(document.body, view2, view1, view1.domRef, () => { })
-
-        btn = (view2.domRef as HTMLDivElement).querySelector('button')!
-        expect(btn.className).toBe("")
-        expect(btn.id).toBe("item-5")
-
-        // The last element should've been updated
-        btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
-        expect(btn.className).toBe("clicked")
-        expect(btn.id).toBe("item-1")
-    })
-
-    it('does not retain view state when component children reordered without keys', () => {
-
-        type Item = {
-            id: number
-        }
-        const items = [
-            { id: 1 },
-            { id: 2 },
-            { id: 3 },
-            { id: 4 },
-            { id: 5 },
-        ] as Item[]
-
-        type State = { clicked: boolean; itemId: number }
-        type Props = { item: Item }
-
-        const setClicked = () => ({ clicked: true })
-
-        const ItemComponent = define<State, Props>({
-            name: randomName(),
-            init: { clicked: false, itemId: -1 },
-            onMount: (_, p) => ({ itemId: p.item.id }),
-            render: ctx =>
-                <button
-                    id={`item-${ctx.state.itemId}`}
-                    class={ctx.state.clicked ? "clicked" : ""}
-                    onclick={() => setClicked}>
-                </button>
-        })
-
-        const view1 =
-            <div>
-                {items.map(x => <ItemComponent item={x} />)}
-            </div>
-
-        render(document.body, view1, view1, undefined, () => { })
-
-        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
-        btn.click()
-
-        expect(btn.className).toBe("clicked")
-        expect(btn.id).toBe("item-1")
-
-        const view2 =
-            <div>
-                {items.reverse().map(x => <ItemComponent item={x} />)}
-            </div>
-
-        render(document.body, view2, view1, view1.domRef, () => { })
-
-        btn = (view2.domRef as HTMLDivElement).querySelector('button')!
-        expect(btn.className).toBe("clicked")
-        expect(btn.id).toBe("item-5")
-
-        // The last element should've been updated
-        btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
-        expect(btn.className).toBe("")
-        expect(btn.id).toBe("item-1")
-    })
-
-    it('retains component state when component children are reordered with keys', () => {
-
-        type Item = {
-            id: number
-        }
-        const items = [
-            { id: 1 },
-            { id: 2 },
-            { id: 3 },
-            { id: 4 },
-            { id: 5 },
-        ] as Item[]
-
-        type State = { clicked: boolean; itemId: number }
-        type Props = { key: number; item: Item; forceUpdate: boolean }
-
-        const setClicked = () => ({ clicked: true })
-
-        let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
-
-        const ItemComponent = define<State, Props>({
-            name: randomName(),
-            init: { clicked: false, itemId: -1 },
-            onMount: (_, p) => ({ itemId: p.item.id }),
-            render: ctx => {
-                const v = <button id={`item-${ctx.state.itemId}`} class={ctx.state.clicked ? "clicked" : ""}
-                    onclick={() => setClicked}>
-                </button>
-                if (ctx.state.itemId === 1) {
-                    btnVNode = v as ElementVNode<HTMLButtonElement>
-                }
-                return v
+    /*
+        it('retains view state when element children are reordered with keys', () => {
+    
+            type Item = {
+                id: number
             }
+            const items = [
+                { id: 1 },
+                { id: 2 },
+                { id: 3 },
+                { id: 4 },
+                { id: 5 },
+            ] as Item[]
+    
+            type State = { clicked: boolean; itemId: number }
+            type Props = { item: Item; forceUpdate: boolean }
+    
+            const setClicked = () => ({ clicked: true })
+    
+            const ItemComponent = define<State, Props>({
+                name: randomName(),
+                init: { clicked: false, itemId: -1 },
+                onMount: (_, p) => ({ itemId: p.item.id }),
+                render: ctx =>
+                    <button id={`item-${ctx.state.itemId}`}
+                        class={ctx.state.clicked ? "clicked" : ""}
+                        onclick={() => setClicked}>
+                    </button>
+            })
+    
+            const view1 =
+                <div>
+                    {items.map(x => <div key={x.id}><ItemComponent forceUpdate item={x} /></div>)}
+                </div>
+    
+            render(document.body, view1, view1, undefined, () => { })
+    
+            let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
+            btn.click()
+    
+            expect(btn.className).toBe("clicked")
+            expect(btn.id).toBe("item-1")
+    
+            const view2 =
+                <div>
+                    {items.reverse().map(x => <div key={x.id}><ItemComponent forceUpdate item={x} /></div>)}
+                </div>
+    
+            render(document.body, view2, view1, view1.domRef, () => { })
+    
+            btn = (view2.domRef as HTMLDivElement).querySelector('button')!
+            expect(btn.id).toBe("item-5")
+            expect(btn.className).toBe("")
+    
+            // The last element shoul've been updated
+            btn = ((view2.domRef as HTMLDivElement).lastChild as HTMLDivElement).firstChild as HTMLButtonElement
+    
+            expect(btn.id).toBe("item-1")
+            expect(btn.className).toBe("clicked")
         })
-
-        const view1 =
-            <div>
-                {items.map(x => <ItemComponent key={x.id} item={x} forceUpdate={true} />)}
-            </div> as ElementVNode<HTMLDivElement>
-
-        render(document.body, view1, view1, undefined, () => { })
-
-        let btn = view1.domRef!.querySelector('button')!
-        btn.click()
-
-        expect(btn.className).toBe("clicked")
-        expect(btn.id).toBe("item-1")
-
-        // Clear id so it's set from state
-        btn.id = ""
-        btn.className = ""
-        // We also need to modify the node, else the attributes won't be updated
-
-        delete btnVNode!.props.id
-        delete btnVNode!.props.class
-        const reversedItems = items.reverse()
-        const view2 =
-            <div>
-                {reversedItems.map(x => <ItemComponent key={x.id} item={x} forceUpdate={true} />)}
-            </div> as ElementVNode<HTMLDivElement>
-
-        render(document.body, view2, view1, view1.domRef, () => { })
-
-        btn = view2.domRef!.querySelector('button')!
-        expect(btn.className).toBe("")
-        expect(btn.id).toBe("item-5")
-
-        // The last element should've been updated with the same values
-        btn = view2.domRef!.lastChild as HTMLButtonElement
-        expect(btn.className).toBe("clicked")
-        expect(btn.id).toBe("item-1")
-    })
-
-    it('does not retain component state when component children are reordered without keys', () => {
-
-        type Item = {
-            id: number
-        }
-        const items = [
-            { id: 1 },
-            { id: 2 },
-            { id: 3 },
-            { id: 4 },
-            { id: 5 },
-        ] as Item[]
-
-        type State = { clicked: boolean; itemId: number }
-        type Props = { item: Item; forceUpdate: boolean }
-
-        const setClicked = () => ({ clicked: true })
-
-        let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
-
-        const ItemComponent = define<State, Props>({
-            name: randomName(),
-            init: { clicked: false, itemId: -1 },
-            onMount: (_s, p) => ({ itemId: p.item.id }),
-            render: ctx => {
-                const v = <button id={`item-${ctx.state.itemId}`} class={ctx.state.clicked ? "clicked" : ""}
-                    onclick={() => setClicked}>
-                </button>
-                if (ctx.state.itemId === 1) {
-                    btnVNode = v as ElementVNode<HTMLButtonElement>
-                }
-                return v
+    
+        it('does not retain view state when element children are reordered without keys', () => {
+    
+            type Item = {
+                id: number
             }
+            const items = [
+                { id: 1 },
+                { id: 2 },
+                { id: 3 },
+                { id: 4 },
+                { id: 5 },
+            ] as Item[]
+    
+            type State = { clicked: boolean; itemId: number }
+            type Props = { item: Item; forceUpdate: boolean }
+    
+            const setClicked = () => ({ clicked: true })
+    
+            const ItemComponent = define<State, Props>({
+                name: randomName(),
+                init: { clicked: false, itemId: -1 },
+                onMount: (_, p) => ({ itemId: p.item.id }),
+                render: ctx =>
+                    <button id={`item-${ctx.state.itemId}`}
+                        class={ctx.state.clicked ? "clicked" : ""}
+                        onclick={() => setClicked}>
+                    </button>
+            })
+    
+            const view1 =
+                <div>
+                    {items.map(x => <div><ItemComponent forceUpdate item={x} /></div>)}
+                </div>
+    
+            render(document.body, view1, view1, undefined, () => { })
+    
+            let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
+            btn.click()
+    
+            expect(btn.className).toBe("clicked")
+            expect(btn.id).toBe("item-1")
+    
+            const view2 =
+                <div>
+                    {items.reverse().map(x => <div><ItemComponent forceUpdate item={x} /></div>)}
+                </div>
+    
+            render(document.body, view2, view1, view1.domRef, () => { })
+    
+            btn = (view2.domRef as HTMLDivElement).querySelector('button')!
+            expect(btn.id).toBe("item-5")
+            expect(btn.className).toBe("clicked")
+    
+            // The last element shoul've been updated
+            btn = ((view2.domRef as HTMLDivElement).lastChild as HTMLDivElement).firstChild as HTMLButtonElement
+    
+            expect(btn.id).toBe("item-1")
+            expect(btn.className).toBe("")
         })
-
-        const view1 =
-            <div>
-                {items.map(x => <ItemComponent item={x} forceUpdate={true} />)}
-            </div> as ElementVNode<HTMLDivElement>
-
-        render(document.body, view1, view1, undefined, () => { })
-
-        let btn = view1.domRef!.querySelector('button')!
-        btn.click()
-
-        expect(btn.className).toBe("clicked")
-        expect(btn.id).toBe("item-1")
-
-        // Clear id so it's set from state
-        btn.id = ""
-        btn.className = ""
-
-        // We also need to modify the node, else the attributes won't be updated
-        delete btnVNode!.props.id
-        delete btnVNode!.props.class
-
-        const reversedItems = items.reverse()
-        const view2 =
-            <div>
-                {reversedItems.map(x => <ItemComponent item={x} forceUpdate={true} />)}
-            </div> as ElementVNode<HTMLDivElement>
-
-        render(document.body, view2, view1, view1.domRef, () => { })
-
-        btn = view2.domRef!.querySelector('button')!
-
-        expect(btn.className).toBe("clicked")
-        expect(btn.id).toBe("item-5")
-
-        // The last element should've been updated with the same values
-        btn = view2.domRef!.lastChild as HTMLButtonElement
-
-        expect(btn.className).toBe("")
-        expect(btn.id).toBe("item-1")
-    })
+    
+        it('retains view state when component children are reordered with keys', () => {
+    
+            type Item = {
+                id: number
+            }
+            const items = [
+                { id: 1 },
+                { id: 2 },
+                { id: 3 },
+                { id: 4 },
+                { id: 5 },
+            ] as Item[]
+    
+            type State = { clicked: boolean; itemId: number }
+            type Props = { key: number; item: Item }
+    
+            const setClicked = () => ({ clicked: true })
+    
+            const ItemComponent = define<State, Props>({
+                name: randomName(),
+                init: { clicked: false, itemId: -1 },
+                onMount: (_, p) => ({ itemId: p.item.id }),
+                render: ctx =>
+                    <button
+                        id={`item-${ctx.state.itemId}`}
+                        class={ctx.state.clicked ? "clicked" : ""}
+                        onclick={() => setClicked}>
+                    </button>
+            })
+    
+            const view1 =
+                <div>
+                    {items.map(x => <ItemComponent key={x.id} item={x} />)}
+                </div>
+    
+            render(document.body, view1, view1, undefined, () => { })
+    
+            let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
+            btn.click()
+    
+            expect(btn.className).toBe("clicked")
+            expect(btn.id).toBe("item-1")
+    
+            const view2 =
+                <div>
+                    {items.reverse().map(x => <ItemComponent key={x.id} item={x} />)}
+                </div>
+    
+            render(document.body, view2, view1, view1.domRef, () => { })
+    
+            btn = (view2.domRef as HTMLDivElement).querySelector('button')!
+            expect(btn.className).toBe("")
+            expect(btn.id).toBe("item-5")
+    
+            // The last element should've been updated
+            btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
+            expect(btn.className).toBe("clicked")
+            expect(btn.id).toBe("item-1")
+        })
+    
+        it('does not retain view state when component children reordered without keys', () => {
+    
+            type Item = {
+                id: number
+            }
+            const items = [
+                { id: 1 },
+                { id: 2 },
+                { id: 3 },
+                { id: 4 },
+                { id: 5 },
+            ] as Item[]
+    
+            type State = { clicked: boolean; itemId: number }
+            type Props = { item: Item }
+    
+            const setClicked = () => ({ clicked: true })
+    
+            const ItemComponent = define<State, Props>({
+                name: randomName(),
+                init: { clicked: false, itemId: -1 },
+                onMount: (_, p) => ({ itemId: p.item.id }),
+                render: ctx =>
+                    <button
+                        id={`item-${ctx.state.itemId}`}
+                        class={ctx.state.clicked ? "clicked" : ""}
+                        onclick={() => setClicked}>
+                    </button>
+            })
+    
+            const view1 =
+                <div>
+                    {items.map(x => <ItemComponent item={x} />)}
+                </div>
+    
+            render(document.body, view1, view1, undefined, () => { })
+    
+            let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
+            btn.click()
+    
+            expect(btn.className).toBe("clicked")
+            expect(btn.id).toBe("item-1")
+    
+            const view2 =
+                <div>
+                    {items.reverse().map(x => <ItemComponent item={x} />)}
+                </div>
+    
+            render(document.body, view2, view1, view1.domRef, () => { })
+    
+            btn = (view2.domRef as HTMLDivElement).querySelector('button')!
+            expect(btn.className).toBe("clicked")
+            expect(btn.id).toBe("item-5")
+    
+            // The last element should've been updated
+            btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
+            expect(btn.className).toBe("")
+            expect(btn.id).toBe("item-1")
+        })
+    
+        it('retains component state when component children are reordered with keys', () => {
+    
+            type Item = {
+                id: number
+            }
+            const items = [
+                { id: 1 },
+                { id: 2 },
+                { id: 3 },
+                { id: 4 },
+                { id: 5 },
+            ] as Item[]
+    
+            type State = { clicked: boolean; itemId: number }
+            type Props = { key: number; item: Item; forceUpdate: boolean }
+    
+            const setClicked = () => ({ clicked: true })
+    
+            let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
+    
+            const ItemComponent = define<State, Props>({
+                name: randomName(),
+                init: { clicked: false, itemId: -1 },
+                onMount: (_, p) => ({ itemId: p.item.id }),
+                render: ctx => {
+                    const v = <button id={`item-${ctx.state.itemId}`} class={ctx.state.clicked ? "clicked" : ""}
+                        onclick={() => setClicked}>
+                    </button>
+                    if (ctx.state.itemId === 1) {
+                        btnVNode = v as ElementVNode<HTMLButtonElement>
+                    }
+                    return v
+                }
+            })
+    
+            const view1 =
+                <div>
+                    {items.map(x => <ItemComponent key={x.id} item={x} forceUpdate={true} />)}
+                </div> as ElementVNode<HTMLDivElement>
+    
+            render(document.body, view1, view1, undefined, () => { })
+    
+            let btn = view1.domRef!.querySelector('button')!
+            btn.click()
+    
+            expect(btn.className).toBe("clicked")
+            expect(btn.id).toBe("item-1")
+    
+            // Clear id so it's set from state
+            btn.id = ""
+            btn.className = ""
+            // We also need to modify the node, else the attributes won't be updated
+    
+            delete btnVNode!.props.id
+            delete btnVNode!.props.class
+            const reversedItems = items.reverse()
+            const view2 =
+                <div>
+                    {reversedItems.map(x => <ItemComponent key={x.id} item={x} forceUpdate={true} />)}
+                </div> as ElementVNode<HTMLDivElement>
+    
+            render(document.body, view2, view1, view1.domRef, () => { })
+    
+            btn = view2.domRef!.querySelector('button')!
+            expect(btn.className).toBe("")
+            expect(btn.id).toBe("item-5")
+    
+            // The last element should've been updated with the same values
+            btn = view2.domRef!.lastChild as HTMLButtonElement
+            expect(btn.className).toBe("clicked")
+            expect(btn.id).toBe("item-1")
+        })
+    
+        it('does not retain component state when component children are reordered without keys', () => {
+    
+            type Item = {
+                id: number
+            }
+            const items = [
+                { id: 1 },
+                { id: 2 },
+                { id: 3 },
+                { id: 4 },
+                { id: 5 },
+            ] as Item[]
+    
+            type State = { clicked: boolean; itemId: number }
+            type Props = { item: Item; forceUpdate: boolean }
+    
+            const setClicked = () => ({ clicked: true })
+    
+            let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
+    
+            const ItemComponent = define<State, Props>({
+                name: randomName(),
+                init: { clicked: false, itemId: -1 },
+                onMount: (_s, p) => ({ itemId: p.item.id }),
+                render: ctx => {
+                    const v = <button id={`item-${ctx.state.itemId}`} class={ctx.state.clicked ? "clicked" : ""}
+                        onclick={() => setClicked}>
+                    </button>
+                    if (ctx.state.itemId === 1) {
+                        btnVNode = v as ElementVNode<HTMLButtonElement>
+                    }
+                    return v
+                }
+            })
+    
+            const view1 =
+                <div>
+                    {items.map(x => <ItemComponent item={x} forceUpdate={true} />)}
+                </div> as ElementVNode<HTMLDivElement>
+    
+            render(document.body, view1, view1, undefined, () => { })
+    
+            let btn = view1.domRef!.querySelector('button')!
+            btn.click()
+    
+            expect(btn.className).toBe("clicked")
+            expect(btn.id).toBe("item-1")
+    
+            // Clear id so it's set from state
+            btn.id = ""
+            btn.className = ""
+    
+            // We also need to modify the node, else the attributes won't be updated
+            delete btnVNode!.props.id
+            delete btnVNode!.props.class
+    
+            const reversedItems = items.reverse()
+            const view2 =
+                <div>
+                    {reversedItems.map(x => <ItemComponent item={x} forceUpdate={true} />)}
+                </div> as ElementVNode<HTMLDivElement>
+    
+            render(document.body, view2, view1, view1.domRef, () => { })
+    
+            btn = view2.domRef!.querySelector('button')!
+    
+            expect(btn.className).toBe("clicked")
+            expect(btn.id).toBe("item-5")
+    
+            // The last element should've been updated with the same values
+            btn = view2.domRef!.lastChild as HTMLButtonElement
+    
+            expect(btn.className).toBe("")
+            expect(btn.id).toBe("item-1")
+        })*/
 
     it('unmounts a component which is a child of removed virtual node', () => {
         const mountMock = {

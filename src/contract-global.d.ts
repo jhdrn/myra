@@ -27,18 +27,23 @@ declare namespace myra {
     }
 
     interface Effect<TState extends {}> {
-        (): Promise<Partial<TState>>
+        (): Promise<Update<TState>>
     }
+
+    /**
+     * Function that is used to update the state.
+     */
+    type Update<TState extends {}> = (state: TState) => Result<TState>
 
     /**
      * The result of an Update function.
      */
-    type Result<TState extends {}> = Partial<TState> | Effect<TState> | [Partial<TState>, Effect<TState>]
+    type Result<TState extends {}> = Partial<TState> | [Partial<TState>, Effect<TState>]
 
     /**
      * Function that is used to apply an Update function.
      */
-    type Apply = <TState extends {}>(partialState: Partial<TState>) => void
+    type Apply<TState extends {}> = (update: Update<TState> | Result<TState>) => void
 
     /**
      * Holds data and functions used in a View.
@@ -48,7 +53,7 @@ declare namespace myra {
         readonly state: TState
         readonly children?: VNode[]
         readonly parentElement: Element
-        readonly apply: Apply
+        readonly apply: Apply<TState>
     }
 
     /**

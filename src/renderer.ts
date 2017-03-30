@@ -22,7 +22,7 @@ export function render(
     newVNode: VNode,
     oldVNode: VNode,
     existingDomNode: Node | undefined,
-    apply: Apply): void {
+    apply: Apply<any>): void {
 
     const replaceNode = shouldReplaceNode(newVNode, oldVNode)
 
@@ -127,7 +127,7 @@ export function render(
 /** 
  * Renders child virtual nodes. Will add/remove DOM nodes if needed.
  */
-function renderChildNodes(newVNode: ElementVNode<any>, oldVNode: VNode, existingDomNode: Node, apply: Apply) {
+function renderChildNodes(newVNode: ElementVNode<any>, oldVNode: VNode, existingDomNode: Node, apply: Apply<any>) {
 
     // Iterate over children and add/update/remove nodes
     const noOfNewVNodeChildren = newVNode.children.length
@@ -282,7 +282,7 @@ function tryCreateEventListener(
     attributeName: string,
     eventListener: EventListenerReturningState<any, any>,
     vNode: ElementVNode<any>,
-    apply: Apply) {
+    apply: Apply<any>) {
 
     if (attributeName.indexOf('on') !== 0) {
         return undefined
@@ -337,7 +337,7 @@ function getAttributesToRemove(newVNode: ElementVNode<any>, oldVNode: VNode) {
     return attributesToRemove
 }
 
-function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, existingDomNode: Node, apply: Apply) {
+function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, existingDomNode: Node, apply: Apply<any>) {
     // remove any attributes that was added with the old virtual node but does 
     // not exist in the new virtual node.
     for (const attr of getAttributesToRemove(newVNode, oldVNode)) {

@@ -1,9 +1,9 @@
 import {
-    OnMount,
     ComponentFactory,
     ComponentVNode,
     ComponentSpec,
     VNode,
+    Update,
     Result,
     Apply,
     Render,
@@ -64,11 +64,11 @@ let nextId = 1
  * dispatch with the intial value from the component spec. If spec.onMount is
  * set, it will also be applied.
  */
-export function initComponent<T>(vNode: ComponentVNode<T>, parentElement: Element) {
+export function initComponent<TState>(vNode: ComponentVNode<TState>, parentElement: Element) {
 
     const spec = componentSpecs[vNode.name]
 
-    const context: ComponentContext<T, any> = {
+    const context: ComponentContext<TState, any> = {
         spec: spec,
         parentElement: parentElement,
         childNodes: vNode.children,
@@ -84,23 +84,19 @@ export function initComponent<T>(vNode: ComponentVNode<T>, parentElement: Elemen
 
     if (typeof spec.init[1] !== 'undefined') {
         // Dispatch once with init. The view won't be rendered.
-        dispatch(context, render, function onInit() { return spec.init }, undefined)
+        dispatch(context, render, function onInit() { return spec.init })
     }
 
     context.initialized = true
 
-    let onMount: OnMount<T, any>
-    if (typeof spec.onMount === 'function') {
-        onMount = spec.onMount
-    }
-    else {
-        onMount = function onMount<S>(m: S) {
-            return m
-        }
+
+    let onMount: Update<TState> | undefined
+    if (typeof context.spec.onMount !== 'undefined') {
+        onMount = (s: TState) => context.spec.onMount!(s, vNode.props)
     }
 
     // Dispatch to render the view. 
-    dispatch(context, render, onMount, vNode.props)
+    dispatch(context, render, onMount)
 
     if (context.rendition) {
         vNode.domRef = context.rendition.domRef
@@ -114,7 +110,7 @@ export function initComponent<T>(vNode: ComponentVNode<T>, parentElement: Elemen
 /** 
  * Updates a component by comparing the new and old virtual nodes. 
  */
-export function updateComponent<T>(newVNode: ComponentVNode<T>, oldVNode: ComponentVNode<T>) {
+export function updateComponent<TState>(newVNode: ComponentVNode<TState>, oldVNode: ComponentVNode<TState>) {
 
     newVNode.id = oldVNode.id
 
@@ -129,14 +125,13 @@ export function updateComponent<T>(newVNode: ComponentVNode<T>, oldVNode: Compon
 
         context.childNodes = newVNode.children
 
+        let onMount: Update<TState> | undefined
+        if (typeof context.spec.onMount !== 'undefined') {
+            onMount = (s: TState) => context.spec.onMount!(s, newVNode.props)
+        }
+
         if (!context.isUpdating) {
-            dispatch(
-                context,
-                render,
-                typeof context.spec.onMount !== 'undefined' ?
-                    context.spec.onMount :
-                    (<TState>(s: TState) => [s]),
-                newVNode.props)
+            dispatch(context, render, onMount)
         }
 
         newVNode.domRef = context.rendition!.domRef
@@ -199,7 +194,7 @@ export function findAndUnmountComponentsRec(vNode: VNode) {
     if (vNode._ === 3) {
         const ctx = contexts[vNode.id]
         if (typeof ctx.spec.onUnmount === 'function') {
-            dispatch(ctx, render, ctx.spec.onUnmount, undefined)
+            dispatch(ctx, render, ctx.spec.onUnmount)
         }
         delete contexts[vNode.id]
         findAndUnmountComponentsRec(ctx.rendition!)
@@ -211,11 +206,10 @@ export function findAndUnmountComponentsRec(vNode: VNode) {
     }
 }
 
-function dispatch<TState extends {}, TArg>(
+function dispatch<TState extends {}>(
     context: ComponentContext<TState, any>,
-    render: (parentNode: Element, view: VNode, oldView: VNode | undefined, oldRootNode: Node | undefined, apply: Apply) => void,
-    fn: (state: TState, arg: TArg) => Result<TState>,
-    arg: TArg) {
+    render: (parentNode: Element, view: VNode, oldView: VNode | undefined, oldRootNode: Node | undefined, apply: Apply<TState>) => void,
+    fn?: Update<TState>) {
 
     if (context.isUpdating) {
         throw `${context.spec.name}: Dispatch error - the dispatch function may not be called during an update. Doing so would most likely corrupt the state.`
@@ -223,41 +217,50 @@ function dispatch<TState extends {}, TArg>(
 
     context.dispatchLevel++
 
-    context.isUpdating = true
-
-    let result = fn(context.state!, arg)
-
-    const resultType = typeOf(result)
-    if (resultType === 'object') {
-        result = [result] as Result<TState>
-    }
-    else if (resultType !== 'array') {
-        throw `${context.spec.name}: The result of an update function must be an object literal or a tuple`
-    }
-
-    const newState = { ...<any>context.state, ...(result as any)[0] }
-
-    context.isUpdating = false
-
-    // const apply = <T>(fn: Update<TState, T>, arg: T) => dispatch(context, render, fn, arg)
-    const apply = (partialState: Partial<TState>) => dispatch(context, render, () => partialState, undefined)
-
-    if (debugEnabled) {
-        if (typeof debugOptions.components === 'undefined' ||
-            debugOptions.components!.indexOf(context.spec.name) !== -1) {
-
-            console.groupCollapsed(`${context.spec.name} ${(fn as any).name}`)
-            console.debug('State before update: ', context.state)
-            console.debug(`Update arguments: `, arg)
-            console.debug('State after update: ', newState)
-            console.groupEnd()
+    const apply: Apply<TState> = (update: Update<TState> | Result<TState>) => {
+        if (typeof update !== 'function') {
+            dispatch(context, render, ((_s: TState) => update) as Update<TState>)
+        }
+        else {
+            dispatch(context, render, update as Update<TState>)
         }
     }
 
-    context.state = newState
 
-    if ((result as any).length === 2 && typeof (result as any)[1] === 'function') {
-        (result as any)[1](apply)
+    if (typeof fn !== 'undefined') {
+
+        context.isUpdating = true
+
+        let result = fn(context.state!)
+
+        const resultType = typeOf(result)
+        if (resultType === 'object') {
+            result = [result] as Result<TState>
+        }
+        else if (resultType !== 'array') {
+            throw `${context.spec.name}: The result of an update function must be an object literal or a tuple`
+        }
+
+        const newState = { ...<any>context.state, ...(result as any)[0] }
+
+        if (debugEnabled) {
+            if (typeof debugOptions.components === 'undefined' ||
+                debugOptions.components!.indexOf(context.spec.name) !== -1) {
+
+                console.groupCollapsed(`${context.spec.name} ${(fn as any).name}`)
+                console.debug('State before update: ', context.state)
+                console.debug('State after update: ', newState)
+                console.groupEnd()
+            }
+        }
+
+        context.state = newState
+
+        context.isUpdating = false
+
+        if ((result as any).length === 2 && typeof (result as any)[1] === 'function') {
+            (result as any)[1](apply)
+        }
     }
 
     // Update view if the component was already initialized and the 
