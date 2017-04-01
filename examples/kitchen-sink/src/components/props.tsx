@@ -12,9 +12,6 @@ type Props = {
  * Component
  */
 export default myra.define({
-    // The name of the component. Used for debugging purposes.
-    name: 'PropsComponent',
-
     // Init takes either an initial model or a tuple of an initial model 
     // and one or more tasks to execute when the component is initialized.
     init: {},

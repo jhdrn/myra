@@ -11,7 +11,7 @@ import RoutingComponent from './routing'
 /**
  * View
  */
-export default myra.define('MainComponent', {}, () =>
+export default myra.define({}, () =>
     <div class="container">
         <h1>Kitchen sink demo</h1>
         <hr />
