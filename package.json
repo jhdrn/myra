@@ -1,6 +1,6 @@
 {
   "name": "myra-dev",
-  "version": "2.0.0-beta.2",
+  "version": "2.0.0-beta.3",
   "private": true,
   "devDependencies": {
     "@types/jasmine": "^2.2.34",
@@ -19,7 +19,7 @@
     "remap-istanbul": "^0.6.4",
     "rimraf": "^2.5.3",
     "systemjs": "^0.19.31",
-    "typescript": "^2.2.1"
+    "typescript": "^2.2.2"
   },
   "scripts": {
     "build": "rimraf build && tsc",

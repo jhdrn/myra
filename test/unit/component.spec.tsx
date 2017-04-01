@@ -1,4 +1,4 @@
-import { define, mount, ComponentVNode, Apply } from 'core'
+import { define, mount, ComponentVNode } from 'core'
 import { initComponent, updateComponent, findAndUnmountComponentsRec } from 'core/component'
 import * as jsxFactory from 'core/jsxFactory'
 
@@ -11,22 +11,15 @@ const randomName = () => Math.random().toString()
  */
 describe('defineComponent', () => {
     const componentName = randomName()
-    const component1 = define({
+    const spec = {
         name: componentName,
         init: {},
         render: () => <div />
-    })
+    }
+    const component1 = define(spec)
 
     it('has a name', () => {
-        expect(component1({}).name).toBe(componentName)
-    })
-
-    it('throws if a component with the same name is already defined', () => {
-        expect(() => define({
-            name: componentName,
-            init: {},
-            render: () => <div />
-        })).toThrow()
+        expect(component1({}).spec).toBe(spec)
     })
 })
 
@@ -118,7 +111,7 @@ describe('unmountComponent', () => {
             onUnmount: mountMock.unmount,
             render: () => <div />
         })
-        const instance = <Component /> as ComponentVNode<{}>
+        const instance = <Component /> as ComponentVNode<{}, {}>
 
         initComponent(instance, document.body)
         findAndUnmountComponentsRec(instance)
@@ -232,49 +225,5 @@ describe('updateComponent', () => {
         updateComponent(newVNode, vNode)
 
         expect(mountMock.mount).toHaveBeenCalledTimes(2)
-    })
-
-    it('throws if Update result is a string', () => {
-        const mountMock = {
-            mount: (_x: { val: number }) => 'failure' as any
-        }
-
-        spyOn(mountMock, 'mount').and.callThrough()
-
-        const component = define({
-            name: 'ThrowsOnUpdateReturningString',
-            init: { val: 0 },
-            onMount: mountMock.mount,
-            render: () => <div />
-        })
-
-        const vNode = component({ prop: 'a value' })
-        expect(() => initComponent(vNode, document.body)).toThrow()
-    })
-
-    it('invokes effect with an Apply function', () => {
-
-        const mockEffects = {
-            effect: (apply: Apply<any>) => {
-                expect(apply).toBeDefined()
-            }
-        }
-
-        spyOn(mockEffects, 'effect')
-
-        const update = (x: { val: number }) =>
-            [{ val: x.val }, mockEffects.effect]
-
-        const component = define({
-            name: 'InvokesEffect',
-            init: { val: 0 },
-            onMount: update,
-            render: () => <div />
-        })
-
-        const vNode = component({})
-        initComponent(vNode, document.body)
-
-        expect(mockEffects.effect).toHaveBeenCalledTimes(1)
     })
 })

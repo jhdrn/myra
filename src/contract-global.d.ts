@@ -5,62 +5,29 @@ declare namespace myra {
         [key: string]: TValue
     }
 
-    type OnMount<TState, TProps> = (state: TState, props: TProps) => Result<TState>
-    type OnUnmount<TState> = (state: TState) => Result<TState>
-
-    /**
-     * Component types
-     */
-    interface ComponentSpec<TState extends {}, TProps extends {}> {
-        readonly name: string
-        readonly init: TState | [TState, Effect<TState>]
-        readonly onMount?: OnMount<TState, TProps>
-        readonly onUnmount?: OnUnmount<TState>
-        readonly render: Render<TState, TProps>
-    }
-
-    /**
-     * Creates ComponentVNode's of a specific Component spec.
-     */
-    interface ComponentFactory<TProps extends {}> {
-        (props: TProps, children?: VNode[]): ComponentVNode<TProps>
-    }
-
-    interface Effect<TState extends {}> {
-        (): Promise<Update<TState>>
-    }
-
-    /**
-     * Function that is used to update the state.
-     */
-    type Update<TState extends {}> = (state: TState) => Result<TState>
-
-    /**
-     * The result of an Update function.
-     */
-    type Result<TState extends {}> = Partial<TState> | [Partial<TState>, Effect<TState>]
-
-    /**
-     * Function that is used to apply an Update function.
-     */
-    type Apply<TState extends {}> = (update: Update<TState> | Result<TState>) => void
-
-    /**
-     * Holds data and functions used in a View.
-     */
-    interface ViewContext<TState extends {}, TProps extends {}> {
-        readonly props: TProps
-        readonly state: TState
-        readonly children?: VNode[]
+    type Update<TState> = (state: Readonly<TState>) => Partial<TState>
+    type Post<TState> = (fn: Update<TState>) => void
+    type ViewContext<TState, TProps> = {
+        readonly state: Readonly<TState>
+        readonly props: Readonly<TProps>
+        readonly post: Post<TState>
         readonly parentElement: Element
-        readonly apply: Apply<TState>
+        readonly children: VNode[]
     }
 
-    /**
-     * Function that is responsible of creating a component's view.
-     */
-    interface Render<TState extends {}, TProps extends {}> {
-        (ctx: ViewContext<TState, TProps>): VNode
+    type Render<TState, TProps> = (ctx: ViewContext<TState, TProps>) => VNode
+    type OnMount<TState, TProps> = (state: Readonly<TState>, props: Readonly<TProps>, post: Post<TState>) => Partial<TState>
+    type OnUnmount<TState, TProps> = (state: Readonly<TState>, props: Readonly<TProps>) => void
+    interface ComponentFactory<TState extends {}, TProps extends {}> {
+        (props: Readonly<TProps>, children?: VNode[]): ComponentVNode<TState, TProps>
+    }
+
+    interface ComponentSpec<TState extends {}, TProps extends {}> {
+        readonly name?: string
+        readonly init: TState
+        readonly onMount?: OnMount<TState, TProps>
+        readonly onUnmount?: OnUnmount<TState, TProps>
+        readonly render: Render<TState, TProps>
     }
 
     interface AttributeMap { [name: string]: string }
@@ -68,17 +35,7 @@ declare namespace myra {
     /**
      * A function used as callback for event triggers.
      */
-    type EventListener<TEvent extends Event, TElement extends Element> =
-        EventListenerReturningState<TEvent, TElement> | EventListenerReturningVoid<TEvent, TElement>
-
-    interface EventListenerReturningVoid<TEvent extends Event, TElement extends Element> {
-        (event: TEvent, element: TElement, descriptor: ElementVNode<TElement>): void
-    }
-
-    interface EventListenerReturningState<TEvent extends Event, TElement extends Element> {
-        <TState extends {}>(event: TEvent, element: TElement, descriptor: ElementVNode<TElement>): Result<TState>
-    }
-
+    type EventListener<TEvent extends Event, TElement extends Element> = (event: TEvent) => void
 
     /**
      * Base interface for a virtual node.
@@ -112,13 +69,15 @@ declare namespace myra {
     /**
      * A virtual node representing a component.
      */
-    interface ComponentVNode<TProps extends {}> extends VNodeBase {
+    interface ComponentVNode<TState extends {}, TProps extends {}> extends VNodeBase {
         readonly _: 3
-        readonly name: string
-        id: number;
+        readonly spec: ComponentSpec<TState, TProps>
         children: VNode[]
         rendition?: VNode
         props: TProps
+        state: Readonly<TState>
+        parentElement?: Element
+        dispatchLevel: number
     }
 
     /**
@@ -132,7 +91,7 @@ declare namespace myra {
     /**
      * Union type of the different types of virtual nodes.
      */
-    type VNode = TextVNode | ElementVNode<any> | ComponentVNode<any> | NothingVNode
+    type VNode = TextVNode | ElementVNode<any> | ComponentVNode<any, any> | NothingVNode
 
     interface GlobalAttributes<TElement extends Element> {
         key?: any

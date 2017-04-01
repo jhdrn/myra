@@ -6,15 +6,13 @@ export type Map<T> = myra.Map<T>
  * Component types
  */
 export interface ComponentSpec<TState, TProps> extends myra.ComponentSpec<TState, TProps> { }
-export type ComponentFactory<T> = myra.ComponentFactory<T>
+export type ComponentFactory<TState, TProps> = myra.ComponentFactory<TState, TProps>
 
 export type OnMount<TState, TProps> = myra.OnMount<TState, TProps>
-export type OnUnmount<TState> = myra.OnUnmount<TState>
+export type OnUnmount<TState, TProps> = myra.OnUnmount<TState, TProps>
 
-export interface Effect<TState> extends myra.Effect<TState> { }
 export type Update<TState> = myra.Update<TState>
-export type Result<TState> = myra.Result<TState>
-export type Apply<TState> = myra.Apply<TState>
+export type Post<TState> = myra.Post<TState>
 
 /**
  * View types
@@ -23,13 +21,11 @@ export interface ViewContext<TState, TProps> extends myra.ViewContext<TState, TP
 export interface Render<TState, TProps> extends myra.Render<TState, TProps> { }
 
 export type EventListener<T extends Event, E extends Element> = myra.EventListener<T, E>
-export interface EventListenerReturningVoid<TEvent extends Event, TElement extends Element> extends myra.EventListenerReturningVoid<TEvent, TElement> { }
-export interface EventListenerReturningState<TEvent extends Event, TElement extends Element> extends myra.EventListenerReturningState<TEvent, TElement> { }
 
 export interface VNodeBase extends myra.VNodeBase { }
 export interface TextVNode extends myra.TextVNode { }
 export interface ElementVNode<T extends Element> extends myra.ElementVNode<T> { }
-export interface ComponentVNode<T> extends myra.ComponentVNode<T> { }
+export interface ComponentVNode<TState, TProps> extends myra.ComponentVNode<TState, TProps> { }
 export interface NothingVNode extends myra.NothingVNode { }
 export type VNode = myra.VNode
 

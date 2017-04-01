@@ -1,3 +1,3 @@
-export { define, mount, debug } from './component'
+export { define, mount } from './component'
 export * from './jsxFactory'
 export * from './contract'

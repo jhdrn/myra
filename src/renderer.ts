@@ -1,6 +1,6 @@
 import { initComponent, updateComponent, findAndUnmountComponentsRec } from './component'
 import { max } from './helpers'
-import { EventListener, EventListenerReturningState, VNode, ElementVNode, ComponentVNode, Apply } from './contract'
+import { EventListener, VNode, ElementVNode, ComponentVNode } from './contract'
 
 const BOOL_ATTRS = [
     'checked',
@@ -21,8 +21,7 @@ export function render(
     parentDomNode: Element,
     newVNode: VNode,
     oldVNode: VNode,
-    existingDomNode: Node | undefined,
-    apply: Apply<any>): void {
+    existingDomNode: Node | undefined): void {
 
     const replaceNode = shouldReplaceNode(newVNode, oldVNode)
 
@@ -62,7 +61,7 @@ export function render(
 
                 if (typeof attributeValue !== 'undefined') {
 
-                    const eventListener = tryCreateEventListener(name, attributeValue, newVNode, apply)
+                    const eventListener = tryCreateEventListener(name, attributeValue)
 
                     let value: any
                     if (typeof eventListener === 'undefined') {
@@ -82,7 +81,7 @@ export function render(
 
             for (const c of newVNode.children) {
                 if (typeof c !== 'undefined') {
-                    render(newNode as Element, c, c, undefined, apply)
+                    render(newNode as Element, c, c, undefined)
                 }
             }
         }
@@ -101,14 +100,14 @@ export function render(
         // update existing node
         switch (newVNode._) {
             case 2: // element node
-                updateElementAttributes(newVNode, oldVNode, existingDomNode, apply)
-                renderChildNodes(newVNode, oldVNode, existingDomNode, apply)
+                updateElementAttributes(newVNode, oldVNode, existingDomNode)
+                renderChildNodes(newVNode, oldVNode, existingDomNode)
                 break
             case 1: // text node
                 existingDomNode.textContent = newVNode.value
                 break
             case 3: // component node
-                updateComponent(newVNode, oldVNode as ComponentVNode<any>)
+                updateComponent(newVNode, oldVNode as ComponentVNode<any, any>)
                 break
         }
 
@@ -127,7 +126,7 @@ export function render(
 /** 
  * Renders child virtual nodes. Will add/remove DOM nodes if needed.
  */
-function renderChildNodes(newVNode: ElementVNode<any>, oldVNode: VNode, existingDomNode: Node, apply: Apply<any>) {
+function renderChildNodes(newVNode: ElementVNode<any>, oldVNode: VNode, existingDomNode: Node) {
 
     // Iterate over children and add/update/remove nodes
     const noOfNewVNodeChildren = newVNode.children.length
@@ -151,7 +150,7 @@ function renderChildNodes(newVNode: ElementVNode<any>, oldVNode: VNode, existing
                 childDomNode = childDomNode!.nextSibling
             }
 
-            render(existingDomNode as Element, childVNode, oldChildVNode, oldChildVNode.domRef, apply)
+            render(existingDomNode as Element, childVNode, oldChildVNode, oldChildVNode.domRef)
 
             childVNodeIndex++
         }
@@ -225,7 +224,7 @@ function shouldReplaceNode(newVNode: VNode, oldVNode: VNode | undefined): boolea
         return true
     }
     else if (newVNode._ === 3 && oldVNode._ === 3 &&
-        newVNode.name !== oldVNode.name) {
+        newVNode.spec !== oldVNode.spec) {
         return true
     }
     return false
@@ -280,33 +279,14 @@ function removeAttr(a: string, node: Element) {
  */
 function tryCreateEventListener(
     attributeName: string,
-    eventListener: EventListenerReturningState<any, any>,
-    vNode: ElementVNode<any>,
-    apply: Apply<any>) {
+    eventListener: EventListener<any, any>) {
 
     if (attributeName.indexOf('on') !== 0) {
         return undefined
     }
 
     return (ev: Event) => {
-        const result = eventListener(ev, ev.target, vNode)
-
-        if (typeof result === 'function') {
-            const promise = (result as any)(apply)
-            if (typeof promise !== 'undefined') {
-                promise.then(apply)
-            }
-        }
-        else if (Array.isArray(result)) {
-            apply(result[0])
-            const promise = (result[1] as any)(apply)
-            if (typeof promise !== 'undefined') {
-                promise.then(apply)
-            }
-        }
-        else if (typeof result === 'object') {
-            apply(result)
-        }
+        eventListener(ev)
     }
 }
 
@@ -320,8 +300,7 @@ function createNode(vNode: VNode, parentNode: Element): Node {
         case 1:
             return document.createTextNode(vNode.value)
         case 3:
-            initComponent(vNode, parentNode)
-            return vNode.domRef!
+            return initComponent(vNode, parentNode)
         case 0:
             return document.createComment('Nothing')
     }
@@ -337,7 +316,7 @@ function getAttributesToRemove(newVNode: ElementVNode<any>, oldVNode: VNode) {
     return attributesToRemove
 }
 
-function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, existingDomNode: Node, apply: Apply<any>) {
+function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, existingDomNode: Node) {
     // remove any attributes that was added with the old virtual node but does 
     // not exist in the new virtual node.
     for (const attr of getAttributesToRemove(newVNode, oldVNode)) {
@@ -358,7 +337,7 @@ function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, e
         if ((name.indexOf('on') === 0 || attributeValue !== oldAttributeValue ||
             !(existingDomNode as Element).hasAttribute(name)) && typeof attributeValue !== 'undefined'
         ) {
-            eventListener = tryCreateEventListener(name, attributeValue, newVNode, apply)
+            eventListener = tryCreateEventListener(name, attributeValue)
 
             if (typeof eventListener === 'undefined') {
                 newValue = attributeValue

@@ -41,9 +41,9 @@ function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
 /**
  * Creates a JSX.Element/VNode from a JSX tag.
  */
-export function createElement<T>(
-    tagNameOrComponent: string | ComponentFactory<T>,
-    props: T,
+export function createElement<TState, TProps>(
+    tagNameOrComponent: string | ComponentFactory<TState, TProps>,
+    props: TProps,
     ...children: (string | VNode)[]): JSX.Element {
 
     if (tagNameOrComponent === 'nothing') {
@@ -51,7 +51,7 @@ export function createElement<T>(
     }
 
     if (props === null) {
-        props = {} as T
+        props = {} as TProps
     }
 
     if (typeof tagNameOrComponent === 'string') {

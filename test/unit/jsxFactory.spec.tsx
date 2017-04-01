@@ -119,10 +119,10 @@ describe('jsxFactory', () => {
             render: () => <div></div>
         })
 
-        const view = <TestComponent test="test" /> as core.ComponentVNode<TestProps>
+        const view = <TestComponent test="test" /> as core.ComponentVNode<State, TestProps>
 
         expect(view._).toBe(3)
-        expect(view.name).toBe('JsxComponent')
+        expect(view.spec.name).toBe('JsxComponent')
         expect(view.props).toEqual({ test: 'test' })
     })
 
