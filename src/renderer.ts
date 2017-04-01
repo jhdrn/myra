@@ -286,7 +286,7 @@ function tryCreateEventListener(
     }
 
     return (ev: Event) => {
-        eventListener(ev)
+        eventListener(ev, ev.target)
     }
 }
 
