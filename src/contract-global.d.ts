@@ -131,6 +131,55 @@ declare namespace myra {
         onmouseup?: EventListener<MouseEvent, TElement>
         onshow?: EventListener<Event, TElement>
 
+        role?: string
+
+        // Widget attributes
+
+        'aria-autocomplete'?: any
+        'aria-checked'?: any
+        'aria-disabled'?: any
+        'aria-expanded'?: any
+        'aria-haspopup'?: any
+        'aria-hidden'?: any
+        'aria-invalid'?: any
+        'aria-label'?: any
+        'aria-level'?: any
+        'aria-multiline'?: any
+        'aria-multiselectable'?: any
+        'aria-orientation'?: any
+        'aria-pressed'?: any
+        'aria-readonly'?: any
+        'aria-required'?: any
+        'aria-selected'?: any
+        'aria-sort'?: any
+        'aria-valuemax'?: any
+        'aria-valuemin'?: any
+        'aria-valuenow'?: any
+        'aria-valuetext'?: any
+
+        // Live region attributes
+
+        'aria-live'?: any
+        'aria-relevant'?: any
+        'aria-atomic'?: any
+        'aria-busy'?: any
+
+        // Drag & drop attributes
+
+        'aria-dropeffect'?: any
+        'aria-dragged'?: any
+
+        // Relationship attributes
+
+        'aria-activedescendant'?: any
+        'aria-controls'?: any
+        'aria-describedby'?: any
+        'aria-flowto'?: any
+        'aria-labelledby'?: any
+        'aria-owns'?: any
+        'aria-posinset'?: any
+        'aria-setsize'?: any
+
         // [name: string]: any
     }
 
