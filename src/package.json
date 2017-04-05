@@ -1,7 +1,7 @@
 {
   "name": "myra",
-  "version": "2.0.0-beta.5",
-  "description": "Myra is a simple and small Typescript framework for building web interfaces.",
+  "version": "2.0.0-beta.6",
+  "description": "Myra is a simple and small Typescript JSX rendering library.",
   "readme": "README.md",
   "repository": {
     "type": "git",
@@ -10,7 +10,8 @@
   "keywords": [
     "myra",
     "functional",
-    "typescript"
+    "typescript",
+    "jsx"
   ],
   "author": {
     "name": "Jonathan Hedrén",
