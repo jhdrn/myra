@@ -72,6 +72,7 @@ export function updateComponent<TState, TProps>(newVNode: ComponentVNode<TState,
 
     newVNode.parentElement = oldVNode.parentElement
     newVNode.rendition = oldVNode.rendition
+    newVNode.state = oldVNode.state
 
     if (typeof newVNode.props !== 'undefined' && newVNode.props !== null && (newVNode.props as any).forceUpdate
         || !equal(oldVNode.props, newVNode.props)) {
@@ -141,7 +142,7 @@ function dispatch<TState extends {}, TProps extends {}>(
             parentElement: vNode.parentElement,
             post: post
         } as ViewContext<TState, any>
-        console.log(vNode.spec)
+
         const newView = vNode.spec.render(ctx)
 
         const oldNode = vNode.rendition ? vNode.rendition.domRef : undefined
