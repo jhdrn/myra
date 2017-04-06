@@ -6,7 +6,7 @@ declare namespace myra {
     }
 
     type Update<TState> = (state: Readonly<TState>) => Partial<TState>
-    type Post<TState> = (fn: Update<TState>) => void
+    type Post<TState> = (update: Update<TState> | Partial<TState>) => void
     type ViewContext<TState, TProps> = {
         readonly state: Readonly<TState>
         readonly props: Readonly<TProps>

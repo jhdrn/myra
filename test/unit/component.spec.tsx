@@ -7,9 +7,9 @@ const q = (x: string) => document.querySelector(x)
 const randomName = () => Math.random().toString()
 
 /**
- * defineComponent
+ * define
  */
-describe('defineComponent', () => {
+describe('define', () => {
     const componentName = randomName()
     const spec = {
         name: componentName,
@@ -24,9 +24,9 @@ describe('defineComponent', () => {
 })
 
 /**
- * mountComponent
+ * mount
  */
-describe('mountComponent', () => {
+describe('mount', () => {
 
     it('mounts the compontent', () => {
 
@@ -94,7 +94,7 @@ describe('mountComponent', () => {
 
 
 /**
- * mountComponent
+ * unmountComponent
  */
 describe('unmountComponent', () => {
 
@@ -225,5 +225,71 @@ describe('updateComponent', () => {
         updateComponent(newVNode, vNode)
 
         expect(mountMock.mount).toHaveBeenCalledTimes(2)
+    })
+})
+
+
+describe('post', () => {
+    it('updates the state when an Update function in supplied', () => {
+        let firstUpdate = true
+
+        const mocks = {
+            onclickUpdate: (s: { val: number }) => {
+                if (firstUpdate) {
+                    expect(s).toEqual({ val: 1 })
+                }
+                else {
+                    expect(s).toEqual({ val: 2 })
+                }
+                return { val: 2 }
+            }
+        }
+
+        spyOn(mocks, 'onclickUpdate').and.callThrough()
+
+        const component = define({ val: 1 }, ({ post }) =>
+            <button id="postButton" onclick={() => post(mocks.onclickUpdate)}></button>
+        )
+
+        mount(component, document.body)
+
+        const postBtn = document.getElementById('postButton') as HTMLButtonElement
+        postBtn.click()
+        firstUpdate = false
+        postBtn.click()
+
+        expect(mocks.onclickUpdate).toHaveBeenCalledTimes(2)
+    })
+
+    it('updates the state when an object in supplied', () => {
+        let firstUpdate = true
+
+        const mocks = {
+            onclickUpdate: (s: { val: number }, newState: { val: number }) => {
+
+                if (firstUpdate) {
+                    expect(s).toEqual({ val: 1 })
+                }
+                else {
+                    expect(s).toEqual({ val: 2 })
+                }
+                return newState
+            }
+        }
+
+        spyOn(mocks, 'onclickUpdate').and.callThrough()
+
+        const component = define({ val: 1 }, ({ state, post }) =>
+            <button id="postButton2" onclick={() => post(mocks.onclickUpdate(state, { val: 2 }))}></button>
+        )
+
+        mount(component, document.body)
+
+        const postBtn = document.getElementById('postButton2') as HTMLButtonElement
+        postBtn.click()
+        firstUpdate = false
+        postBtn.click()
+
+        expect(mocks.onclickUpdate).toHaveBeenCalledTimes(2)
     })
 })

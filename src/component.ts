@@ -124,8 +124,15 @@ function dispatch<TState extends {}, TProps extends {}>(
 
     vNode.dispatchLevel++
 
-    const post: Post<TState> = (update: Update<TState>) => {
-        dispatch(vNode, render, update)
+    const post: Post<TState> = update => {
+        let updateFn: Update<TState>
+        if (typeof update === 'function') {
+            updateFn = update
+        }
+        else {
+            updateFn = (_s: Readonly<TState>) => update
+        }
+        dispatch(vNode, render, updateFn)
     }
 
     if (typeof update !== 'undefined') {

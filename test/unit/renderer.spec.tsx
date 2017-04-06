@@ -20,7 +20,7 @@ const randomName = () => Math.random().toString()
 /**
  * evolve
  */
-describe('core.view.render', () => {
+describe('render', () => {
 
     beforeEach((done) => {
         // "Clear view" before each test
