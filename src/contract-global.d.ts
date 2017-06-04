@@ -467,7 +467,7 @@ declare namespace JSX {
         props: TProps
     }
     export interface IntrinsicElements {
-        nothing: never
+        nothing: undefined
 
         a: myra.AAttributes
         attr: GlobalAttributes<HTMLElement>
