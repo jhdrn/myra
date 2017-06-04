@@ -16,7 +16,7 @@ export function typeOf(obj: any): Type {
     if (typeof obj === 'function') {
         return 'function'
     }
-    if (typeof obj === 'undefined') {
+    if (obj === undefined) {
         return 'undefined'
     }
     if (obj === null) {
@@ -28,9 +28,9 @@ export function typeOf(obj: any): Type {
 /**
  * Returns the maximum value of a and b.
  */
-export function max(a: number, b: number): number {
-    return a > b ? a : b
-}
+// export function max(a: number, b: number): number {
+//     return a > b ? a : b
+// }
 
 /**
  * Does a deep equality check.

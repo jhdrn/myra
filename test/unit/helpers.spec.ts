@@ -1,4 +1,4 @@
-import { equal, max, typeOf, flatten } from 'core/helpers'
+import { equal, /*max,*/ typeOf, flatten } from 'core/helpers'
 
 
 describe('core.helpers.equal', () => {
@@ -105,15 +105,15 @@ describe('core.helpers.equal', () => {
     //FIXME: functions?
 })
 
-describe('core.helpers.max', () => {
-    it('returns max', () => {
-        expect(max(66, 22)).toBe(66)
-    })
+// describe('core.helpers.max', () => {
+//     it('returns max', () => {
+//         expect(max(66, 22)).toBe(66)
+//     })
 
-    it('returns max of negative numbers', () => {
-        expect(max(-51, -2)).toBe(-2)
-    })
-})
+//     it('returns max of negative numbers', () => {
+//         expect(max(-51, -2)).toBe(-2)
+//     })
+// })
 
 describe('core.helpers.typeOf', () => {
 
