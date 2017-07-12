@@ -9,15 +9,14 @@
   "devDependencies": {
     "awesome-typescript-loader": "^3.0.7",
     "source-map-loader": "^0.1.6",
-    "typescript": "^2.2.1",
+    "typescript": "^2.4.1",
     "webpack": "^2.3.2",
     "webpack-dev-server": "^2.4.1"
   },
   "dependencies": {
     "es6-promise": "^4.1.0",
-    "myra": "^2.0.0-beta.3",
-    "myra-router": "^0.1.0",
-    "myra-time": "0.0.1",
+    "myra": "^2.0.0-beta.7",
     "whatwg-fetch": "^2.0.3"
-  }
+  },
+  "false": {}
 }

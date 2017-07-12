@@ -1,6 +1,6 @@
 import { initComponent, updateComponent, findAndUnmountComponentsRec } from './component'
 // import { max } from './helpers'
-import { EventListener, VNode, ElementVNode, ComponentVNode } from './contract'
+import { VNode, ElementVNode, ComponentVNode } from './contract'
 
 // const BOOL_ATTRS = [
 //     'checked',
@@ -59,28 +59,17 @@ export function render(
             for (const name in newVNode.props) {
                 const attributeValue = (newVNode.props as any)[name]
 
-                if (typeof attributeValue !== 'undefined') {
-
-                    const eventListener = tryCreateEventListener(name, attributeValue)
-
-                    let value: any
-                    if (eventListener === undefined) {
-                        value = attributeValue
-                    }
-                    else {
-                        value = eventListener
-                    }
-
+                if (attributeValue !== undefined) {
                     setAttr(
                         newNode as HTMLElement,
                         name,
-                        value
+                        attributeValue
                     )
                 }
             }
 
             for (const c of newVNode.children) {
-                if (typeof c !== 'undefined') {
+                if (c !== undefined) {
                     render(newNode as Element, c, c, undefined)
                 }
             }
@@ -107,7 +96,7 @@ export function render(
                 existingDomNode.textContent = newVNode.value
                 break
             case 3: // component node
-                updateComponent(newVNode, oldVNode as ComponentVNode<any, any>)
+                updateComponent(newVNode, oldVNode as ComponentVNode<any, any, any, any>)
                 break
         }
 
@@ -143,7 +132,7 @@ export function render(
 //             childVNode = newVNode.children[i]
 
 //             const oldChildVNode = findOldChildVNode(childVNode, oldVNode, i)
-//             if (typeof oldChildVNode.domRef !== 'undefined' && oldChildVNode.domRef !== childDomNode) {
+//             if (oldChildVNode.domRef !== undefined && oldChildVNode.domRef !== childDomNode) {
 //                 parentDomNode.insertBefore(oldChildVNode.domRef, childDomNode)
 //             }
 //             else if (childDomNode !== null) {
@@ -185,7 +174,7 @@ function renderChildNodes(newVNode: ElementVNode<any>, oldVNode: VNode, parentDo
         childVNode = newVNode.children[i]
 
         const oldChildVNode = findOldChildVNode(childVNode, oldVNode, i)
-        if (typeof oldChildVNode.domRef !== 'undefined' && oldChildVNode.domRef !== childDomNode) {
+        if (oldChildVNode.domRef !== undefined && oldChildVNode.domRef !== childDomNode) {
             parentDomNode.insertBefore(oldChildVNode.domRef, childDomNode)
         }
         else if (childDomNode !== null) {
@@ -225,7 +214,7 @@ function findOldChildVNode(newChildVNode: VNode, oldVNode: VNode, childIndex: nu
     if (oldChildVNode === undefined) {
         return newChildVNode
     }
-    else if (typeof newChildVNode !== 'undefined') {
+    else if (newChildVNode !== undefined) {
 
         const mayBeKeyed = newChildVNode._ === 2 && oldChildVNode._ === 2
             || newChildVNode._ === 3 && oldChildVNode._ === 3
@@ -264,7 +253,7 @@ function shouldReplaceNode(newVNode: VNode, oldVNode: VNode | undefined): boolea
         return true
     }
     else if (newVNode._ === 3 && oldVNode._ === 3 &&
-        newVNode.spec !== oldVNode.spec) {
+        newVNode.view !== oldVNode.view) {
         return true
     }
     return false
@@ -325,22 +314,6 @@ function removeAttr(a: string, node: Element) {
 }
 
 /** 
- * Creates an event listener if the attribute name begins with 'on'.
- */
-function tryCreateEventListener(
-    attributeName: string,
-    eventListener: EventListener<any, any>) {
-
-    if (attributeName.indexOf('on') !== 0) {
-        return undefined
-    }
-
-    return (ev: Event) => {
-        eventListener(ev, ev.target)
-    }
-}
-
-/** 
  * Creates a Node from a VNode. 
  */
 function createNode(vNode: VNode, parentNode: Element): Node {
@@ -375,8 +348,6 @@ function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, e
 
     let attributeValue: any
     let oldAttributeValue: any
-    let eventListener: EventListener<any, any> | undefined
-    let newValue: any
 
     // update any attribute where the attribute value has changed
     for (const name in newVNode.props) {
@@ -385,21 +356,12 @@ function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, e
         oldAttributeValue = ((oldVNode as ElementVNode<any>).props as any)[name]
 
         if ((name.indexOf('on') === 0 || attributeValue !== oldAttributeValue ||
-            !(existingDomNode as Element).hasAttribute(name)) && typeof attributeValue !== 'undefined'
+            !(existingDomNode as Element).hasAttribute(name)) && attributeValue !== undefined
         ) {
-            eventListener = tryCreateEventListener(name, attributeValue)
-
-            if (eventListener === undefined) {
-                newValue = attributeValue
-            }
-            else {
-                newValue = eventListener
-            }
-
             setAttr(
                 existingDomNode as HTMLElement,
                 name,
-                newValue
+                attributeValue
             )
         }
         else if (attributeValue === undefined && (existingDomNode as Element).hasAttribute(name)) {

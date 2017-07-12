@@ -5,37 +5,48 @@ declare namespace myra {
         [key: string]: TValue
     }
 
-    type Update<TState> = (state: Readonly<TState>) => Partial<TState>
-    type Post<TState> = (update: Update<TState> | Partial<TState>) => void
-    type ViewContext<TState, TProps> = {
-        readonly state: Readonly<TState>
-        readonly props: Readonly<TProps>
-        readonly post: Post<TState>
-        readonly parentElement: Element
-        readonly children: VNode[]
+    export interface UpdateContext<TState, TProps> {
+        state: Readonly<TState>
+        props: Readonly<TProps>
+    }
+    export interface Update<TState, TProps> {
+        (ctx: UpdateContext<TState, TProps>, ...args: any[]): Partial<TState>
+    }
+    export interface Updates<TState, TProps> {
+        [key: string]: Update<TState, TProps>
     }
 
-    type Render<TState, TProps> = (ctx: ViewContext<TState, TProps>) => VNode
-    type OnMount<TState, TProps> = (state: Readonly<TState>, props: Readonly<TProps>, post: Post<TState>) => Partial<TState>
-    type OnUnmount<TState, TProps> = (state: Readonly<TState>, props: Readonly<TProps>) => void
-    interface ComponentFactory<TState extends {}, TProps extends {}> {
-        (props: Readonly<TProps>, children?: VNode[]): ComponentVNode<TState, TProps>
+    export interface EffectContext<TState, TProps, TUpdates extends Updates<TState, TProps>> {
+        state: TState // Implement as a getter
+        props: TProps
+        updates: TUpdates
     }
-
-    interface ComponentSpec<TState extends {}, TProps extends {}> {
-        readonly name?: string
-        readonly init: TState
-        readonly onMount?: OnMount<TState, TProps>
-        readonly onUnmount?: OnUnmount<TState, TProps>
-        readonly render: Render<TState, TProps>
+    export interface Effect<TState, TProps, TUpdates extends Updates<TState, TProps>> {
+        (ctx: EffectContext<TState, TProps, TUpdates>, ...args: any[]): Promise<Partial<TState>>
     }
-
+    export interface Effects<TState, TProps, TUpdates extends Updates<TState, TProps>> {
+        [key: string]: Effect<TState, TProps, TUpdates>
+    }
+    export interface ViewContext<TState, TProps, TUpdates, TEffects> {
+        state: TState
+        props: TProps
+        updates: TUpdates
+        effects: TEffects
+    }
+    export interface View<TState, TProps, TUpdates, TEffects> {
+        (ctx: ViewContext<TState, TProps, TUpdates, TEffects>): VNode;
+    }
+    export interface ComponentFactory<TState, TProps, TUpdates extends Updates<TState, TProps>> {
+        (props: TProps, children: VNode[]): ComponentVNode<TState, TProps, TUpdates, any>
+        state: TState
+        updates: TUpdates
+    }
     interface AttributeMap { [name: string]: string }
 
     /**
      * A function used as callback for event triggers.
      */
-    type EventListener<TEvent extends Event, TElement extends Element> = (event: TEvent, element: TElement) => void
+    type EventListener<TEvent extends Event, TElement extends Element> = (ctx: any, event: TEvent) => void
 
     /**
      * Base interface for a virtual node.
@@ -69,13 +80,16 @@ declare namespace myra {
     /**
      * A virtual node representing a component.
      */
-    interface ComponentVNode<TState extends {}, TProps extends {}> extends VNodeBase {
+
+    export interface ComponentVNode<TState extends {}, TProps extends {}, TUpdates, TEffects> extends VNodeBase {
         readonly _: 3
-        readonly spec: ComponentSpec<TState, TProps>
         children: VNode[]
+        effects: TEffects
+        updates: TUpdates
         rendition?: VNode
         props: TProps
         state: Readonly<TState>
+        view: View<TState, TProps, TUpdates, TEffects>
         parentElement?: Element
         dispatchLevel: number
     }
@@ -91,7 +105,7 @@ declare namespace myra {
     /**
      * Union type of the different types of virtual nodes.
      */
-    type VNode = TextVNode | ElementVNode<any> | ComponentVNode<any, any> | NothingVNode
+    type VNode = TextVNode | ElementVNode<any> | ComponentVNode<any, any, any, any> | NothingVNode
 
     interface GlobalAttributes<TElement extends Element> {
         key?: any
