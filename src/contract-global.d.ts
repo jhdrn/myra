@@ -20,12 +20,15 @@ declare namespace myra {
         state: TState // Implement as a getter
         props: TProps
         updates: TUpdates
+        domRef?: Node
     }
     export interface Effect<TState, TProps, TUpdates extends Updates<TState, TProps>> {
-        (ctx: EffectContext<TState, TProps, TUpdates>, ...args: any[]): Promise<Partial<TState>>
+        (ctx: EffectContext<TState, TProps, TUpdates>, ...args: any[]): void
     }
     export interface Effects<TState, TProps, TUpdates extends Updates<TState, TProps>> {
-        [key: string]: Effect<TState, TProps, TUpdates>
+        [key: string]: Effect<TState, TProps, TUpdates> | undefined
+        _didMount?: Effect<TState, TProps, TUpdates>
+        _willUnmount?: Effect<TState, TProps, TUpdates>
     }
     export interface ViewContext<TState, TProps, TUpdates, TEffects> {
         state: TState

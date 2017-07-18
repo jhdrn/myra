@@ -4,24 +4,21 @@ import * as jsxFactory from 'core/jsxFactory'
 
 const q = (x: string) => document.querySelector(x)
 
-const randomName = () => Math.random().toString()
-
 /**
  * define
  */
-describe('define', () => {
-    const componentName = randomName()
-    const spec = {
-        name: componentName,
-        init: {},
-        render: () => <div />
-    }
-    const component1 = define(spec)
+// describe('define', () => {
+//     const spec = {
+//         name: componentName,
+//         init: {},
+//         render: () => <div />
+//     }
+//     const component1 = define(spec)
 
-    it('has a name', () => {
-        expect(component1({}).spec).toBe(spec)
-    })
-})
+//     it('has a name', () => {
+//         expect(component1({}).spec).toBe(spec)
+//     })
+// })
 
 /**
  * mount
@@ -30,11 +27,7 @@ describe('mount', () => {
 
     it('mounts the compontent', () => {
 
-        const component = define({
-            name: randomName(),
-            init: {},
-            render: () => <div id="root" />
-        })
+        const component = define({}).view(() => <div id="root" />)
 
         mount(component, document.body)
 
@@ -45,17 +38,14 @@ describe('mount', () => {
 
     it('calls the onMount function', () => {
         const mountMock = {
-            mount: (x: { val: number }) => x
+            mount: () => Promise.resolve({})
         }
 
         spyOn(mountMock, 'mount').and.callThrough()
 
-        const component = define({
-            name: randomName(),
-            init: { val: 0 },
-            onMount: mountMock.mount,
-            render: () => <div />
-        })
+        const component = define({ val: 0 }).updates({}).effects({
+            _didMount: mountMock.mount
+        }).view(() => <div />)
 
         mount(component, document.body)
 
@@ -72,17 +62,11 @@ describe('mount', () => {
 
         spyOn(viewMock, 'view').and.callThrough()
 
-        const component = define<any, any>({
-            name: randomName(),
-            init: {},
-            render: viewMock.view
-        })
+        const component = define<any, any>({}).view(viewMock.view)
 
-        const parent = define({
-            name: randomName(),
-            init: {},
-            render: () => component(undefined, [<div id="divTestId" />])
-        })
+        const parent = define({}).view(() =>
+            component({}, [<div id="divTestId" />])
+        )
 
         mount(parent, document.body)
 
@@ -100,18 +84,15 @@ describe('unmountComponent', () => {
 
     it('calls the onUnmount function', () => {
         const mountMock = {
-            unmount: (x: { val: number }) => x
+            unmount: () => Promise.resolve({})
         }
 
         spyOn(mountMock, 'unmount').and.callThrough()
 
-        const Component = define({
-            name: randomName(),
-            init: { val: 0 },
-            onUnmount: mountMock.unmount,
-            render: () => <div />
-        })
-        const instance = <Component /> as ComponentVNode<{}, {}>
+        const Component = define({}).updates({}).effects({
+            _willUnmount: mountMock.unmount
+        }).view(() => <div />)
+        const instance = <Component /> as ComponentVNode<{}, {}, any, any>
 
         initComponent(instance, document.body)
         findAndUnmountComponentsRec(instance)
@@ -121,32 +102,22 @@ describe('unmountComponent', () => {
 
     it('calls the onUnmount function on child components', () => {
         const mountMock = {
-            unmount: (x: { val: number }) => x
+            unmount: () => Promise.resolve({})
         }
 
         spyOn(mountMock, 'unmount').and.callThrough()
 
-        const ChildChildComponent = define({
-            name: randomName(),
-            init: { val: 0 },
-            onUnmount: mountMock.unmount,
-            render: () => <div />
-        })
+        const ChildChildComponent = define({}).updates({}).effects({
+            _willUnmount: mountMock.unmount
+        }).view(() => <div />)
 
-        const ChildComponent = define({
-            name: randomName(),
-            init: { val: 0 },
-            onUnmount: mountMock.unmount,
-            render: () => <ChildChildComponent />
-        })
+        const ChildComponent = define({}).updates({}).effects({
+            willUnmount: mountMock.unmount,
+        }).view(() => <ChildChildComponent />)
 
-        const component = define({
-            name: randomName(),
-            init: { val: 0 },
-            render: () => <div><ChildComponent /></div>
-        })
+        const component = define({}).view(() => <div><ChildComponent /></div>)
 
-        const instance = component({})
+        const instance = component({}, [])
         initComponent(instance, document.body)
         findAndUnmountComponentsRec(instance)
 
@@ -161,43 +132,38 @@ describe('updateComponent', () => {
 
     it('does not call the mount function if the arguments has not changed', () => {
         const mountMock = {
-            mount: (x: { val: number }) => x
+            mount: () => Promise.resolve({})
         }
 
         spyOn(mountMock, 'mount').and.callThrough()
 
-        const component = define({
-            name: randomName(),
-            init: { val: 0 },
-            onMount: mountMock.mount,
-            render: () => <div />
-        })
+        const component = define<{}, { val: number }>({}).updates({}).effects({
+            _didMount: mountMock.mount
+        }).view(() => <div />)
 
-        const vNode = component(45)
+        const vNode = component({ val: 45 }, [])
         initComponent(vNode, document.body)
-        updateComponent(component(45), vNode)
+        updateComponent(component({ val: 45 }, []), vNode)
 
         expect(mountMock.mount).toHaveBeenCalledTimes(1)
     })
 
     it('calls the mount function if forceUpdate is true', () => {
         const mountMock = {
-            mount: (state: { val: number }) => state
+            mount: () => Promise.resolve({})
         }
 
         spyOn(mountMock, 'mount').and.callThrough()
 
-        const component = define({
-            name: randomName(),
-            init: { val: 0 },
-            onMount: mountMock.mount,
-            render: () => <div />
-        })
+        const component = define({}).updates({}).effects({
+            _didMount: mountMock.mount
 
-        const vNode = component({})
+        }).view(() => <div />)
+
+        const vNode = component({}, [])
         initComponent(vNode, document.body)
 
-        const newVNode = component({ forceUpdate: true })
+        const newVNode = component({ forceUpdate: true }, [])
         updateComponent(newVNode, vNode)
 
         expect(mountMock.mount).toHaveBeenCalledTimes(2)
@@ -206,22 +172,19 @@ describe('updateComponent', () => {
 
     it('calls the mount function if the supplied arguments is not equal to the previous arguments', () => {
         const mountMock = {
-            mount: (x: { val: number }) => x
+            mount: () => Promise.resolve({})
         }
 
         spyOn(mountMock, 'mount').and.callThrough()
 
-        const component = define({
-            name: 'Test',
-            init: { val: 0 },
-            onMount: mountMock.mount,
-            render: () => <div />
-        })
+        const component = define({}).updates({}).effects({
+            _didMount: mountMock.mount
+        }).view(() => <div />)
 
-        const vNode = component({ prop: 'a value' })
+        const vNode = component({ prop: 'a value' }, [])
         initComponent(vNode, document.body)
 
-        const newVNode = component({ prop: 'a new value' })
+        const newVNode = component({ prop: 'a new value' }, [])
         updateComponent(newVNode, vNode)
 
         expect(mountMock.mount).toHaveBeenCalledTimes(2)
@@ -234,12 +197,12 @@ describe('post', () => {
         let firstUpdate = true
 
         const mocks = {
-            onclickUpdate: (s: { val: number }) => {
+            onclickUpdate: ({ state }: { state: { val: number } }) => {
                 if (firstUpdate) {
-                    expect(s).toEqual({ val: 1 })
+                    expect(state).toEqual({ val: 1 })
                 }
                 else {
-                    expect(s).toEqual({ val: 2 })
+                    expect(state).toEqual({ val: 2 })
                 }
                 return { val: 2 }
             }
@@ -247,9 +210,13 @@ describe('post', () => {
 
         spyOn(mocks, 'onclickUpdate').and.callThrough()
 
-        const component = define({ val: 1 }, ({ post }) =>
-            <button id="postButton" onclick={() => post(mocks.onclickUpdate)}></button>
-        )
+        const component = define({ val: 1 })
+            .updates({
+                onclickUpdate: mocks.onclickUpdate
+            }).view(({ updates }) =>
+                <button id="postButton" onclick={updates.onclickUpdate}></button>
+            )
+
 
         mount(component, document.body)
 
@@ -261,35 +228,35 @@ describe('post', () => {
         expect(mocks.onclickUpdate).toHaveBeenCalledTimes(2)
     })
 
-    it('updates the state when an object in supplied', () => {
-        let firstUpdate = true
+    // it('updates the state when an object in supplied', () => {
+    //     let firstUpdate = true
 
-        const mocks = {
-            onclickUpdate: (s: { val: number }, newState: { val: number }) => {
+    //     const mocks = {
+    //         onclickUpdate: (s: { val: number }, newState: { val: number }) => {
 
-                if (firstUpdate) {
-                    expect(s).toEqual({ val: 1 })
-                }
-                else {
-                    expect(s).toEqual({ val: 2 })
-                }
-                return newState
-            }
-        }
+    //             if (firstUpdate) {
+    //                 expect(s).toEqual({ val: 1 })
+    //             }
+    //             else {
+    //                 expect(s).toEqual({ val: 2 })
+    //             }
+    //             return newState
+    //         }
+    //     }
 
-        spyOn(mocks, 'onclickUpdate').and.callThrough()
+    //     spyOn(mocks, 'onclickUpdate').and.callThrough()
 
-        const component = define({ val: 1 }, ({ state, post }) =>
-            <button id="postButton2" onclick={() => post(mocks.onclickUpdate(state, { val: 2 }))}></button>
-        )
+    //     const component = define({ val: 1 }, ({ state, post }) =>
+    //         <button id="postButton2" onclick={() => post(mocks.onclickUpdate(state, { val: 2 }))}></button>
+    //     )
 
-        mount(component, document.body)
+    //     mount(component, document.body)
 
-        const postBtn = document.getElementById('postButton2') as HTMLButtonElement
-        postBtn.click()
-        firstUpdate = false
-        postBtn.click()
+    //     const postBtn = document.getElementById('postButton2') as HTMLButtonElement
+    //     postBtn.click()
+    //     firstUpdate = false
+    //     postBtn.click()
 
-        expect(mocks.onclickUpdate).toHaveBeenCalledTimes(2)
-    })
+    //     expect(mocks.onclickUpdate).toHaveBeenCalledTimes(2)
+    // })
 })
