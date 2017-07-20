@@ -3,6 +3,7 @@ import {
     ComponentFactory,
     VNode,
     Update,
+    UpdateContext,
     Updates,
     Effects,
     View
@@ -52,30 +53,16 @@ function defineView<TState, TProps, TUpdates extends Updates<TState, TProps>, TE
 
     return (view: View<TState, TProps, TUpdates, TEffects>): ComponentFactory<TState, TProps, TUpdates> => {
         const factory: ComponentFactory<TState, TProps, TUpdates> = function (props: TProps, children: VNode[] = []) {
-            const vNode: ComponentVNode<TState, TProps, TUpdates, TEffects> = {
+            return {
                 _: 3,
-                effects,
-                updates,
+                effects: { ...effects as object },
+                updates: { ...updates as object },
                 children,
                 props,
                 state,
                 view,
                 dispatchLevel: 0
             }
-
-            for (const key in updates) {
-                const updateFn = updates[key]
-                updates[key] = <any>((ev: Event) => dispatch(vNode, render, updateFn, ev))
-            }
-
-            for (const key in effects) {
-                const effectFn = effects[key]
-                if (effectFn !== undefined) {
-                    effects[key] = <any>((ev: Event) => effectFn(vNode, ev))
-                }
-            }
-
-            return vNode
         } as any
         factory.updates = updates
         factory.state = state
@@ -125,7 +112,27 @@ export function initComponent<TState, TProps>(vNode: ComponentVNode<TState, TPro
 
     vNode.parentElement = parentElement
 
-    mountComponent(vNode)
+    for (const key in vNode.updates) {
+        const updateFn = vNode.updates[key]
+        vNode.updates[key] = <any>((...args: (Event | UpdateContext<TState, TProps>)[]) => {
+            const arg = args.length > 1 ? args[1] : args[0]
+            dispatch(vNode, render, updateFn, arg)
+        })
+    }
+
+    for (const key in vNode.effects) {
+        const effectFn = vNode.effects[key]
+        if (effectFn !== undefined) {
+            vNode.effects[key] = <any>((ev: Event) => effectFn(vNode, ev))
+        }
+    }
+
+    // Dispatch to render the view. 
+    dispatch(vNode, render)
+
+    if (vNode.effects._didMount !== undefined) {
+        vNode.effects._didMount()
+    }
 
     return vNode.domRef!
 }
@@ -136,29 +143,28 @@ export function initComponent<TState, TProps>(vNode: ComponentVNode<TState, TPro
  */
 export function updateComponent<TState, TProps>(newVNode: ComponentVNode<TState, TProps, any, any>, oldVNode: ComponentVNode<TState, TProps, any, any>) {
 
-    if (!oldVNode.parentElement) {
-        console.debug('oldVNode', oldVNode)
-    }
-    newVNode.parentElement = oldVNode.parentElement
-    newVNode.rendition = oldVNode.rendition
-    newVNode.state = oldVNode.state
+    const shouldUpdate =
+        newVNode.props !== undefined
+        && newVNode.props !== null
+        && (newVNode.props as any).forceUpdate
+        || !equal(oldVNode.props, newVNode.props)
 
-    if (newVNode.props !== undefined && newVNode.props !== null && (newVNode.props as any).forceUpdate
-        || !equal(oldVNode.props, newVNode.props)) {
+    oldVNode.children = newVNode.children
+    oldVNode.props = newVNode.props
+    // newVNode.parentElement = oldVNode.parentElement
+    // newVNode.rendition = oldVNode.rendition
+    // newVNode.state = oldVNode.state
 
-        mountComponent(newVNode)
-    }
-}
+    if (shouldUpdate) {
 
-function mountComponent<TState, TProps>(vNode: ComponentVNode<TState, TProps, any, any>) {
-
-    // Dispatch to render the view. 
-    dispatch(vNode, render)
-
-    if (vNode.effects._didMount !== undefined) {
-        vNode.effects._didMount()
+        if (oldVNode.effects._willUpdate !== undefined) {
+            oldVNode.effects._willUpdate()
+        }
+        // Dispatch to render the view. 
+        dispatch(oldVNode, render)
     }
 }
+
 
 /** 
  * Traverses the virtual node hierarchy and unmounts any components in the 
@@ -169,8 +175,6 @@ export function findAndUnmountComponentsRec(vNode: VNode) {
         if (vNode.effects._willUnmount !== undefined) {
             vNode.effects._willUnmount()
         }
-
-        dispatch(vNode, render)
 
         findAndUnmountComponentsRec(vNode.rendition!)
     }
@@ -206,9 +210,6 @@ function dispatch<TState extends {}, TProps extends {}>(
         // } as ViewContext<TState, any, any, any>
 
         const newView = vNode.view(vNode)
-        if (!vNode.parentElement) {
-            console.log(vNode)
-        }
         const oldNode = vNode.rendition ? vNode.rendition.domRef : undefined
         render(vNode.parentElement!, newView, vNode.rendition, oldNode)
 

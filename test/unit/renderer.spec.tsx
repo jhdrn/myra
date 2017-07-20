@@ -58,7 +58,7 @@ describe('render', () => {
         spyOn(mocks, 'mount').and.callThrough()
 
         const testComponent = define({}).updates({}).effects({
-            _didMount: mocks.mount
+            _willUpdate: mocks.mount
         }).view(_ => <div id="testComponent"></div>)
 
         const view1 = testComponent({}, [])
@@ -69,7 +69,7 @@ describe('render', () => {
 
         render(document.body, view2, view1, node)
 
-        expect(mocks.mount).toHaveBeenCalledTimes(2)
+        expect(mocks.mount).toHaveBeenCalledTimes(1)
 
         done()
     })
@@ -405,7 +405,7 @@ describe('render', () => {
             setClicked: _ => ({ clicked: true }),
             updateItemId: (_, itemId) => ({ itemId: itemId })
         }).effects({
-            _didMount: ctx => Promise.resolve(ctx.updates.updateItemId(ctx, ctx.props.item.id))
+            _didMount: ctx => ctx.updates.updateItemId(ctx, ctx.props.item.id)
         }).view(ctx =>
             <button id={`item-${ctx.state.itemId}`}
                 class={ctx.state.clicked ? "clicked" : ""}
@@ -437,7 +437,7 @@ describe('render', () => {
         expect(btn.id).toBe("item-5")
         expect(btn.className).toBe("")
 
-        // The last element shoul've been updated
+        // The last element should've been updated
         btn = ((view2.domRef as HTMLDivElement).lastChild as HTMLDivElement).firstChild as HTMLButtonElement
 
         expect(btn.id).toBe("item-1")
@@ -464,7 +464,8 @@ describe('render', () => {
             setClicked: _ => ({ clicked: true }),
             updateItemId: (_, itemId) => ({ itemId: itemId })
         }).effects({
-            _didMount: ctx => Promise.resolve(ctx.updates.updateItemId(ctx, ctx.props.item.id))
+            _didMount: ctx => ctx.updates.updateItemId(ctx, ctx.props.item.id),
+            _willUpdate: ctx => ctx.updates.updateItemId(ctx, ctx.props.item.id)
         }).view(ctx =>
             <button id={`item-${ctx.state.itemId}`}
                 class={ctx.state.clicked ? "clicked" : ""}
@@ -523,7 +524,7 @@ describe('render', () => {
             setClicked: _ => ({ clicked: true }),
             updateItemId: (_, itemId) => ({ itemId: itemId })
         }).effects({
-            _didMount: ctx => Promise.resolve(ctx.updates.updateItemId(ctx, ctx.props.item.id))
+            _didMount: ctx => ctx.updates.updateItemId(ctx, ctx.props.item.id)
         }).view(ctx =>
             <button id={`item-${ctx.state.itemId}`}
                 class={ctx.state.clicked ? "clicked" : ""}
@@ -582,7 +583,8 @@ describe('render', () => {
             setClicked: _ => ({ clicked: true }),
             updateItemId: (_, itemId) => ({ itemId: itemId })
         }).effects({
-            _didMount: ctx => Promise.resolve(ctx.updates.updateItemId(ctx, ctx.props.item.id))
+            _didMount: ctx => ctx.updates.updateItemId(ctx, ctx.props.item.id),
+            _willUpdate: ctx => ctx.updates.updateItemId(ctx, ctx.props.item.id)
         }).view(ctx =>
             <button id={`item-${ctx.state.itemId}`}
                 class={ctx.state.clicked ? "clicked" : ""}
@@ -643,7 +645,7 @@ describe('render', () => {
             setClicked: _ => ({ clicked: true }),
             updateItemId: (_, itemId) => ({ itemId: itemId })
         }).effects({
-            _didMount: ctx => Promise.resolve(ctx.updates.updateItemId(ctx, ctx.props.item.id))
+            _didMount: ctx => ctx.updates.updateItemId(ctx, ctx.props.item.id)
         }).view(ctx => {
             const v = <button id={`item-${ctx.state.itemId}`} class={ctx.state.clicked ? "clicked" : ""}
                 onclick={ctx.updates.setClicked}>
@@ -710,14 +712,15 @@ describe('render', () => {
 
         let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
 
-        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }).updates({
+        const ItemComponent = define<State, Props>({
+            clicked: false,
+            itemId: -1
+        }).updates({
             setClicked: _ => ({ clicked: true }),
             updateItemId: (_, itemId) => ({ itemId: itemId })
         }).effects({
-            _didMount: ctx => {
-                console.debug('_didMount', ctx)
-                return Promise.resolve(ctx.updates.updateItemId(ctx, ctx.props.item.id))
-            }
+            _didMount: ctx => ctx.updates.updateItemId(ctx, ctx.props.item.id),
+            _willUpdate: ctx => ctx.updates.updateItemId(ctx, ctx.props.item.id)
         }).view(ctx => {
             const v =
                 <button
