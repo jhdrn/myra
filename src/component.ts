@@ -114,16 +114,21 @@ export function initComponent<TState, TProps>(vNode: ComponentVNode<TState, TPro
 
     for (const key in vNode.updates) {
         const updateFn = vNode.updates[key]
-        vNode.updates[key] = <any>((...args: (Event | UpdateContext<TState, TProps>)[]) => {
-            const arg = args.length > 1 ? args[1] : args[0]
-            dispatch(vNode, render, updateFn, arg)
-        })
+        if (updateFn !== undefined) {
+            vNode.updates[key] = <any>((...args: (Event | UpdateContext<TState, TProps>)[]) => {
+                const arg = args.length > 1 ? args[1] : args[0]
+                dispatch(vNode, render, updateFn, arg)
+            })
+        }
     }
 
     for (const key in vNode.effects) {
         const effectFn = vNode.effects[key]
         if (effectFn !== undefined) {
-            vNode.effects[key] = <any>((ev: Event) => effectFn(vNode, ev))
+            vNode.effects[key] = <any>((...args: (Event | UpdateContext<TState, TProps>)[]) => {
+                const arg = args.length > 1 ? args[1] : args[0]
+                effectFn(vNode, arg)
+            })
         }
     }
 
