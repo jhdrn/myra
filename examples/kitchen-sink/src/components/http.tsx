@@ -13,25 +13,22 @@ type State = {
 /**
  * Component
  */
-export default myra
-    .define({
-        responseStatus: 'init'
-    } as State)
-    .updates({
-        onHttpRequest: (_, responseText: string) =>
-            ({ responseStatus: 'success', response: responseText })
-    })
-    .effects({
-        httpRequest: ctx => fetch('https://api.github.com/repos/jhdrn/myra')
-            .then(r => r.text())
-            .then(t => ctx.updates.onHttpRequest(ctx, t))
-    })
-    .view(({ state, effects }) =>
+export default myra.define({
+    responseStatus: 'init'
+} as State, evolve => {
+
+    const onHttpRequest = (responseText: string) =>
+        evolve(_ => ({ responseStatus: 'success', response: responseText }))
+    const makeHttpRequest = () => fetch('https://api.github.com/repos/jhdrn/myra')
+        .then(r => r.text())
+        .then(onHttpRequest)
+
+    return state =>
         <section>
             <h2>HTTP example</h2>
             <button type="button"
                 class="btn btn-sm btn-default"
-                onclick={effects.httpRequest}>
+                onclick={makeHttpRequest}>
                 Make HTTP request
                 </button>
 
@@ -48,4 +45,4 @@ export default myra
             }
 
         </section>
-    )
+})

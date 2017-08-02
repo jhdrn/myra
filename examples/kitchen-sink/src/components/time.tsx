@@ -12,68 +12,69 @@ const init = {
     intervalTickValue: 0
 } as State
 
-export default myra.define(init).updates({
-    setTimeoutHandle: (_, handle: number) =>
-        ({ timeoutHandle: handle }),
-    clearTimeoutHandle: _ =>
-        ({ timeoutHandle: undefined }),
-    setIntervalHandle: (_, handle: number) =>
-        ({ intervalHandle: handle }),
-    intervalTick: ({ state }) =>
-        ({ intervalTickValue: state.intervalTickValue + 100 }),
-    intervalCancelled: _ =>
-        ({
+export default myra.define(init, evolve => {
+
+    const setTimeoutHandle = (handle: number) =>
+        evolve(_ => ({ timeoutHandle: handle }))
+    const clearTimeoutHandle = () => evolve(_ =>
+        ({ timeoutHandle: undefined }))
+    const setIntervalHandle = (handle: number) =>
+        evolve(_ => ({ intervalHandle: handle }))
+    const intervalTick = () => evolve(state =>
+        ({ intervalTickValue: state.intervalTickValue + 100 }))
+
+    const startTimeout = () => {
+        const handle = setTimeout(clearTimeoutHandle, 5000)
+        setTimeoutHandle(handle)
+    }
+    const cancelTimeout = () => evolve(state => {
+        clearTimeout(state.timeoutHandle!)
+        return { timeoutHandle: undefined }
+    })
+
+    const startInterval = () => {
+        const handle = setInterval(intervalTick, 100)
+        setIntervalHandle(handle)
+    }
+    const cancelInterval = () => evolve(state => {
+        clearInterval(state.intervalHandle!)
+        return {
             intervalHandle: undefined,
             intervalTickValue: 0
-        })
-}).effects({
-    startTimeout: ctx => {
-        const handle = setTimeout(ctx.updates.clearTimeoutHandle, 5000)
-        ctx.updates.setTimeoutHandle(ctx, handle)
-    },
-    cancelTimeout: ctx => {
-        clearTimeout(ctx.state.timeoutHandle!)
-        ctx.updates.clearTimeoutHandle(ctx)
-    },
-    startInterval: ctx => {
-        const handle = setInterval(ctx.updates.intervalTick, 100)
-        ctx.updates.setIntervalHandle(ctx, handle)
-    },
-    cancelInterval: ctx => {
-        clearInterval(ctx.state.intervalHandle!)
-        ctx.updates.intervalCancelled(ctx)
-    }
-}).view(({ state, effects }) =>
-    <section>
-        <h2>Time examples</h2>
-        <p>
-            {state.timeoutHandle ?
-                <button type="button"
-                    class="btn btn-sm btn-default"
-                    onclick={effects.cancelTimeout}>
-                    Cancel timeout
+        }
+    })
+
+    return state =>
+        <section>
+            <h2>Time examples</h2>
+            <p>
+                {state.timeoutHandle ?
+                    <button type="button"
+                        class="btn btn-sm btn-default"
+                        onclick={cancelTimeout}>
+                        Cancel timeout
                     </button>
-                : <button type="button"
-                    class="btn btn-sm btn-default"
-                    onclick={effects.startTimeout}>
-                    Set a timeout of 5 seconds
+                    : <button type="button"
+                        class="btn btn-sm btn-default"
+                        onclick={startTimeout}>
+                        Set a timeout of 5 seconds
                       </button>
-            }
-        </p>
-        <p>
-            {state.intervalHandle ?
-                <button type="button"
-                    class="btn btn-sm btn-default"
-                    onclick={effects.cancelInterval}>
-                    Cancel interval
+                }
+            </p>
+            <p>
+                {state.intervalHandle ?
+                    <button type="button"
+                        class="btn btn-sm btn-default"
+                        onclick={cancelInterval}>
+                        Cancel interval
                     </button>
-                : <button type="button"
-                    class="btn btn-sm btn-default"
-                    onclick={effects.startInterval}>
-                    Start interval
+                    : <button type="button"
+                        class="btn btn-sm btn-default"
+                        onclick={startInterval}>
+                        Start interval
                       </button>
-            }
-        </p>
-        <p>Milliseconds since interval started: {state.intervalTickValue}</p>
-    </section>
-    )
+                }
+            </p>
+            <p>Milliseconds since interval started: {state.intervalTickValue}</p>
+        </section>
+})
