@@ -22,8 +22,7 @@ export default myra
             ({ responseStatus: 'success', response: responseText })
     })
     .effects({
-        httpRequest:
-        ctx => fetch('https://api.github.com/repos/jhdrn/myra')
+        httpRequest: ctx => fetch('https://api.github.com/repos/jhdrn/myra')
             .then(r => r.text())
             .then(t => ctx.updates.onHttpRequest(ctx, t))
     })

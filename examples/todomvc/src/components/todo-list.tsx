@@ -1,5 +1,4 @@
 import * as myra from 'myra'
-import * as router from 'myra-router'
 import { TodosFilter, saveFilter, loadFilter } from '../models/filter'
 import * as todos from '../models/todos'
 import TodoItemComponent from './todo-item'
@@ -22,7 +21,7 @@ type State = {
  * Updates
  */
 const applySavedFilter = (state: State, filter: TodosFilter): myra.Result<State> =>
-    [state, router.routeTo(`#/${filter === 'all' ? '' : filter || ''}`, undefined, true)]
+    [state,]
 
 const applyFilterFromLocation = (_: State, routeCtx: router.RouteContext): myra.Result<State> => {
 
@@ -47,32 +46,6 @@ const applyFilterFromLocation = (_: State, routeCtx: router.RouteContext): myra.
     return { location: routeCtx }
 }
 
-const todosLoaded = (_: State, todos: Todo[]): myra.Result<State> =>
-    ({
-        todos: todos,
-        itemsLeft: todos.filter(t => !t.completed).length
-    })
-
-// Mount function: load all todos
-const loadTodos = (state: State): myra.Result<State> =>
-    [state, todos.getAll(todosLoaded)]
-
-/**
- * Init model
- */
-const init: myra.Result<State> = [
-    {
-        todos: [],
-        itemsLeft: 0,
-        filter: 'all',
-        location: {} as router.RouteContext
-    },
-    ((apply: myra.Apply) => {
-        loadFilter(applySavedFilter)(apply)
-        router.addListener(applyFilterFromLocation)(apply)
-    }) as myra.Effect<State>
-]
-
 /**
  * View
  */
@@ -95,23 +68,42 @@ const filterLink = (href: string, txt: string, routeCtx: router.RouteContext) =>
  * Component
  */
 export default myra.define<State, { forceUpdate: boolean }>({
-    name: 'TodoListComponent',
-    init: init,
-    onMount: loadTodos,
-    render: ({ state }) =>
+    todos: [],
+    itemsLeft: 0,
+    filter: 'all',
+    location: {} as router.RouteContext
+}).updates({
+    todosLoaded: (_, todos: Todo[]) =>
+        ({
+            todos: todos,
+            itemsLeft: todos.filter(t => !t.completed).length
+        })
+}).effects({
+    _didMount: () => {
+        loadFilter(applySavedFilter)(apply)
+        router.addListener(applyFilterFromLocation)(apply)
+        loadTodos()
+    },
+    clearCompleted: () =>
+        todos.removeCompleted() > loadTodos(),
+    loadTodos: ctx =>
+        ctx.updates.todosLoaded(ctx, todos.getAll()),
+    toggleAllTodos: ctx =>
+        todos.toggleAll(!ctx.state.todos.every(t => t.completed) > loadTodos
+}).view(({ state, effects }) =>
         state.todos.length ?
             <div>
                 <section class="main">
                     <input class="toggle-all"
                         type="checkbox"
                         checked={state.todos.every(t => t.completed)}
-                        onclick={() => () => todos.toggleAll(!state.todos.every(t => t.completed).then(loadTodos)} />
+                        onclick={effects.toggleAllTodos} />
 
                     <label for="toggle-all">Mark all as complete</label>
                     <ul class="todo-list">
                         {
                             state.todos.filter(filterTodos(state)).map(todo =>
-                                <TodoItemComponent onchange={() => todos.getAll(todosLoaded)} todo={todo} />
+                                <TodoItemComponent onchange={effects.loadTodos} todo={todo} />
                             )
                         }
                     </ul>
@@ -135,11 +127,11 @@ export default myra.define<State, { forceUpdate: boolean }>({
                     {
                         state.todos.filter(t => t.completed).length ?
                             <button class="clear-completed"
-                                onclick={() => todos.removeCompleted(loadTodos)}>
+                                onclick={effects.clearCompleted}>
                                 Clear completed
                             </button> : <nothing />
                     }
                 </footer>
             </div>
             : <nothing />
-})
+    )

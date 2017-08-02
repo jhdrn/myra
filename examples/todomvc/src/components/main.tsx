@@ -8,26 +8,30 @@ type Todo = todos.Todo
  * Updates
  */
 
-// Adds a new todo with a title of the value of the "new todo" input field
-const addNewTodo = (value: string) => {
-    const newTodo = value.trim()
-    if (newTodo) {
 
-        const todo: Todo = {
-            id: 0,
-            completed: false,
-            title: newTodo
-        }
-
-        return todos.add(todo)
-    }
-    return Promise.reject<{}>('')
-}
 
 /**
  * Component
  */
-export default myra.define('MainComponent', {}, () =>
+export default myra.define({}).updates({}).effects({
+    // Adds a new todo with a title of the value of the "new todo" input field
+    addNewTodo: (_, ev: KeyboardEvent) => {
+        if (ev.keyCode === 13) {
+
+            const newTodo = (ev.target as HTMLInputElement).value.trim()
+            if (newTodo) {
+
+                const todo: Todo = {
+                    id: 0,
+                    completed: false,
+                    title: newTodo
+                }
+
+                todos.add(todo)
+            }
+        }
+    }
+}).view(({ effects }) =>
     <div>
         <section class="todoapp">
             <header class="header">
@@ -36,9 +40,7 @@ export default myra.define('MainComponent', {}, () =>
                     placeholder="What needs to be done?"
                     autofocus
                     value=""
-                    onkeydown={(ev, el) =>
-                        ev.keyCode === 13 ? addNewTodo(el.value) : undefined
-                    }
+                    onkeydown={effects.addNewTodo}
                 />
             </header>
             <TodoListComponent forceUpdate />
@@ -49,4 +51,4 @@ export default myra.define('MainComponent', {}, () =>
             <p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
         </footer>
     </div>
-)
+    )

@@ -45,9 +45,6 @@ const saveTodo = (state: State, value: string) => {
     }
 }
 
-const editTodo = () => ({ editing: true })
-
-const undoEditTodo = () => ({ editing: false })
 
 const toggleTodoCompleted = (m: State) => {
     const updatedTodo = { ...m.todo, completed: !m.todo.completed }
@@ -72,38 +69,39 @@ const todoClass = (m: State) => {
 /**
  * Component
  */
-export default myra.define<State, Props>({
-    name: 'TodoItemComponent',
-    init: init,
-    onMount: mount,
-    render: ({ state, props, apply, invoke }) =>
-        <li class={todoClass(state)}>
-            <div class="view">
-                <input class="toggle"
-                    type="checkbox"
-                    checked={state.todo.completed}
-                    onclick={() => apply(toggleTodoCompleted) > props.onchange()} />
+export default myra.define<State, Props>(init).updates({
+    editTodo: () => ({ editing: true }),
+    undoEditTodo: () => ({ editing: false })
+}).effects({
+    _didMount: mount
+}).view(({ state, props, updates, effects }) =>
+    <li class={todoClass(state)}>
+        <div class="view">
+            <input class="toggle"
+                type="checkbox"
+                checked={state.todo.completed}
+                onclick={() => apply(toggleTodoCompleted) > props.onchange()} />
 
-                <label ondblclick={state.todo.completed ? undefined : () => apply(editTodo)}>
-                    {state.todo.title}
-                </label>
-                <button class="destroy" onclick={() => invoke(todos.remove(state.todo.id)) > props.onchange()}></button>
-            </div>
-            {
-                state.editing ?
-                    <input class="edit"
-                        focus
-                        value={state.todo.title}
-                        onblur={(_, el) => apply(saveTodo, el.value)}
-                        onkeyup={(ev, el) => {
-                            if (ev.keyCode === 13) {
-                                apply(saveTodo, el.value)
-                            }
-                            else if (ev.keyCode === 27) {
-                                apply(undoEditTodo)
-                            }
-                        }} />
-                    : <nothing />
-            }
-        </li>
+            <label ondblclick={state.todo.completed ? undefined : () => apply(editTodo)}>
+                {state.todo.title}
+            </label>
+            <button class="destroy" onclick={() => invoke(todos.remove(state.todo.id)) > props.onchange()}></button>
+        </div>
+        {
+            state.editing ?
+                <input class="edit"
+                    focus
+                    value={state.todo.title}
+                    onblur={(_, el) => apply(saveTodo, el.value)}
+                    onkeyup={(ev, el) => {
+                        if (ev.keyCode === 13) {
+                            apply(saveTodo, el.value)
+                        }
+                        else if (ev.keyCode === 27) {
+                            apply(undoEditTodo)
+                        }
+                    }} />
+                : <nothing />
+        }
+    </li>
 })
