@@ -27,7 +27,7 @@ describe('mount', () => {
 
     it('mounts the compontent', () => {
 
-        const component = define({}).view(() => <div id="root" />)
+        const component = define({}, () => () => <div id="root" />)
 
         mount(component, document.body)
 
@@ -43,9 +43,10 @@ describe('mount', () => {
 
         spyOn(mountMock, 'mount').and.callThrough()
 
-        const component = define({ val: 0 }).updates({}).effects({
-            _didMount: mountMock.mount
-        }).view(() => <div />)
+        const component = define({ val: 0 }, (_, events) => {
+            events.didMount = mountMock.mount
+            return () => <div />
+        })
 
         mount(component, document.body)
 
@@ -54,17 +55,17 @@ describe('mount', () => {
 
     it(`passes the children of a component to it view`, () => {
         const viewMock = {
-            view: (ctx: any) => {
-                expect(Array.isArray(ctx.children)).toBe(true)
-                return <div>{ctx.children}</div>
+            view: (_s: any, _p: any, children: any) => {
+                expect(Array.isArray(children)).toBe(true)
+                return <div>{children}</div>
             }
         }
 
         spyOn(viewMock, 'view').and.callThrough()
 
-        const component = define<any, any>({}).view(viewMock.view)
+        const component = define<any, any>({}, () => viewMock.view)
 
-        const parent = define({}).view(() =>
+        const parent = define({}, () => () =>
             component({}, [<div id="divTestId" />])
         )
 
@@ -89,10 +90,11 @@ describe('unmountComponent', () => {
 
         spyOn(mountMock, 'unmount').and.callThrough()
 
-        const Component = define({}).updates({}).effects({
-            _willUnmount: mountMock.unmount
-        }).view(() => <div />)
-        const instance = <Component /> as ComponentVNode<{}, {}, any, any>
+        const Component = define({}, (_, events) => {
+            events.willUnmount = mountMock.unmount
+            return () => <div />
+        })
+        const instance = <Component /> as ComponentVNode<{}, {}>
 
         initComponent(instance, document.body)
         findAndUnmountComponentsRec(instance)
@@ -107,15 +109,17 @@ describe('unmountComponent', () => {
 
         spyOn(mountMock, 'unmount').and.callThrough()
 
-        const ChildChildComponent = define({}).updates({}).effects({
-            _willUnmount: mountMock.unmount
-        }).view(() => <div />)
+        const ChildChildComponent = define({}, (_, events) => {
+            events.willUnmount = mountMock.unmount
+            return () => <div />
+        })
 
-        const ChildComponent = define({}).updates({}).effects({
-            _willUnmount: mountMock.unmount,
-        }).view(() => <ChildChildComponent />)
+        const ChildComponent = define({}, (_, events) => {
+            events.willUnmount = mountMock.unmount
+            return () => <ChildChildComponent />
+        })
 
-        const component = define({}).view(() => <div><ChildComponent /></div>)
+        const component = define({}, () => () => <div><ChildComponent /></div>)
 
         const instance = component({}, [])
         initComponent(instance, document.body)
@@ -137,9 +141,10 @@ describe('updateComponent', () => {
 
         spyOn(mountMock, 'mount').and.callThrough()
 
-        const component = define<{}, { val: number }>({}).updates({}).effects({
-            _willUpdate: mountMock.mount
-        }).view(() => <div />)
+        const component = define<{}, { val: number }>({}, (_, events) => {
+            events.willUpdate = mountMock.mount
+            return () => <div />
+        })
 
         const vNode = component({ val: 45 }, [])
         initComponent(vNode, document.body)
@@ -155,9 +160,10 @@ describe('updateComponent', () => {
 
         spyOn(mountMock, 'mount').and.callThrough()
 
-        const component = define({}).updates({}).effects({
-            _willUpdate: mountMock.mount
-        }).view(() => <div />)
+        const component = define({}, (_, events) => {
+            events.willUpdate = mountMock.mount
+            return () => <div />
+        })
 
         const vNode = component({}, [])
         initComponent(vNode, document.body)
@@ -176,9 +182,10 @@ describe('updateComponent', () => {
 
         spyOn(mountMock, 'mount').and.callThrough()
 
-        const component = define({}).updates({}).effects({
-            _willUpdate: mountMock.mount
-        }).view(() => <div />)
+        const component = define({}, (_, events) => {
+            events.willUpdate = mountMock.mount
+            return () => <div />
+        })
 
         const vNode = component({ prop: 'a value' }, [])
         initComponent(vNode, document.body)
@@ -196,7 +203,7 @@ describe('post', () => {
         let firstUpdate = true
 
         const mocks = {
-            onclickUpdate: ({ state }: { state: { val: number } }) => {
+            onclickUpdate: (state: { val: number }) => {
                 if (firstUpdate) {
                     expect(state).toEqual({ val: 1 })
                 }
@@ -209,12 +216,10 @@ describe('post', () => {
 
         spyOn(mocks, 'onclickUpdate').and.callThrough()
 
-        const component = define({ val: 1 })
-            .updates({
-                onclickUpdate: mocks.onclickUpdate
-            }).view(({ updates }) =>
-                <button id="postButton" onclick={updates.onclickUpdate}></button>
-            )
+        const component = define({ val: 1 }, evolve => {
+            const onclickUpdate = () => evolve(mocks.onclickUpdate)
+            return () => <button id="postButton" onclick={onclickUpdate}></button>
+        })
 
 
         mount(component, document.body)

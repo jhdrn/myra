@@ -39,7 +39,7 @@ describe('render', () => {
     })
 
     it('mounts a component from a component virtual node', (done) => {
-        const TestComponent = define({}).view(_ => <div id="testComponent"></div>)
+        const TestComponent = define({}, _ => _ => <div id="testComponent"></div>)
 
         const view = <div><TestComponent /></div>
 
@@ -57,9 +57,10 @@ describe('render', () => {
 
         spyOn(mocks, 'mount').and.callThrough()
 
-        const testComponent = define({}).updates({}).effects({
-            _willUpdate: mocks.mount
-        }).view(_ => <div id="testComponent"></div>)
+        const testComponent = define({}, (_, events) => {
+            events.willUpdate = mocks.mount
+            return _ => <div id="testComponent"></div>
+        })
 
         const view1 = testComponent({}, [])
         const view2 = testComponent({ forceUpdate: true }, [])
@@ -84,9 +85,10 @@ describe('render', () => {
 
         spyOn(mocks, 'unmount').and.callThrough()
 
-        const TestComponent = define({}).updates({}).effects({
-            _willUnmount: mocks.unmount
-        }).view(_ => <div />)
+        const TestComponent = define({}, (_, events) => {
+            events.willUnmount = mocks.unmount
+            return _ => <div />
+        })
 
         const instance = TestComponent({}, [])
         initComponent(instance, document.body)
@@ -372,12 +374,12 @@ describe('render', () => {
 
         spyOn(mocks, 'assertProps').and.callThrough()
 
-        const ChildComponent = define<{}, ChildComponentProps>({}).view(ctx => {
-            mocks.assertProps(ctx.props)
+        const ChildComponent = define<{}, ChildComponentProps>({}, () => (_, props) => {
+            mocks.assertProps(props)
             return <nothing />
         })
 
-        const ParentComponent = define({}).view(() => <ChildComponent test="test" />)
+        const ParentComponent = define({}, () => () => <ChildComponent test="test" />)
 
         mount(ParentComponent, document.body)
 
@@ -401,17 +403,16 @@ describe('render', () => {
         type State = { clicked: boolean; itemId: number }
         type Props = { item: Item; forceUpdate: boolean }
 
-        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }).updates({
-            setClicked: _ => ({ clicked: true }),
-            updateItemId: (_, itemId) => ({ itemId: itemId })
-        }).effects({
-            _didMount: ctx => ctx.updates.updateItemId(ctx, ctx.props.item.id)
-        }).view(ctx =>
-            <button id={`item-${ctx.state.itemId}`}
-                class={ctx.state.clicked ? "clicked" : ""}
-                onclick={ctx.updates.setClicked}>
-            </button>
-            )
+        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, (evolve, events) => {
+            const setClicked = () => evolve(_ => ({ clicked: true }))
+            const updateItemId = (itemId: number) => evolve(_ => ({ itemId: itemId }))
+            events.didMount = props => updateItemId(props.item.id)
+            return (state) =>
+                <button id={`item-${state.itemId}`}
+                    class={state.clicked ? "clicked" : ""}
+                    onclick={setClicked}>
+                </button>
+        })
 
         const view1 =
             <div>
@@ -460,18 +461,20 @@ describe('render', () => {
         type State = { clicked: boolean; itemId: number }
         type Props = { item: Item; forceUpdate: boolean }
 
-        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }).updates({
-            setClicked: _ => ({ clicked: true }),
-            updateItemId: (_, itemId) => ({ itemId: itemId })
-        }).effects({
-            _didMount: ctx => ctx.updates.updateItemId(ctx, ctx.props.item.id),
-            _willUpdate: ctx => ctx.updates.updateItemId(ctx, ctx.props.item.id)
-        }).view(ctx =>
-            <button id={`item-${ctx.state.itemId}`}
-                class={ctx.state.clicked ? "clicked" : ""}
-                onclick={ctx.updates.setClicked}>
-            </button>
-            )
+        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, (evolve, events) => {
+
+            const setClicked = () => evolve(_ => ({ clicked: true }))
+            const updateItemId = (itemId: number) => evolve(_ => ({ itemId: itemId }))
+
+            events.didMount = props => updateItemId(props.item.id)
+            events.willUpdate = props => updateItemId(props.item.id)
+
+            return (state) =>
+                <button id={`item-${state.itemId}`}
+                    class={state.clicked ? "clicked" : ""}
+                    onclick={setClicked}>
+                </button>
+        })
 
         const view1 =
             <div>
@@ -520,18 +523,19 @@ describe('render', () => {
         type State = { clicked: boolean; itemId: number }
         type Props = { key: number; item: Item }
 
-        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }).updates({
-            setClicked: _ => ({ clicked: true }),
-            updateItemId: (_, itemId) => ({ itemId: itemId })
-        }).effects({
-            _didMount: ctx => ctx.updates.updateItemId(ctx, ctx.props.item.id)
-        }).view(ctx =>
-            <button id={`item-${ctx.state.itemId}`}
-                class={ctx.state.clicked ? "clicked" : ""}
-                onclick={ctx.updates.setClicked}>
-            </button>
-            )
+        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, (evolve, events) => {
 
+            const setClicked = () => evolve(_ => ({ clicked: true }))
+            const updateItemId = (itemId: number) => evolve(_ => ({ itemId: itemId }))
+
+            events.didMount = props => updateItemId(props.item.id)
+
+            return (state) =>
+                <button id={`item-${state.itemId}`}
+                    class={state.clicked ? "clicked" : ""}
+                    onclick={setClicked}>
+                </button>
+        })
 
         const view1 =
             <div>
@@ -579,19 +583,20 @@ describe('render', () => {
         type State = { clicked: boolean; itemId: number }
         type Props = { item: Item }
 
-        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }).updates({
-            setClicked: _ => ({ clicked: true }),
-            updateItemId: (_, itemId) => ({ itemId: itemId })
-        }).effects({
-            _didMount: ctx => ctx.updates.updateItemId(ctx, ctx.props.item.id),
-            _willUpdate: ctx => ctx.updates.updateItemId(ctx, ctx.props.item.id)
-        }).view(ctx =>
-            <button id={`item-${ctx.state.itemId}`}
-                class={ctx.state.clicked ? "clicked" : ""}
-                onclick={ctx.updates.setClicked}>
-            </button>
-            )
+        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, (evolve, events) => {
 
+            const setClicked = () => evolve(_ => ({ clicked: true }))
+            const updateItemId = (itemId: number) => evolve(_ => ({ itemId: itemId }))
+
+            events.didMount = props => updateItemId(props.item.id)
+            events.willUpdate = props => updateItemId(props.item.id)
+
+            return (state) =>
+                <button id={`item-${state.itemId}`}
+                    class={state.clicked ? "clicked" : ""}
+                    onclick={setClicked}>
+                </button>
+        })
 
         const view1 =
             <div>
@@ -641,19 +646,22 @@ describe('render', () => {
 
         let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
 
-        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }).updates({
-            setClicked: _ => ({ clicked: true }),
-            updateItemId: (_, itemId) => ({ itemId: itemId })
-        }).effects({
-            _didMount: ctx => ctx.updates.updateItemId(ctx, ctx.props.item.id)
-        }).view(ctx => {
-            const v = <button id={`item-${ctx.state.itemId}`} class={ctx.state.clicked ? "clicked" : ""}
-                onclick={ctx.updates.setClicked}>
-            </button>
-            if (ctx.state.itemId === 1) {
-                btnVNode = v as ElementVNode<HTMLButtonElement>
+        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, (evolve, events) => {
+
+            const setClicked = () => evolve(_ => ({ clicked: true }))
+            const updateItemId = (itemId: number) => evolve(_ => ({ itemId: itemId }))
+
+            events.didMount = props => updateItemId(props.item.id)
+
+            return (state) => {
+                const v = <button id={`item-${state.itemId}`} class={state.clicked ? "clicked" : ""}
+                    onclick={setClicked}>
+                </button>
+                if (state.itemId === 1) {
+                    btnVNode = v as ElementVNode<HTMLButtonElement>
+                }
+                return v
             }
-            return v
         })
 
         const view1 =
@@ -712,26 +720,26 @@ describe('render', () => {
 
         let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
 
-        const ItemComponent = define<State, Props>({
-            clicked: false,
-            itemId: -1
-        }).updates({
-            setClicked: _ => ({ clicked: true }),
-            updateItemId: (_, itemId) => ({ itemId: itemId })
-        }).effects({
-            _didMount: ctx => ctx.updates.updateItemId(ctx, ctx.props.item.id),
-            _willUpdate: ctx => ctx.updates.updateItemId(ctx, ctx.props.item.id)
-        }).view(ctx => {
-            const v =
-                <button
-                    id={`item-${ctx.state.itemId}`}
-                    class={ctx.state.clicked ? "clicked" : ""}
-                    onclick={ctx.updates.setClicked}>
-                </button>
-            if (ctx.state.itemId === 1) {
-                btnVNode = v as ElementVNode<HTMLButtonElement>
+        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, (evolve, events) => {
+
+            const setClicked = () => evolve(_ => ({ clicked: true }))
+            const updateItemId = (itemId: number) => evolve(_ => ({ itemId: itemId }))
+
+            events.didMount = props => updateItemId(props.item.id)
+            events.willUpdate = props => updateItemId(props.item.id)
+
+            return (state) => {
+                const v =
+                    <button
+                        id={`item-${state.itemId}`}
+                        class={state.clicked ? "clicked" : ""}
+                        onclick={setClicked}>
+                    </button>
+                if (state.itemId === 1) {
+                    btnVNode = v as ElementVNode<HTMLButtonElement>
+                }
+                return v
             }
-            return v
         })
 
         const view1 =
@@ -783,9 +791,10 @@ describe('render', () => {
 
         spyOn(mountMock, 'unmount').and.callThrough()
 
-        const ChildComponent = define({}).updates({}).effects({
-            _willUnmount: mountMock.unmount
-        }).view(() => <div />)
+        const ChildComponent = define({}, (_, events) => {
+            events.willUnmount = mountMock.unmount
+            return () => <div />
+        })
 
         const view1 = <div><div><ChildComponent /></div></div>
         render(document.body, view1, view1, undefined)

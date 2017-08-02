@@ -96,7 +96,7 @@ export function render(
                 existingDomNode.textContent = newVNode.value
                 break
             case 3: // component node
-                updateComponent(newVNode, oldVNode as ComponentVNode<any, any, any, any>)
+                updateComponent(newVNode, oldVNode as ComponentVNode<any, any>)
                 break
         }
 

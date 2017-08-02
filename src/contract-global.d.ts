@@ -5,45 +5,24 @@ declare namespace myra {
         [key: string]: TValue
     }
 
-    export interface UpdateContext<TState, TProps> {
-        state: Readonly<TState>
-        props: Readonly<TProps>
-    }
-    export interface Update<TState, TProps> {
-        (ctx: UpdateContext<TState, TProps>, ...args: any[]): Partial<TState>
-    }
-    export interface Updates<TState, TProps> {
-        [key: string]: Update<TState, TProps>
+    export type UpdateState<TState> = (s: Readonly<TState>) => Partial<TState>
+    export type Evolve<TState> = (fn: UpdateState<TState>) => void
+
+    export interface View<TState, TProps> {
+        (state: TState, props: TProps, children: JSX.Element[]): JSX.Element;
     }
 
-    export interface EffectContext<TState, TProps, TUpdates extends Updates<TState, TProps>> {
-        state: TState // Implement as a getter
-        props: TProps
-        updates: TUpdates
-        domRef?: Node
+    export type ComponentSpec<TState, TProps> = (evolve: Evolve<TState>, events: Events<TState, TProps>) => View<TState, TProps>
+
+    export interface ComponentFactory<TState, TProps> {
+        (props: TProps, children: VNode[]): ComponentVNode<TState, TProps>
     }
-    export interface Effect<TState, TProps, TUpdates extends Updates<TState, TProps>> {
-        (ctx: EffectContext<TState, TProps, TUpdates>, ...args: any[]): void
+    export type Events<TState, TProps> = {
+        didMount?: (props: TProps, domRef: Node) => void
+        willUpdate?: (props: TProps) => void
+        willUnmount?: (domRef: Node) => void
     }
-    export interface Effects<TState, TProps, TUpdates extends Updates<TState, TProps>> {
-        [key: string]: Effect<TState, TProps, TUpdates> | undefined
-        _didMount?: Effect<TState, TProps, TUpdates>
-        _willUnmount?: Effect<TState, TProps, TUpdates>
-    }
-    export interface ViewContext<TState, TProps, TUpdates, TEffects> {
-        state: TState
-        props: TProps
-        updates: TUpdates
-        effects: TEffects
-    }
-    export interface View<TState, TProps, TUpdates, TEffects> {
-        (ctx: ViewContext<TState, TProps, TUpdates, TEffects>): VNode;
-    }
-    export interface ComponentFactory<TState, TProps, TUpdates extends Updates<TState, TProps>> {
-        (props: TProps, children: VNode[]): ComponentVNode<TState, TProps, TUpdates, any>
-        state: TState
-        updates: TUpdates
-    }
+
     interface AttributeMap { [name: string]: string }
 
     /**
@@ -84,15 +63,15 @@ declare namespace myra {
      * A virtual node representing a component.
      */
 
-    export interface ComponentVNode<TState extends {}, TProps extends {}, TUpdates, TEffects> extends VNodeBase {
+    export interface ComponentVNode<TState extends {}, TProps extends {}> extends VNodeBase {
         readonly _: 3
         children: VNode[]
-        effects: TEffects
-        updates: TUpdates
         rendition?: VNode
         props: TProps
         state: Readonly<TState>
-        view: View<TState, TProps, TUpdates, TEffects>
+        spec: ComponentSpec<TState, TProps>
+        view: View<TState, TProps>
+        events: Events<TState, TProps>
         parentElement?: Element
         dispatchLevel: number
     }
@@ -108,7 +87,7 @@ declare namespace myra {
     /**
      * Union type of the different types of virtual nodes.
      */
-    type VNode = TextVNode | ElementVNode<any> | ComponentVNode<any, any, any, any> | NothingVNode
+    type VNode = TextVNode | ElementVNode<any> | ComponentVNode<any, any> | NothingVNode
 
     interface GlobalAttributes<TElement extends Element> {
         key?: any

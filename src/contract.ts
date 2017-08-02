@@ -5,26 +5,23 @@ export type Map<T> = myra.Map<T>
 /**
  * Component types
  */
-export interface Update<TState, TProps> extends myra.Update<TState, TProps> { }
-export interface Updates<TState, TProps> extends myra.Updates<TState, TProps> { }
-export interface UpdateContext<TState, TProps> extends myra.UpdateContext<TState, TProps> { }
-export interface EffectContext<TState, TProps, TUpdates extends Updates<TState, TProps>> extends myra.EffectContext<TState, TProps, TUpdates> { }
-export interface Effect<TState, TProps, TUpdates extends Updates<TState, TProps>> extends myra.Effect<TState, TProps, TUpdates> { }
-export interface Effects<TState, TProps, TUpdates extends Updates<TState, TProps>> extends myra.Effects<TState, TProps, TUpdates> { }
-export interface ComponentFactory<TState, TProps, TUpdates extends Updates<TState, TProps>> extends myra.ComponentFactory<TState, TProps, TUpdates> { }
+export type ComponentSpec<TState, TProps> = myra.ComponentSpec<TState, TProps>
+export interface ComponentFactory<TState, TProps> extends myra.ComponentFactory<TState, TProps> { }
 
 /**
  * View types
  */
-export interface ViewContext<TState, TProps, TUpdates, TEffects> extends myra.ViewContext<TState, TProps, TUpdates, TEffects> { }
-export interface View<TState, TProps, TUpdates, TEffects> extends myra.View<TState, TProps, TUpdates, TEffects> { }
+export interface View<TState, TProps> extends myra.View<TState, TProps> { }
+
+export type UpdateState<TState> = myra.UpdateState<TState>
+export type Evolve<TState> = myra.Evolve<TState>
 
 export type EventListener<T extends Event, E extends Element> = myra.EventListener<T, E>
 
 export interface VNodeBase extends myra.VNodeBase { }
 export interface TextVNode extends myra.TextVNode { }
 export interface ElementVNode<T extends Element> extends myra.ElementVNode<T> { }
-export interface ComponentVNode<TState, TProps, TUpdates, TEffects> extends myra.ComponentVNode<TState, TProps, TUpdates, TEffects> { }
+export interface ComponentVNode<TState, TProps> extends myra.ComponentVNode<TState, TProps> { }
 export interface NothingVNode extends myra.NothingVNode { }
 export type VNode = myra.VNode
 
