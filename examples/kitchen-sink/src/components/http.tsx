@@ -18,7 +18,8 @@ export default myra.define({
 } as State, evolve => {
 
     const onHttpRequest = (responseText: string) =>
-        evolve(_ => ({ responseStatus: 'success', response: responseText }))
+        evolve({ responseStatus: 'success', response: responseText })
+
     const makeHttpRequest = () => fetch('https://api.github.com/repos/jhdrn/myra')
         .then(r => r.text())
         .then(onHttpRequest)

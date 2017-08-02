@@ -5,8 +5,8 @@ declare namespace myra {
         [key: string]: TValue
     }
 
-    export type UpdateState<TState> = (s: Readonly<TState>) => Partial<TState>
-    export type Evolve<TState> = (fn: UpdateState<TState>) => void
+    export type UpdateState<TState> = Partial<TState> | ((s: Readonly<TState>) => Partial<TState>)
+    export type Evolve<TState> = (update: UpdateState<TState>) => void
 
     export interface View<TState, TProps> {
         (state: TState, props: TProps, children: JSX.Element[]): JSX.Element;

@@ -116,7 +116,10 @@ function dispatch<TState extends {}, TProps extends {}>(
     vNode.dispatchLevel++
 
     if (update !== undefined) {
-        vNode.state = { ...<any>vNode.state, ...(update(vNode.state) as object) }
+        if (typeof update === 'function') {
+            update = update(vNode.state)
+        }
+        vNode.state = { ...<any>vNode.state, ...(update as object) }
     }
 
     // Update view if the component was already initialized and the 

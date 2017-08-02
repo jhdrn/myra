@@ -15,11 +15,11 @@ const init = {
 export default myra.define(init, evolve => {
 
     const setTimeoutHandle = (handle: number) =>
-        evolve(_ => ({ timeoutHandle: handle }))
-    const clearTimeoutHandle = () => evolve(_ =>
-        ({ timeoutHandle: undefined }))
+        evolve({ timeoutHandle: handle })
+    const clearTimeoutHandle = () =>
+        evolve({ timeoutHandle: undefined })
     const setIntervalHandle = (handle: number) =>
-        evolve(_ => ({ intervalHandle: handle }))
+        evolve({ intervalHandle: handle })
     const intervalTick = () => evolve(state =>
         ({ intervalTickValue: state.intervalTickValue + 100 }))
 
