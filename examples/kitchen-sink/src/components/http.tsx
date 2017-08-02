@@ -36,7 +36,6 @@ export default myra.define({
             <p>Response status:{state.responseStatus}</p>
             {state.response ?
                 <div>
-                    {state.response}
                     {state.responseStatus === 'success' ?
                         <p><strong>Response text:</strong>{state.response}</p>
                         : <nothing />
