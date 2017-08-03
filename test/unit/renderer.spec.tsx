@@ -52,10 +52,10 @@ describe('render', () => {
 
     it('remounts a component if forceUpdate is set to true', (done) => {
         const mocks = {
-            mount: () => Promise.resolve({})
+            mount: () => { }
         }
 
-        spyOn(mocks, 'mount').and.callThrough()
+        spyOn(mocks, 'mount')
 
         const testComponent = define({}, (_, events) => {
             events.willUpdate = mocks.mount

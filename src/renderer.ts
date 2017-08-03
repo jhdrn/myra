@@ -253,7 +253,7 @@ function shouldReplaceNode(newVNode: VNode, oldVNode: VNode | undefined): boolea
         return true
     }
     else if (newVNode._ === 3 && oldVNode._ === 3 &&
-        newVNode.view !== oldVNode.view) {
+        newVNode.spec !== oldVNode.spec) {
         return true
     }
     return false
