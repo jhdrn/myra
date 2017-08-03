@@ -4,7 +4,6 @@ import StatelessComponent from './stateless-component'
 import CounterComponent from './counter'
 import HttpComponent from './http'
 import TimeComponent from './time'
-// import RoutingComponent from './routing'
 
 
 /**
@@ -21,6 +20,4 @@ export default myra.define({}, () => () =>
         <HttpComponent />
         <hr />
         <TimeComponent />
-        {/* <hr />
-        <RoutingComponent /> */}
     </div>)
