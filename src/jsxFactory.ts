@@ -12,7 +12,8 @@ function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
                 flattenedChildren.push(c)
             }
         }
-        else if (typeof child === 'string') {
+        else if ((child as VNode)._ === undefined) {
+            // Any node which is not a vNode will be converted to a TextVNode
             flattenedChildren.push({
                 _: 1,
                 value: child as any as string
