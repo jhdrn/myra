@@ -131,13 +131,7 @@ function dispatch<TState extends {}, TProps extends {}>(
         render(vNode.parentElement!, newView, vNode.rendition, oldNode)
 
         vNode.rendition = newView
-
-        if (newView.domRef !== undefined) {
-            vNode.domRef = newView.domRef
-        }
-        else {
-            vNode.domRef = undefined
-        }
+        vNode.domRef = newView.domRef
     }
     vNode.dispatchLevel--
 }
