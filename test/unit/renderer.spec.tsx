@@ -1,7 +1,7 @@
 import { define, mount, ElementVNode } from 'core'
 import { render } from 'core/renderer'
 import { initComponent } from 'core/component'
-import * as jsxFactory from 'core/jsxFactory'
+import * as core from 'core'
 
 // const keyPressEvent = (keyCode: number) => {
 //     const event = document.createEvent('Event')

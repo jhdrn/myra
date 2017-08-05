@@ -1,5 +1,4 @@
 import * as core from 'core'
-import * as jsxFactory from 'core/jsxFactory'
 
 describe('jsxFactory', () => {
 

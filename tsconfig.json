@@ -20,7 +20,7 @@
         "pretty": true,
         "outDir": "./build",
         "baseUrl": "./",
-        "reactNamespace": "jsxFactory",
+        "jsxFactory": "core.h",
         "jsx": "react",
         "paths": {
             "core": [

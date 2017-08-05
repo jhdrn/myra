@@ -1,24 +1,37 @@
 import { define, mount, ComponentVNode } from 'core'
 import { initComponent, updateComponent, findAndUnmountComponentsRec } from 'core/component'
-import * as jsxFactory from 'core/jsxFactory'
+import * as core from 'core'
 
 const q = (x: string) => document.querySelector(x)
 
 /**
  * define
  */
-// describe('define', () => {
-//     const spec = {
-//         name: componentName,
-//         init: {},
-//         render: () => <div />
-//     }
-//     const component1 = define(spec)
+describe('define', () => {
+    it('the "evolve" function is passed', (done) => {
 
-//     it('has a name', () => {
-//         expect(component1({}).spec).toBe(spec)
-//     })
-// })
+        const component = define({}, evolve => {
+            expect(evolve).toBeDefined()
+            expect(typeof evolve === 'function').toBeTruthy()
+            done()
+            return () => <div />
+        })
+
+        mount(component, document.body)
+    })
+
+    it('the "events" object is passed', (done) => {
+
+        const component = define({}, (_, events) => {
+            expect(events).toBeDefined()
+            expect(typeof events === 'object').toBeTruthy()
+            done()
+            return () => <div />
+        })
+
+        mount(component, document.body)
+    })
+})
 
 /**
  * mount
