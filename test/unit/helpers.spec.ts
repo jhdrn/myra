@@ -1,5 +1,4 @@
-import { equal, /*max,*/ typeOf, flatten } from 'core/helpers'
-
+import { equal, typeOf } from 'core/helpers'
 
 describe('core.helpers.equal', () => {
 
@@ -159,24 +158,5 @@ describe('core.helpers.typeOf', () => {
 
     it('identifies undefined', () => {
         expect(typeOf(undefined)).toBe('undefined')
-    })
-})
-
-describe('core.helpers.flatten', () => {
-    it('flattens a multidimensional array', () => {
-        const multidimensional =
-            [
-                'a',
-                [
-                    'b',
-                    [
-                        'c'
-                    ],
-                    'd'
-                ],
-                'e'
-            ]
-
-        expect(flatten(multidimensional)).toEqual(['a', 'b', 'c', 'd', 'e'])
     })
 })

@@ -22,18 +22,18 @@ describe('jsxFactory', () => {
         } as core.NothingVNode)
     })
 
-    it('ignores null values', () => {
+    it('creates a NothingVNode from null values', () => {
 
         const view = <div>{null}</div> as core.ElementVNode<any>
 
-        expect(view.children.length).toBe(0)
+        expect(view.children.length).toBe(1)
     })
 
-    it('ignores undefined values', () => {
+    it('creates a NothingVNode from undefined values', () => {
 
         const view = <div>{undefined}</div> as core.ElementVNode<any>
 
-        expect(view.children.length).toBe(0)
+        expect(view.children.length).toBe(1)
     })
 
     it('creates an ElementVNode with the supplied tagName', () => {

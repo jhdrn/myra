@@ -1,18 +1,5 @@
 import { initComponent, updateComponent, findAndUnmountComponentsRec } from './component'
-// import { max } from './helpers'
 import { VNode, ElementVNode, ComponentVNode } from './contract'
-
-// const BOOL_ATTRS = [
-//     'checked',
-//     'disabled',
-//     'hidden',
-//     'autofocus',
-//     'required',
-//     'selected',
-//     'multiple',
-//     'draggable',
-//     // TODO: add more
-// ]
 
 /** 
  * Renders the view by walking the virtual node tree recursively 
@@ -201,6 +188,7 @@ function renderChildNodes(newVNode: ElementVNode<any>, oldVNode: VNode, parentDo
         }
     }
 }
+
 /** 
  * Tries to find an old "keyed" virtual node that matches the new virtual node. 
  */
@@ -272,33 +260,6 @@ function setAttr(element: HTMLElement, attributeName: string, attributeValue: an
     else {
         element.setAttribute(attributeName, attributeValue)
     }
-
-    // if (attributeName.indexOf('on') === 0) {
-    //     if (typeof (element as any)[attributeName] === 'function') {
-    //         // If there is a previous event listener, wrap it and the new one in
-    //         // a function calling both.
-    //         const prevListener = (element as any)[attributeName]
-    //             ; (element as any)[attributeName] = (ev: Event) => {
-    //                 prevListener(ev)
-    //                 attributeValue(ev)
-    //             }
-    //     }
-    //     else {
-    //         ; (element as any)[attributeName] = attributeValue
-    //     }
-    // }
-    // else if (attributeValue && (attributeName === 'click' || attributeName === 'blur' || attributeName === 'focus')) {
-    //     (element as any)[attributeName]()
-    // }
-    // else if (attributeName === 'value' && (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA' || element.tagName === 'SELECT')) {
-    //     (element as HTMLInputElement).value = attributeValue
-    // }
-    // else if (BOOL_ATTRS.indexOf(attributeName) >= 0) {
-    //     (element as any)[attributeName] = !!attributeValue
-    // }
-    // else if (typeof attributeValue !== 'function' && typeof attributeValue !== 'object') {
-    //     element.setAttribute(attributeName, attributeValue)
-    // }
 }
 
 /** 

@@ -26,13 +26,6 @@ export function typeOf(obj: any): Type {
 }
 
 /**
- * Returns the maximum value of a and b.
- */
-// export function max(a: number, b: number): number {
-//     return a > b ? a : b
-// }
-
-/**
  * Does a deep equality check.
  */
 export function equal<T>(a: T, b: T): boolean {
@@ -73,17 +66,4 @@ export function equal<T>(a: T, b: T): boolean {
     }
     // Functions?
     return false
-}
-
-/**
- * Flattens multidimensional arrays into a one dimensional.
- */
-export function flatten<T>(arg: T[]): T[] {
-    return arg.reduce((acc, x) => {
-        if (Array.isArray(x)) {
-            return acc.concat(flatten(x))
-        }
-        acc.push(x)
-        return acc
-    }, [] as T[])
 }

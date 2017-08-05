@@ -1,37 +1,25 @@
 import { ComponentFactory, VNode, TextVNode } from './contract'
-import { flatten } from './helpers'
 
 function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
     const flattenedChildren = [] as (VNode | string)[]
 
     for (const child of children) {
-        if (child === null) {
-            continue
+        if (child === null || child === undefined) {
+            flattenedChildren.push({ _: 0 })
         }
         else if (Array.isArray(child)) {
-            for (const c of flatten(child as (VNode | string)[])) {
-                if (typeof c === 'string') {
-
-                    flattenedChildren.push({
-                        _: 1,
-                        value: c as any as string
-                    } as TextVNode)
-                }
-                else {
-                    flattenedChildren.push(c)
-                }
+            for (const c of flattenChildren(child)) {
+                flattenedChildren.push(c)
             }
         }
-        else if (typeof child !== 'undefined') {
-            if (typeof (child as VNode)._ !== 'undefined') {
-                flattenedChildren.push(child as VNode)
-            }
-            else {
-                flattenedChildren.push({
-                    _: 1,
-                    value: child as any as string
-                } as TextVNode)
-            }
+        else if (typeof child === 'string') {
+            flattenedChildren.push({
+                _: 1,
+                value: child as any as string
+            } as TextVNode)
+        }
+        else {
+            flattenedChildren.push(child)
         }
     }
 
