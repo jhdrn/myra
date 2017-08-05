@@ -805,6 +805,28 @@ describe('render', () => {
         expect(mountMock.unmount).toHaveBeenCalledTimes(1)
     })
 
+    it('renders svg nodes with correct namespace', () => {
+        const view = <svg id="svg-test1"></svg>
+        render(document.body, view, view, undefined)
+
+        const el = document.getElementById('svg-test1') as SVGElement | null
+        expect(el).toBeDefined()
+        expect(el!.namespaceURI).toBe('http://www.w3.org/2000/svg')
+    })
+
+    it('renders svg child nodes with correct namespace', () => {
+        const view =
+            <svg height="100" width="100">
+                <circle id="svg-test2" cx="50" cy="50" r="50" fill="red" />
+            </svg>
+
+        render(document.body, view, view, undefined)
+
+        const el = document.getElementById('svg-test2') as SVGElement | null
+        expect(el).toBeDefined()
+        expect(el!.namespaceURI).toBe('http://www.w3.org/2000/svg')
+    })
+
     // FIXME: This test is very hard to get working cross browser...
     // it('calls element.blur() when blur attribute is set to true', (done) => {
 

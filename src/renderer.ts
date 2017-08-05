@@ -8,7 +8,8 @@ export function render(
     parentDomNode: Element,
     newVNode: VNode,
     oldVNode: VNode,
-    existingDomNode: Node | undefined): void {
+    existingDomNode: Node | undefined,
+    isSvg = false): void {
 
     const replaceNode = shouldReplaceNode(newVNode, oldVNode)
 
@@ -17,9 +18,14 @@ export function render(
         findAndUnmountComponentsRec(oldVNode)
     }
 
+    if ((newVNode as ElementVNode<any>).tagName === 'svg') {
+        isSvg = true
+    }
+
     if (existingDomNode === undefined || oldVNode === undefined || replaceNode) {
+
         // if no existing DOM node, create one
-        const newNode = createNode(newVNode, parentDomNode)
+        const newNode = createNode(newVNode, parentDomNode, isSvg)
 
         newVNode.domRef = newNode
 
@@ -57,7 +63,7 @@ export function render(
 
             for (const c of newVNode.children) {
                 if (c !== undefined) {
-                    render(newNode as Element, c, c, undefined)
+                    render(newNode as Element, c, c, undefined, isSvg)
                 }
             }
         }
@@ -65,19 +71,15 @@ export function render(
     else { // reuse the old node
 
         // if (!nodesEqual(oldVNode.node, existingDomNode)) {
-        //     // TODO: "debug mode" with logging
+        //     // TODO: "debug mode" with warnings
         //     // console.error('The view is not matching the DOM. Are outside forces tampering with it?')
-        //     // console.error('Expected node:')
-        //     // console.error(oldVNode.node)
-        //     // console.error('Actual node:')
-        //     // console.error(existingDomNode)
         // }
 
         // update existing node
         switch (newVNode._) {
             case 2: // element node
                 updateElementAttributes(newVNode, oldVNode, existingDomNode)
-                renderChildNodes(newVNode, oldVNode, existingDomNode)
+                renderChildNodes(newVNode, oldVNode, existingDomNode, isSvg)
                 break
             case 1: // text node
                 existingDomNode.textContent = newVNode.value
@@ -147,10 +149,11 @@ export function render(
 
 //     }
 // }
+
 /** 
  * Renders child virtual nodes. Will add/remove DOM nodes if needed.
  */
-function renderChildNodes(newVNode: ElementVNode<any>, oldVNode: VNode, parentDomNode: Node) {
+function renderChildNodes(newVNode: ElementVNode<any>, oldVNode: VNode, parentDomNode: Node, isSvg: boolean) {
 
     const noOfNewVNodeChildren = newVNode.children.length
     let childDomNode: Node | null = parentDomNode.firstChild
@@ -168,7 +171,7 @@ function renderChildNodes(newVNode: ElementVNode<any>, oldVNode: VNode, parentDo
             childDomNode = childDomNode!.nextSibling
         }
 
-        render(parentDomNode as Element, childVNode, oldChildVNode, oldChildVNode.domRef)
+        render(parentDomNode as Element, childVNode, oldChildVNode, oldChildVNode.domRef, isSvg)
     }
 
     const noOfOldVNodeChildren = oldVNode._ === 2 ? oldVNode.children.length : 0
@@ -253,13 +256,17 @@ function shouldReplaceNode(newVNode: VNode, oldVNode: VNode | undefined): boolea
 function setAttr(element: HTMLElement, attributeName: string, attributeValue: any) {
     if (attributeValue === true && (attributeName === 'click' || attributeName === 'blur' || attributeName === 'focus')) {
         (element as any)[attributeName]()
+        return
     }
     else if (attributeName in element) {
-        (element as any)[attributeName] = attributeValue
+        try {
+            (element as any)[attributeName] = attributeValue
+            return
+        }
+        catch (_) { }
     }
-    else {
-        element.setAttribute(attributeName, attributeValue)
-    }
+
+    element.setAttribute(attributeName, attributeValue)
 }
 
 /** 
@@ -277,9 +284,12 @@ function removeAttr(a: string, node: Element) {
 /** 
  * Creates a Node from a VNode. 
  */
-function createNode(vNode: VNode, parentNode: Element): Node {
+function createNode(vNode: VNode, parentNode: Element, isSvg: boolean): Node {
     switch (vNode._) {
         case 2:
+            if (isSvg) {
+                return document.createElementNS('http://www.w3.org/2000/svg', vNode.tagName)
+            }
             return document.createElement(vNode.tagName)
         case 1:
             return document.createTextNode(vNode.value)
