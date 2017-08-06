@@ -19,8 +19,7 @@ export function define<TState, TProps>(state: TState, spec: ComponentSpec<TState
             children,
             props,
             state,
-            spec,
-            dispatchLevel: 0
+            spec
         } as any as ComponentVNode<TState, TProps>
     }
 }
@@ -49,6 +48,7 @@ export function initComponent<TState, TProps>(vNode: ComponentVNode<TState, TPro
     const view = vNode.spec(evolve, events)
     vNode.view = view
     vNode.events = events
+    vNode.dispatchLevel = 0
 
     if (vNode.events.willMount !== undefined) {
         vNode.events.willMount(vNode.props)
