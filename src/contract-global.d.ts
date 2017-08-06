@@ -1,10 +1,6 @@
 
 declare namespace myra {
 
-    type Map<TValue> = {
-        [key: string]: TValue
-    }
-
     export type UpdateState<TState> = Partial<TState> | ((s: Readonly<TState>) => Partial<TState>)
     export type Evolve<TState> = (update: UpdateState<TState>) => void
 
@@ -18,6 +14,7 @@ declare namespace myra {
         (props: TProps, children: VNode[]): ComponentVNode<TState, TProps>
     }
     export type Events<TState, TProps> = {
+        willMount?: (props: TProps) => void
         didMount?: (props: TProps, domRef: Node) => void
         willUpdate?: (props: TProps) => void
         willUnmount?: (domRef: Node) => void

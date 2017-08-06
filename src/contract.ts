@@ -1,7 +1,5 @@
 /// <reference path="contract-global.d.ts" />
 
-export type Map<T> = myra.Map<T>
-
 /**
  * Component types
  */

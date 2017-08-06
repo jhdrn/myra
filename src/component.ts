@@ -50,6 +50,10 @@ export function initComponent<TState, TProps>(vNode: ComponentVNode<TState, TPro
     vNode.view = view
     vNode.events = events
 
+    if (vNode.events.willMount !== undefined) {
+        vNode.events.willMount(vNode.props)
+    }
+
     // Dispatch to render the view. 
     dispatch(vNode, render)
 
@@ -74,9 +78,6 @@ export function updateComponent<TState, TProps>(newVNode: ComponentVNode<TState,
 
     oldVNode.children = newVNode.children
     oldVNode.props = newVNode.props
-    // newVNode.parentElement = oldVNode.parentElement
-    // newVNode.rendition = oldVNode.rendition
-    // newVNode.state = oldVNode.state
 
     if (shouldUpdate) {
 

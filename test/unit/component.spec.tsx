@@ -49,21 +49,38 @@ describe('mount', () => {
         expect(rootNode).not.toBeNull()
     })
 
-    it('calls the _didMount effect', () => {
-        const mountMock = {
-            mount: () => Promise.resolve({})
+    it('calls the willMount listener', () => {
+        const mock = {
+            callback: () => Promise.resolve({})
         }
 
-        spyOn(mountMock, 'mount').and.callThrough()
+        spyOn(mock, 'callback').and.callThrough()
 
         const component = define({ val: 0 }, (_, events) => {
-            events.didMount = mountMock.mount
+            events.willMount = mock.callback
             return () => <div />
         })
 
         mount(component, document.body)
 
-        expect(mountMock.mount).toHaveBeenCalled()
+        expect(mock.callback).toHaveBeenCalled()
+    })
+
+    it('calls the didMount listener', () => {
+        const mock = {
+            callback: () => Promise.resolve({})
+        }
+
+        spyOn(mock, 'callback').and.callThrough()
+
+        const component = define({ val: 0 }, (_, events) => {
+            events.didMount = mock.callback
+            return () => <div />
+        })
+
+        mount(component, document.body)
+
+        expect(mock.callback).toHaveBeenCalled()
     })
 
     it(`passes the children of a component to it view`, () => {
@@ -96,7 +113,7 @@ describe('mount', () => {
  */
 describe('unmountComponent', () => {
 
-    it('calls the _willUnmount effect', () => {
+    it('calls the willUnmount listener', () => {
         const mountMock = {
             unmount: () => Promise.resolve({})
         }
@@ -115,7 +132,7 @@ describe('unmountComponent', () => {
         expect(mountMock.unmount).toHaveBeenCalledTimes(1)
     })
 
-    it('calls the _willUnmount effect on child components', () => {
+    it('calls the willUnmount listener on child components', () => {
         const mountMock = {
             unmount: () => Promise.resolve({})
         }
@@ -147,7 +164,7 @@ describe('unmountComponent', () => {
  */
 describe('updateComponent', () => {
 
-    it('does not call the _willUpdate effect if the arguments has not changed', () => {
+    it('does not call the willUpdate listener if the arguments has not changed', () => {
         const mountMock = {
             mount: () => Promise.resolve({})
         }
@@ -166,7 +183,7 @@ describe('updateComponent', () => {
         expect(mountMock.mount).toHaveBeenCalledTimes(0)
     })
 
-    it('calls the _willUpdate effect if forceUpdate is true', () => {
+    it('calls the willUpdate event if forceUpdate is true', () => {
         const mountMock = {
             mount: () => Promise.resolve({})
         }
@@ -188,15 +205,15 @@ describe('updateComponent', () => {
     })
 
 
-    it('calls the _willUpdate effect if the supplied arguments is not equal to the previous arguments', () => {
+    it('calls the willUpdate event if the supplied arguments is not equal to the previous arguments', () => {
         const mountMock = {
-            mount: () => Promise.resolve({})
+            callback: () => Promise.resolve({})
         }
 
-        spyOn(mountMock, 'mount').and.callThrough()
+        spyOn(mountMock, 'callback').and.callThrough()
 
         const component = define({}, (_, events) => {
-            events.willUpdate = mountMock.mount
+            events.willUpdate = mountMock.callback
             return () => <div />
         })
 
@@ -206,12 +223,12 @@ describe('updateComponent', () => {
         const newVNode = component({ prop: 'a new value' }, [])
         updateComponent(newVNode, vNode)
 
-        expect(mountMock.mount).toHaveBeenCalledTimes(1)
+        expect(mountMock.callback).toHaveBeenCalledTimes(1)
     })
 })
 
 
-describe('post', () => {
+describe('evolve', () => {
     it('updates the state when an Update function in supplied', () => {
         let firstUpdate = true
 
