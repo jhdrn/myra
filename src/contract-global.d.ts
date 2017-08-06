@@ -445,6 +445,11 @@ declare namespace myra {
         src?: string
         width?: number | string
     }
+
+    // TODO: explicit attributes
+    interface SvgAttributes {
+        [name: string]: any
+    }
 }
 
 declare namespace JSX {
@@ -579,5 +584,110 @@ declare namespace JSX {
 
         wbr: GlobalAttributes<HTMLElement>
 
+        // SVG
+        altGlyph: myra.SvgAttributes
+        altGlyphDef: myra.SvgAttributes
+        altGlyphItem: myra.SvgAttributes
+        animate: myra.SvgAttributes
+        animateColor: myra.SvgAttributes
+        animateMotion: myra.SvgAttributes
+        animateTransform: myra.SvgAttributes
+
+        circle: myra.SvgAttributes
+        clipPath: myra.SvgAttributes
+        'color-profile': myra.SvgAttributes
+        cursor: myra.SvgAttributes
+
+        defs: myra.SvgAttributes
+        desc: myra.SvgAttributes
+        discard: myra.SvgAttributes
+
+        ellipse: myra.SvgAttributes
+
+        feBlend: myra.SvgAttributes
+        feColorMatrix: myra.SvgAttributes
+        feComponentTransfer: myra.SvgAttributes
+        feComposite: myra.SvgAttributes
+        feConvolveMatrix: myra.SvgAttributes
+        feDiffuseLighting: myra.SvgAttributes
+        feDisplacementMap: myra.SvgAttributes
+        feDistantLight: myra.SvgAttributes
+        feDropShadow: myra.SvgAttributes
+        feFlood: myra.SvgAttributes
+        feFuncA: myra.SvgAttributes
+        feFuncB: myra.SvgAttributes
+        feFuncG: myra.SvgAttributes
+        feFuncR: myra.SvgAttributes
+        feGaussianBlur: myra.SvgAttributes
+        feImage: myra.SvgAttributes
+        feMerge: myra.SvgAttributes
+        feMergeNode: myra.SvgAttributes
+        feMorphology: myra.SvgAttributes
+        feOffset: myra.SvgAttributes
+        fePointLight: myra.SvgAttributes
+        feSpecularLighting: myra.SvgAttributes
+        feSpotLight: myra.SvgAttributes
+        feTile: myra.SvgAttributes
+        feTurbulence: myra.SvgAttributes
+        filter: myra.SvgAttributes
+        font: myra.SvgAttributes
+        'font-face': myra.SvgAttributes
+        'font-face-format': myra.SvgAttributes
+        'font-face-name': myra.SvgAttributes
+        'font-face-src': myra.SvgAttributes
+        'font-face-uri': myra.SvgAttributes
+        foreignObject: myra.SvgAttributes
+
+        g: myra.SvgAttributes
+        glyph: myra.SvgAttributes
+        glyphRef: myra.SvgAttributes
+
+        hatch: myra.SvgAttributes
+        hatchpath: myra.SvgAttributes
+        hkern: myra.SvgAttributes
+
+        image: myra.SvgAttributes
+
+        line: myra.SvgAttributes
+        linearGradient: myra.SvgAttributes
+
+        marker: myra.SvgAttributes
+        mask: myra.SvgAttributes
+        mesh: myra.SvgAttributes
+        meshgradient: myra.SvgAttributes
+        meshpatch: myra.SvgAttributes
+        meshrow: myra.SvgAttributes
+        metadata: myra.SvgAttributes
+        'missing-glyph': myra.SvgAttributes
+        mpath: myra.SvgAttributes
+
+        path: myra.SvgAttributes
+        pattern: myra.SvgAttributes
+        polygon: myra.SvgAttributes
+        polyline: myra.SvgAttributes
+
+        radialGradient: myra.SvgAttributes
+        rect: myra.SvgAttributes
+
+        script: myra.SvgAttributes
+        set: myra.SvgAttributes
+        solidcolor: myra.SvgAttributes
+        stop: myra.SvgAttributes
+        style: myra.SvgAttributes
+        svg: myra.SvgAttributes
+        switch: myra.SvgAttributes
+        symbol: myra.SvgAttributes
+
+        text: myra.SvgAttributes
+        textPath: myra.SvgAttributes
+        title: myra.SvgAttributes
+        tref: myra.SvgAttributes
+        tspan: myra.SvgAttributes
+
+        unknown: myra.SvgAttributes
+        use: myra.SvgAttributes
+
+        view: myra.SvgAttributes
+        vkern: myra.SvgAttributes
     }
 }
