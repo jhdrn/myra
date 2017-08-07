@@ -48,11 +48,14 @@ export function initComponent<TState, TProps>(vNode: ComponentVNode<TState, TPro
     const view = vNode.spec(evolve, events)
     vNode.view = view
     vNode.events = events
-    vNode.dispatchLevel = 0
 
     if (vNode.events.willMount !== undefined) {
+        // Setting dispatchLevel to 1 will make any dispatch call just update
+        // the state without rendering the view
+        vNode.dispatchLevel = 1
         vNode.events.willMount(vNode.props)
     }
+    vNode.dispatchLevel = 0
 
     // Dispatch to render the view. 
     dispatch(vNode, render)
