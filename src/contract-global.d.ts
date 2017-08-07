@@ -71,6 +71,7 @@ declare namespace myra {
         events: Events<TState, TProps>
         parentElement?: Element
         dispatchLevel: number
+        link: { vNode: ComponentVNode<TState, TProps> }
     }
 
     /**
