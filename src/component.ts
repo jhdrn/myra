@@ -40,10 +40,13 @@ export function mount(componentFactory: ComponentFactory<any, any>, element: Ele
  * set, it will also be applied.
  */
 export function initComponent<TState, TProps>(vNode: ComponentVNode<TState, TProps>, parentElement: Element) {
-
+    const link = {
+        vNode: vNode
+    }
+    vNode.link = link
     vNode.parentElement = parentElement
     const evolve = (fn: UpdateState<TState>) =>
-        dispatch(vNode, render, fn)
+        dispatch(link.vNode, render, fn)
     const events = {}
     const view = vNode.spec(evolve, events)
     vNode.view = view
@@ -76,16 +79,22 @@ export function updateComponent<TState, TProps>(newVNode: ComponentVNode<TState,
         && (newVNode.props as any).forceUpdate
         || !equal(oldVNode.props, newVNode.props)
 
-    oldVNode.children = newVNode.children
-    oldVNode.props = newVNode.props
+    newVNode.parentElement = oldVNode.parentElement
+    newVNode.rendition = oldVNode.rendition
+    newVNode.state = oldVNode.state
+    newVNode.link = oldVNode.link
+    newVNode.link.vNode = newVNode
+    newVNode.dispatchLevel = 0
+    newVNode.events = oldVNode.events
+    newVNode.view = oldVNode.view
 
     if (shouldUpdate) {
 
-        if (oldVNode.events.willUpdate !== undefined) {
-            oldVNode.events.willUpdate(oldVNode.props)
+        if (newVNode.events.willUpdate !== undefined) {
+            newVNode.events.willUpdate(newVNode.props)
         }
         // Dispatch to render the view. 
-        dispatch(oldVNode, render)
+        dispatch(newVNode, render)
     }
 }
 
