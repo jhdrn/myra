@@ -130,9 +130,7 @@ _It's value must be unique amongst the items in the list._
 Routing is supplied by the [myra-router](https://github.com/jhdrn/myra-router) 
 package (currently a work in progress).
 
-Both the 
-[kitchen-sink example](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/routing.tsx) 
-and the 
+Take a look at the 
 [todomvc example](https://github.com/jhdrn/myra/blob/master/examples/todomvc/src/components/todo-list.tsx) 
 contains code examples for `myra-router`.
 
