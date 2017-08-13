@@ -7,17 +7,20 @@ declare namespace myra {
     export interface View<TState, TProps> {
         (state: TState, props: TProps, children: JSX.Element[]): JSX.Element;
     }
+    export type ComponentContext<TState, TProps> = {
+        readonly evolve: Evolve<TState>
+        readonly props: TProps
+        readonly state: TState
 
-    export type ComponentSpec<TState, TProps> = (evolve: Evolve<TState>, events: Events<TState, TProps>) => View<TState, TProps>
-
-    export interface ComponentFactory<TState, TProps> {
-        (props: TProps, children: VNode[]): ComponentVNode<TState, TProps>
-    }
-    export type Events<TState, TProps> = {
         willMount?: (props: TProps) => void
         didMount?: (props: TProps, domRef: Node) => void
         willUpdate?: (props: TProps) => void
         willUnmount?: (domRef: Node) => void
+    }
+    export type ComponentSetup<TState, TProps> = (ctx: ComponentContext<TState, TProps>) => View<TState, TProps>
+
+    export interface ComponentFactory<TState, TProps> {
+        (props: TProps, children: VNode[]): ComponentVNode<TState, TProps>
     }
 
     interface AttributeMap { [name: string]: string }
@@ -66,9 +69,9 @@ declare namespace myra {
         rendition?: VNode
         props: TProps
         state: Readonly<TState>
-        spec: ComponentSpec<TState, TProps>
+        spec: ComponentSetup<TState, TProps>
+        ctx: ComponentContext<TState, TProps>
         view: View<TState, TProps>
-        events: Events<TState, TProps>
         parentElement?: Element
         dispatchLevel: number
         link: { vNode: ComponentVNode<TState, TProps> }

@@ -13,9 +13,14 @@
         "strictNullChecks": true,
         "moduleResolution": "node",
         "pretty": true,
-        "reactNamespace": "myra",
+        "jsxFactory": "myra.h",
         "jsx": "react",
-        "lib": ["es5", "dom", "es2015.promise", "es2015.core"]
+        "lib": [
+            "es5",
+            "dom",
+            "es2015.promise",
+            "es2015.core"
+        ]
     },
     "include": [
         "src/**/*",

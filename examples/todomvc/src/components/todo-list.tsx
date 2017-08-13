@@ -1,4 +1,5 @@
 import * as myra from 'myra'
+import * as router from 'myra-router'
 import { TodosFilter, saveFilter, loadFilter } from '../models/filter'
 import * as todos from '../models/todos'
 import TodoItemComponent from './todo-item'
@@ -15,39 +16,15 @@ type State = {
     filter: TodosFilter
     location: router.RouteContext
 }
-
-
-/**
- * Updates
- */
-const applySavedFilter = (state: State, filter: TodosFilter): myra.Result<State> =>
-    [state,]
-
-const applyFilterFromLocation = (_: State, routeCtx: router.RouteContext): myra.Result<State> => {
-
-    if (routeCtx.match('#/active').isMatch) {
-        return [{
-            filter: 'active',
-            location: routeCtx
-        }, saveFilter('active')]
-    }
-    else if (routeCtx.match('#/completed').isMatch) {
-        return [{
-            filter: 'completed',
-            location: routeCtx
-        }, saveFilter('completed')]
-    }
-    else if (routeCtx.match('#/').isMatch || routeCtx.match('').isMatch) {
-        return [{
-            filter: 'all',
-            location: routeCtx
-        }, saveFilter('all')]
-    }
-    return { location: routeCtx }
+const init: State = {
+    todos: [],
+    itemsLeft: 0,
+    filter: 'all',
+    location: {} as router.RouteContext
 }
 
 /**
- * View
+ * View helper functions
  */
 const filterTodos = (state: State) => (todo: Todo) => {
     switch (state.filter) {
@@ -67,31 +44,59 @@ const filterLink = (href: string, txt: string, routeCtx: router.RouteContext) =>
 /**
  * Component
  */
-export default myra.define<State, { forceUpdate: boolean }>({
-    todos: [],
-    itemsLeft: 0,
-    filter: 'all',
-    location: {} as router.RouteContext
-}, (evolve, events) => {
+export default myra.define<State, { forceUpdate: boolean }>(init, c => {
 
     const todosLoaded = (todos: Todo[]) =>
-        evolve(_ => ({
+        c.evolve({
             todos: todos,
             itemsLeft: todos.filter(t => !t.completed).length
-        }))
+        })
 
-    events.didMount = () => {
-        loadFilter(applySavedFilter)(apply)
-        router.addListener(applyFilterFromLocation)(apply)
+    const applyFilterFromLocation = (routeCtx: router.RouteContext) => {
+
+        if (routeCtx.match('#/active').isMatch) {
+            c.evolve({
+                filter: 'active',
+                location: routeCtx
+            })
+            saveFilter('active')
+        }
+        else if (routeCtx.match('#/completed').isMatch) {
+            c.evolve({
+                filter: 'completed',
+                location: routeCtx
+            })
+            saveFilter('completed')
+        }
+        else if (routeCtx.match('#/').isMatch || routeCtx.match('').isMatch) {
+            c.evolve({
+                filter: 'all',
+                location: routeCtx
+            })
+            saveFilter('all')
+        }
+        c.evolve({ location: routeCtx })
+    }
+
+    const loadTodos = () =>
+        todosLoaded(todos.getAll())
+
+    const clearCompleted = () => {
+        todos.removeCompleted()
+        loadTodos()
+    }
+    const toggleAllTodos = () => {
+        todos.toggleAll(!c.state.todos.every(t => t.completed))
         loadTodos()
     }
 
-    const clearCompleted = () =>
-        todos.removeCompleted() > loadTodos(),
-    const loadTodos = ctx =>
-        ctx.updates.todosLoaded(ctx, todos.getAll()),
-    const toggleAllTodos = ctx =>
-        todos.toggleAll(!ctx.state.todos.every(t => t.completed) > loadTodos
+    c.didMount = () => {
+        c.evolve({ filter: loadFilter() })
+        router.addListener(applyFilterFromLocation)
+        loadTodos()
+    }
+
+    c.willUpdate = loadTodos
 
     return state =>
         state.todos.length ?
@@ -104,11 +109,9 @@ export default myra.define<State, { forceUpdate: boolean }>({
 
                     <label for="toggle-all">Mark all as complete</label>
                     <ul class="todo-list">
-                        {
-                            state.todos.filter(filterTodos(state)).map(todo =>
-                                <TodoItemComponent onchange={loadTodos} todo={todo} />
-                            )
-                        }
+                        {state.todos.filter(filterTodos(state)).map(todo =>
+                            <TodoItemComponent onchange={loadTodos} todo={todo} />
+                        )}
                     </ul>
                 </section>
                 <footer class="footer">

@@ -3,9 +3,9 @@ import * as myra from 'myra'
 /**
  * Component
  */
-export default myra.define({ val: 0 }, evolve => {
-    const increase = () => evolve(state => ({ val: state.val + 1 }))
-    const decrease = () => evolve(state => ({ val: state.val - 1 }))
+export default myra.define({ val: 0 }, c => {
+    const increase = () => c.evolve(state => ({ val: state.val + 1 }))
+    const decrease = () => c.evolve(state => ({ val: state.val - 1 }))
 
     return state =>
         <section>

@@ -15,10 +15,10 @@ type State = {
  */
 export default myra.define({
     responseStatus: 'init'
-} as State, evolve => {
+} as State, c => {
 
     const onHttpRequest = (responseText: string) =>
-        evolve({ responseStatus: 'success', response: responseText })
+        c.evolve({ responseStatus: 'success', response: responseText })
 
     const makeHttpRequest = () => fetch('https://api.github.com/repos/jhdrn/myra')
         .then(r => r.text())

@@ -1,6 +1,6 @@
 import {
     ComponentFactory,
-    ComponentSpec,
+    ComponentSetup,
     ComponentVNode,
     UpdateState,
     VNode
@@ -12,7 +12,7 @@ import { render } from './renderer'
  * Defines a component from a ComponentSpec returning a factory that creates 
  * ComponentVNode/JSXElement's for the component.
  */
-export function define<TState, TProps>(state: TState, spec: ComponentSpec<TState, TProps>) {
+export function define<TState, TProps>(state: TState, spec: ComponentSetup<TState, TProps>) {
     return function (props: TProps, children: VNode[] = []) {
         return {
             _: 3,
@@ -45,26 +45,35 @@ export function initComponent<TState, TProps>(vNode: ComponentVNode<TState, TPro
     }
     vNode.link = link
     vNode.parentElement = parentElement
-    const evolve = (fn: UpdateState<TState>) =>
-        dispatch(link.vNode, render, fn)
-    const events = {}
-    const view = vNode.spec(evolve, events)
-    vNode.view = view
-    vNode.events = events
 
-    if (vNode.events.willMount !== undefined) {
+    const ctx = {
+        get state() {
+            return link.vNode.state
+        },
+        get props() {
+            return link.vNode.props
+        },
+        evolve: (fn: UpdateState<TState>) =>
+            dispatch(link.vNode, render, fn)
+    }
+    vNode.ctx = ctx
+
+    const view = vNode.spec(ctx)
+    vNode.view = view
+
+    if (vNode.ctx.willMount !== undefined) {
         // Setting dispatchLevel to 1 will make any dispatch call just update
         // the state without rendering the view
         vNode.dispatchLevel = 1
-        vNode.events.willMount(vNode.props)
+        vNode.ctx.willMount(vNode.props)
     }
     vNode.dispatchLevel = 0
 
     // Dispatch to render the view. 
     dispatch(vNode, render)
 
-    if (vNode.events.didMount !== undefined) {
-        vNode.events.didMount(vNode.props, vNode.domRef!)
+    if (vNode.ctx.didMount !== undefined) {
+        vNode.ctx.didMount(vNode.props, vNode.domRef!)
     }
 
     return vNode.domRef!
@@ -88,13 +97,13 @@ export function updateComponent<TState, TProps>(newVNode: ComponentVNode<TState,
     newVNode.link = oldVNode.link
     newVNode.link.vNode = newVNode
     newVNode.dispatchLevel = 0
-    newVNode.events = oldVNode.events
+    newVNode.ctx = oldVNode.ctx
     newVNode.view = oldVNode.view
 
     if (shouldUpdate) {
 
-        if (newVNode.events.willUpdate !== undefined) {
-            newVNode.events.willUpdate(newVNode.props)
+        if (newVNode.ctx.willUpdate !== undefined) {
+            newVNode.ctx.willUpdate(newVNode.props)
         }
         // Dispatch to render the view. 
         dispatch(newVNode, render)
@@ -108,8 +117,8 @@ export function updateComponent<TState, TProps>(newVNode: ComponentVNode<TState,
  */
 export function findAndUnmountComponentsRec(vNode: VNode) {
     if (vNode._ === 3) {
-        if (vNode.events.willUnmount !== undefined) {
-            vNode.events.willUnmount(vNode.domRef!)
+        if (vNode.ctx.willUnmount !== undefined) {
+            vNode.ctx.willUnmount(vNode.domRef!)
         }
 
         findAndUnmountComponentsRec(vNode.rendition!)

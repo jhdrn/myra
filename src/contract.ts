@@ -3,7 +3,8 @@
 /**
  * Component types
  */
-export type ComponentSpec<TState, TProps> = myra.ComponentSpec<TState, TProps>
+export type ComponentContext<TState, TProps> = myra.ComponentContext<TState, TProps>
+export type ComponentSetup<TState, TProps> = myra.ComponentSetup<TState, TProps>
 export interface ComponentFactory<TState, TProps> extends myra.ComponentFactory<TState, TProps> { }
 
 /**

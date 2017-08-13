@@ -15,7 +15,8 @@
   },
   "dependencies": {
     "es6-promise": "^4.1.0",
-    "myra": "2.0.0-beta.10",
+    "myra": "^2.0.0-alpha.5",
+    "myra-router": "^1.0.0-alpha.1",
     "todomvc-app-css": "^2.0.6",
     "todomvc-common": "^1.0.2"
   },

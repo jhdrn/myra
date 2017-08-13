@@ -8,23 +8,11 @@ const q = (x: string) => document.querySelector(x)
  * define
  */
 describe('define', () => {
-    it('the "evolve" function is passed', (done) => {
+    it('the "ctx" object is passed', (done) => {
 
-        const component = define({}, evolve => {
-            expect(evolve).toBeDefined()
-            expect(typeof evolve === 'function').toBeTruthy()
-            done()
-            return () => <div />
-        })
-
-        mount(component, document.body)
-    })
-
-    it('the "events" object is passed', (done) => {
-
-        const component = define({}, (_, events) => {
-            expect(events).toBeDefined()
-            expect(typeof events === 'object').toBeTruthy()
+        const component = define({}, ctx => {
+            expect(ctx).toBeDefined()
+            expect(typeof ctx === 'object').toBeTruthy()
             done()
             return () => <div />
         })
@@ -56,8 +44,8 @@ describe('mount', () => {
 
         spyOn(mock, 'callback').and.callThrough()
 
-        const component = define({ val: 0 }, (_, events) => {
-            events.willMount = mock.callback
+        const component = define({ val: 0 }, ctx => {
+            ctx.willMount = mock.callback
             return () => <div />
         })
 
@@ -73,8 +61,8 @@ describe('mount', () => {
 
         spyOn(mock, 'callback').and.callThrough()
 
-        const component = define({ val: 0 }, (_, events) => {
-            events.didMount = mock.callback
+        const component = define({ val: 0 }, ctx => {
+            ctx.didMount = mock.callback
             return () => <div />
         })
 
@@ -120,8 +108,8 @@ describe('unmountComponent', () => {
 
         spyOn(mountMock, 'unmount').and.callThrough()
 
-        const Component = define({}, (_, events) => {
-            events.willUnmount = mountMock.unmount
+        const Component = define({}, ctx => {
+            ctx.willUnmount = mountMock.unmount
             return () => <div />
         })
         const instance = <Component /> as ComponentVNode<{}, {}>
@@ -139,13 +127,13 @@ describe('unmountComponent', () => {
 
         spyOn(mountMock, 'unmount').and.callThrough()
 
-        const ChildChildComponent = define({}, (_, events) => {
-            events.willUnmount = mountMock.unmount
+        const ChildChildComponent = define({}, ctx => {
+            ctx.willUnmount = mountMock.unmount
             return () => <div />
         })
 
-        const ChildComponent = define({}, (_, events) => {
-            events.willUnmount = mountMock.unmount
+        const ChildComponent = define({}, ctx => {
+            ctx.willUnmount = mountMock.unmount
             return () => <ChildChildComponent />
         })
 
@@ -171,8 +159,8 @@ describe('updateComponent', () => {
 
         spyOn(mountMock, 'mount').and.callThrough()
 
-        const component = define<{}, { val: number }>({}, (_, events) => {
-            events.willUpdate = mountMock.mount
+        const component = define<{}, { val: number }>({}, ctx => {
+            ctx.willUpdate = mountMock.mount
             return () => <div />
         })
 
@@ -190,8 +178,8 @@ describe('updateComponent', () => {
 
         spyOn(mountMock, 'mount').and.callThrough()
 
-        const component = define({}, (_, events) => {
-            events.willUpdate = mountMock.mount
+        const component = define({}, ctx => {
+            ctx.willUpdate = mountMock.mount
             return () => <div />
         })
 
@@ -212,8 +200,8 @@ describe('updateComponent', () => {
 
         spyOn(mountMock, 'callback').and.callThrough()
 
-        const component = define({}, (_, events) => {
-            events.willUpdate = mountMock.callback
+        const component = define({}, ctx => {
+            ctx.willUpdate = mountMock.callback
             return () => <div />
         })
 
@@ -246,8 +234,8 @@ describe('evolve', () => {
 
         spyOn(mocks, 'onclickUpdate').and.callThrough()
 
-        const component = define({ val: 1 }, evolve => {
-            const onclickUpdate = () => evolve(mocks.onclickUpdate)
+        const component = define({ val: 1 }, ctx => {
+            const onclickUpdate = () => ctx.evolve(mocks.onclickUpdate)
             return () => <button id="postButton" onclick={onclickUpdate}></button>
         })
 

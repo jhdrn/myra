@@ -4,7 +4,7 @@ import * as todos from '../models/todos'
 
 type Todo = todos.Todo
 
-export default myra.define({}, () => {
+export default myra.define({}, c => {
 
     // Adds a new todo with a title of the value of the "new todo" input field
     const addNewTodo = (ev: KeyboardEvent) => {
@@ -20,6 +20,8 @@ export default myra.define({}, () => {
                 }
 
                 todos.add(todo)
+
+                c.evolve({})
             }
         }
     }

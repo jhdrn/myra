@@ -24,36 +24,8 @@ const init: State = {
     }
 }
 
-
 /**
- * Updates
- */
-const mount = (_state: State, props: Props) =>
-    ({ todo: props.todo })
-
-const saveTodo = (state: State, value: string) => {
-    const todo = value.trim()
-    if (todo) {
-        const updatedTodo = { ...state.todo, title: todo }
-        return [{
-            editing: false,
-            todo: updatedTodo
-        }, todos.save(updatedTodo)]
-    }
-    else {
-        return [state, todos.remove(state.todo.id)]
-    }
-}
-
-
-const toggleTodoCompleted = (m: State) => {
-    const updatedTodo = { ...m.todo, completed: !m.todo.completed }
-    return [{ todo: updatedTodo }, todos.save(updatedTodo)]
-}
-
-
-/**
- * View
+ * View helper function
  */
 const todoClass = (m: State) => {
     if (m.todo.completed) {
@@ -69,39 +41,80 @@ const todoClass = (m: State) => {
 /**
  * Component
  */
-export default myra.define<State, Props>(init).updates({
-    editTodo: () => ({ editing: true }),
-    undoEditTodo: () => ({ editing: false })
-}).effects({
-    _didMount: mount
-}).view(({ state, props, updates, effects }) =>
-    <li class={todoClass(state)}>
-        <div class="view">
-            <input class="toggle"
-                type="checkbox"
-                checked={state.todo.completed}
-                onclick={() => apply(toggleTodoCompleted) > props.onchange()} />
+export default myra.define<State, Props>(init, c => {
 
-            <label ondblclick={state.todo.completed ? undefined : () => apply(editTodo)}>
-                {state.todo.title}
-            </label>
-            <button class="destroy" onclick={() => invoke(todos.remove(state.todo.id)) > props.onchange()}></button>
-        </div>
-        {
-            state.editing ?
-                <input class="edit"
-                    focus
-                    value={state.todo.title}
-                    onblur={(_, el) => apply(saveTodo, el.value)}
-                    onkeyup={(ev, el) => {
-                        if (ev.keyCode === 13) {
-                            apply(saveTodo, el.value)
-                        }
-                        else if (ev.keyCode === 27) {
-                            apply(undoEditTodo)
-                        }
-                    }} />
-                : <nothing />
+    c.didMount = (props) => c.evolve({ todo: props.todo })
+    c.willUpdate = (props) => c.evolve({ todo: props.todo })
+
+    const editTodo = () => c.evolve({ editing: true })
+
+    const undoEditTodo = () => c.evolve({ editing: false })
+
+    const saveTodo = (value: string) => {
+        const todo = value.trim()
+        if (todo) {
+            const updatedTodo = { ...c.state.todo, title: todo }
+            c.evolve({
+                editing: false,
+                todo: updatedTodo
+            })
+            todos.save(updatedTodo)
         }
-    </li>
+        else {
+            todos.remove(c.state.todo.id)
+        }
+    }
+
+    const toggleTodoCompleted = () => {
+        const updatedTodo = { ...c.state.todo, completed: !c.state.todo.completed }
+        c.evolve({ todo: updatedTodo })
+        todos.save(updatedTodo)
+    }
+
+    const onToggleCompletedClick = () => {
+        toggleTodoCompleted()
+        c.props.onchange()
+    }
+
+    const onDestroyClick = () => {
+        todos.remove(c.state.todo.id)
+        c.props.onchange()
+    }
+
+    const onEditBlur = (ev: Event) => {
+        saveTodo((ev.target as HTMLInputElement).value)
+    }
+
+    const onEditKeyUp = (ev: KeyboardEvent) => {
+        if (ev.keyCode === 13) {
+            saveTodo((ev.target as HTMLInputElement).value)
+        }
+        else if (ev.keyCode === 27) {
+            undoEditTodo()
+        }
+    }
+
+    return state =>
+        <li class={todoClass(state)}>
+            <div class="view">
+                <input class="toggle"
+                    type="checkbox"
+                    checked={state.todo.completed}
+                    onclick={onToggleCompletedClick} />
+
+                <label ondblclick={state.todo.completed ? undefined : editTodo}>
+                    {state.todo.title}
+                </label>
+                <button class="destroy" onclick={onDestroyClick}></button>
+            </div>
+            {
+                state.editing ?
+                    <input class="edit"
+                        focus
+                        value={state.todo.title}
+                        onblur={onEditBlur}
+                        onkeyup={onEditKeyUp} />
+                    : <nothing />
+            }
+        </li>
 })

@@ -57,8 +57,8 @@ describe('render', () => {
 
         spyOn(mocks, 'mount')
 
-        const testComponent = define({}, (_, events) => {
-            events.willUpdate = mocks.mount
+        const testComponent = define({}, ctx => {
+            ctx.willUpdate = mocks.mount
             return _ => <div id="testComponent"></div>
         })
 
@@ -85,8 +85,8 @@ describe('render', () => {
 
         spyOn(mocks, 'unmount').and.callThrough()
 
-        const TestComponent = define({}, (_, events) => {
-            events.willUnmount = mocks.unmount
+        const TestComponent = define({}, ctx => {
+            ctx.willUnmount = mocks.unmount
             return _ => <div />
         })
 
@@ -403,10 +403,10 @@ describe('render', () => {
         type State = { clicked: boolean; itemId: number }
         type Props = { item: Item; forceUpdate: boolean }
 
-        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, (evolve, events) => {
-            const setClicked = () => evolve(_ => ({ clicked: true }))
-            const updateItemId = (itemId: number) => evolve(_ => ({ itemId: itemId }))
-            events.didMount = props => updateItemId(props.item.id)
+        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, ctx => {
+            const setClicked = () => ctx.evolve(_ => ({ clicked: true }))
+            const updateItemId = (itemId: number) => ctx.evolve(_ => ({ itemId: itemId }))
+            ctx.didMount = props => updateItemId(props.item.id)
             return (state) =>
                 <button id={`item-${state.itemId}`}
                     class={state.clicked ? "clicked" : ""}
@@ -461,13 +461,13 @@ describe('render', () => {
         type State = { clicked: boolean; itemId: number }
         type Props = { item: Item; forceUpdate: boolean }
 
-        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, (evolve, events) => {
+        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, ctx => {
 
-            const setClicked = () => evolve(_ => ({ clicked: true }))
-            const updateItemId = (itemId: number) => evolve(_ => ({ itemId: itemId }))
+            const setClicked = () => ctx.evolve(_ => ({ clicked: true }))
+            const updateItemId = (itemId: number) => ctx.evolve(_ => ({ itemId: itemId }))
 
-            events.didMount = props => updateItemId(props.item.id)
-            events.willUpdate = props => updateItemId(props.item.id)
+            ctx.didMount = props => updateItemId(props.item.id)
+            ctx.willUpdate = props => updateItemId(props.item.id)
 
             return (state) =>
                 <button id={`item-${state.itemId}`}
@@ -523,12 +523,12 @@ describe('render', () => {
         type State = { clicked: boolean; itemId: number }
         type Props = { key: number; item: Item }
 
-        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, (evolve, events) => {
+        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, ctx => {
 
-            const setClicked = () => evolve(_ => ({ clicked: true }))
-            const updateItemId = (itemId: number) => evolve(_ => ({ itemId: itemId }))
+            const setClicked = () => ctx.evolve(_ => ({ clicked: true }))
+            const updateItemId = (itemId: number) => ctx.evolve(_ => ({ itemId: itemId }))
 
-            events.didMount = props => updateItemId(props.item.id)
+            ctx.didMount = props => updateItemId(props.item.id)
 
             return (state) =>
                 <button id={`item-${state.itemId}`}
@@ -583,13 +583,13 @@ describe('render', () => {
         type State = { clicked: boolean; itemId: number }
         type Props = { item: Item }
 
-        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, (evolve, events) => {
+        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, ctx => {
 
-            const setClicked = () => evolve(_ => ({ clicked: true }))
-            const updateItemId = (itemId: number) => evolve(_ => ({ itemId: itemId }))
+            const setClicked = () => ctx.evolve(_ => ({ clicked: true }))
+            const updateItemId = (itemId: number) => ctx.evolve(_ => ({ itemId: itemId }))
 
-            events.didMount = props => updateItemId(props.item.id)
-            events.willUpdate = props => updateItemId(props.item.id)
+            ctx.didMount = props => updateItemId(props.item.id)
+            ctx.willUpdate = props => updateItemId(props.item.id)
 
             return (state) =>
                 <button id={`item-${state.itemId}`}
@@ -646,12 +646,12 @@ describe('render', () => {
 
         let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
 
-        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, (evolve, events) => {
+        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, ctx => {
 
-            const setClicked = () => evolve(_ => ({ clicked: true }))
-            const updateItemId = (itemId: number) => evolve(_ => ({ itemId: itemId }))
+            const setClicked = () => ctx.evolve(_ => ({ clicked: true }))
+            const updateItemId = (itemId: number) => ctx.evolve(_ => ({ itemId: itemId }))
 
-            events.didMount = props => updateItemId(props.item.id)
+            ctx.didMount = props => updateItemId(props.item.id)
 
             return (state) => {
                 const v = <button id={`item-${state.itemId}`} class={state.clicked ? "clicked" : ""}
@@ -720,13 +720,13 @@ describe('render', () => {
 
         let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
 
-        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, (evolve, events) => {
+        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, ctx => {
 
-            const setClicked = () => evolve(_ => ({ clicked: true }))
-            const updateItemId = (itemId: number) => evolve(_ => ({ itemId: itemId }))
+            const setClicked = () => ctx.evolve(_ => ({ clicked: true }))
+            const updateItemId = (itemId: number) => ctx.evolve(_ => ({ itemId: itemId }))
 
-            events.didMount = props => updateItemId(props.item.id)
-            events.willUpdate = props => updateItemId(props.item.id)
+            ctx.didMount = props => updateItemId(props.item.id)
+            ctx.willUpdate = props => updateItemId(props.item.id)
 
             return (state) => {
                 const v =
@@ -791,8 +791,8 @@ describe('render', () => {
 
         spyOn(mountMock, 'unmount').and.callThrough()
 
-        const ChildComponent = define({}, (_, events) => {
-            events.willUnmount = mountMock.unmount
+        const ChildComponent = define({}, ctx => {
+            ctx.willUnmount = mountMock.unmount
             return () => <div />
         })
 
