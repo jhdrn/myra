@@ -52,24 +52,26 @@ with `myra.mount`:
 
     const init = { hello: 'Hello!' }
 
-    // define the component passing the initial state and an "init" 
+    // Define the component passing the initial state and a "setup"
     // function
     const MyComponent = myra.define<State, Props>(
         init, 
-        // The "init" function takes 
-        (evolve, events) => {
+        // The "init" function takes a `ComponentContext` argument
+        ctx => {
 
-            // The 'events' argument is used to attach event listeners
+            // The context can be used to attach event listeners
             // for lifecycle events
             events.didMount = (props, domRef) => console.log('didMount')
 
+            // The context also holds the important 'evolve' function
+            // which is used to update the state and render the component.
             // This function will be triggered when the <p>-tag below is clicked
             // and update the state with a new 'hello' text
             const onClick = (ev: MouseEvent) => 
-                evolve({ hello: ev.target.tagName })
+                ctx.evolve({ hello: ev.target.tagName })
 
-            // The view must be returned as a function receiving the current state, 
-            // any props and any child nodes.
+            // The view must be returned as a function receiving the 
+            // current state, any props and any child nodes.
             return (state, props, children) => 
                 <p onclick={onClick}>
                     {state.hello}
@@ -79,19 +81,21 @@ with `myra.mount`:
         }
     )
 
-    // Mounts the component to a DOM element
+    // Mount the component to a DOM element
     myra.mount(MyComponent, document.body) 
 ```
 
 #### Lifecycle events
 The following lifecycle events are fired:
-didMount
-willUpdate
-willUnmount
+
+- didMount
+- willMount
+- willUpdate
+- willUnmount
 
 ### Stateless components
 A stateless component is just a function that takes a props object and 
-children as arguments:
+'children' as arguments:
 
 ```JSX
     import * as myra from 'myra'
@@ -109,15 +113,17 @@ children as arguments:
         </StateLessComponent>
 ```
 
-## Special attributes/props
-Some attributes/props and events has special behavior associated with them.
+## Special props
+Some props and events has special behavior associated with them.
 
-* The `key` attribute/prop should be used to ensure that the state of child 
+* The `key` prop should be used to ensure that the state of child 
 components is retained when they are changing position in a list. When used with
 elements, it may also prevent unnecessary re-rendering and thus increase performance.
 _It's value must be unique amongst the items in the list._
-* The `class` attribute value will be set to the `className` property of the element.
-* `blur`, `focus` and `click` attributes with a truthy value will result in a call to 
+* The `forceUpdate` prop will force a child component to update if set to true 
+(even if it's props didn't change).
+* The `class` prop value will be set to the `className` property of the element.
+* `blur`, `focus` and `click` props with a truthy value will result in a call to 
   `element.blur()`, `element.focus()` and `element.click()` respectively.
 
 ## Routing
