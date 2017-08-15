@@ -93,7 +93,7 @@ describe('render', () => {
         const instance = TestComponent({}, [])
         initComponent(instance, document.body)
 
-        render(document.body, <nothing />, instance, undefined)
+        render(document.body, <nothing />, instance, instance.domRef)
 
         expect(mocks.unmount).toHaveBeenCalledTimes(1)
     })

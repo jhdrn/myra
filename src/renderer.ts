@@ -233,7 +233,7 @@ function findOldChildVNode(newChildVNode: VNode, oldVNode: VNode, childIndex: nu
  * nodes. 
  */
 function shouldReplaceNode(newVNode: VNode, oldVNode: VNode | undefined): boolean {
-    if (oldVNode === undefined) {
+    if (oldVNode === undefined || oldVNode.domRef === undefined) {
         return false
     }
     else if (newVNode._ !== oldVNode._) {
