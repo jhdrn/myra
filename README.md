@@ -56,15 +56,15 @@ with `myra.mount`:
     // function
     const MyComponent = myra.define<State, Props>(
         init, 
-        // The "init" function takes a `ComponentContext` argument
+        // The "setup" function takes a `ComponentContext` argument
         ctx => {
 
             // The context can be used to attach event listeners
             // for lifecycle events
-            events.didMount = (props, domRef) => console.log('didMount')
+            ctx.didMount = (props, domRef) => console.log('didMount')
 
             // The context also holds the important 'evolve' function
-            // which is used to update the state and render the component.
+            // which is used to update the state and re-render the component.
             // This function will be triggered when the <p>-tag below is clicked
             // and update the state with a new 'hello' text
             const onClick = (ev: MouseEvent) => 
@@ -88,10 +88,10 @@ with `myra.mount`:
 #### Lifecycle events
 The following lifecycle events are fired:
 
-- didMount
-- willMount
-- willUpdate
-- willUnmount
+- didMount - called after the component was attached to the DOM
+- willMount - called before the component will attach to the DOM
+- willUpdate - called before the state of the component will update
+- willUnmount - called before the component will be detached from the DOM.
 
 ### Stateless components
 A stateless component is just a function that takes a props object and 
