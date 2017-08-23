@@ -28,7 +28,7 @@ declare namespace myra {
     /**
      * A function used as callback for event triggers.
      */
-    type EventListener<TEvent extends Event, TElement extends Element> = (ctx: any, event: TEvent) => void
+    type EventListener<TEvent extends Event, TElement extends Element> = (event: TEvent) => void
 
     /**
      * Base interface for a virtual node.
