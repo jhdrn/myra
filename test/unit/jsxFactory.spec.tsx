@@ -25,14 +25,33 @@ describe('jsxFactory', () => {
 
         const view = <div>{null}</div> as core.ElementVNode<any>
 
-        expect(view.children.length).toBe(1)
+        expect(view.children[0]).toEqual({
+            _: 0
+        } as core.NothingVNode)
     })
 
     it('creates a NothingVNode from undefined values', () => {
 
         const view = <div>{undefined}</div> as core.ElementVNode<any>
 
-        expect(view.children.length).toBe(1)
+        expect(view.children[0]).toEqual({
+            _: 0
+        } as core.NothingVNode)
+    })
+
+    it('creates a NothingVNode from boolean values', () => {
+
+        const view1 = <div>{false}</div> as core.ElementVNode<any>
+
+        expect(view1.children[0]).toEqual({
+            _: 0
+        } as core.NothingVNode)
+
+        const view2 = <div>{true}</div> as core.ElementVNode<any>
+
+        expect(view2.children[0]).toEqual({
+            _: 0
+        } as core.NothingVNode)
     })
 
     it('creates an ElementVNode with the supplied tagName', () => {

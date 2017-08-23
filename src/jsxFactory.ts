@@ -4,7 +4,7 @@ function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
     const flattenedChildren = [] as (VNode | string)[]
 
     for (const child of children) {
-        if (child === null || child === undefined) {
+        if (child === null || child === undefined || typeof child === 'boolean') {
             flattenedChildren.push({ _: 0 })
         }
         else if (Array.isArray(child)) {
