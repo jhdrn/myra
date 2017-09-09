@@ -53,6 +53,9 @@ export function initComponent<TState, TProps>(vNode: ComponentVNode<TState, TPro
         get props() {
             return link.vNode.props
         },
+        get domRef() {
+            return link.vNode.domRef as Element | undefined
+        },
         evolve: (fn: UpdateState<TState>) =>
             dispatch(link.vNode, render, fn)
     }

@@ -11,6 +11,7 @@ declare namespace myra {
         readonly evolve: Evolve<TState>
         readonly props: TProps
         readonly state: TState
+        readonly domRef: Element | undefined
 
         willMount?: (props: TProps) => void
         didMount?: (props: TProps, domRef: Node) => void
