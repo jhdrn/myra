@@ -7,15 +7,15 @@ import { VNode, ElementVNode, ComponentVNode } from './contract'
 export function render(
     parentDomNode: Element,
     newVNode: VNode,
-    oldVNode: VNode,
+    oldVNode: VNode | undefined,
     existingDomNode: Node | undefined,
     isSvg = false): void {
 
     const replaceNode = shouldReplaceNode(newVNode, oldVNode)
 
     // If it's a component node and i should be replaced, unmount any components
-    if (replaceNode && oldVNode._ === 3) {
-        findAndUnmountComponentsRec(oldVNode)
+    if (replaceNode && oldVNode!._ === 3) {
+        findAndUnmountComponentsRec(oldVNode!)
     }
 
     if ((newVNode as ElementVNode<any>).tagName === 'svg') {
@@ -32,8 +32,8 @@ export function render(
         if (replaceNode) {
             // If it's an element node remove old event listeners before 
             // replacing the node. 
-            if (oldVNode._ === 2) {
-                for (const attr in oldVNode.props) {
+            if (oldVNode!._ === 2) {
+                for (const attr in (oldVNode as ElementVNode<any>).props) {
                     if (attr.indexOf('on') === 0) {
                         removeAttr(attr, existingDomNode as Element)
                     }
@@ -263,7 +263,9 @@ function setAttr(element: HTMLElement, attributeName: string, attributeValue: an
             (element as any)[attributeName] = attributeValue
             return
         }
-        catch (_) { }
+        catch (_) {
+            /** Ignore and use setAttribute instead  */
+        }
     }
 
     element.setAttribute(attributeName, attributeValue)

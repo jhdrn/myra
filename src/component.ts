@@ -144,7 +144,7 @@ function dispatch<TState extends {}, TProps extends {}>(
         if (typeof update === 'function') {
             update = update(vNode.state)
         }
-        vNode.state = { ...<any>vNode.state, ...(update as object) }
+        vNode.state = { ...(vNode.state as any), ...(update as object) }
     }
 
     // Update view if the component was already initialized and the 
