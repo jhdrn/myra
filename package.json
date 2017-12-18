@@ -1,6 +1,7 @@
 {
   "name": "myra",
-  "version": "2.0.0-alpha.10",
+  "private": true,
+  "version": "2.0.0-alpha.14",
   "description": "Myra is a simple and small Typescript JSX rendering library.",
   "readme": "README.md",
   "repository": {
@@ -24,7 +25,7 @@
   "devDependencies": {
     "@types/jasmine": "^2.2.34",
     "codecov": "^1.0.1",
-    "copyfiles": "^1.0.0",
+    "copyfiles": "^1.2.0",
     "dts-bundle": "^0.7.3",
     "jasmine-core": "^2.5.2",
     "karma": "^1.1.1",
@@ -54,8 +55,8 @@
     "build": "npm run build:es && npm run build:umd:dev && npm run build:umd:prod",
     "build:es": "tsc && rollup -c --output.file=dist/myra.es.js --output.format=es --optimize=false",
     "build:umd:dev": "tsc && rollup -c rollup.config.js --output.file=dist/myra.js",
-    "build:umd:prod": "tsc && rollup -c --environment=BUILD:production --output.file=dist/myra.min.js --output.format=iife",
-    "postbuild": "rimraf build",
+    "build:umd:prod": "tsc && rollup -c --environment=BUILD:production --output.file=dist/myra.min.js",
+    "postbuild": "rimraf build && copyfiles LICENSE README.md package.json dist",
     "pretest": "tsc --module commonjs",
     "test": "karma start karma.conf-ci.js",
     "test:local": "npm run pretest && karma start karma.conf-local.js && npm run posttest",
@@ -63,9 +64,6 @@
     "codecov": "node_modules/.bin/remap-istanbul -i coverage/coverage.json -o ./coverage/lcov.info -t lcovonly && codecov -f ./coverage/lcov.info",
     "coverage": "http-server -c-1 -o -p 9875 ./coverage"
   },
-  "files": [
-    "dist"
-  ],
   "main": "myra.js",
   "module": "myra.es.js",
   "typings": "myra.d.ts"
