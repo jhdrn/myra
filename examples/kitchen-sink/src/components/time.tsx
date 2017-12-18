@@ -24,7 +24,7 @@ export default myra.define(init, c => {
         ({ intervalTickValue: state.intervalTickValue + 100 }))
 
     const startTimeout = () => {
-        const handle = setTimeout(clearTimeoutHandle, 5000)
+        const handle = window.setTimeout(clearTimeoutHandle, 5000)
         setTimeoutHandle(handle)
     }
     const cancelTimeout = () => c.evolve(state => {
@@ -33,7 +33,7 @@ export default myra.define(init, c => {
     })
 
     const startInterval = () => {
-        const handle = setInterval(intervalTick, 100)
+        const handle = window.setInterval(intervalTick, 100)
         setIntervalHandle(handle)
     }
     const cancelInterval = () => c.evolve(state => {
