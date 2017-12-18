@@ -34,6 +34,7 @@ export default {
             format: 'umd',
         }
     ],
+    banner: '/** @license MIT https://github.com/jhdrn/myra/blob/master/LICENSE - Copyright (c) 2017 Jonathan Hedrén */',
     sourcemap: false,
     // Indicate here external modules you don't wanna include in your bundle (i.e.: 'lodash')
     external: [],
@@ -49,7 +50,13 @@ export default {
         // resolve(),
 
         // Minify 
-        process.env.BUILD === 'production' && uglify({}, minify),
+        process.env.BUILD === 'production' && uglify({}, function (code) {
+            return minify(code, {
+                output: {
+                    comments: 'some'
+                }
+            })
+        }),
 
         // Resolve source maps to the original source
         // sourceMaps(),
