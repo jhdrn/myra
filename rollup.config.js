@@ -1,13 +1,61 @@
-import typescript from 'rollup-plugin-typescript2';
-import uglify from 'rollup-plugin-uglify';
+import { minify } from 'uglify-es'
+// import resolve from 'rollup-plugin-node-resolve'
+// import commonjs from 'rollup-plugin-commonjs'
+import sourceMaps from 'rollup-plugin-sourcemaps'
+import uglify from 'rollup-plugin-uglify'
+import camelCase from 'lodash.camelcase'
+import dts from 'dts-bundle'
+
+function dtsBundle(libraryName) {
+    return {
+        name: 'dtsBundle',
+        onwrite: () =>
+            dts.bundle({
+                name: libraryName,
+                main: `build/src/${libraryName}.d.ts`,
+                out: `../../dist/${libraryName}.d.ts`,
+                removeSource: false,
+                outputAsModuleFolder: false,
+                externals: true
+            })
+    }
+}
+
+const pkg = require('./package.json')
+
+const libraryName = 'myra'
 
 export default {
-    entry: './src/index.ts',
-    format: 'umd',
-    dest: 'dist/myra.js',
-    name: 'myra',
+    input: `build/src/${libraryName}.js`,
+    output: [
+        {
+            file: `dist/${libraryName}.min.js`,
+            name: camelCase(libraryName),
+            format: 'umd',
+        }
+    ],
+    sourcemap: false,
+    // Indicate here external modules you don't wanna include in your bundle (i.e.: 'lodash')
+    external: [],
+    watch: {
+        include: 'build/src/**',
+    },
     plugins: [
-        typescript(),
-        uglify()
-    ]
+        // Allow bundling cjs modules (unlike webpack, rollup doesn't understand cjs)
+        // commonjs(),
+        // Allow node_modules resolution, so you can use 'external' to control
+        // which external modules to include in the bundle
+        // https://github.com/rollup/rollup-plugin-node-resolve#usage
+        // resolve(),
+
+        // Minify 
+        process.env.BUILD === 'production' && uglify({}, minify),
+
+        // Resolve source maps to the original source
+        // sourceMaps(),
+
+        // Create a d.ts bundle
+        dtsBundle(libraryName)
+
+    ],
 }

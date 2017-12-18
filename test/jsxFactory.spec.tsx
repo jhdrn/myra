@@ -1,15 +1,15 @@
-import * as core from 'core'
+import * as myra from '../src/myra'
 
 describe('jsxFactory', () => {
 
     it('creates a TextVNode from an expression inside an element', () => {
 
-        const view = <div>{'some text'}</div> as core.ElementVNode<any>
+        const view = <div>{'some text'}</div> as myra.ElementVNode<any>
 
         expect(view.children[0]).toEqual({
             _: 1,
             value: 'some text'
-        } as core.TextVNode)
+        } as myra.TextVNode)
     })
 
     it('creates a NothingVNode from a <nothing /> tag', () => {
@@ -18,40 +18,40 @@ describe('jsxFactory', () => {
 
         expect(view).toEqual({
             _: 0
-        } as core.NothingVNode)
+        } as myra.NothingVNode)
     })
 
     it('creates a NothingVNode from null values', () => {
 
-        const view = <div>{null}</div> as core.ElementVNode<any>
+        const view = <div>{null}</div> as myra.ElementVNode<any>
 
         expect(view.children[0]).toEqual({
             _: 0
-        } as core.NothingVNode)
+        } as myra.NothingVNode)
     })
 
     it('creates a NothingVNode from undefined values', () => {
 
-        const view = <div>{undefined}</div> as core.ElementVNode<any>
+        const view = <div>{undefined}</div> as myra.ElementVNode<any>
 
         expect(view.children[0]).toEqual({
             _: 0
-        } as core.NothingVNode)
+        } as myra.NothingVNode)
     })
 
     it('creates a NothingVNode from boolean values', () => {
 
-        const view1 = <div>{false}</div> as core.ElementVNode<any>
+        const view1 = <div>{false}</div> as myra.ElementVNode<any>
 
         expect(view1.children[0]).toEqual({
             _: 0
-        } as core.NothingVNode)
+        } as myra.NothingVNode)
 
-        const view2 = <div>{true}</div> as core.ElementVNode<any>
+        const view2 = <div>{true}</div> as myra.ElementVNode<any>
 
         expect(view2.children[0]).toEqual({
             _: 0
-        } as core.NothingVNode)
+        } as myra.NothingVNode)
     })
 
     it('creates an ElementVNode with the supplied tagName', () => {
@@ -63,7 +63,7 @@ describe('jsxFactory', () => {
             tagName: 'div',
             props: {},
             children: []
-        } as core.ElementVNode<any>)
+        } as myra.ElementVNode<any>)
     })
 
     it('creates an ElementVNode and sets props', () => {
@@ -80,7 +80,7 @@ describe('jsxFactory', () => {
                 onclick: fn
             },
             children: []
-        } as core.ElementVNode<any>)
+        } as myra.ElementVNode<any>)
     })
 
     const childVNode = {
@@ -88,7 +88,7 @@ describe('jsxFactory', () => {
         tagName: 'div',
         props: {},
         children: []
-    } as core.ElementVNode<any>
+    } as myra.ElementVNode<any>
 
     it('creates an ElementVNode and appends a single child', () => {
 
@@ -101,7 +101,7 @@ describe('jsxFactory', () => {
             children: [
                 childVNode
             ]
-        } as core.ElementVNode<any>)
+        } as myra.ElementVNode<any>)
     })
 
     it('creates an ElementVNode and appends multiple children with a single argument', () => {
@@ -118,9 +118,9 @@ describe('jsxFactory', () => {
                 {
                     _: 1,
                     value: 'abc'
-                } as core.TextVNode
+                } as myra.TextVNode
             ]
-        } as core.ElementVNode<any>)
+        } as myra.ElementVNode<any>)
     })
 
     it('Object element creates a ComponentVNode', () => {
@@ -131,9 +131,9 @@ describe('jsxFactory', () => {
             test: string
         }
 
-        const TestComponent = core.define<State, TestProps>({}, () => () => <div></div>)
+        const TestComponent = myra.define<State, TestProps>({}, () => () => <div></div>)
 
-        const view = <TestComponent test="test" /> as core.ComponentVNode<State, TestProps>
+        const view = <TestComponent test="test" /> as myra.ComponentVNode<State, TestProps>
 
         expect(view._).toBe(3)
         expect(view.props).toEqual({ test: 'test' })
@@ -144,7 +144,7 @@ describe('jsxFactory', () => {
 
         const TestComponent = (props: { test: string }) => <div>{props}</div>
 
-        const view = <TestComponent test="test" /> as core.ElementVNode<HTMLDivElement>
+        const view = <TestComponent test="test" /> as myra.ElementVNode<HTMLDivElement>
 
         expect(view._).toBe(2)
         expect(view.tagName).toBe('div')

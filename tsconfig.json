@@ -4,50 +4,25 @@
         "sourceMap": true,
         "declaration": true,
         "target": "es5",
-        "module": "commonjs",
+        "module": "es6",
         "lib": [
-            "dom",
-            "es2015"
+            "es2015",
+            "es2016",
+            "es2017",
+            "dom"
         ],
+        "strict": true,
         "noFallthroughCasesInSwitch": true,
-        "noImplicitAny": true,
         "noImplicitReturns": true,
-        "noImplicitThis": true,
         "noUnusedParameters": true,
         "noUnusedLocals": true,
-        "strictNullChecks": true,
         "moduleResolution": "node",
-        "pretty": true,
-        "outDir": "./build",
-        "baseUrl": "./",
-        "jsxFactory": "core.h",
+        "outDir": "build",
         "jsx": "react",
-        "paths": {
-            "core": [
-                "src/index"
-            ],
-            "core/component": [
-                "src/component"
-            ],
-            "core/contract": [
-                "src/contract"
-            ],
-            "core/helpers": [
-                "src/helpers"
-            ],
-            "core/renderer": [
-                "src/renderer"
-            ],
-            "core/jsxFactory": [
-                "src/jsxFactory"
-            ]
-        },
-        "listEmittedFiles": true
+        "jsxFactory": "myra.h"
     },
     "include": [
-        "./src/**/*.ts",
-        "./test/unit/*.ts",
-        "./test/unit/*.tsx",
-        "./node_modules/@types/jasmine/index.d.ts"
+        "src",
+        "test"
     ]
 }

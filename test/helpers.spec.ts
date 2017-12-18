@@ -1,4 +1,4 @@
-import { equal, typeOf } from 'core/helpers'
+import { equal, typeOf } from '../src/helpers'
 
 describe('core.helpers.equal', () => {
 
@@ -101,7 +101,7 @@ describe('core.helpers.equal', () => {
 
         expect(equal(a, b as any)).toBe(false)
     })
-    //FIXME: functions?
+    // FIXME: functions?
 })
 
 // describe('core.helpers.max', () => {

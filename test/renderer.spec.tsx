@@ -1,7 +1,8 @@
-import { define, mount, ElementVNode } from 'core'
-import { render } from 'core/renderer'
-import { initComponent } from 'core/component'
-import * as core from 'core'
+import { define, mount, ElementVNode } from '../src/myra'
+import { render } from '../src/renderer'
+import { initComponent } from '../src/component'
+// tslint:disable-next-line
+import * as myra from '../src/myra'
 
 // const keyPressEvent = (keyCode: number) => {
 //     const event = document.createEvent('Event')
@@ -52,7 +53,7 @@ describe('render', () => {
 
     it('remounts a component if forceUpdate is set to true', (done) => {
         const mocks = {
-            mount: () => { }
+            mount: () => { /* dummy */ }
         }
 
         spyOn(mocks, 'mount')
@@ -186,9 +187,7 @@ describe('render', () => {
 
     it('returns an element with onclick event listener set', (done) => {
         const mocks = {
-            onclickUpdate: () => {
-
-            }
+            onclickUpdate: () => { /* dummy */ }
         }
         spyOn(mocks, 'onclickUpdate')
 
@@ -209,11 +208,8 @@ describe('render', () => {
 
     it('replaces the old event listener with a the new one', (done) => {
         const mocks = {
-            onclickUpdate1: () => {
-            },
-
-            onclickUpdate2: () => {
-            }
+            onclickUpdate1: () => { /* dummy */ },
+            onclickUpdate2: () => { /* dummy */ }
         }
         spyOn(mocks, 'onclickUpdate1')
         spyOn(mocks, 'onclickUpdate2')

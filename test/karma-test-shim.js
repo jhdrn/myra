@@ -5,26 +5,18 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 5000;
 
 // // Cancel Karma's synchronous start,
 // // we will call `__karma__.start()` later, once all the specs are loaded.
-__karma__.loaded = function () {};
+__karma__.loaded = function () { };
 
 System.config({
     packages: {
         'base/build': {
             defaultExtension: 'js',
-            format: 'cjs',
-            map: {
-                'core': './src/index',
-                'core/component': './src/component',
-                'core/contract': './src/contract',
-                'core/helpers': './src/helpers',
-                'core/renderer': './src/renderer',
-                'core/jsxFactory': './src/jsxFactory'
-            }
+            format: 'cjs'
         }
     }
 });
 
-System.import('base/build/src/index')
+System.import('base/build/src/myra')
     .then(function () {
         return Promise.all(resolveTestFiles());
     })

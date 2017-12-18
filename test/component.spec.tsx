@@ -1,6 +1,5 @@
-import { define, mount, ComponentVNode } from 'core'
-import { initComponent, updateComponent, findAndUnmountComponentsRec } from 'core/component'
-import * as core from 'core'
+import * as myra from '../src/myra'
+import { initComponent, updateComponent, findAndUnmountComponentsRec } from '../src/component'
 
 const q = (x: string) => document.querySelector(x)
 
@@ -10,14 +9,14 @@ const q = (x: string) => document.querySelector(x)
 describe('define', () => {
     it('the "ctx" object is passed', (done) => {
 
-        const component = define({}, ctx => {
+        const component = myra.define({}, ctx => {
             expect(ctx).toBeDefined()
             expect(typeof ctx === 'object').toBeTruthy()
             done()
             return () => <div />
         })
 
-        mount(component, document.body)
+        myra.mount(component, document.body)
     })
 })
 
@@ -28,9 +27,9 @@ describe('mount', () => {
 
     it('mounts the compontent', () => {
 
-        const component = define({}, () => () => <div id="root" />)
+        const component = myra.define({}, () => () => <div id="root" />)
 
-        mount(component, document.body)
+        myra.mount(component, document.body)
 
         const rootNode = q('#root')
 
@@ -44,12 +43,12 @@ describe('mount', () => {
 
         spyOn(mock, 'callback').and.callThrough()
 
-        const component = define({ val: 0 }, ctx => {
+        const component = myra.define({ val: 0 }, ctx => {
             ctx.willMount = mock.callback
             return () => <div />
         })
 
-        mount(component, document.body)
+        myra.mount(component, document.body)
 
         expect(mock.callback).toHaveBeenCalled()
     })
@@ -61,12 +60,12 @@ describe('mount', () => {
 
         spyOn(mock, 'callback').and.callThrough()
 
-        const component = define({ val: 0 }, ctx => {
+        const component = myra.define({ val: 0 }, ctx => {
             ctx.didMount = mock.callback
             return () => <div />
         })
 
-        mount(component, document.body)
+        myra.mount(component, document.body)
 
         expect(mock.callback).toHaveBeenCalled()
     })
@@ -81,13 +80,13 @@ describe('mount', () => {
 
         spyOn(viewMock, 'view').and.callThrough()
 
-        const component = define<any, any>({}, () => viewMock.view)
+        const component = myra.define<any, any>({}, () => viewMock.view)
 
-        const parent = define({}, () => () =>
+        const parent = myra.define({}, () => () =>
             component({}, [<div id="divTestId" />])
         )
 
-        mount(parent, document.body)
+        myra.mount(parent, document.body)
 
         expect(q('#divTestId')).not.toBeNull()
 
@@ -108,11 +107,11 @@ describe('unmountComponent', () => {
 
         spyOn(mountMock, 'unmount').and.callThrough()
 
-        const Component = define({}, ctx => {
+        const Component = myra.define({}, ctx => {
             ctx.willUnmount = mountMock.unmount
             return () => <div />
         })
-        const instance = <Component /> as ComponentVNode<{}, {}>
+        const instance = <Component /> as myra.ComponentVNode<{}, {}>
 
         initComponent(instance, document.body)
         findAndUnmountComponentsRec(instance)
@@ -127,17 +126,17 @@ describe('unmountComponent', () => {
 
         spyOn(mountMock, 'unmount').and.callThrough()
 
-        const ChildChildComponent = define({}, ctx => {
+        const ChildChildComponent = myra.define({}, ctx => {
             ctx.willUnmount = mountMock.unmount
             return () => <div />
         })
 
-        const ChildComponent = define({}, ctx => {
+        const ChildComponent = myra.define({}, ctx => {
             ctx.willUnmount = mountMock.unmount
             return () => <ChildChildComponent />
         })
 
-        const component = define({}, () => () => <div><ChildComponent /></div>)
+        const component = myra.define({}, () => () => <div><ChildComponent /></div>)
 
         const instance = component({}, [])
         initComponent(instance, document.body)
@@ -159,7 +158,7 @@ describe('updateComponent', () => {
 
         spyOn(mountMock, 'mount').and.callThrough()
 
-        const component = define<{}, { val: number }>({}, ctx => {
+        const component = myra.define<{}, { val: number }>({}, ctx => {
             ctx.willUpdate = mountMock.mount
             return () => <div />
         })
@@ -178,7 +177,7 @@ describe('updateComponent', () => {
 
         spyOn(mountMock, 'mount').and.callThrough()
 
-        const component = define({}, ctx => {
+        const component = myra.define({}, ctx => {
             ctx.willUpdate = mountMock.mount
             return () => <div />
         })
@@ -200,7 +199,7 @@ describe('updateComponent', () => {
 
         spyOn(mountMock, 'callback').and.callThrough()
 
-        const component = define({}, ctx => {
+        const component = myra.define({}, ctx => {
             ctx.willUpdate = mountMock.callback
             return () => <div />
         })
@@ -234,13 +233,13 @@ describe('evolve', () => {
 
         spyOn(mocks, 'onclickUpdate').and.callThrough()
 
-        const component = define({ val: 1 }, ctx => {
+        const component = myra.define({ val: 1 }, ctx => {
             const onclickUpdate = () => ctx.evolve(mocks.onclickUpdate)
             return () => <button id="postButton" onclick={onclickUpdate}></button>
         })
 
 
-        mount(component, document.body)
+        myra.mount(component, document.body)
 
         const postBtn = document.getElementById('postButton') as HTMLButtonElement
         postBtn.click()
