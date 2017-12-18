@@ -5,7 +5,9 @@ import * as myra from 'myra'
  */
 const AppComponent = myra.define({ hello: 'Hello world' }, c => {
 
-    const onClick = () => c.evolve(state => ({ hello: `${state.hello} again` }))
+    function onClick() {
+        c.evolve(state => ({ hello: `${state.hello} again` }))
+    }
 
     return state => <div onclick={onClick}>{state.hello}</div>
 })
