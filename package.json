@@ -1,7 +1,7 @@
 {
   "name": "myra",
   "private": true,
-  "version": "2.0.0-alpha.14",
+  "version": "2.0.0",
   "description": "Myra is a simple and small Typescript JSX rendering library.",
   "readme": "README.md",
   "repository": {
@@ -56,7 +56,7 @@
     "build:es": "tsc && rollup -c --output.file=dist/myra.es.js --output.format=es --optimize=false",
     "build:umd:dev": "tsc && rollup -c rollup.config.js --output.file=dist/myra.js",
     "build:umd:prod": "tsc && rollup -c --environment=BUILD:production --output.file=dist/myra.min.js",
-    "postbuild": "rimraf build && copyfiles LICENSE README.md package.json dist",
+    "postbuild": "rimraf build && ts-node scripts/postbuild.ts && copyfiles LICENSE README.md package.json dist",
     "pretest": "tsc --module commonjs",
     "test": "karma start karma.conf-ci.js",
     "test:local": "npm run pretest && karma start karma.conf-local.js && npm run posttest",

@@ -1,3 +1,4 @@
+/** @internal */
 import { initComponent, updateComponent, findAndUnmountComponentsRec } from './component'
 import { VNode, ElementVNode, ComponentVNode } from './contract'
 

@@ -15,7 +15,8 @@ function dtsBundle(libraryName) {
                 main: `build/src/${libraryName}.d.ts`,
                 out: `../../dist/${libraryName}.d.ts`,
                 removeSource: false,
-                outputAsModuleFolder: false,
+                outputAsModuleFolder: true,
+                exclude: /^component|helpers|renderer/,
                 externals: true
             })
     }
