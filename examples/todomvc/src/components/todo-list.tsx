@@ -16,66 +16,15 @@ type State = {
     filter: TodosFilter
     location: router.RouteContext
 }
-
-
-/**
- * Updates
- */
-const applySavedFilter = (state: State, filter: TodosFilter) =>
-    myra.evolve(state).and(router.routeTo(`#/${filter === 'all' ? '' : filter || ''}`, undefined, true))
-
-const applyFilterFromLocation = (state: State, routeCtx: router.RouteContext) => {
-
-    if (routeCtx.match('#/active').isMatch) {
-        return myra.evolve(state, x => {
-            x.filter = 'active'
-            x.location = routeCtx
-        }).and(saveFilter('active'))
-    }
-    else if (routeCtx.match('#/completed').isMatch) {
-        console.log('completed')
-        return myra.evolve(state, x => {
-            x.filter = 'completed'
-            x.location = routeCtx
-        }).and(saveFilter('completed'))
-    }
-    else if (routeCtx.match('#/').isMatch || routeCtx.match('').isMatch) {
-        return myra.evolve(state, x => {
-            x.filter = 'all'
-            x.location = routeCtx
-        }).and(saveFilter('all'))
-    }
-    return myra.evolve(state, x => x.location = routeCtx)
-}
-
-const todosLoaded = (state: State, todos: Todo[]) =>
-    myra.evolve(state, x => {
-        x.todos = todos
-        x.itemsLeft = todos.filter(t => !t.completed).length
-    })
-
-// Mount function: load all todos
-const loadTodos = (m: State) =>
-    myra.evolve(m).and(todos.getAll(todosLoaded))
-
-/**
- * Init model
- */
-const init = {
-    state: {
-        todos: [],
-        itemsLeft: 0,
-        filter: 'all',
-        location: {} as router.RouteContext
-    } as State,
-    effects: [
-        loadFilter(applySavedFilter),
-        router.addListener(applyFilterFromLocation)
-    ]
+const init: State = {
+    todos: [],
+    itemsLeft: 0,
+    filter: 'all',
+    location: {} as router.RouteContext
 }
 
 /**
- * View
+ * View helper functions
  */
 const filterTodos = (state: State) => (todo: Todo) => {
     switch (state.filter) {
@@ -95,48 +44,96 @@ const filterLink = (href: string, txt: string, routeCtx: router.RouteContext) =>
 /**
  * Component
  */
-export default myra.defineComponent<State, any>({
-    name: 'TodoListComponent',
-    init: init,
-    onMount: loadTodos,
-    view: ctx =>
-        ctx.state.todos.length ?
+export default myra.define<State, { forceUpdate: boolean }>(init, c => {
+
+    const todosLoaded = (todos: Todo[]) =>
+        c.evolve({
+            todos: todos,
+            itemsLeft: todos.filter(t => !t.completed).length
+        })
+
+    const applyFilterFromLocation = (routeCtx: router.RouteContext) => {
+
+        if (routeCtx.match('#/active').isMatch) {
+            c.evolve({
+                filter: 'active',
+                location: routeCtx
+            })
+            saveFilter('active')
+        }
+        else if (routeCtx.match('#/completed').isMatch) {
+            c.evolve({
+                filter: 'completed',
+                location: routeCtx
+            })
+            saveFilter('completed')
+        }
+        else if (routeCtx.match('#/').isMatch || routeCtx.match('').isMatch) {
+            c.evolve({
+                filter: 'all',
+                location: routeCtx
+            })
+            saveFilter('all')
+        }
+        c.evolve({ location: routeCtx })
+    }
+
+    const loadTodos = () =>
+        todosLoaded(todos.getAll())
+
+    const clearCompleted = () => {
+        todos.removeCompleted()
+        loadTodos()
+    }
+    const toggleAllTodos = () => {
+        todos.toggleAll(!c.state.todos.every(t => t.completed))
+        loadTodos()
+    }
+
+    c.didMount = () => {
+        c.evolve({ filter: loadFilter() })
+        router.addListener(applyFilterFromLocation)
+        loadTodos()
+    }
+
+    c.willUpdate = loadTodos
+
+    return state =>
+        state.todos.length ?
             <div>
                 <section class="main">
                     <input class="toggle-all"
                         type="checkbox"
-                        checked={ctx.state.todos.every(t => t.completed)}
-                        onclick={() => ctx.invoke(todos.toggleAll(!ctx.state.todos.every(t => t.completed), loadTodos))} />
+                        checked={state.todos.every(t => t.completed)}
+                        onclick={toggleAllTodos} />
 
                     <label for="toggle-all">Mark all as complete</label>
                     <ul class="todo-list">
-                        {
-                            ctx.state.todos.filter(filterTodos(ctx.state)).map(todo =>
-                                <TodoItemComponent onchange={() => ctx.invoke(todos.getAll(todosLoaded))} todo={todo} />
-                            )
-                        }
+                        {state.todos.filter(filterTodos(state)).map(todo =>
+                            <TodoItemComponent onchange={loadTodos} todo={todo} />
+                        )}
                     </ul>
                 </section>
                 <footer class="footer">
                     <span class="todo-count">
-                        <strong>{ctx.state.itemsLeft}</strong>
-                        {ctx.state.itemsLeft === 1 ? ' item left' : ' items left'}
+                        <strong>{state.itemsLeft}</strong>
+                        {state.itemsLeft === 1 ? ' item left' : ' items left'}
                     </span>
                     <ul class="filters">
                         <li>
-                            {filterLink('#/', 'All', ctx.state.location)}
+                            {filterLink('#/', 'All', state.location)}
                         </li>
                         <li>
-                            {filterLink('#/active', 'Active', ctx.state.location)}
+                            {filterLink('#/active', 'Active', state.location)}
                         </li>
                         <li>
-                            {filterLink('#/completed', 'Completed', ctx.state.location)}
+                            {filterLink('#/completed', 'Completed', state.location)}
                         </li>
                     </ul>
                     {
-                        ctx.state.todos.filter(t => t.completed).length ?
+                        state.todos.filter(t => t.completed).length ?
                             <button class="clear-completed"
-                                onclick={() => ctx.invoke(todos.removeCompleted(loadTodos))}>
+                                onclick={clearCompleted}>
                                 Clear completed
                             </button> : <nothing />
                     }

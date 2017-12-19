@@ -1,19 +1,11 @@
-import { Update, ComponentFactory, ComponentVNode, ComponentSpec, ComponentContext, VNode } from './contract'
+/** @internal */
+import {
+    ComponentVNode,
+    UpdateState,
+    VNode
+} from './contract'
 import { equal } from './helpers'
-import { dispatch } from './dispatch'
-import { render } from './view'
-
-/** 
- * Holds all component specs. The component name is used as key.
- */
-const componentSpecs = {} as { [name: string]: ComponentSpec<any, any> }
-
-/** 
- * Holds all component contexts, indexed by id.
- */
-const contexts: { [key: number]: ComponentContext<any, any> } = {}
-
-let nextId = 1
+import { render } from './renderer'
 
 /** 
  * Initializes a component from a ComponentVNode.
@@ -22,135 +14,124 @@ let nextId = 1
  * dispatch with the intial value from the component spec. If spec.onMount is
  * set, it will also be applied.
  */
-export function initComponent<T>(vNode: ComponentVNode<T>, parentNode: Element) {
-
-    const spec = componentSpecs[vNode.name]
-
-    const context: ComponentContext<T, any> = {
-        parentNode: parentNode,
-        spec: spec,
-        childNodes: vNode.children,
-        props: vNode.props,
-        initialized: false,
-        dispatchLevel: 0,
-        isUpdating: false,
-        state: spec.init.state
+export function initComponent<TState, TProps>(vNode: ComponentVNode<TState, TProps>, parentElement: Element) {
+    const link = {
+        vNode: vNode
     }
+    vNode.link = link
+    vNode.parentElement = parentElement
 
-    vNode.id = nextId++
-    contexts[vNode.id] = context
-
-    if (typeof spec.init.effects !== 'undefined' && spec.init.effects.length) {
-        // Dispatch once with init. The view won't be rendered.
-        dispatch(context, render, function onInit() { return spec.init }, undefined)
+    const ctx = {
+        get state() {
+            return link.vNode.state
+        },
+        get props() {
+            return link.vNode.props
+        },
+        get domRef() {
+            return link.vNode.domRef as Element | undefined
+        },
+        evolve: (fn: UpdateState<TState>) =>
+            dispatch(link.vNode, render, fn)
     }
+    vNode.ctx = ctx
 
-    context.initialized = true
+    const view = vNode.spec(ctx)
+    vNode.view = view
 
-    let onMount: Update<T, any>
-    if (typeof spec.onMount === 'function') {
-        onMount = spec.onMount
+    if (vNode.ctx.willMount !== undefined) {
+        // Setting dispatchLevel to 1 will make any dispatch call just update
+        // the state without rendering the view
+        vNode.dispatchLevel = 1
+        vNode.ctx.willMount(vNode.props)
     }
-    else {
-        onMount = function onMount<S>(m: S) {
-            return { state: m }
-        }
-    }
+    vNode.dispatchLevel = 0
 
     // Dispatch to render the view. 
-    dispatch(context, render, onMount, vNode.props)
+    dispatch(vNode, render)
 
-    if (context.rendition) {
-        vNode.domRef = context.rendition.domRef
-        vNode.rendition = context.rendition
+    if (vNode.ctx.didMount !== undefined) {
+        vNode.ctx.didMount(vNode.props, vNode.domRef!)
     }
-    else {
-        vNode.domRef = undefined
-    }
+
+    return vNode.domRef!
 }
+
 
 /** 
  * Updates a component by comparing the new and old virtual nodes. 
  */
-export function updateComponent<T>(newVNode: ComponentVNode<T>, oldVNode: ComponentVNode<T>) {
+export function updateComponent<TState, TProps>(newVNode: ComponentVNode<TState, TProps>, oldVNode: ComponentVNode<TState, TProps>) {
 
-    newVNode.id = oldVNode.id
+    const shouldUpdate =
+        newVNode.props !== undefined
+        && newVNode.props !== null
+        && (newVNode.props as any).forceUpdate
+        || !equal(oldVNode.props, newVNode.props)
 
-    const context = contexts[oldVNode.id]
-    context.props = newVNode.props
+    newVNode.parentElement = oldVNode.parentElement
+    newVNode.rendition = oldVNode.rendition
+    newVNode.state = oldVNode.state
+    newVNode.link = oldVNode.link
+    newVNode.link.vNode = newVNode
+    newVNode.dispatchLevel = 0
+    newVNode.ctx = oldVNode.ctx
+    newVNode.view = oldVNode.view
 
-    // The node might have changed if the node was "keyed"
-    context.rendition!.domRef = oldVNode.domRef
+    if (shouldUpdate) {
 
-    if (typeof newVNode.props !== 'undefined' && newVNode.props !== null && (newVNode.props as any).forceUpdate
-        || !equal(oldVNode.props, newVNode.props)) {
-
-        context.childNodes = newVNode.children
-
-        if (!context.isUpdating) {
-            dispatch(
-                context,
-                render,
-                typeof context.spec.onMount !== 'undefined' ?
-                    context.spec.onMount :
-                    (<TState>(s: TState) => ({ state: s })),
-                newVNode.props)
+        if (newVNode.ctx.willUpdate !== undefined) {
+            newVNode.ctx.willUpdate(newVNode.props)
         }
-
-        newVNode.domRef = context.rendition!.domRef
-
-        newVNode.rendition = context.rendition
+        // Dispatch to render the view. 
+        dispatch(newVNode, render)
     }
 }
 
-/** 
- * Defines a component from a ComponentSpec returning a factory that creates 
- * ComponentVNode/JSXElement's for the component.
- */
-export function defineComponent<TState, TProps>(spec: ComponentSpec<TState, TProps>): ComponentFactory<TProps> {
-    if (componentSpecs[spec.name]) {
-        throw `A component with name '${spec.name}' is already defined!`
-    }
-
-    componentSpecs[spec.name] = spec
-
-    return (props: TProps, childNodes: VNode[] = []) => {
-        return {
-            __type: 3,
-            name: spec.name,
-            id: 0,
-            children: childNodes,
-            rendition: undefined,
-            props: props,
-            domRef: undefined
-        }
-    }
-}
-
-/** 
- * Mounts the component onto the supplied element by calling the supplied 
- * component factory. 
- */
-export function mountComponent(componentFactory: ComponentFactory<any>, element: Element) {
-    initComponent(componentFactory({}), element)
-}
 
 /** 
  * Traverses the virtual node hierarchy and unmounts any components in the 
  * hierarchy.
  */
 export function findAndUnmountComponentsRec(vNode: VNode) {
-    if (vNode.__type === 3) {
-        const ctx = contexts[vNode.id]
-        if (typeof ctx.spec.onUnmount === 'function') {
-            dispatch(ctx, render, ctx.spec.onUnmount, undefined)
+    if (vNode._ === 3) {
+        if (vNode.ctx.willUnmount !== undefined) {
+            vNode.ctx.willUnmount(vNode.domRef!)
         }
-        delete contexts[vNode.id]
-        findAndUnmountComponentsRec(ctx.rendition!)
+
+        findAndUnmountComponentsRec(vNode.rendition!)
     }
-    else if (vNode.__type === 2) {
+    else if (vNode._ === 2) {
         for (const c of vNode.children) {
             findAndUnmountComponentsRec(c)
         }
     }
+}
+
+function dispatch<TState extends {}, TProps extends {}>(
+    vNode: ComponentVNode<TState, TProps>,
+    render: (parentNode: Element, view: VNode, oldView: VNode | undefined, oldRootNode: Node | undefined) => void,
+    update?: UpdateState<TState>) {
+
+    vNode.dispatchLevel++
+
+    if (update !== undefined) {
+        if (typeof update === 'function') {
+            update = update(vNode.state)
+        }
+        vNode.state = { ...(vNode.state as any), ...(update as object) }
+    }
+
+    // Update view if the component was already initialized and the 
+    // dispatchLevel is at "lowest" level (i.e. 1).
+    if (vNode.dispatchLevel === 1) {
+
+        const newView = vNode.view(vNode.state, vNode.props, vNode.children)
+        const oldNode = vNode.rendition ? vNode.rendition.domRef : undefined
+        render(vNode.parentElement!, newView, vNode.rendition, oldNode)
+
+        vNode.rendition = newView
+        vNode.domRef = newView.domRef
+    }
+    vNode.dispatchLevel--
 }

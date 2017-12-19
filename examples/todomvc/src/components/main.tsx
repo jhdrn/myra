@@ -4,38 +4,29 @@ import * as todos from '../models/todos'
 
 type Todo = todos.Todo
 
-/**
- * State
- */
-type State = undefined
+export default myra.define({}, c => {
 
-/**
- * Updates
- */
+    // Adds a new todo with a title of the value of the "new todo" input field
+    const addNewTodo = (ev: KeyboardEvent) => {
+        if (ev.keyCode === 13) {
 
-// Adds a new todo with a title of the value of the "new todo" input field
-const addNewTodo = (m: State, value: string) => {
-    const newTodo = value.trim()
-    if (newTodo) {
+            const newTodo = (ev.target as HTMLInputElement).value.trim()
+            if (newTodo) {
 
-        const todo: Todo = {
-            id: 0,
-            completed: false,
-            title: newTodo
+                const todo: Todo = {
+                    id: 0,
+                    completed: false,
+                    title: newTodo
+                }
+
+                todos.add(todo)
+
+                c.evolve({})
+            }
         }
-
-        return myra.evolve(m).and(todos.add(todo))
     }
-    return myra.evolve(m)
-}
 
-/**
- * Component
- */
-export default myra.defineComponent<State, undefined>({
-    name: 'MainComponent',
-    init: { state: undefined },
-    view: ctx =>
+    return _ =>
         <div>
             <section class="todoapp">
                 <header class="header">
@@ -44,8 +35,8 @@ export default myra.defineComponent<State, undefined>({
                         placeholder="What needs to be done?"
                         autofocus
                         value=""
-                        onkeydown={(ev, el) =>
-                            ev.keyCode === 13 && ctx.apply(addNewTodo, el.value)} />
+                        onkeydown={addNewTodo}
+                    />
                 </header>
                 <TodoListComponent forceUpdate />
             </section>

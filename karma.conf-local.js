@@ -7,22 +7,12 @@ module.exports = function (config) {
 
         files: [
             // paths loaded by Karma
+            'node_modules/systemjs/dist/system-polyfills.js',
+            'node_modules/systemjs/dist/system.js',
+            'test/karma-test-shim.js',
             {
-                pattern: 'node_modules/systemjs/dist/system-polyfills.js',
-                included: true,
-                watched: true
-            }, {
-                pattern: 'node_modules/systemjs/dist/system.js',
-                included: true,
-                watched: true
-            }, {
-                pattern: 'test/karma-test-shim.js',
-                included: true,
-                watched: true
-            }, {
-                pattern: 'test/test.json',
+                pattern: 'build/test/**/*.js',
                 included: false,
-                watched: true,
                 served: true
             },
 
@@ -52,7 +42,6 @@ module.exports = function (config) {
                 watched: false
             }
         ],
-
         port: 9876,
 
         logLevel: config.LOG_INFO,
@@ -61,7 +50,7 @@ module.exports = function (config) {
 
         autoWatch: true,
 
-        browsers: ['Chrome', 'Firefox', 'IE', 'IE10', 'IE9'],
+        browsers: ['Chrome', 'Firefox', 'IE', 'IE10'],
 
         // For Travis CI
         customLaunchers: {
@@ -72,10 +61,6 @@ module.exports = function (config) {
             IE10: {
                 base: 'IE',
                 'x-ua-compatible': 'IE=EmulateIE10'
-            },
-            IE9: {
-                base: 'IE',
-                'x-ua-compatible': 'IE=EmulateIE9'
             }
         },
 

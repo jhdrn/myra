@@ -7,16 +7,16 @@
     "start": "webpack-dev-server --inline --hot"
   },
   "devDependencies": {
-    "awesome-typescript-loader": "^3.0.7",
+    "awesome-typescript-loader": "^3.2.3",
+    "myra": "^2.0.0-alpha.14",
     "source-map-loader": "^0.1.6",
-    "typescript": "^2.2.1",
-    "webpack": "^2.2.1",
-    "webpack-dev-server": "^2.4.1"
+    "typescript": "^2.4.2",
+    "webpack": "^3.5.5",
+    "webpack-dev-server": "^2.7.1"
   },
   "dependencies": {
-    "myra": "^1.0.1",
-    "myra-http": "0.0.2",
-    "myra-router": "^0.1.0",
-    "myra-time": "0.0.1"
-  }
+    "es6-promise": "^4.1.0",
+    "whatwg-fetch": "^2.0.3"
+  },
+  "false": {}
 }

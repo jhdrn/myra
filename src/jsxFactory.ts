@@ -1,43 +1,26 @@
 import { ComponentFactory, VNode, TextVNode } from './contract'
-import { flatten } from './helpers'
 
 function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
     const flattenedChildren = [] as (VNode | string)[]
 
     for (const child of children) {
-        if (child === null) {
-            continue
+        if (child === null || child === undefined || typeof child === 'boolean') {
+            flattenedChildren.push({ _: 0 })
         }
         else if (Array.isArray(child)) {
-            for (const c of flatten(child as (VNode | string)[])) {
-                if (typeof c === 'string') {
-
-                    flattenedChildren.push({
-                        __type: 1,
-                        value: child as any as string
-                    } as TextVNode)
-                }
-                else {
-                    flattenedChildren.push(c)
-                }
+            for (const c of flattenChildren(child)) {
+                flattenedChildren.push(c)
             }
         }
-        else if (typeof child === 'object') {
-            if (typeof (child as VNode).__type !== 'undefined') {
-                flattenedChildren.push(child as VNode)
-            }
-            else {
-                flattenedChildren.push({
-                    __type: 1,
-                    value: child as any as string
-                } as TextVNode)
-            }
-        }
-        else if (typeof child !== 'undefined') {
+        else if ((child as VNode)._ === undefined) {
+            // Any node which is not a vNode will be converted to a TextVNode
             flattenedChildren.push({
-                __type: 1,
-                value: child
+                _: 1,
+                value: child as any as string
             } as TextVNode)
+        }
+        else {
+            flattenedChildren.push(child)
         }
     }
 
@@ -47,34 +30,27 @@ function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
 /**
  * Creates a JSX.Element/VNode from a JSX tag.
  */
-export function createElement<T>(tagNameOrComponent: string | ComponentFactory<T>, props: T, ...children: (string | VNode)[]): JSX.Element {
+export function h<TState, TProps>(
+    tagNameOrComponent: string | ComponentFactory<TState, TProps>,
+    props: TProps,
+    ...children: (string | VNode)[]): JSX.Element {
 
     if (tagNameOrComponent === 'nothing') {
-        return { __type: 0 }
+        return { _: 0 }
     }
-    else if (typeof tagNameOrComponent === 'string') {
 
-        if (tagNameOrComponent === 'text') {
-            return {
-                __type: 1,
-                value: children[0] as string
-            } as TextVNode
-        }
+    if (props === null) {
+        props = {} as TProps
+    }
 
-        if (props === null) {
-            props = {} as T
-        }
+    if (typeof tagNameOrComponent === 'string') {
 
         return {
-            __type: 2,
+            _: 2,
             tagName: tagNameOrComponent,
             props: props,
             children: flattenChildren(children)
         }
-    }
-
-    if (props === null) {
-        props = {} as T
     }
 
     return tagNameOrComponent(props, children as VNode[])

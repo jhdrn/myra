@@ -1,33 +1,27 @@
 
 
-# ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACIAAAAiCAMAAAANmfvwAAAANlBMVEVmRABmmQBmRABmRABmRABmRABmRABmcwBmdABmRABmRABmRABmRABmRABmRABmlABmRABmmQDkArD1AAAAEHRSTlMAAAkeNjk8YWV7foHh8PP+GiOcqAAAAKpJREFUeNql08EKg0AMhOGkdatdq67v/7LikjKQn7KHzimHD8IEYjm12iC1tYF5tzYyr/1v8xyauhcYdNmmeygyEK19HslAbMUsGQiPhPkh5jkZiuNIhuI8w2xfI2EhwpiMuoQIYzJqGyKMyaydTDdZRJabTJ2sJuPdhHCTkPFuQriETPFuQriEjE6XBA0ETRIw1iNBsxcKGgoaCBoImsE7rhQ03EJDQQNxAS1ZGHEGNN3tAAAAAElFTkSuQmCC) Myra
+Myra
 
-Myra is a simple and small [Typescript](http://www.typescriptlang.org/) 
-framework for building web interfaces. It targets the "middle ground" between
-[Elm](http://elm-lang.org/) and [React](https://facebook.github.io/react/).
+Myra is (another) JSX rendering library. It is small, simple and built with and for [Typescript](http://www.typescriptlang.org/).
 
 [![npm](https://img.shields.io/npm/v/myra.svg?maxAge=24000)](https://www.npmjs.com/package/myra)
 [![Travis](https://img.shields.io/travis/jhdrn/myra.svg?maxAge=36000)](https://travis-ci.org/jhdrn/myra)
 [![codecov](https://codecov.io/gh/jhdrn/myra/branch/master/graph/badge.svg)](https://codecov.io/gh/jhdrn/myra)
 
 ## Features
-* **Functional:** 
-  Myra encourages functional programming and immutability for predictable 
-  behavior.
 * **Small API:** 
   Myra should be easy to learn as it's API and concepts are limited.
 * **Statically typed views:** 
   Myra does not use HTML templates but uses 
   [JSX](https://facebook.github.io/react/docs/jsx-in-depth.html) to build up 
-  view hierarchies. Together with Typescript's type checking, this reduces run 
-  time errors.
+  view hierarchies. Together with Typescript's type checking, this reduces run time errors.
 * **No dependencies:** 
   Myra does not depend on any external libraries.
 * **Small code base/size:** 
-  Hello World example is ~9kb minified/~4kb minified and gzipped
+  Hello World example is < 3kb minified and gzipped
 
 ## Requirements
-Myra requires Typescript 2.0 to function properly. It is also highly advised 
+Myra requires Typescript 2.2 to function properly. It is also highly advised 
 that the compiler options `strictNullChecks`, `noImplicitReturns` and 
 `noImplicitAny` are set to true.
 
@@ -47,205 +41,61 @@ mounted to a DOM element and it may contain child components. Components can be
 either stateful or stateless. 
 
 ### Stateful components
-A stateful component must have a unique name, a state of any type and a 
-view. Many times it also has associated [`Update`](#updating-the-state) 
-functions that updates it's state.
-
-To define a component, use `defineComponent` and then mount it to the DOM
-with `mountComponent`:
+To define a stateful component, use `myra.define` and then mount it to the DOM
+with `myra.mount`:
     
 ```JSX
     import * as myra from 'myra'
-
-    type State = string
-
-    const MyComponent = myra.defineComponent({
-        // The name of the component
-        name: 'MyComponent', 
-        
-        // The initial state and effects (optional) (see 'Effects' below)
-        init: {
-            state: 'Hello world',
-            effects: ... // optional 
-        }, 
-
-        // An optional Update function that will be called when the component is 
-        // mounted (see 'Updating the state'). 
-        onMount: ..., 
-
-        // An optional Update function that will be called when the component is
-        // unmounted (see 'Updating the state'). 
-        onUnmount: ...,
-        
-        // The view of the component (see 'View' below)
-        view: ctx => <p>{ctx.state}</p>
-    })
-
-    // Mounts the component to a DOM element
-    myra.mountComponent(MyComponent, document.body) 
-```
-
-### Updating the state
-State is updated with `Update` functions. `Update` functions should 
-always be [pure](https://en.wikipedia.org/wiki/Pure_function) and 
-should also always copy the state if any changes are made to it.
-
-The `evolve` function helps with modifying and copying the state. In the 
-following example, the `updateFoo` function updates the value of the `foo`
-property of the state:
-
-```typescript
-    import { evolve } from 'myra'
-
-    type State = {
-        foo: string
-    }
-
-    const updateFoo = (state: State, newFoo: string) => 
-        evolve(state, x => x.foo = newFoo)
-```
-
-Update functions must return a `Result<T>` which is an object with the
-following definition (the `evolve` function does this for you):
-
-``` typescript
-    {
-        state: T
-        effects?: Effect[]
-    }
-```
-
-### Effects
-An `Effect` represents some kind of side effect. It receives an `Apply` function
-that may be used to apply an `Update` function with a given argument.
-
-Effects can be returned in a `Result<T>` from an `Update` function or from
-an event listener (see 'Event listeners' below).
-
-```typescript
-    import { Update, Apply } from 'myra'
-    type State = ...
-
-    const myEffect = (update: Update<State, any>) => (apply: Apply) => {
-        ...some side effect...
-        const arg = ...
-        apply(update, arg)
-    }
-```
-
-### Views
-Myra does not use HTML templates but creates it's views with JSX. A 
-`ViewContext<TState, TProps>` is supplied as an argument to the view function. 
-
-```JSX
-    import * as myra from 'myra'
-
-    type State = string
-    type Props = {}
-
-    const view = (ctx: myra.ViewContext<State, Props>) => 
-        <p>
-           The state is {ctx.state}
-        </p>
-
-```
-
-The `ViewContext<TState, TProps>` contains key properties for the component:
-
-- `state` - the current state (`TState`) of the component.
-- `props` - the props (`TProps`) supplied to the component.
-- `apply` - a function that updates the state of the component by applying the 
-  `Update` function that is supplied as an argument. If a second argument is 
-  supplied, it will be passed to the `Update` function.
-- `invoke` - a function that invokes an `Effect` which may update the state 
-  later.
-
-Examples of usage:
-
-```JSX
-    import * as myra from 'myra'
-    import { startTimeout } from 'myra-time'
-
-    type State = {
-        inputValue: string
-    }
-    type Props = {
-        foo: string
-    }
-
-    const myApplyUpdate = (s: State) => 
-        myra.evolve(s, x => x.inputValue = '')
     
-    const view = (ctx: myra.ViewContext<State, Props>) => 
-        <div>
-            <p>The props property 'foo' has value {ctx.props.foo}.</p>
-            <p>{ctx.state.inputValue}</p>
-            <button onclick={() => ctx.apply(myApplyUpdate)}>
-                Clear inputValue
-            </button>
-            <button onclick={() => ctx.invoke(startTimeout(5000, undefined, myApplyUpdate))}>
-                Clear in 5 seconds
-            </button>
-        </div>
+    type Props = { myProp: string }
+    type State = { hello: string }
+
+    const init = { hello: 'Hello!' }
+
+    // Define the component passing the initial state and a "setup"
+    // function
+    const MyComponent = myra.define<State, Props>(
+        init, 
+        // The "setup" function takes a `ComponentContext` argument
+        ctx => {
+
+            // The context can be used to attach event listeners
+            // for lifecycle events
+            ctx.didMount = (props, domRef) => console.log('didMount')
+
+            // The context also holds the important 'evolve' function
+            // which is used to update the state and re-render the component.
+            // This function will be triggered when the <p>-tag below is clicked
+            // and update the state with a new 'hello' text
+            const onClick = (ev: MouseEvent) => 
+                ctx.evolve({ hello: ev.target.tagName })
+
+            // The view must be returned as a function receiving the 
+            // current state, any props and any child nodes.
+            return (state, props, children) => 
+                <p onclick={onClick}>
+                    {state.hello}
+                    {props.myProp}
+                    {children}
+                </p>
+        }
+    )
+
+    // Mount the component to a DOM element
+    myra.mount(MyComponent, document.body) 
 ```
 
-#### Event listeners
-Any attribute key starting with `on` is treated as an event listener.
-The event, the target element and the `ElementDescriptor<TElement>` of the 
-element are passed as arguments.
-An `ElementDescriptor<TElement>` is a "virtual DOM" representation of a DOM 
-element.
+#### Lifecycle events
+The following lifecycle events are fired:
 
-```JSX
-    import * as myra from 'myra'
-
-    type State = ...
-    type Props = ...
-
-    const myUpdate = (s: State) => {
-        ...
-        return myra.evolve(s)
-    }
-
-    const view = (ctx: myra.ViewContext<State, Props>) => 
-        <button onclick={(ev, node, descriptor) => ctx.apply(myUpdate)}>Click me!</button>
-
-```
-
-#### Special attributes/props
-Some attributes/props and events has special behavior associated with them.
-
-* The `key` attribute/prop should be used to ensure that the state of child 
-components is retained when they are changing position in a list. When used with
-elements, it may also prevent unnecessary re-rendering and thus increase performance.
-_It's value must be unique amongst the items in the list._
-* The `class` attribute value will be set to the `className` property of the element.
-* `blur`, `focus` and `click` attributes with a truthy value will result in a call to 
-  `element.blur()`, `element.focus()` and `element.click()` respectively.
-* `checked` and `disabled` attributes with a truthy value will set 
-  `element.checked` and/or `element.disabled` to true.
-* The `value` attribute will set `element.value` if it is either an `input`, 
-  `select` or `textarea` element.
-
-#### Child components
-To mount a child component use it's identifier as a JSX tag. The component
-identifier must begin with an uppercase first letter, as by standard JSX rules.
-
-Any props will be passed to the child component's `ViewContext` and to it's 
-`onMount` `Update` function if defined.
-
-```JSX
-    import * as myra from 'myra'
-    import MyComponent from './myComponent'
-    
-    const view = (_) => 
-        <MyOtherComponent foo="a prop" />
-
-```
+- didMount - called after the component was attached to the DOM
+- willMount - called before the component will attach to the DOM
+- willUpdate - called before the state of the component will update
+- willUnmount - called before the component will be detached from the DOM.
 
 ### Stateless components
 A stateless component is just a function that takes a props object and 
-children as arguments:
+'children' as arguments:
 
 ```JSX
     import * as myra from 'myra'
@@ -263,39 +113,24 @@ children as arguments:
         </StateLessComponent>
 ```
 
-## Debugging
-To help with debugging you can turn on debug logging (to the console) by using 
-the `debug` function. It will log the state before and after an update, aswell 
-as any update arguments.
+## Special props
+Some props and events has special behavior associated with them.
 
-```typescript
-    import * as myra from 'myra'
-
-    // Enable debug logging
-    myra.debug(true)
-```
-
-## HTTP requests
-The [myra-http](https://github.com/jhdrn/myra-http) package exposes the
-`httpRequest` function that is an `Effect` wrapper for 
-making XmlHttpRequests. Take a look at 
-[examples/kitchen-sink/src/components/http.tsx](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/http.tsx)
-for an example on how to use the module.
-
-## Timeouts and intervals
-The [myra-time](https://github.com/jhdrn/myra-time) package contains `Effect`
-wrappers for `setTimeout` and `setInterval`.
-Take a look at 
-[examples/kitchen-sink/src/components/time.tsx](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/time.tsx)
-for an example on how to use the module.
+* The `key` prop should be used to ensure that the state of child 
+components is retained when they are changing position in a list. When used with
+elements, it may also prevent unnecessary re-rendering and thus increase performance.
+_It's value must be unique amongst the items in the list._
+* The `forceUpdate` prop will force a child component to update if set to true 
+(even if it's props didn't change).
+* The `class` prop value will be set to the `className` property of the element.
+* `blur`, `focus` and `click` props with a truthy value will result in a call to 
+  `element.blur()`, `element.focus()` and `element.click()` respectively.
 
 ## Routing
 Routing is supplied by the [myra-router](https://github.com/jhdrn/myra-router) 
 package (currently a work in progress).
 
-Both the 
-[kitchen-sink example](https://github.com/jhdrn/myra/blob/master/examples/kitchen-sink/src/components/routing.tsx) 
-and the 
+Take a look at the 
 [todomvc example](https://github.com/jhdrn/myra/blob/master/examples/todomvc/src/components/todo-list.tsx) 
 contains code examples for `myra-router`.
 

@@ -1,43 +1,23 @@
 import * as myra from 'myra'
 
-
-/**
- * State
- */
-type State = number
-const init = myra.evolve(0)
-
-
-/**
- * Updates
- */
-const increase = (state: State) => myra.evolve(state + 1)
-const decrease = (state: State) => myra.evolve(state - 1)
-
-
 /**
  * Component
  */
-export default myra.defineComponent({
-    // The name of the component. Used for debugging purposes.
-    name: 'CounterComponent',
+export default myra.define({ val: 0 }, c => {
+    const increase = () => c.evolve(state => ({ val: state.val + 1 }))
+    const decrease = () => c.evolve(state => ({ val: state.val - 1 }))
 
-    // Init takes either an initial model or a tuple of an initial model 
-    // and one or more tasks to execute when the component is initialized.
-    init: init,
-
-    // The view function is called after update. 
-    view: ctx =>
+    return state =>
         <section>
             <h2>Counter example</h2>
             <button type="button"
                 class="btn btn-sm btn-default"
-                onclick={() => ctx.apply(increase)}>+</button>
+                onclick={increase}>+</button>
 
-            <span> {ctx.state} </span>
+            <span> {state.val} </span>
 
             <button type="button"
                 class="btn btn-sm btn-default"
-                onclick={() => ctx.apply(decrease)}>-</button>
-        </section>
+                onclick={decrease}>-</button>
+        </section >
 })
