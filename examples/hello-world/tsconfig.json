@@ -4,13 +4,11 @@
         "sourceMap": true,
         "target": "es5",
         "module": "commonjs",
+        "strict": true,
         "noFallthroughCasesInSwitch": true,
-        "noImplicitAny": true,
         "noImplicitReturns": true,
-        "noImplicitThis": true,
         "noUnusedParameters": true,
         "noUnusedLocals": true,
-        "strictNullChecks": true,
         "moduleResolution": "node",
         "pretty": true,
         "jsxFactory": "myra.h",
@@ -22,7 +20,6 @@
         ]
     },
     "include": [
-        "src/**/*",
-        "node_modules/myra/**/*.ts"
+        "src/**/*"
     ]
 }
