@@ -14,46 +14,51 @@ import { render } from './renderer'
  * dispatch with the intial value from the component spec. If spec.onMount is
  * set, it will also be applied.
  */
-export function initComponent<TState, TProps>(vNode: ComponentVNode<TState, TProps>, parentElement: Element) {
-    const link = {
-        vNode: vNode
+export function initComponent(vNode: VNode, parentElement: Element) {
+
+    if (vNode._ === 3) {
+        const link = {
+            vNode: vNode
+        }
+        vNode.link = link
+        vNode.parentElement = parentElement
+
+        const ctx = {
+            get state() {
+                return link.vNode.state
+            },
+            get props() {
+                return link.vNode.props
+            },
+            get domRef() {
+                return link.vNode.domRef as Element | undefined
+            },
+            evolve: (fn: UpdateState<any>) =>
+                dispatch(link.vNode, render, fn)
+        }
+        vNode.ctx = ctx
+
+        const view = vNode.spec(ctx)
+        vNode.view = view
+
+        if (vNode.ctx.willMount !== undefined) {
+            // Setting dispatchLevel to 1 will make any dispatch call just update
+            // the state without rendering the view
+            vNode.dispatchLevel = 1
+            vNode.ctx.willMount(vNode.props)
+        }
+        vNode.dispatchLevel = 0
+
+        // Dispatch to render the view. 
+        dispatch(vNode, render)
+
+        if (vNode.ctx.didMount !== undefined) {
+            vNode.ctx.didMount(vNode.props, vNode.domRef!)
+        }
     }
-    vNode.link = link
-    vNode.parentElement = parentElement
-
-    const ctx = {
-        get state() {
-            return link.vNode.state
-        },
-        get props() {
-            return link.vNode.props
-        },
-        get domRef() {
-            return link.vNode.domRef as Element | undefined
-        },
-        evolve: (fn: UpdateState<TState>) =>
-            dispatch(link.vNode, render, fn)
+    else {
+        render(parentElement, vNode, undefined, undefined)
     }
-    vNode.ctx = ctx
-
-    const view = vNode.spec(ctx)
-    vNode.view = view
-
-    if (vNode.ctx.willMount !== undefined) {
-        // Setting dispatchLevel to 1 will make any dispatch call just update
-        // the state without rendering the view
-        vNode.dispatchLevel = 1
-        vNode.ctx.willMount(vNode.props)
-    }
-    vNode.dispatchLevel = 0
-
-    // Dispatch to render the view. 
-    dispatch(vNode, render)
-
-    if (vNode.ctx.didMount !== undefined) {
-        vNode.ctx.didMount(vNode.props, vNode.domRef!)
-    }
-
     return vNode.domRef!
 }
 
