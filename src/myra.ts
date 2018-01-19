@@ -24,6 +24,6 @@ export function define<TState, TProps>(state: TState, spec: ComponentSetup<TStat
  * Mounts the component onto the supplied element by calling the supplied 
  * component factory. 
  */
-export function mount(componentFactory: ComponentFactory<any, any>, element: Element) {
+export function mount(componentFactory: ComponentFactory<any>, element: Element) {
     initComponent(componentFactory({}, []), element)
 }

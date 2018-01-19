@@ -25,13 +25,24 @@ describe('define', () => {
  */
 describe('mount', () => {
 
-    it('mounts the compontent', () => {
+    it('mounts the component', () => {
 
         const component = myra.define({}, () => () => <div id="root" />)
 
         myra.mount(component, document.body)
 
         const rootNode = q('#root')
+
+        expect(rootNode).not.toBeNull()
+    })
+
+    it('mounts a stateless component', () => {
+
+        const component = () => <div id="stateless-root" />
+
+        myra.mount(component, document.body)
+
+        const rootNode = q('#stateless-root')
 
         expect(rootNode).not.toBeNull()
     })

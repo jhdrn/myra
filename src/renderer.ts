@@ -105,55 +105,6 @@ export function render(
 /** 
  * Renders child virtual nodes. Will add/remove DOM nodes if needed.
  */
-// function renderChildNodes(newVNode: ElementVNode<any>, oldVNode: VNode, parentDomNode: Node) {
-
-//     // Iterate over children and add/update/remove nodes
-//     const noOfNewVNodeChildren = newVNode.children.length
-//     const noOfOldVNodeChildren = oldVNode._ === 2 ? oldVNode.children.length : 0
-//     const maxIterations = max(noOfNewVNodeChildren, noOfOldVNodeChildren)
-
-//     let childVNodeIndex = 0
-//     let childDomNode: Node | null = parentDomNode.firstChild
-//     let childVNode: VNode
-
-//     for (let i = 0; i < maxIterations; i++) {
-//         if (i < noOfNewVNodeChildren) {
-
-//             childVNode = newVNode.children[i]
-
-//             const oldChildVNode = findOldChildVNode(childVNode, oldVNode, i)
-//             if (oldChildVNode.domRef !== undefined && oldChildVNode.domRef !== childDomNode) {
-//                 parentDomNode.insertBefore(oldChildVNode.domRef, childDomNode)
-//             }
-//             else if (childDomNode !== null) {
-//                 childDomNode = childDomNode!.nextSibling
-//             }
-
-//             render(parentDomNode as Element, childVNode, oldChildVNode, oldChildVNode.domRef)
-
-//             childVNodeIndex++
-//         }
-//         else if (childDomNode !== null) {
-//             const oldChildVNode = (oldVNode as ElementVNode<any>).children[i]
-
-//             // Make sure that any components are unmounted correctly
-//             findAndUnmountComponentsRec(oldChildVNode)
-
-//             // Get a reference to the next sibling before the child node is
-//             // removed.
-//             const nextDomSibling = childDomNode.nextSibling
-
-//             parentDomNode.removeChild(childDomNode)
-
-//             childDomNode = nextDomSibling
-//         }
-
-//     }
-// }
-
-/** 
- * Renders child virtual nodes. Will add/remove DOM nodes if needed.
- */
 function renderChildNodes(newVNode: ElementVNode<any>, oldVNode: VNode, parentDomNode: Node, isSvg: boolean) {
 
     const noOfNewVNodeChildren = newVNode.children.length

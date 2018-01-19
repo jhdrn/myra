@@ -261,8 +261,8 @@ export type ComponentContext<TState, TProps> = {
 }
 export type ComponentSetup<TState, TProps> = (ctx: ComponentContext<TState, TProps>) => View<TState, TProps>
 
-export interface ComponentFactory<TState, TProps> {
-    (props: TProps, children: VNode[]): ComponentVNode<TState, TProps>
+export interface ComponentFactory<TProps> {
+    (props: TProps, children: VNode[]): VNode
 }
 
 export interface AttributeMap { [name: string]: string }
