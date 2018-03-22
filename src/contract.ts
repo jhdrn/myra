@@ -565,7 +565,7 @@ export interface InputAttributes extends GlobalAttributes<HTMLInputElement> {
     maxlength?: number | string
     min?: number | string
     minlength?: number | string
-    muliple?: boolean | 'true' | 'false'
+    multiple?: boolean | 'true' | 'false'
     name?: string
     pattern?: string
     placeholder?: string
