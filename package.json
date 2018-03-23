@@ -1,7 +1,7 @@
 {
   "name": "myra",
   "private": true,
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "Myra is a simple and small Typescript JSX rendering library.",
   "readme": "README.md",
   "repository": {
@@ -47,7 +47,7 @@
     "rollup-plugin-uglify": "^2.0.1",
     "systemjs": "^0.19.31",
     "ts-node": "^4.0.2",
-    "typescript": "^2.6.2",
+    "typescript": "^2.7.2",
     "uglify-es": "^3.2.2"
   },
   "scripts": {
