@@ -268,8 +268,9 @@ function setAttr(element: HTMLElement, attributeName: string, attributeValue: an
             /** Ignore and use setAttribute instead  */
         }
     }
-
-    element.setAttribute(attributeName, attributeValue)
+    if (typeof attributeValue !== 'function' && typeof attributeValue !== 'object') {
+        element.setAttribute(attributeName, attributeValue)
+    }
 }
 
 /** 

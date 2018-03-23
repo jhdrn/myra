@@ -206,6 +206,57 @@ describe('render', () => {
         done()
     })
 
+    it('does not set an event listener that doesn\'t exist on the element', (done) => {
+        const mocks = {
+            onCustomClick: () => { /* dummy */ }
+        } as any
+
+        const view =
+            <button {...mocks}></button>
+
+        render(document.body, view, view, undefined)
+
+        const node = view.domRef as any
+        console.log(node)
+        expect(node.getAttribute('onCustomClick')).toBeNull()
+
+        done()
+    })
+
+    it('does not set an object as an element attribute', (done) => {
+        const mocks = {
+            objAttr: { foo: 'bar' }
+        } as any
+
+        const view =
+            <button {...mocks}></button>
+
+        render(document.body, view, view, undefined)
+
+        const node = view.domRef as HTMLButtonElement
+        console.log(node)
+        expect(node.getAttribute('objAttr')).toBeNull()
+
+        done()
+    })
+
+    it('does not set an array as an element attribute', (done) => {
+        const mocks = {
+            arrayAttr: ['foo', 'bar']
+        } as any
+
+        const view =
+            <button {...mocks}></button>
+
+        render(document.body, view, view, undefined)
+
+        const node = view.domRef as HTMLButtonElement
+        console.log(node)
+        expect(node.getAttribute('arrayAttr')).toBeNull()
+
+        done()
+    })
+
     it('replaces the old event listener with a the new one', (done) => {
         const mocks = {
             onclickUpdate1: () => { /* dummy */ },
