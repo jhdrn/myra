@@ -82,15 +82,16 @@ with `myra.mount`:
     )
 
     // Mount the component to a DOM element
-    myra.mount(MyComponent, document.body) 
+    myra.mount(<MyComponent />, document.body) 
 ```
 
 #### Lifecycle events
 The following lifecycle events are fired:
 
-- didMount - called after the component was attached to the DOM
 - willMount - called before the component will attach to the DOM
-- willUpdate - called before the state of the component will update
+- willRender - called before the component will be rendered
+- didRender - called after the component was rendered
+- didMount - called after the component was attached to the DOM
 - willUnmount - called before the component will be detached from the DOM.
 
 ### Stateless components
