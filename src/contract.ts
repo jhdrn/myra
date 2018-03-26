@@ -279,6 +279,9 @@ export interface GenericKeyboardEvent<T extends EventTarget> extends KeyboardEve
 export interface GenericFocusEvent<T extends EventTarget> extends FocusEvent {
     currentTarget: T
 }
+export interface GenericDragEvent<T extends EventTarget> extends DragEvent {
+    currentTarget: T
+}
 
 /**
  * A function used as callback for event triggers.
@@ -382,6 +385,15 @@ export interface GlobalAttributes<TElement extends Element> {
     onmouseover?: EventListener<GenericMouseEvent<TElement>>
     onmouseup?: EventListener<GenericMouseEvent<TElement>>
     onshow?: EventListener<GenericEvent<TElement>>
+
+    ondrag?: EventListener<GenericDragEvent<TElement>>
+    ondragend?: EventListener<GenericDragEvent<TElement>>
+    ondragenter?: EventListener<GenericDragEvent<TElement>>
+    ondragexit?: EventListener<GenericDragEvent<TElement>>
+    ondragleave?: EventListener<GenericDragEvent<TElement>>
+    ondragover?: EventListener<GenericDragEvent<TElement>>
+    ondragstart?: EventListener<GenericDragEvent<TElement>>
+    ondrop?: EventListener<GenericDragEvent<TElement>>
 
     role?: string
 
