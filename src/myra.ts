@@ -1,5 +1,6 @@
 import { initComponent } from './component'
-import { ComponentSetup, ComponentVNode, ComponentFactory, VNode } from './contract'
+import { ComponentSetup, ComponentVNode, VNode } from './contract'
+import { render } from './renderer'
 
 export * from './jsxFactory'
 export * from './contract'
@@ -24,6 +25,11 @@ export function define<TState, TProps>(state: TState, spec: ComponentSetup<TStat
  * Mounts the component onto the supplied element by calling the supplied 
  * component factory. 
  */
-export function mount(componentFactory: ComponentFactory<any>, element: Element) {
-    initComponent(componentFactory({}, []), element)
+export function mount(vNode: VNode, element: Element) {
+    if (vNode._ === 3) {
+        initComponent(vNode, element)
+    }
+    else {
+        render(element, vNode, undefined, undefined)
+    }
 }

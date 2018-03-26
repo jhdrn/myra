@@ -53,13 +53,13 @@ describe('render', () => {
 
     it('remounts a component if forceUpdate is set to true', (done) => {
         const mocks = {
-            mount: () => { /* dummy */ }
+            willRender: () => { /* dummy */ }
         }
 
-        spyOn(mocks, 'mount')
+        spyOn(mocks, 'willRender')
 
         const testComponent = define({}, ctx => {
-            ctx.willUpdate = mocks.mount
+            ctx.willRender = mocks.willRender
             return _ => <div id="testComponent"></div>
         })
 
@@ -71,7 +71,7 @@ describe('render', () => {
 
         render(document.body, view2, view1, node)
 
-        expect(mocks.mount).toHaveBeenCalledTimes(1)
+        expect(mocks.willRender).toHaveBeenCalledTimes(2)
 
         done()
     })
@@ -217,7 +217,6 @@ describe('render', () => {
         render(document.body, view, view, undefined)
 
         const node = view.domRef as any
-        console.log(node)
         expect(node.getAttribute('onCustomClick')).toBeNull()
 
         done()
@@ -234,7 +233,6 @@ describe('render', () => {
         render(document.body, view, view, undefined)
 
         const node = view.domRef as HTMLButtonElement
-        console.log(node)
         expect(node.getAttribute('objAttr')).toBeNull()
 
         done()
@@ -251,7 +249,6 @@ describe('render', () => {
         render(document.body, view, view, undefined)
 
         const node = view.domRef as HTMLButtonElement
-        console.log(node)
         expect(node.getAttribute('arrayAttr')).toBeNull()
 
         done()
@@ -428,7 +425,7 @@ describe('render', () => {
 
         const ParentComponent = define({}, () => () => <ChildComponent test="test" />)
 
-        mount(ParentComponent, document.body)
+        mount(<ParentComponent />, document.body)
 
         expect(mocks.assertProps).toHaveBeenCalledTimes(1)
     })
@@ -453,7 +450,7 @@ describe('render', () => {
         const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, ctx => {
             const setClicked = () => ctx.evolve(_ => ({ clicked: true }))
             const updateItemId = (itemId: number) => ctx.evolve(_ => ({ itemId: itemId }))
-            ctx.didMount = props => updateItemId(props.item.id)
+            ctx.didMount = ({ props }) => updateItemId(props.item.id)
             return (state) =>
                 <button id={`item-${state.itemId}`}
                     class={state.clicked ? "clicked" : ""}
@@ -513,8 +510,8 @@ describe('render', () => {
             const setClicked = () => ctx.evolve(_ => ({ clicked: true }))
             const updateItemId = (itemId: number) => ctx.evolve(_ => ({ itemId: itemId }))
 
-            ctx.didMount = props => updateItemId(props.item.id)
-            ctx.willUpdate = props => updateItemId(props.item.id)
+            ctx.didMount = ({ props }) => updateItemId(props.item.id)
+            ctx.willRender = ({ props }) => updateItemId(props.item.id)
 
             return (state) =>
                 <button id={`item-${state.itemId}`}
@@ -575,7 +572,7 @@ describe('render', () => {
             const setClicked = () => ctx.evolve(_ => ({ clicked: true }))
             const updateItemId = (itemId: number) => ctx.evolve(_ => ({ itemId: itemId }))
 
-            ctx.didMount = props => updateItemId(props.item.id)
+            ctx.didMount = ({ props }) => updateItemId(props.item.id)
 
             return (state) =>
                 <button id={`item-${state.itemId}`}
@@ -635,8 +632,8 @@ describe('render', () => {
             const setClicked = () => ctx.evolve(_ => ({ clicked: true }))
             const updateItemId = (itemId: number) => ctx.evolve(_ => ({ itemId: itemId }))
 
-            ctx.didMount = props => updateItemId(props.item.id)
-            ctx.willUpdate = props => updateItemId(props.item.id)
+            ctx.didMount = ({ props }) => updateItemId(props.item.id)
+            ctx.willRender = ({ props }) => updateItemId(props.item.id)
 
             return (state) =>
                 <button id={`item-${state.itemId}`}
@@ -698,7 +695,7 @@ describe('render', () => {
             const setClicked = () => ctx.evolve(_ => ({ clicked: true }))
             const updateItemId = (itemId: number) => ctx.evolve(_ => ({ itemId: itemId }))
 
-            ctx.didMount = props => updateItemId(props.item.id)
+            ctx.didMount = ({ props }) => updateItemId(props.item.id)
 
             return (state) => {
                 const v = <button id={`item-${state.itemId}`} class={state.clicked ? "clicked" : ""}
@@ -772,8 +769,8 @@ describe('render', () => {
             const setClicked = () => ctx.evolve(_ => ({ clicked: true }))
             const updateItemId = (itemId: number) => ctx.evolve(_ => ({ itemId: itemId }))
 
-            ctx.didMount = props => updateItemId(props.item.id)
-            ctx.willUpdate = props => updateItemId(props.item.id)
+            ctx.didMount = ({ props }) => updateItemId(props.item.id)
+            ctx.willRender = ({ props }) => updateItemId(props.item.id)
 
             return (state) => {
                 const v =
@@ -891,12 +888,12 @@ describe('render', () => {
     //     const view1 = <input onfocus={() => console.log('I was focused')} focus={true} />
     //     render(document.body, view1, view1, undefined)
     //     // view1.node = el
-    //     // view1.node.click()
+    //     view1.domRef.click()
     //     // expect(view2.props.onblur).toEqual(mocks.onEventTriggered)
     //     setTimeout(() => {
 
     //         const view2 = <input onblur={mocks.onEventTriggered} blur={true} />
-    //         render(document.body, view2, view1, view1.node)
+    //         render(document.body, view2, view1, view1.domRef)
 
     //         // expect(view2.props.onblur).toEqual(mocks.onEventTriggered)
 

@@ -248,18 +248,21 @@ export type Evolve<TState> = (update: UpdateState<TState>) => void
 export interface View<TState, TProps> {
     (state: TState, props: TProps, children: JSX.Element[]): JSX.Element
 }
-export type ComponentContext<TState, TProps> = {
+export interface Context<TState, TProps> {
     readonly evolve: Evolve<TState>
     readonly props: TProps
     readonly state: TState
     readonly domRef: Element | undefined
-
-    willMount?: (props: TProps) => void
-    didMount?: (props: TProps, domRef: Node) => void
-    willUpdate?: (props: TProps) => void
-    willUnmount?: (domRef: Node) => void
 }
-export type ComponentSetup<TState, TProps> = (ctx: ComponentContext<TState, TProps>) => View<TState, TProps>
+export interface SetupContext<TState, TProps> extends Context<TState, TProps> {
+    willMount?: (ctx: Context<TState, TProps>) => void
+    didMount?: (ctx: Context<TState, TProps>) => void
+    willRender?: (ctx: Context<TState, TProps>) => void
+    didRender?: (ctx: Context<TState, TProps>) => void
+    willUnmount?: (ctx: Context<TState, TProps>) => void
+}
+
+export type ComponentSetup<TState, TProps> = (ctx: SetupContext<TState, TProps>) => View<TState, TProps>
 
 export interface ComponentFactory<TProps> {
     (props: TProps, children: VNode[]): VNode
@@ -328,7 +331,7 @@ export interface ComponentVNode<TState extends {}, TProps extends {}> extends VN
     props: TProps
     state: Readonly<TState>
     spec: ComponentSetup<TState, TProps>
-    ctx: ComponentContext<TState, TProps>
+    ctx: SetupContext<TState, TProps>
     view: View<TState, TProps>
     parentElement?: Element
     dispatchLevel: number

@@ -9,14 +9,14 @@ const q = (x: string) => document.querySelector(x)
 describe('define', () => {
     it('the "ctx" object is passed', (done) => {
 
-        const component = myra.define({}, ctx => {
+        const Component = myra.define({}, ctx => {
             expect(ctx).toBeDefined()
             expect(typeof ctx === 'object').toBeTruthy()
             done()
             return () => <div />
         })
 
-        myra.mount(component, document.body)
+        myra.mount(<Component />, document.body)
     })
 })
 
@@ -27,9 +27,9 @@ describe('mount', () => {
 
     it('mounts the component', () => {
 
-        const component = myra.define({}, () => () => <div id="root" />)
+        const Component = myra.define({}, () => () => <div id="root" />)
 
-        myra.mount(component, document.body)
+        myra.mount(<Component />, document.body)
 
         const rootNode = q('#root')
 
@@ -38,9 +38,9 @@ describe('mount', () => {
 
     it('mounts a stateless component', () => {
 
-        const component = () => <div id="stateless-root" />
+        const Component = () => <div id="stateless-root" />
 
-        myra.mount(component, document.body)
+        myra.mount(<Component />, document.body)
 
         const rootNode = q('#stateless-root')
 
@@ -54,12 +54,12 @@ describe('mount', () => {
 
         spyOn(mock, 'callback').and.callThrough()
 
-        const component = myra.define({ val: 0 }, ctx => {
+        const Component = myra.define({ val: 0 }, ctx => {
             ctx.willMount = mock.callback
             return () => <div />
         })
 
-        myra.mount(component, document.body)
+        myra.mount(<Component />, document.body)
 
         expect(mock.callback).toHaveBeenCalled()
     })
@@ -71,12 +71,46 @@ describe('mount', () => {
 
         spyOn(mock, 'callback').and.callThrough()
 
-        const component = myra.define({ val: 0 }, ctx => {
+        const Component = myra.define({ val: 0 }, ctx => {
             ctx.didMount = mock.callback
             return () => <div />
         })
 
-        myra.mount(component, document.body)
+        myra.mount(<Component />, document.body)
+
+        expect(mock.callback).toHaveBeenCalled()
+    })
+
+    it('calls the willRender listener', () => {
+        const mock = {
+            callback: () => Promise.resolve({})
+        }
+
+        spyOn(mock, 'callback').and.callThrough()
+
+        const Component = myra.define({ val: 0 }, ctx => {
+            ctx.willRender = mock.callback
+            return () => <div />
+        })
+
+        myra.mount(<Component />, document.body)
+
+        expect(mock.callback).toHaveBeenCalled()
+    })
+
+    it('calls the didRender listener', () => {
+        const mock = {
+            callback: () => Promise.resolve({})
+        }
+
+        spyOn(mock, 'callback').and.callThrough()
+
+        const Component = myra.define({ val: 0 }, ctx => {
+            ctx.didRender = mock.callback
+            return () => <div />
+        })
+
+        myra.mount(<Component />, document.body)
 
         expect(mock.callback).toHaveBeenCalled()
     })
@@ -91,13 +125,15 @@ describe('mount', () => {
 
         spyOn(viewMock, 'view').and.callThrough()
 
-        const component = myra.define<any, any>({}, () => viewMock.view)
+        const Component = myra.define<any, any>({}, () => viewMock.view)
 
-        const parent = myra.define({}, () => () =>
-            component({}, [<div id="divTestId" />])
+        const Parent = myra.define({}, () => () =>
+            <Component>
+                <div id="divTestId" />
+            </Component>
         )
 
-        myra.mount(parent, document.body)
+        myra.mount(<Parent />, document.body)
 
         expect(q('#divTestId')).not.toBeNull()
 
@@ -155,6 +191,7 @@ describe('unmountComponent', () => {
 
         expect(mountMock.unmount).toHaveBeenCalledTimes(2)
     })
+
 })
 
 /**
@@ -162,15 +199,15 @@ describe('unmountComponent', () => {
  */
 describe('updateComponent', () => {
 
-    it('does not call the willUpdate listener if the arguments has not changed', () => {
-        const mountMock = {
-            mount: () => Promise.resolve({})
+    it('does not call the willRender listener if the arguments has not changed', () => {
+        const mock = {
+            willRender: () => Promise.resolve({})
         }
 
-        spyOn(mountMock, 'mount').and.callThrough()
+        spyOn(mock, 'willRender').and.callThrough()
 
         const component = myra.define<{}, { val: number }>({}, ctx => {
-            ctx.willUpdate = mountMock.mount
+            ctx.willRender = mock.willRender
             return () => <div />
         })
 
@@ -178,10 +215,10 @@ describe('updateComponent', () => {
         initComponent(vNode, document.body)
         updateComponent(component({ val: 45 }, []), vNode)
 
-        expect(mountMock.mount).toHaveBeenCalledTimes(0)
+        expect(mock.willRender).toHaveBeenCalledTimes(1)
     })
 
-    it('calls the willUpdate event if forceUpdate is true', () => {
+    it('calls the willRender event if forceUpdate is true', () => {
         const mountMock = {
             mount: () => Promise.resolve({})
         }
@@ -189,7 +226,7 @@ describe('updateComponent', () => {
         spyOn(mountMock, 'mount').and.callThrough()
 
         const component = myra.define({}, ctx => {
-            ctx.willUpdate = mountMock.mount
+            ctx.willRender = mountMock.mount
             return () => <div />
         })
 
@@ -199,11 +236,10 @@ describe('updateComponent', () => {
         const newVNode = component({ forceUpdate: true }, [])
         updateComponent(newVNode, vNode)
 
-        expect(mountMock.mount).toHaveBeenCalledTimes(1)
+        expect(mountMock.mount).toHaveBeenCalledTimes(2)
     })
 
-
-    it('calls the willUpdate event if the supplied arguments is not equal to the previous arguments', () => {
+    it('calls the willRender event if the supplied arguments is not equal to the previous arguments', () => {
         const mountMock = {
             callback: () => Promise.resolve({})
         }
@@ -211,7 +247,7 @@ describe('updateComponent', () => {
         spyOn(mountMock, 'callback').and.callThrough()
 
         const component = myra.define({}, ctx => {
-            ctx.willUpdate = mountMock.callback
+            ctx.willRender = mountMock.callback
             return () => <div />
         })
 
@@ -221,7 +257,7 @@ describe('updateComponent', () => {
         const newVNode = component({ prop: 'a new value' }, [])
         updateComponent(newVNode, vNode)
 
-        expect(mountMock.callback).toHaveBeenCalledTimes(1)
+        expect(mountMock.callback).toHaveBeenCalledTimes(2)
     })
 })
 
@@ -244,13 +280,13 @@ describe('evolve', () => {
 
         spyOn(mocks, 'onclickUpdate').and.callThrough()
 
-        const component = myra.define({ val: 1 }, ctx => {
+        const Component = myra.define({ val: 1 }, ctx => {
             const onclickUpdate = () => ctx.evolve(mocks.onclickUpdate)
             return () => <button id="postButton" onclick={onclickUpdate}></button>
         })
 
 
-        myra.mount(component, document.body)
+        myra.mount(<Component />, document.body)
 
         const postBtn = document.getElementById('postButton') as HTMLButtonElement
         postBtn.click()
@@ -260,35 +296,35 @@ describe('evolve', () => {
         expect(mocks.onclickUpdate).toHaveBeenCalledTimes(2)
     })
 
-    // it('updates the state when an object in supplied', () => {
-    //     let firstUpdate = true
+    it('updates the state when an object in supplied', () => {
+        let firstUpdate = true
 
-    //     const mocks = {
-    //         onclickUpdate: (s: { val: number }, newState: { val: number }) => {
+        const mocks = {
+            onclickUpdate: (s: { val: number }, newState: { val: number }) => {
 
-    //             if (firstUpdate) {
-    //                 expect(s).toEqual({ val: 1 })
-    //             }
-    //             else {
-    //                 expect(s).toEqual({ val: 2 })
-    //             }
-    //             return newState
-    //         }
-    //     }
+                if (firstUpdate) {
+                    expect(s).toEqual({ val: 1 })
+                }
+                else {
+                    expect(s).toEqual({ val: 2 })
+                }
+                return newState
+            }
+        }
 
-    //     spyOn(mocks, 'onclickUpdate').and.callThrough()
+        spyOn(mocks, 'onclickUpdate').and.callThrough()
 
-    //     const component = define({ val: 1 }, ({ state, post }) =>
-    //         <button id="postButton2" onclick={() => post(mocks.onclickUpdate(state, { val: 2 }))}></button>
-    //     )
+        const Component = myra.define({ val: 1 }, ctx => state =>
+            <button id="postButton2" onclick={() => ctx.evolve(mocks.onclickUpdate(state, { val: 2 }))}></button>
+        )
 
-    //     mount(component, document.body)
+        myra.mount(<Component />, document.body)
 
-    //     const postBtn = document.getElementById('postButton2') as HTMLButtonElement
-    //     postBtn.click()
-    //     firstUpdate = false
-    //     postBtn.click()
+        const postBtn = document.getElementById('postButton2') as HTMLButtonElement
+        postBtn.click()
+        firstUpdate = false
+        postBtn.click()
 
-    //     expect(mocks.onclickUpdate).toHaveBeenCalledTimes(2)
-    // })
+        expect(mocks.onclickUpdate).toHaveBeenCalledTimes(2)
+    })
 })
