@@ -33,8 +33,14 @@ export function initComponent(vNode: ComponentVNode<any, any>, parentElement: El
         get domRef() {
             return link.vNode.domRef as Element | undefined
         },
-        evolve: (fn: UpdateState<any>) => {
-            dispatch(link.vNode, render, fn)
+        evolve: function evolve(update: UpdateState<any>) {
+
+            if (typeof update === 'function') {
+                update = update(vNode.state)
+            }
+            link.vNode.state = { ...(link.vNode.state as any), ...(update as object) }
+
+            tryRender(link.vNode)
         }
     }
     vNode.ctx = ctx
@@ -50,8 +56,8 @@ export function initComponent(vNode: ComponentVNode<any, any>, parentElement: El
     }
     vNode.dispatchLevel = 0
 
-    // Dispatch to render the view. 
-    dispatch(vNode, render)
+    // Render the view. 
+    tryRender(vNode)
 
     if (vNode.ctx.didMount !== undefined) {
         vNode.ctx.didMount(vNode.ctx)
@@ -66,7 +72,7 @@ export function initComponent(vNode: ComponentVNode<any, any>, parentElement: El
  */
 export function updateComponent<TState, TProps>(newVNode: ComponentVNode<TState, TProps>, oldVNode: ComponentVNode<TState, TProps>) {
 
-    const shouldUpdate =
+    const shouldRender =
         newVNode.props !== undefined
         && newVNode.props !== null
         && (newVNode.props as any).forceUpdate
@@ -81,10 +87,9 @@ export function updateComponent<TState, TProps>(newVNode: ComponentVNode<TState,
     newVNode.ctx = oldVNode.ctx
     newVNode.view = oldVNode.view
 
-    if (shouldUpdate) {
+    if (shouldRender) {
 
-        // Dispatch to render the view. 
-        dispatch(newVNode, render)
+        tryRender(newVNode)
     }
 }
 
@@ -109,27 +114,15 @@ export function findAndUnmountComponentsRec(vNode: VNode) {
 }
 
 /**
- * Calls the update function (if any), updates the state and renders the view.
+ * Tries to render the view.
  * 
  * @param vNode 
- * @param render 
- * @param update 
  */
-function dispatch<TState extends {}, TProps extends {}>(
-    vNode: ComponentVNode<TState, TProps>,
-    render: (parentNode: Element, view: VNode, oldView: VNode | undefined, oldRootNode: Node | undefined) => void,
-    update?: UpdateState<TState>) {
+function tryRender<TState extends {}, TProps extends {}>(vNode: ComponentVNode<TState, TProps>) {
 
     vNode.dispatchLevel++
 
-    if (update !== undefined) {
-        if (typeof update === 'function') {
-            update = update(vNode.state)
-        }
-        vNode.state = { ...(vNode.state as any), ...(update as object) }
-    }
-
-    // Update view if the component was already initialized and the 
+    // Render view if the component was already initialized and the 
     // dispatchLevel is at "lowest" level (i.e. 1).
     if (vNode.dispatchLevel === 1) {
 
