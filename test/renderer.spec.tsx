@@ -217,7 +217,7 @@ describe('render', () => {
         render(document.body, view, view, undefined)
 
         const node = view.domRef as any
-        console.log(node)
+
         expect(node.getAttribute('onCustomClick')).toBeNull()
 
         done()
@@ -234,7 +234,7 @@ describe('render', () => {
         render(document.body, view, view, undefined)
 
         const node = view.domRef as HTMLButtonElement
-        console.log(node)
+
         expect(node.getAttribute('objAttr')).toBeNull()
 
         done()
@@ -251,7 +251,7 @@ describe('render', () => {
         render(document.body, view, view, undefined)
 
         const node = view.domRef as HTMLButtonElement
-        console.log(node)
+
         expect(node.getAttribute('arrayAttr')).toBeNull()
 
         done()
