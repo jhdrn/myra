@@ -323,15 +323,17 @@ function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, e
 
     let attributeValue: any
     let oldAttributeValue: any
+    let hasAttr: boolean
 
     // update any attribute where the attribute value has changed
     for (const name in newVNode.props) {
 
         attributeValue = (newVNode.props as any)[name]
         oldAttributeValue = ((oldVNode as ElementVNode<any>).props as any)[name]
+        hasAttr = (existingDomNode as Element).hasAttribute(name)
 
         if ((name.indexOf('on') === 0 || attributeValue !== oldAttributeValue ||
-            !(existingDomNode as Element).hasAttribute(name)) && attributeValue !== undefined
+            !hasAttr) && attributeValue !== undefined
         ) {
             setAttr(
                 existingDomNode as HTMLElement,
@@ -339,7 +341,7 @@ function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, e
                 attributeValue
             )
         }
-        else if (attributeValue === undefined && (existingDomNode as Element).hasAttribute(name)) {
+        else if (attributeValue === undefined && hasAttr) {
             (existingDomNode as Element).removeAttribute(name)
         }
     }
