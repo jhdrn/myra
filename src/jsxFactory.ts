@@ -52,6 +52,13 @@ export function h<TProps>(
             children: flattenChildren(children)
         }
     }
-
-    return tagNameOrComponent(props, children as VNode[])
+    if ((tagNameOrComponent as any)._ === 1) {
+        return tagNameOrComponent(props, children as VNode[])
+    }
+    return {
+        _: 4,
+        props,
+        children: children as VNode[],
+        view: tagNameOrComponent
+    }
 }

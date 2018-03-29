@@ -1,6 +1,7 @@
 /** @internal */
 import { initComponent, updateComponent, findAndUnmountComponentsRec } from './component'
-import { VNode, ElementVNode, ComponentVNode } from './contract'
+import { VNode, ElementVNode, ComponentVNode, StatelessComponentVNode } from './contract'
+import { equal } from './helpers'
 
 /** 
  * Renders the view by walking the virtual node tree recursively 
@@ -87,6 +88,19 @@ export function render(
                 break
             case 3: // component node
                 updateComponent(newVNode, oldVNode as ComponentVNode<any, any>)
+                break
+            case 4: // stateless component node
+                if (!equal(newVNode.props, (oldVNode as StatelessComponentVNode<any>).props) || !equal(newVNode.children, (oldVNode as StatelessComponentVNode<any>).children)) {
+
+                    const rendition = newVNode.view(newVNode.props, newVNode.children)
+                    render(parentDomNode, rendition, (oldVNode as StatelessComponentVNode<any>).rendition, oldVNode.domRef, isSvg)
+                    newVNode.rendition = rendition
+                    newVNode.domRef = rendition.domRef
+                }
+                else {
+                    newVNode.rendition = (oldVNode as StatelessComponentVNode<any>).rendition
+                    newVNode.domRef = (oldVNode as StatelessComponentVNode<any>).domRef
+                }
                 break
         }
 
@@ -252,6 +266,18 @@ function createNode(vNode: VNode, parentNode: Element, isSvg: boolean): Node {
             return document.createTextNode(vNode.value)
         case 3:
             return initComponent(vNode, parentNode)
+        case 4:
+            const rendition = vNode.view(vNode.props, vNode.children)
+            render(
+                parentNode,
+                rendition,
+                undefined,
+                undefined,
+                isSvg
+            )
+            vNode.rendition = rendition
+            vNode.domRef = rendition.domRef
+            return rendition.domRef
         case 0:
             return document.createComment('Nothing')
     }

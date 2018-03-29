@@ -5,12 +5,14 @@ import { render } from './renderer'
 export * from './jsxFactory'
 export * from './contract'
 
+const stateful = 1
+
 /** 
  * Defines a component from a ComponentSpec returning a factory that creates 
  * ComponentVNode/JSXElement's for the component.
  */
 export function define<TState, TProps>(state: TState, spec: ComponentSetup<TState, TProps>) {
-    return function (props: TProps, children: VNode[] = []) {
+    const factory: any = function (props: TProps, children: VNode[] = []) {
         return {
             _: 3,
             children,
@@ -19,6 +21,10 @@ export function define<TState, TProps>(state: TState, spec: ComponentSetup<TStat
             spec
         } as any as ComponentVNode<TState, TProps>
     }
+
+    factory._ = stateful
+
+    return factory
 }
 
 /** 
