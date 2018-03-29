@@ -1,6 +1,7 @@
 /** @internal */
 import { initComponent, updateComponent, findAndUnmountComponentsRec } from './component'
 import { VNode, ElementVNode, ComponentVNode } from './contract'
+import { getArray, releaseArray } from './objectPool'
 
 /** 
  * Renders the view by walking the virtual node tree recursively 
@@ -101,55 +102,6 @@ export function render(
         }
     }
 }
-
-/** 
- * Renders child virtual nodes. Will add/remove DOM nodes if needed.
- */
-// function renderChildNodes(newVNode: ElementVNode<any>, oldVNode: VNode, parentDomNode: Node) {
-
-//     // Iterate over children and add/update/remove nodes
-//     const noOfNewVNodeChildren = newVNode.children.length
-//     const noOfOldVNodeChildren = oldVNode._ === 2 ? oldVNode.children.length : 0
-//     const maxIterations = max(noOfNewVNodeChildren, noOfOldVNodeChildren)
-
-//     let childVNodeIndex = 0
-//     let childDomNode: Node | null = parentDomNode.firstChild
-//     let childVNode: VNode
-
-//     for (let i = 0; i < maxIterations; i++) {
-//         if (i < noOfNewVNodeChildren) {
-
-//             childVNode = newVNode.children[i]
-
-//             const oldChildVNode = findOldChildVNode(childVNode, oldVNode, i)
-//             if (oldChildVNode.domRef !== undefined && oldChildVNode.domRef !== childDomNode) {
-//                 parentDomNode.insertBefore(oldChildVNode.domRef, childDomNode)
-//             }
-//             else if (childDomNode !== null) {
-//                 childDomNode = childDomNode!.nextSibling
-//             }
-
-//             render(parentDomNode as Element, childVNode, oldChildVNode, oldChildVNode.domRef)
-
-//             childVNodeIndex++
-//         }
-//         else if (childDomNode !== null) {
-//             const oldChildVNode = (oldVNode as ElementVNode<any>).children[i]
-
-//             // Make sure that any components are unmounted correctly
-//             findAndUnmountComponentsRec(oldChildVNode)
-
-//             // Get a reference to the next sibling before the child node is
-//             // removed.
-//             const nextDomSibling = childDomNode.nextSibling
-
-//             parentDomNode.removeChild(childDomNode)
-
-//             childDomNode = nextDomSibling
-//         }
-
-//     }
-// }
 
 /** 
  * Renders child virtual nodes. Will add/remove DOM nodes if needed.
@@ -305,7 +257,7 @@ function createNode(vNode: VNode, parentNode: Element, isSvg: boolean): Node {
 }
 
 function getAttributesToRemove(newVNode: ElementVNode<any>, oldVNode: VNode) {
-    const attributesToRemove = [] as string[]
+    const attributesToRemove = getArray<string>()
     for (const attributeName in (oldVNode as ElementVNode<any>).props) {
         if ((newVNode.props as any)[attributeName] === undefined || attributeName.indexOf('on') === 0) {
             attributesToRemove.push(attributeName)
@@ -317,21 +269,26 @@ function getAttributesToRemove(newVNode: ElementVNode<any>, oldVNode: VNode) {
 function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, existingDomNode: Node) {
     // remove any attributes that was added with the old virtual node but does 
     // not exist in the new virtual node.
-    for (const attr of getAttributesToRemove(newVNode, oldVNode)) {
+    const attrsToRemove = getAttributesToRemove(newVNode, oldVNode)
+    for (const attr of attrsToRemove) {
         removeAttr(attr, existingDomNode as Element)
     }
 
+    releaseArray(attrsToRemove)
+
     let attributeValue: any
     let oldAttributeValue: any
+    let hasAttr: boolean
 
     // update any attribute where the attribute value has changed
     for (const name in newVNode.props) {
 
         attributeValue = (newVNode.props as any)[name]
         oldAttributeValue = ((oldVNode as ElementVNode<any>).props as any)[name]
+        hasAttr = (existingDomNode as Element).hasAttribute(name)
 
         if ((name.indexOf('on') === 0 || attributeValue !== oldAttributeValue ||
-            !(existingDomNode as Element).hasAttribute(name)) && attributeValue !== undefined
+            !hasAttr) && attributeValue !== undefined
         ) {
             setAttr(
                 existingDomNode as HTMLElement,
@@ -339,7 +296,7 @@ function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, e
                 attributeValue
             )
         }
-        else if (attributeValue === undefined && (existingDomNode as Element).hasAttribute(name)) {
+        else if (attributeValue === undefined && hasAttr) {
             (existingDomNode as Element).removeAttribute(name)
         }
     }

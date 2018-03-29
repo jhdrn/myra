@@ -6,6 +6,7 @@ import {
 } from './contract'
 import { equal } from './helpers'
 import { render } from './renderer'
+import { getObj, releaseObj } from './objectPool';
 
 /** 
  * Initializes a component from a ComponentVNode.
@@ -15,9 +16,9 @@ import { render } from './renderer'
  * set, it will also be applied.
  */
 export function initComponent<TState, TProps>(vNode: ComponentVNode<TState, TProps>, parentElement: Element) {
-    const link = {
-        vNode: vNode
-    }
+    const link = getObj<any>()
+    link.vNode = vNode
+
     vNode.link = link
     vNode.parentElement = parentElement
 
@@ -86,6 +87,8 @@ export function updateComponent<TState, TProps>(newVNode: ComponentVNode<TState,
         // Dispatch to render the view. 
         dispatch(newVNode, render)
     }
+
+    releaseObj(oldVNode.props)
 }
 
 
@@ -119,6 +122,7 @@ function dispatch<TState extends {}, TProps extends {}>(
         if (typeof update === 'function') {
             update = update(vNode.state)
         }
+
         vNode.state = { ...(vNode.state as any), ...(update as object) }
     }
 

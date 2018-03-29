@@ -1,5 +1,6 @@
 import { initComponent } from './component'
 import { ComponentSetup, ComponentVNode, ComponentFactory, VNode } from './contract'
+import { getObj, getArray } from './objectPool';
 
 export * from './jsxFactory'
 export * from './contract'
@@ -10,13 +11,13 @@ export * from './contract'
  */
 export function define<TState, TProps>(state: TState, spec: ComponentSetup<TState, TProps>) {
     return function (props: TProps, children: VNode[] = []) {
-        return {
-            _: 3,
-            children,
-            props,
-            state,
-            spec
-        } as any as ComponentVNode<TState, TProps>
+        const obj = getObj<any>()
+        obj._ = 3
+        obj.children = children
+        obj.props = props
+        obj.state = state
+        obj.spec = spec
+        return obj as ComponentVNode<TState, TProps>
     }
 }
 
@@ -25,5 +26,5 @@ export function define<TState, TProps>(state: TState, spec: ComponentSetup<TStat
  * component factory. 
  */
 export function mount(componentFactory: ComponentFactory<any, any>, element: Element) {
-    initComponent(componentFactory({}, []), element)
+    initComponent(componentFactory(getObj<any>(), getArray<any>()), element)
 }

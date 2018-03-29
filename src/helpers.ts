@@ -1,3 +1,5 @@
+import { getObj, releaseObj } from "./objectPool";
+
 /** @internal */
 export type Type = 'array' | 'object' | 'string' | 'date' | 'regexp' | 'function' | 'boolean' | 'number' | 'null' | 'undefined'
 
@@ -23,7 +25,12 @@ export function typeOf(obj: any): Type {
     if (obj === null) {
         return 'null'
     }
-    return ({}).toString.call(obj).slice(8, -1).toLowerCase()
+
+    const o = getObj()
+    const typeStr = o.toString.call(obj).slice(8, -1).toLowerCase()
+    releaseObj(o)
+
+    return typeStr
 }
 
 /**
@@ -32,7 +39,7 @@ export function typeOf(obj: any): Type {
 export function equal<T>(a: T, b: T): boolean {
     const typeOfA = typeOf(a)
     const typeOfB = typeOf(b)
-    if (['string', 'number', 'boolean', 'undefined', 'null', 'function'].indexOf(typeOfA) >= 0) {
+    if (['string', 'number', 'boolean', 'undefined', 'null'].indexOf(typeOfA) >= 0) {
         return a === b
     }
     else if (typeOfA === 'object' && typeOfB === 'object') {
@@ -64,6 +71,9 @@ export function equal<T>(a: T, b: T): boolean {
     }
     else if (typeOfA === 'regexp' && typeOfB === 'regexp') {
         return (a as any).toString() === (b as any).toString()
+    }
+    else if (typeOfA === 'function' && typeOfB === 'function') {
+        return true
     }
     return false
 }
