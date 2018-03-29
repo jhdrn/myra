@@ -5,17 +5,9 @@ export type Type = 'array' | 'object' | 'string' | 'date' | 'regexp' | 'function
  * Better "typeof" which identifies arrays.
  */
 export function typeOf(obj: any): Type {
-    if (typeof obj === 'string') {
-        return 'string'
-    }
-    if (typeof obj === 'number') {
-        return 'number'
-    }
-    if (typeof obj === 'boolean') {
-        return 'boolean'
-    }
-    if (typeof obj === 'function') {
-        return 'function'
+    const objType = typeof obj
+    if (objType === 'string' || objType === 'number' || objType === 'boolean' || objType === 'function') {
+        return objType
     }
     if (obj === undefined) {
         return 'undefined'
@@ -26,13 +18,15 @@ export function typeOf(obj: any): Type {
     return ({}).toString.call(obj).slice(8, -1).toLowerCase()
 }
 
+const basicEqualityTypes = ['string', 'number', 'boolean', 'undefined', 'null']
+
 /**
  * Does a deep equality check.
  */
 export function equal<T>(a: T, b: T): boolean {
     const typeOfA = typeOf(a)
     const typeOfB = typeOf(b)
-    if (['string', 'number', 'boolean', 'undefined', 'null'].indexOf(typeOfA) >= 0) {
+    if (basicEqualityTypes.indexOf(typeOfA) >= 0) {
         return a === b
     }
     else if (typeOfA === 'object' && typeOfB === 'object') {

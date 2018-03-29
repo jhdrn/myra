@@ -219,7 +219,9 @@ function setAttr(element: HTMLElement, attributeName: string, attributeValue: an
             /** Ignore and use setAttribute instead  */
         }
     }
-    if (typeof attributeValue !== 'function' && typeof attributeValue !== 'object') {
+
+    const attrValueType = typeof attributeValue
+    if (attrValueType !== 'function' && attrValueType !== 'object') {
         element.setAttribute(attributeName, attributeValue)
     }
 }
