@@ -58,25 +58,18 @@ describe('core.helpers.equal', () => {
         expect(equal(fn, fn)).toBe(true)
     })
 
-    it('does not equal different anonymous functions', () => {
+    it('equals different anonymous functions', () => {
         const r1 = function () { }
         const r2 = function () { }
 
-        expect(equal(r1, r2)).toBe(false)
+        expect(equal(r1, r2)).toBe(true)
     })
 
-    it('does not equal different functions with the same name', () => {
+    it('equals different functions with the same name', () => {
         const r1 = function withName() { }
         const r2 = function withName() { }
 
-        expect(equal(r1, r2)).toBe(false)
-    })
-
-    it('does not equal named function against named function', () => {
-        const r1 = function withName() { }
-        const r2 = function withName() { }
-
-        expect(equal(r1, r2)).toBe(false)
+        expect(equal(r1, r2)).toBe(true)
     })
 
     it('does not equal string against undefined', () => {
