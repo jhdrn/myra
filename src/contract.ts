@@ -333,7 +333,6 @@ export interface ComponentVNode<TState extends {}, TProps extends {}> extends VN
     spec: ComponentSetup<TState, TProps>
     ctx: SetupContext<TState, TProps>
     view: View<TState, TProps>
-    parentElement?: Element
     dispatchLevel: number
     link: { vNode: ComponentVNode<TState, TProps> }
 }

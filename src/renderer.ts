@@ -1,7 +1,7 @@
 /** @internal */
 import { initComponent, updateComponent, findAndUnmountComponentsRec } from './component'
-import { VNode, ElementVNode, ComponentVNode, StatelessComponentVNode } from './contract'
-import { equal } from './helpers'
+import { VNode, ElementVNode } from './contract'
+import { VNODE_COMPONENT, VNODE_ELEMENT, VNODE_TEXT, VNODE_FUNCTION, VNODE_NONE } from './constants';
 
 /** 
  * Renders the view by walking the virtual node tree recursively 
@@ -16,7 +16,7 @@ export function render(
     const replaceNode = shouldReplaceNode(newVNode, oldVNode)
 
     // If it's a component node and i should be replaced, unmount any components
-    if (replaceNode && oldVNode!._ === 3) {
+    if (replaceNode && oldVNode!._ === VNODE_COMPONENT) {
         findAndUnmountComponentsRec(oldVNode!)
     }
 
@@ -34,7 +34,7 @@ export function render(
         if (replaceNode) {
             // If it's an element node remove old event listeners before 
             // replacing the node. 
-            if (oldVNode!._ === 2) {
+            if (oldVNode!._ === VNODE_ELEMENT) {
                 for (const attr in (oldVNode as ElementVNode<any>).props) {
                     if (attr.indexOf('on') === 0) {
                         removeAttr(attr, existingDomNode as Element)
@@ -49,7 +49,7 @@ export function render(
         }
 
         // If it's an element node set attributes and event listeners
-        if (newVNode._ === 2) {
+        if (newVNode._ === VNODE_ELEMENT) {
 
             for (const name in newVNode.props) {
                 const attributeValue = (newVNode.props as any)[name]
@@ -79,28 +79,16 @@ export function render(
 
         // update existing node
         switch (newVNode._) {
-            case 2: // element node
+            case VNODE_ELEMENT: // element node
                 updateElementAttributes(newVNode, oldVNode, existingDomNode)
                 renderChildNodes(newVNode, oldVNode, existingDomNode, isSvg)
                 break
-            case 1: // text node
+            case VNODE_TEXT: // text node
                 existingDomNode.textContent = newVNode.value
                 break
-            case 3: // component node
-                updateComponent(newVNode, oldVNode as ComponentVNode<any, any>)
-                break
-            case 4: // stateless component node
-                if (!equal(newVNode.props, (oldVNode as StatelessComponentVNode<any>).props) || !equal(newVNode.children, (oldVNode as StatelessComponentVNode<any>).children)) {
-
-                    const rendition = newVNode.view(newVNode.props, newVNode.children)
-                    render(parentDomNode, rendition, (oldVNode as StatelessComponentVNode<any>).rendition, oldVNode.domRef, isSvg)
-                    newVNode.rendition = rendition
-                    newVNode.domRef = rendition.domRef
-                }
-                else {
-                    newVNode.rendition = (oldVNode as StatelessComponentVNode<any>).rendition
-                    newVNode.domRef = (oldVNode as StatelessComponentVNode<any>).domRef
-                }
+            case VNODE_COMPONENT: // component node
+            case VNODE_FUNCTION: // stateless component node
+                updateComponent(parentDomNode, newVNode, oldVNode as any, isSvg)
                 break
         }
 
@@ -140,7 +128,10 @@ function renderChildNodes(newVNode: ElementVNode<any>, oldVNode: VNode, parentDo
         render(parentDomNode as Element, childVNode, oldChildVNode, oldChildVNode.domRef, isSvg)
     }
 
-    const noOfOldVNodeChildren = oldVNode._ === 2 ? oldVNode.children.length : 0
+    let noOfOldVNodeChildren = 0
+    if (oldVNode._ === VNODE_ELEMENT) {
+        noOfOldVNodeChildren = oldVNode.children.length
+    }
     const diffOfVNodeChildren = noOfOldVNodeChildren - noOfNewVNodeChildren
 
     if (diffOfVNodeChildren > 0) {
@@ -160,10 +151,12 @@ function renderChildNodes(newVNode: ElementVNode<any>, oldVNode: VNode, parentDo
 
 /** 
  * Tries to find an old "keyed" virtual node that matches the new virtual node. 
+ * 
+ * FIXME: This has poor performance, must be refactored.
  */
 function findOldChildVNode(newChildVNode: VNode, oldVNode: VNode, childIndex: number) {
 
-    if (oldVNode._ !== 2 && oldVNode._ !== 3) {
+    if (oldVNode._ !== VNODE_ELEMENT && oldVNode._ !== VNODE_COMPONENT && oldVNode._ !== VNODE_FUNCTION) {
         return newChildVNode
     }
 
@@ -173,8 +166,9 @@ function findOldChildVNode(newChildVNode: VNode, oldVNode: VNode, childIndex: nu
     }
     else if (newChildVNode !== undefined) {
 
-        const mayBeKeyed = newChildVNode._ === 2 && oldChildVNode._ === 2
-            || newChildVNode._ === 3 && oldChildVNode._ === 3
+        const mayBeKeyed = newChildVNode._ === VNODE_ELEMENT && oldChildVNode._ === VNODE_ELEMENT
+            || newChildVNode._ === VNODE_COMPONENT && oldChildVNode._ === VNODE_COMPONENT
+            || newChildVNode._ === VNODE_FUNCTION && oldChildVNode._ === VNODE_FUNCTION
 
         if (mayBeKeyed
             && (newChildVNode as ElementVNode<any>).props.key !== (oldChildVNode as ElementVNode<any>).props.key) {
@@ -205,11 +199,11 @@ function shouldReplaceNode(newVNode: VNode, oldVNode: VNode | undefined): boolea
     else if (newVNode._ !== oldVNode._) {
         return true
     }
-    else if (newVNode._ === 2 && oldVNode._ === 2 &&
+    else if (newVNode._ === VNODE_ELEMENT && oldVNode._ === VNODE_ELEMENT &&
         newVNode.tagName !== oldVNode.tagName) {
         return true
     }
-    else if (newVNode._ === 3 && oldVNode._ === 3 &&
+    else if (newVNode._ === VNODE_COMPONENT && oldVNode._ === VNODE_COMPONENT &&
         newVNode.spec !== oldVNode.spec) {
         return true
     }
@@ -257,28 +251,17 @@ function removeAttr(a: string, node: Element) {
  */
 function createNode(vNode: VNode, parentNode: Element, isSvg: boolean): Node {
     switch (vNode._) {
-        case 2:
+        case VNODE_ELEMENT:
             if (isSvg) {
                 return document.createElementNS('http://www.w3.org/2000/svg', vNode.tagName)
             }
             return document.createElement(vNode.tagName)
-        case 1:
+        case VNODE_TEXT:
             return document.createTextNode(vNode.value)
-        case 3:
-            return initComponent(vNode, parentNode)
-        case 4:
-            const rendition = vNode.view(vNode.props, vNode.children)
-            render(
-                parentNode,
-                rendition,
-                undefined,
-                undefined,
-                isSvg
-            )
-            vNode.rendition = rendition
-            vNode.domRef = rendition.domRef
-            return rendition.domRef
-        case 0:
+        case VNODE_COMPONENT:
+        case VNODE_FUNCTION:
+            return initComponent(parentNode, vNode, isSvg)
+        case VNODE_NONE:
             return document.createComment('Nothing')
     }
 }

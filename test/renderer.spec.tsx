@@ -92,7 +92,7 @@ describe('render', () => {
         })
 
         const instance = TestComponent({}, [])
-        initComponent(instance, document.body)
+        initComponent(document.body, instance, false)
 
         render(document.body, <nothing />, instance, instance.domRef)
 
