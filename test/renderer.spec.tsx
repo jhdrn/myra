@@ -460,7 +460,7 @@ describe('render', () => {
 
         const view1 =
             <div>
-                {items.map(x => <div key={x.id}><ItemComponent forceUpdate item={x} /></div>)}
+                {items.map(x => <div key={x.id.toString()}><ItemComponent forceUpdate item={x} /></div>)}
             </div>
 
         render(document.body, view1, view1, undefined)
@@ -473,7 +473,7 @@ describe('render', () => {
 
         const view2 =
             <div>
-                {items.reverse().map(x => <div key={x.id}><ItemComponent forceUpdate item={x} /></div>)}
+                {items.reverse().map(x => <div key={x.id.toString()}><ItemComponent forceUpdate item={x} /></div>)}
             </div>
 
         render(document.body, view2, view1, view1.domRef)
@@ -583,7 +583,7 @@ describe('render', () => {
 
         const view1 =
             <div>
-                {items.map(x => <ItemComponent key={x.id} item={x} />)}
+                {items.map(x => <ItemComponent key={x.id.toString()} item={x} />)}
             </div>
 
         render(document.body, view1, view1, undefined)
@@ -596,7 +596,7 @@ describe('render', () => {
 
         const view2 =
             <div>
-                {items.reverse().map(x => <ItemComponent key={x.id} item={x} />)}
+                {items.reverse().map(x => <ItemComponent key={x.id.toString()} item={x} />)}
             </div>
 
         render(document.body, view2, view1, view1.domRef)
@@ -710,7 +710,7 @@ describe('render', () => {
 
         const view1 =
             <div>
-                {items.map(x => <ItemComponent key={x.id} item={x} forceUpdate={true} />)}
+                {items.map(x => <ItemComponent key={x.id.toString()} item={x} forceUpdate={true} />)}
             </div> as ElementVNode<HTMLDivElement>
 
         render(document.body, view1, view1, undefined)
@@ -731,7 +731,7 @@ describe('render', () => {
         const reversedItems = items.reverse()
         const view2 =
             <div>
-                {reversedItems.map(x => <ItemComponent key={x.id} item={x} forceUpdate={true} />)}
+                {reversedItems.map(x => <ItemComponent key={x.id.toString()} item={x} forceUpdate={true} />)}
             </div> as ElementVNode<HTMLDivElement>
 
         render(document.body, view2, view1, view1.domRef)
