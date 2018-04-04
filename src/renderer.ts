@@ -167,7 +167,7 @@ function renderChildNodes(newParentVNode: ElementVNode<any>, oldParentVNode: Ele
                                     keyMap[child.props.key] = [child, newIndex]
                                     newIndex++
                                 }
-                                // else "store" the node for reuse
+                                // else "store" the node for reuse or removal
                                 else if (parentDomNode.contains(child.domRef)) {
                                     unkeyedNodes.push(child.domRef)
                                 }
