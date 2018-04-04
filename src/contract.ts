@@ -333,11 +333,17 @@ export interface ComponentVNode<TState extends {}, TProps extends {}> extends VN
     spec: ComponentSetup<TState, TProps>
     ctx: SetupContext<TState, TProps>
     view: View<TState, TProps>
-    parentElement?: Element
     dispatchLevel: number
     link: { vNode: ComponentVNode<TState, TProps> }
 }
 
+export interface StatelessComponentVNode<TProps extends {}> extends VNodeBase {
+    readonly _: 4
+    children: VNode[]
+    props: TProps
+    view: (props: TProps, children: JSX.Element[]) => JSX.Element
+    rendition?: VNode
+}
 /**
  * A virtual node representing nothing. Will be rendered as a comment DOM 
  * node.
@@ -349,7 +355,7 @@ export interface NothingVNode extends VNodeBase {
 /**
  * Union type of the different types of virtual nodes.
  */
-export type VNode = TextVNode | ElementVNode<any> | ComponentVNode<any, any> | NothingVNode
+export type VNode = TextVNode | ElementVNode<any> | ComponentVNode<any, any> | StatelessComponentVNode<any> | NothingVNode
 
 export interface GlobalAttributes<TElement extends Element> {
     key?: any

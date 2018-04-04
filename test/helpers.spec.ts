@@ -92,6 +92,10 @@ describe('core.helpers.equal', () => {
         expect(equal(o1, o2)).toBe(false)
     })
 
+    it('does not equal object against undefined', () => {
+        expect(equal({ test: 'a string' }, undefined)).toBe(false)
+    })
+
     it('does not equal array against array with different values', () => {
         const a1 = ['a', 5.01, true, undefined, null]
         const a2 = ['a', 5, true, undefined, null]

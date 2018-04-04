@@ -1,11 +1,12 @@
 import { ComponentFactory, VNode, TextVNode } from './contract'
+import { VNODE_NONE, VNODE_TEXT, VNODE_ELEMENT, STATEFUL, VNODE_FUNCTION } from './constants';
 
 function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
     const flattenedChildren = [] as (VNode | string)[]
 
     for (const child of children) {
         if (child === null || child === undefined || typeof child === 'boolean') {
-            flattenedChildren.push({ _: 0 })
+            flattenedChildren.push({ _: VNODE_NONE })
         }
         else if (Array.isArray(child)) {
             for (const c of flattenChildren(child)) {
@@ -15,7 +16,7 @@ function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
         else if ((child as VNode)._ === undefined) {
             // Any node which is not a vNode will be converted to a TextVNode
             flattenedChildren.push({
-                _: 1,
+                _: VNODE_TEXT,
                 value: child as any as string
             } as TextVNode)
         }
@@ -36,7 +37,7 @@ export function h<TProps>(
     ...children: (string | VNode)[]): JSX.Element {
 
     if (tagNameOrComponent === 'nothing') {
-        return { _: 0 }
+        return { _: VNODE_NONE }
     }
 
     if (props === null) {
@@ -46,12 +47,19 @@ export function h<TProps>(
     if (typeof tagNameOrComponent === 'string') {
 
         return {
-            _: 2,
+            _: VNODE_ELEMENT,
             tagName: tagNameOrComponent,
             props: props,
             children: flattenChildren(children)
         }
     }
-
-    return tagNameOrComponent(props, children as VNode[])
+    if ((tagNameOrComponent as any)._ === STATEFUL) {
+        return tagNameOrComponent(props, children as VNode[])
+    }
+    return {
+        _: VNODE_FUNCTION,
+        props,
+        children: children as VNode[],
+        view: tagNameOrComponent
+    }
 }
