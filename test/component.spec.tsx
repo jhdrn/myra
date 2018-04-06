@@ -1,6 +1,6 @@
 import * as myra from '../src/myra'
 import { initComponent, updateComponent, findAndUnmountComponentsRec } from '../src/component'
-import { VNode, StatelessComponentVNode } from '../src/contract';
+import { VNode, StatelessComponentVNode, ComponentVNode } from '../src/contract';
 
 const q = (x: string) => document.querySelector(x)
 
@@ -283,10 +283,10 @@ describe('updateComponent (stateful component)', () => {
             return (_state, _props, children) => <div>{...children}</div>
         })
 
-        const vNode = component({}, ['Child A'])
+        const vNode = myra.h(component, {}, 'Child A') as ComponentVNode<any, any>
         initComponent(document.body, vNode, false)
 
-        const newVNode = component({}, ['Child A'])
+        const newVNode = myra.h(component, {}, 'Child B') as ComponentVNode<any, any>
         updateComponent(document.body, newVNode, vNode, false)
 
         expect(mountMock.callback).toHaveBeenCalledTimes(1)
@@ -304,10 +304,10 @@ describe('updateComponent (stateful component)', () => {
             return (_state, _props, children) => <div>{...children}</div>
         })
 
-        const vNode = component({}, ['Child A'])
+        const vNode = myra.h(component, {}, 'Child A') as ComponentVNode<any, any>
         initComponent(document.body, vNode, false)
 
-        const newVNode = component({}, ['Child B'])
+        const newVNode = myra.h(component, {}, 'Child B') as ComponentVNode<any, any>
         updateComponent(document.body, newVNode, vNode, false)
 
         expect(mountMock.callback).toHaveBeenCalledTimes(2)

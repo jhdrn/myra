@@ -565,7 +565,7 @@ describe('render', () => {
         ] as Item[]
 
         type State = { clicked: boolean; itemId: number }
-        type Props = { key: number; item: Item }
+        type Props = { key: string; item: Item }
 
         const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, ctx => {
 
@@ -686,7 +686,7 @@ describe('render', () => {
         ] as Item[]
 
         type State = { clicked: boolean; itemId: number }
-        type Props = { key: number; item: Item; forceUpdate: boolean }
+        type Props = { key: string; item: Item; forceUpdate: boolean }
 
         let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
 

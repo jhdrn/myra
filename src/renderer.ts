@@ -146,7 +146,7 @@ function renderChildNodes(newParentVNode: ElementVNode<any>, oldParentVNode: Ele
                     if (keyMap === undefined) {
                         // Create a map holding references to all the old child 
                         // VNodes indexed by key    
-                        let child: ElementVNode<any>
+                        let child: ElementVNode<HTMLElement>
 
                         keyMap = {}
 
@@ -160,7 +160,7 @@ function renderChildNodes(newParentVNode: ElementVNode<any>, oldParentVNode: Ele
 
                         let newIndex = 0
                         for (let i = 0; i < oldParentVNode.children.length; i++) {
-                            child = oldParentVNode.children[i] as ElementVNode<any>
+                            child = oldParentVNode.children[i] as ElementVNode<HTMLElement>
                             if (child.props !== undefined && child.props !== null && child.props.key !== undefined) {
                                 // If the key has been added (from a new node), update it's value
                                 if (child.props.key in keyMap) {
@@ -168,8 +168,11 @@ function renderChildNodes(newParentVNode: ElementVNode<any>, oldParentVNode: Ele
                                     newIndex++
                                 }
                                 // else "store" the node for reuse or removal
-                                else if (parentDomNode.contains(child.domRef)) {
-                                    unkeyedNodes.push(child.domRef)
+                                else if (parentDomNode.contains(child.domRef!)) {
+                                    child.domRef!.style.transform = 'none'
+                                    child.domRef!.style.transition = 'none'
+                                    child.domRef!.style.animation = 'none'
+                                    unkeyedNodes.push(child.domRef!)
                                 }
                             }
                         }
@@ -193,7 +196,10 @@ function renderChildNodes(newParentVNode: ElementVNode<any>, oldParentVNode: Ele
                     if (existingChildDomNode !== undefined) {
                         oldChildDomNode = parentDomNode.childNodes.item(i)
                         if (existingChildDomNode !== oldChildDomNode) {
-                            if (parentDomNode.contains(existingChildDomNode)) {
+                            if (oldChildDomNode === null) {
+                                parentDomNode.appendChild(existingChildDomNode)
+                            }
+                            else if (parentDomNode.contains(existingChildDomNode)) {
                                 parentDomNode.replaceChild(existingChildDomNode, oldChildDomNode)
                             }
                             else {

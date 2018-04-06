@@ -54,7 +54,7 @@ export function initComponent(parentElement: Element, vNode: ComponentVNode<any,
             // Setting dispatchLevel to 1 will make any dispatch call just update
             // the state without rendering the view
             vNode.dispatchLevel = 1
-            vNode.ctx.willMount(vNode.props)
+            vNode.ctx.willMount(vNode.ctx)
         }
         vNode.dispatchLevel = 0
 
