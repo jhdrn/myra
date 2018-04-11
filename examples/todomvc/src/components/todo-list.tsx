@@ -90,13 +90,13 @@ export default myra.define<State, { forceUpdate: boolean }>(init, c => {
         loadTodos()
     }
 
-    c.didMount = () => {
+    c.willMount = () => {
         c.evolve({ filter: loadFilter() })
         router.addListener(applyFilterFromLocation)
         loadTodos()
     }
 
-    c.willUpdate = loadTodos
+    c.willRender = loadTodos
 
     return state =>
         state.todos.length ?
@@ -110,7 +110,7 @@ export default myra.define<State, { forceUpdate: boolean }>(init, c => {
                     <label for="toggle-all">Mark all as complete</label>
                     <ul class="todo-list">
                         {state.todos.filter(filterTodos(state)).map(todo =>
-                            <TodoItemComponent onchange={loadTodos} todo={todo} />
+                            <TodoItemComponent onchange={loadTodos} todo={todo} key={todo.id.toString()} />
                         )}
                     </ul>
                 </section>
