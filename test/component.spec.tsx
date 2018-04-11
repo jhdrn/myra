@@ -286,7 +286,7 @@ describe('updateComponent (stateful component)', () => {
         const vNode = myra.h(component, {}, 'Child A') as ComponentVNode<any, any>
         initComponent(document.body, vNode, false)
 
-        const newVNode = myra.h(component, {}, 'Child B') as ComponentVNode<any, any>
+        const newVNode = myra.h(component, {}, 'Child A') as ComponentVNode<any, any>
         updateComponent(document.body, newVNode, vNode, false)
 
         expect(mountMock.callback).toHaveBeenCalledTimes(1)
