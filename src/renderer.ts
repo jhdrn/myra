@@ -49,47 +49,40 @@ export function render(
 
     switch (action) {
         case ACTION_APPEND:
+        case ACTION_INSERT:
+        case ACTION_REPLACE:
 
             let newNode = createNode(newVNode, parentDomNode, isSvg)
             newVNode.domRef = newNode
 
-            parentDomNode.appendChild(newNode)
-
-            tryBuildElement(newVNode, newNode, isSvg, ACTION_APPEND)
-
-            break
-        case ACTION_INSERT:
-            newNode = createNode(newVNode, parentDomNode, isSvg)
-            newVNode.domRef = newNode
-
-            parentDomNode.insertBefore(newNode, oldVNode!.domRef)
-
-            tryBuildElement(newVNode, newNode, isSvg, ACTION_APPEND)
-            break
-        case ACTION_REPLACE:
-
-            newNode = createNode(newVNode, parentDomNode, isSvg)
-            newVNode.domRef = newNode
-
-            // If it's a component node or an element node and it should be 
-            // replaced, unmount any components in the tree.
-            if (oldVNode!._ === VNODE_COMPONENT || oldVNode!._ === VNODE_ELEMENT) {
-                findAndUnmountComponentsRec(oldVNode!)
+            if (action === ACTION_APPEND) {
+                parentDomNode.appendChild(newNode)
             }
+            else if (action === ACTION_INSERT) {
+                parentDomNode.insertBefore(newNode, oldVNode!.domRef)
+            }
+            else { // action === ACTION_REPLACE
 
-            // If it's an element node remove old event listeners before 
-            // replacing the node. 
-            if (oldVNode!._ === VNODE_ELEMENT) {
-                for (const attr in (oldVNode as ElementVNode<any>).props) {
-                    if (attr.indexOf('on') === 0) {
-                        removeAttr(attr, existingDomNode as Element)
+                // If it's a component node or an element node and it should be 
+                // replaced, unmount any components in the tree.
+                if (oldVNode!._ === VNODE_COMPONENT || oldVNode!._ === VNODE_ELEMENT) {
+                    findAndUnmountComponentsRec(oldVNode!)
+                }
+
+                // If it's an element node remove old event listeners before 
+                // replacing the node. 
+                if (oldVNode!._ === VNODE_ELEMENT) {
+                    for (const attr in (oldVNode as ElementVNode<any>).props) {
+                        if (attr.indexOf('on') === 0) {
+                            removeAttr(attr, existingDomNode as Element)
+                        }
                     }
                 }
+
+                parentDomNode.replaceChild(newNode, existingDomNode!)
             }
 
-            parentDomNode.replaceChild(newNode, existingDomNode!)
-
-            tryBuildElement(newVNode, newNode, isSvg, undefined)
+            tryBuildElement(newVNode, newNode, isSvg, ACTION_APPEND)
 
             break
         case ACTION_UPDATE:
@@ -107,40 +100,32 @@ export function render(
                     const newChildVNodes = newVNode.children
                     const oldChildVNodes = (oldVNode as ElementVNode<any>).children
                     let diffNoOfChildNodes = oldChildVNodes.length - newChildVNodes.length
-                    let oldChildVNode: VNode
-                    let oldChildDomNode: Node | null = null
 
                     if (newVNode.children.length > 0) {
-                        // Set up some variables before running the child re-render algorithm
-                        let newChildVNode: VNode
-                        let existingChildDomNode: Node | undefined
-                        let newChildVNodeKey: string | undefined
-                        let oldChildVNodeIndex: number
-                        let keyMapEntry: [VNode, number] | undefined
-                        let childAction: RenderingAction
-                        const unkeyedNodes: Node[] = []
-
                         // Create a map holding references to all the old child 
                         // VNodes indexed by key    
-                        const keyMap: Record<string, [VNode, number] | undefined> = {}
+                        const keyMap: Record<string, [VNode, Node] | undefined> = {}
+
+                        // 
+                        const unkeyedNodes: Node[] = []
 
                         // Prepare the map with the keys from the new nodes
                         for (let i = 0; i < newChildVNodes.length; i++) {
-                            newChildVNode = newChildVNodes[i] as ElementVNode<any>
+                            const newChildVNode = newChildVNodes[i] as ElementVNode<any>
                             if (newChildVNode.props !== undefined && newChildVNode.props !== null && newChildVNode.props.key !== undefined) {
                                 keyMap[newChildVNode.props.key] = undefined
                             }
                         }
 
                         // Go through the old child VNodes to see if there are any old ones matching the new VNodes
-                        let newIndex = 0
+                        let matchingKeyedNodes = false
                         for (let i = 0; i < oldChildVNodes.length; i++) {
-                            oldChildVNode = oldChildVNodes[i] as ElementVNode<HTMLElement>
+                            const oldChildVNode = oldChildVNodes[i] as ElementVNode<HTMLElement>
                             if (oldChildVNode.props !== undefined && oldChildVNode.props !== null && oldChildVNode.props.key !== undefined) {
                                 // If the key has been added (from a new VNode), update it's value
                                 if (oldChildVNode.props.key in keyMap) {
-                                    keyMap[oldChildVNode.props.key] = [oldChildVNode, newIndex]
-                                    newIndex++
+                                    keyMap[oldChildVNode.props.key] = [oldChildVNode, oldChildVNode.domRef!]
+                                    matchingKeyedNodes = true
                                 }
                                 // else save the DOM node for reuse or removal
                                 else if (existingDomNode!.contains(oldChildVNode.domRef!)) {
@@ -149,80 +134,113 @@ export function render(
                             }
                         }
 
+                        // If there was no matching keyed nodes, remove all old 
+                        // DOM nodes
+                        if (!matchingKeyedNodes && Object.keys(keyMap).length > 0) {
+                            (existingDomNode as HTMLElement).innerHTML = ''
+                            unkeyedNodes.length = 0
+
+                            for (let i = newChildVNodes.length + diffNoOfChildNodes - 1; i > -1; i--) {
+                                const oldChildVNode = oldChildVNodes[i]
+                                oldChildVNode.domRef = undefined
+
+                                // Make sure any sub-components are "unmounted"
+                                findAndUnmountComponentsRec(oldChildVNode)
+                            }
+                        }
+
+                        let domNodeAtIndex: Node | null = existingDomNode!.firstChild
+                        let nextDomNode: Node | null = null
+
                         // S
                         for (let i = 0; i < newChildVNodes.length; i++) {
-                            newChildVNode = newChildVNodes[i]
-                            oldChildVNode = oldChildVNodes[i]
-                            childAction = undefined
+                            const newChildVNode = newChildVNodes[i]
+                            let oldChildVNode = oldChildVNodes[i]
+                            let matchingChildDomNode: Node | undefined
+                            let childAction: RenderingAction
 
-                            if (oldChildVNode !== undefined) {
-                                existingChildDomNode = oldChildVNode.domRef
-                                oldChildDomNode = oldChildVNode.domRef
+                            if (domNodeAtIndex !== null) {
+                                nextDomNode = domNodeAtIndex.nextSibling
                             }
 
+                            // If there is an old VNode, it's DOM ref should be
+                            // treated as the current/matching DOM node
+                            if (oldChildVNode !== undefined) {
+                                matchingChildDomNode = oldChildVNode.domRef
+                                //domNodeAtIndex = oldChildVNode.domRef
+                            }
+
+                            // Check if the new VNode is "keyed"
                             if ((newChildVNode as ElementVNode<any>).props !== undefined
                                 && oldChildVNodes.length > 0) {
 
-                                newChildVNodeKey = (newChildVNode as ElementVNode<any>).props.key
+                                const newChildVNodeKey: string | undefined = (newChildVNode as ElementVNode<any>).props.key
 
                                 if (newChildVNodeKey !== undefined) {
 
-                                    keyMapEntry = keyMap[newChildVNodeKey]
+                                    // Fetch the old keyed item from the key map
+                                    const keyMapEntry = keyMap[newChildVNodeKey]
 
                                     // If there was no old matching key, reuse an old unkeyed node
                                     if (keyMapEntry === undefined) {
-                                        existingChildDomNode = unkeyedNodes.shift()
-                                        if (existingChildDomNode !== undefined) {
+                                        matchingChildDomNode = unkeyedNodes.shift()
+                                        if (matchingChildDomNode !== undefined) {
+                                            // Make sure that the 
                                             childAction = ACTION_REPLACE
                                         }
                                     }
                                     // If there was a matching key, use the old vNodes dom ref
                                     else {
-                                        [oldChildVNode, oldChildVNodeIndex] = keyMapEntry
-                                        existingChildDomNode = oldChildVNode.domRef
+                                        [oldChildVNode, matchingChildDomNode] = keyMapEntry
                                     }
 
-                                    // Move the existing dom node to it's new position
-                                    if (existingChildDomNode !== undefined) {
-                                        if (existingChildDomNode !== oldChildDomNode) {
-                                            if (oldChildDomNode === null) {
-                                                existingDomNode!.appendChild(existingChildDomNode)
-                                            }
-                                            else if (existingDomNode!.contains(existingChildDomNode)) {
-                                                existingDomNode!.replaceChild(existingChildDomNode, oldChildDomNode)
-                                            }
-                                            else {
-                                                existingDomNode!.insertBefore(existingChildDomNode, oldChildDomNode)
-                                            }
+                                    // Move the matching dom node to it's new position
+                                    if (matchingChildDomNode !== undefined && matchingChildDomNode !== domNodeAtIndex) {
+                                        // If there is no DOM node at the current index, 
+                                        // the matching DOM node should be appended.
+                                        if (domNodeAtIndex === null) {
+                                            existingDomNode!.appendChild(matchingChildDomNode)
+                                        }
+                                        // 
+                                        else if (existingDomNode!.contains(matchingChildDomNode)) {
+                                            existingDomNode!.replaceChild(matchingChildDomNode, domNodeAtIndex)
+                                            nextDomNode = matchingChildDomNode.nextSibling
+                                        }
+                                        else {
+                                            existingDomNode!.insertBefore(matchingChildDomNode, domNodeAtIndex)
                                         }
                                     }
                                 }
                             }
 
-                            render(existingDomNode as Element, newChildVNode, oldChildVNode, existingChildDomNode, isSvg, childAction)
+                            render(existingDomNode as Element, newChildVNode, oldChildVNode, matchingChildDomNode, isSvg, childAction)
+
+                            domNodeAtIndex = nextDomNode
                         }
 
-                        if (unkeyedNodes.length > 0) {
-                            for (let i = 0; i < unkeyedNodes.length; i++) {
-                                if (existingDomNode!.contains(unkeyedNodes[i])) {
-                                    existingDomNode!.removeChild(unkeyedNodes[i])
-                                    diffNoOfChildNodes--
-                                }
-                            }
-                        }
+                        // If there are unkeyed nodes left, they haven't been 
+                        // reused and can be removed
+                        // if (unkeyedNodes.length > 0) {
+                        //     for (let i = 0; i < unkeyedNodes.length; i++) {
+                        //         if (existingDomNode!.contains(unkeyedNodes[i])) {
+                        //             existingDomNode!.removeChild(unkeyedNodes[i])
+                        //             diffNoOfChildNodes--
+                        //         }
+                        //     }
+                        // }
                     }
 
                     if (diffNoOfChildNodes > 0) {
-                        // Remove old unused nodes
+                        // Remove old unused DOM nodes backwards from the end
                         for (let i = newChildVNodes.length + diffNoOfChildNodes - 1; i > newChildVNodes.length - 1; i--) {
-                            oldChildVNode = oldChildVNodes[i]
+                            const oldChildVNode = oldChildVNodes[i]
 
                             // Make sure any sub-components are "unmounted"
                             findAndUnmountComponentsRec(oldChildVNode)
 
-                            oldChildDomNode = oldChildVNode.domRef!
-                            if (oldChildDomNode !== null && existingDomNode!.contains(oldChildDomNode)) {
-                                existingDomNode!.removeChild(oldChildDomNode)
+                            const oldChildDomNode = oldChildVNode.domRef!
+                            if (oldChildDomNode !== undefined && existingDomNode!.contains(oldChildDomNode!)) {
+                                existingDomNode!.removeChild(oldChildDomNode!)
                             }
                         }
                     }
