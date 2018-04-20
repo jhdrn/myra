@@ -45,7 +45,6 @@ const todoClass = (m: State) => {
 export default myra.define<State, Props>(init, c => {
 
     c.didMount = ({ props }) => c.evolve({ todo: props.todo })
-    c.willRender = ({ props }) => c.evolve({ todo: props.todo })
 
     const editTodo = () => c.evolve({ editing: true })
 
