@@ -152,7 +152,7 @@ export function render(
                         let domNodeAtIndex: Node | null = existingDomNode!.firstChild
                         let nextDomNode: Node | null = null
 
-                        // S
+                        // Start iterating over the new nodes and render them
                         for (let i = 0; i < newChildVNodes.length; i++) {
                             const newChildVNode = newChildVNodes[i]
                             let oldChildVNode = oldChildVNodes[i]
@@ -167,7 +167,6 @@ export function render(
                             // treated as the current/matching DOM node
                             if (oldChildVNode !== undefined) {
                                 matchingChildDomNode = oldChildVNode.domRef
-                                //domNodeAtIndex = oldChildVNode.domRef
                             }
 
                             // Check if the new VNode is "keyed"
@@ -185,7 +184,8 @@ export function render(
                                     if (keyMapEntry === undefined) {
                                         matchingChildDomNode = unkeyedNodes.shift()
                                         if (matchingChildDomNode !== undefined) {
-                                            // Make sure that the 
+                                            // Make sure that the DOM node will be
+                                            // recreated when rendered
                                             childAction = ACTION_REPLACE
                                         }
                                     }
@@ -201,7 +201,7 @@ export function render(
                                         if (domNodeAtIndex === null) {
                                             existingDomNode!.appendChild(matchingChildDomNode)
                                         }
-                                        // 
+                                        // Move the node by replacing the node at the current index
                                         else if (existingDomNode!.contains(matchingChildDomNode)) {
                                             existingDomNode!.replaceChild(matchingChildDomNode, domNodeAtIndex)
                                             nextDomNode = matchingChildDomNode.nextSibling
@@ -217,17 +217,6 @@ export function render(
 
                             domNodeAtIndex = nextDomNode
                         }
-
-                        // If there are unkeyed nodes left, they haven't been 
-                        // reused and can be removed
-                        // if (unkeyedNodes.length > 0) {
-                        //     for (let i = 0; i < unkeyedNodes.length; i++) {
-                        //         if (existingDomNode!.contains(unkeyedNodes[i])) {
-                        //             existingDomNode!.removeChild(unkeyedNodes[i])
-                        //             diffNoOfChildNodes--
-                        //         }
-                        //     }
-                        // }
                     }
 
                     if (diffNoOfChildNodes > 0) {
@@ -267,6 +256,10 @@ export function render(
     }
 }
 
+/**
+ * Sets attributes and renders children of the VNode, if it is an 
+ * ElementVNode
+ */
 function tryBuildElement(newVNode: VNode, newNode: Node, isSvg: boolean, action: RenderingAction) {
     // If it's an element node set attributes and event listeners
     if (newVNode._ === VNODE_ELEMENT) {
@@ -347,6 +340,10 @@ function createNode(vNode: VNode, parentNode: Element, isSvg: boolean): Node {
     }
 }
 
+/**
+ * Find out which attributes has been unset or should be removed anyways 
+ * (event listeners)
+ */
 function getAttributesToRemove(newVNode: ElementVNode<any>, oldVNode: VNode) {
     const attributesToRemove = [] as string[]
     for (const attributeName in (oldVNode as ElementVNode<any>).props) {
@@ -357,6 +354,9 @@ function getAttributesToRemove(newVNode: ElementVNode<any>, oldVNode: VNode) {
     return attributesToRemove
 }
 
+/**
+ * Sets/removes attributes on an element node
+ */
 function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, existingDomNode: Node) {
     // remove any attributes that was added with the old virtual node but does 
     // not exist in the new virtual node.
