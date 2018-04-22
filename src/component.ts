@@ -122,8 +122,10 @@ export function findAndUnmountComponentsRec(vNode: VNode) {
 
         findAndUnmountComponentsRec(vNode.rendition!)
     }
-    else if (vNode._ === VNODE_ELEMENT || vNode._ === VNODE_FUNCTION) {
-        // FIXME: vNode._ === VNODE_FUNCTION should probably check vNode.rendition
+    else if (vNode._ === VNODE_FUNCTION) {
+        findAndUnmountComponentsRec(vNode.rendition!)
+    }
+    else if (vNode._ === VNODE_ELEMENT) {
         for (const c of vNode.children) {
             findAndUnmountComponentsRec(c)
         }

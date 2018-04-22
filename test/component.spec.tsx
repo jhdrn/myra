@@ -203,6 +203,33 @@ describe('unmountComponent', () => {
         expect(mountMock.unmount).toHaveBeenCalledTimes(2)
     })
 
+    it('calls the willUnmount listener on child components of a stateless component', () => {
+        const mountMock = {
+            unmount: () => Promise.resolve({})
+        }
+
+        spyOn(mountMock, 'unmount').and.callThrough()
+
+        const ChildChildComponent = myra.define({}, ctx => {
+            ctx.willUnmount = mountMock.unmount
+            return () => <div />
+        })
+
+        const ChildComponent = myra.define({}, ctx => {
+            ctx.willUnmount = mountMock.unmount
+            return () => <ChildChildComponent />
+        })
+
+        const StateLessComponent = () => <ChildComponent />
+
+        const component = myra.define({}, () => () => <div><StateLessComponent /></div>)
+
+        const instance = component({}, [])
+        initComponent(document.body, instance, false)
+        findAndUnmountComponentsRec(instance)
+
+        expect(mountMock.unmount).toHaveBeenCalledTimes(2)
+    })
 })
 
 /**
