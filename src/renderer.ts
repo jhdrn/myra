@@ -1,7 +1,7 @@
 /** @internal */
 import { initComponent, updateComponent, findAndUnmountComponentsRec } from './component'
 import { VNode, ElementVNode } from './contract'
-import { VNODE_COMPONENT, VNODE_ELEMENT, VNODE_TEXT, VNODE_FUNCTION, VNODE_NONE } from './constants';
+import { VNODE_COMPONENT, VNODE_ELEMENT, VNODE_TEXT, VNODE_FUNCTION, VNODE_NOTHING } from './constants';
 
 const ACTION_APPEND = 1
 const ACTION_INSERT = 2
@@ -335,7 +335,7 @@ function createNode(vNode: VNode, parentNode: Element, isSvg: boolean): Node {
         case VNODE_COMPONENT:
         case VNODE_FUNCTION:
             return initComponent(parentNode, vNode, isSvg)
-        case VNODE_NONE:
+        case VNODE_NOTHING:
             return document.createComment('Nothing')
     }
 }

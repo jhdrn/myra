@@ -22,7 +22,39 @@ describe('jsxFactory', () => {
         } as myra.NothingVNode)
     })
 
-    it('creates a NothingVNode from null values', () => {
+    it('creates a NothingVNode from null', () => {
+
+        const view = myra.h(null, {})
+
+        expect(view).toEqual({
+            _: 0
+        } as myra.NothingVNode)
+    })
+
+    it('creates a NothingVNode from undefined', () => {
+
+        const view = myra.h(undefined, {})
+        expect(view).toEqual({
+            _: 0
+        } as myra.NothingVNode)
+    })
+
+    it('creates a NothingVNode from booleans', () => {
+
+        const view1 = myra.h(false as any, {})
+
+        expect(view1).toEqual({
+            _: 0
+        } as myra.NothingVNode)
+
+        const view2 = myra.h(true as any, {})
+
+        expect(view2).toEqual({
+            _: 0
+        } as myra.NothingVNode)
+    })
+
+    it('creates a NothingVNode from null children', () => {
 
         const view = <div>{null}</div> as myra.ElementVNode<any>
 
@@ -31,16 +63,16 @@ describe('jsxFactory', () => {
         } as myra.NothingVNode)
     })
 
-    it('creates a NothingVNode from undefined values', () => {
+    it('creates a NothingVNode from undefined children', () => {
 
         const view = <div>{undefined}</div> as myra.ElementVNode<any>
-
+        console.log(view.children[0])
         expect(view.children[0]).toEqual({
             _: 0
         } as myra.NothingVNode)
     })
 
-    it('creates a NothingVNode from boolean values', () => {
+    it('creates a NothingVNode from boolean children', () => {
 
         const view1 = <div>{false}</div> as myra.ElementVNode<any>
 
