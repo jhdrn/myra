@@ -48,14 +48,14 @@ describe('core.helpers.equal', () => {
         expect(equal(r1, r2)).toBe(true)
     })
 
-    it('doeas not equal anonymous function against itself', () => {
+    it('equals anonymous function against itself', () => {
         const fn = () => { }
-        expect(equal(fn, fn)).toBe(false)
+        expect(equal(fn, fn)).toBe(true)
     })
 
-    it('does not equal named function against itself', () => {
+    it('equals named function against itself', () => {
         const fn = function withName() { }
-        expect(equal(fn, fn)).toBe(false)
+        expect(equal(fn, fn)).toBe(true)
     })
 
     it('does not equal different anonymous functions', () => {

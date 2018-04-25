@@ -59,7 +59,8 @@ export function equal<T>(a: T, b: T): boolean {
     else if (typeOfA === 'regexp' && typeOfB === 'regexp') {
         return (a as any).toString() === (b as any).toString()
     }
-    // functions are never treated equal as they're often created with different
-    // scopes
+    else if (typeOfA === 'function' && typeOfB === 'function') {
+        return a === b
+    }
     return false
 }

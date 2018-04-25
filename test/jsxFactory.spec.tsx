@@ -66,7 +66,6 @@ describe('jsxFactory', () => {
     it('creates a NothingVNode from undefined children', () => {
 
         const view = <div>{undefined}</div> as myra.ElementVNode<any>
-        console.log(view.children[0])
         expect(view.children[0]).toEqual({
             _: 0
         } as myra.NothingVNode)
