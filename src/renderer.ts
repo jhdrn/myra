@@ -10,6 +10,9 @@ const ACTION_UPDATE = 4
 
 export type RenderingAction = undefined | 1 | 2 | 3 | 4
 
+/** 
+ * Renders the view by traversing the virtual node tree recursively 
+ */
 export function render(
     parentDomNode: Element,
     newVNode: VNode,
