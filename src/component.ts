@@ -38,7 +38,7 @@ export function initComponent(parentElement: Element, vNode: ComponentVNode<any,
             evolve: function evolve(update: UpdateState<any>) {
 
                 if (typeof update === 'function') {
-                    update = update(vNode.state)
+                    update = update(link.vNode.state)
                 }
                 link.vNode.state = { ...(link.vNode.state as any), ...(update as object) }
 
