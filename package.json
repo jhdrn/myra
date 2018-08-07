@@ -28,7 +28,7 @@
     "copyfiles": "^1.2.0",
     "dts-bundle": "^0.7.3",
     "jasmine-core": "^2.99.1",
-    "karma": "^2.0.4",
+    "karma": "^2.0.5",
     "karma-chrome-launcher": "^1.0.1",
     "karma-coverage": "^1.1.2",
     "karma-edge-launcher": "0.0.0",
@@ -47,7 +47,7 @@
     "rollup-plugin-uglify": "^4.0.0",
     "systemjs": "^0.19.47",
     "ts-node": "^4.1.0",
-    "typescript": "^2.9.2",
+    "typescript": "^3.0.1",
     "uglify-es": "^3.3.9"
   },
   "scripts": {
