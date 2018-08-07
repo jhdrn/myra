@@ -255,8 +255,10 @@ export interface Context<TState, TProps> {
     readonly domRef: Element | undefined
 }
 export interface SetupContext<TState, TProps> extends Context<TState, TProps> {
+    defaultProps?: Partial<TProps>
     willMount?: (ctx: Context<TState, TProps>) => void
     didMount?: (ctx: Context<TState, TProps>) => void
+    shouldRender?: (oldProps: TProps, newProps: TProps) => boolean
     willRender?: (ctx: Context<TState, TProps>) => void
     didRender?: (ctx: Context<TState, TProps>) => void
     willUnmount?: (ctx: Context<TState, TProps>) => void

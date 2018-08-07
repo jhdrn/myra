@@ -59,6 +59,9 @@ with `myra.mount`:
         // The "setup" function takes a `ComponentContext` argument
         ctx => {
 
+            // Default prop values can be set via the defaultProps property
+            ctx.defaultProps = { myProp: 'default value' }
+
             // The context can be used to attach event listeners
             // for lifecycle events
             ctx.didMount = (props, domRef) => console.log('didMount')
@@ -89,6 +92,7 @@ with `myra.mount`:
 The following lifecycle events are fired:
 
 - willMount - called before the component will attach to the DOM
+- shouldRender - used to decide whether to render the component or not
 - willRender - called before the component will be rendered
 - didRender - called after the component was rendered
 - didMount - called after the component was attached to the DOM
@@ -139,4 +143,4 @@ contains code examples for `myra-router`.
 
 [MIT](http://opensource.org/licenses/MIT)
 
-Copyright (c) 2016-2017 Jonathan Hedrén
+Copyright (c) 2016-2018 Jonathan Hedrén

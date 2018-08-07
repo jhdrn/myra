@@ -1,6 +1,6 @@
 import * as myra from '../src/myra'
 import { initComponent, updateComponent, findAndUnmountComponentsRec } from '../src/component'
-import { VNode, StatelessComponentVNode, ComponentVNode } from '../src/contract';
+import { VNode, StatelessComponentVNode, ComponentVNode, SetupContext } from '../src/contract';
 
 const q = (x: string) => document.querySelector(x)
 
@@ -26,7 +26,7 @@ describe('define', () => {
  */
 describe('mount', () => {
 
-    it('mounts the component', () => {
+    it('mounts the component', done => {
 
         const Component = myra.define({}, () => () => <div id="root" />)
 
@@ -35,9 +35,11 @@ describe('mount', () => {
         const rootNode = q('#root')
 
         expect(rootNode).not.toBeNull()
+
+        done()
     })
 
-    it('mounts a stateless component', () => {
+    it('mounts a stateless component', done => {
 
         const Component = () => <div id="stateless-root" />
 
@@ -46,18 +48,22 @@ describe('mount', () => {
         const rootNode = q('#stateless-root')
 
         expect(rootNode).not.toBeNull()
+
+        done()
     })
 
-    it('mounts any JSX element', () => {
+    it('mounts any JSX element', done => {
 
         myra.mount(<div id="root" />, document.body)
 
         const rootNode = q('#root')
 
         expect(rootNode).not.toBeNull()
+
+        done()
     })
 
-    it('calls the willMount listener', () => {
+    it('calls the willMount listener', done => {
         const mock = {
             callback: () => Promise.resolve({})
         }
@@ -72,9 +78,11 @@ describe('mount', () => {
         myra.mount(<Component />, document.body)
 
         expect(mock.callback).toHaveBeenCalled()
+
+        done()
     })
 
-    it('calls the didMount listener', () => {
+    it('calls the didMount listener', done => {
         const mock = {
             callback: () => Promise.resolve({})
         }
@@ -89,9 +97,11 @@ describe('mount', () => {
         myra.mount(<Component />, document.body)
 
         expect(mock.callback).toHaveBeenCalled()
+
+        done()
     })
 
-    it('calls the willRender listener', () => {
+    it('calls the willRender listener', done => {
         const mock = {
             callback: () => Promise.resolve({})
         }
@@ -106,9 +116,11 @@ describe('mount', () => {
         myra.mount(<Component />, document.body)
 
         expect(mock.callback).toHaveBeenCalled()
+
+        done()
     })
 
-    it('calls the didRender listener', () => {
+    it('calls the didRender listener', done => {
         const mock = {
             callback: () => Promise.resolve({})
         }
@@ -123,9 +135,11 @@ describe('mount', () => {
         myra.mount(<Component />, document.body)
 
         expect(mock.callback).toHaveBeenCalled()
+
+        done()
     })
 
-    it(`passes the children of a component to it view`, () => {
+    it(`passes the children of a component to it view`, done => {
         const viewMock = {
             view: (_s: any, _p: any, children: any) => {
                 expect(Array.isArray(children)).toBe(true)
@@ -148,6 +162,34 @@ describe('mount', () => {
         expect(q('#divTestId')).not.toBeNull()
 
         expect(viewMock.view).toHaveBeenCalledTimes(1)
+
+        done()
+    })
+
+    it('merges defaultProps with received props', done => {
+        const mock = {
+            callback: ({ props }: SetupContext<{}, { a?: string, b?: number }>) => {
+                expect(props.a).toBe('test')
+                expect(props.b).toBe(123)
+
+                done()
+            }
+        }
+
+        spyOn(mock, 'callback').and.callThrough()
+
+        const Component = myra.define<{}, { a?: string, b?: number }>({}, ctx => {
+            ctx.defaultProps = {
+                a: 'foo',
+                b: 123
+            }
+            ctx.willMount = mock.callback
+            return () => <div />
+        })
+
+        myra.mount(<Component a="test" />, document.body)
+
+        expect(mock.callback).toHaveBeenCalled()
     })
 })
 
@@ -251,12 +293,12 @@ describe('updateComponent (stateful component)', () => {
 
         const vNode = component({ val: 45 }, [])
         initComponent(document.body, vNode, false)
-        updateComponent(document.body, component({ val: 45 }, []), vNode, false)
+        updateComponent(document.body, component({ val: 45 }, []) as any, vNode as any, false)
 
         expect(mock.willRender).toHaveBeenCalledTimes(1)
     })
 
-    it('calls the willRender event if forceUpdate is true', () => {
+    it('calls the willRender listener if forceUpdate is true', () => {
         const mountMock = {
             mount: () => Promise.resolve({})
         }
@@ -277,7 +319,7 @@ describe('updateComponent (stateful component)', () => {
         expect(mountMock.mount).toHaveBeenCalledTimes(2)
     })
 
-    it('calls the willRender event if the supplied props are not equal to the previous props', () => {
+    it('calls the willRender listener if the supplied props are not equal to the previous props', () => {
         const mountMock = {
             callback: () => Promise.resolve({})
         }
@@ -298,15 +340,92 @@ describe('updateComponent (stateful component)', () => {
         expect(mountMock.callback).toHaveBeenCalledTimes(2)
     })
 
+    it('passes old and new props to shouldRender', done => {
+        const mock = {
+            shouldRender: (oldProps: { a?: number }, newProps: { a?: number }) => {
+                if (oldProps.a === 0) {
+                    expect(newProps.a).toBe(1)
+                }
+                else {
+                    expect(oldProps.a).toBe(1)
+                    expect(newProps.a).toBe(2)
+                    done()
+                }
+                return true
+            }
+        }
+
+        spyOn(mock, 'shouldRender').and.callThrough()
+
+        const component = myra.define<{}, { a?: number }>({}, ctx => {
+            ctx.defaultProps = {
+                a: 0
+            }
+            ctx.shouldRender = mock.shouldRender
+            return () => <div />
+        })
+
+        const vNode = component({ a: 1 }, [])
+        initComponent(document.body, vNode, false)
+
+        const newVNode = component({ a: 2 }, [])
+        updateComponent(document.body, newVNode, vNode, false)
+
+    })
+
+    it('calls the willRender listener if shouldRender returns true', () => {
+        const mock = {
+            willRender: () => { }
+        }
+
+        spyOn(mock, 'willRender').and.callThrough()
+
+        const component = myra.define({}, ctx => {
+            ctx.shouldRender = () => true
+            ctx.willRender = mock.willRender
+            return () => <div />
+        })
+
+        const vNode = component({}, [])
+        initComponent(document.body, vNode, false)
+
+        const newVNode = component({ forceUpdate: true }, [])
+        updateComponent(document.body, newVNode, vNode, false)
+
+        expect(mock.willRender).toHaveBeenCalledTimes(2)
+    })
+
+    it('does not call the willRender listener if shouldRender returns false', () => {
+        const mock = {
+            willRender: () => { }
+        }
+
+        spyOn(mock, 'willRender').and.callThrough()
+
+        const component = myra.define({}, ctx => {
+            ctx.shouldRender = () => false
+            ctx.willRender = mock.willRender
+            return () => <div />
+        })
+
+        const vNode = component({}, [])
+        initComponent(document.body, vNode, false)
+
+        const newVNode = component({ forceUpdate: true }, [])
+        updateComponent(document.body, newVNode, vNode, false)
+
+        expect(mock.willRender).not.toHaveBeenCalled()
+    })
+
     it('does not call the willRender listener if the children has not changed', () => {
-        const mountMock = {
+        const mock = {
             callback: () => Promise.resolve({})
         }
 
-        spyOn(mountMock, 'callback').and.callThrough()
+        spyOn(mock, 'callback').and.callThrough()
 
         const component = myra.define({}, ctx => {
-            ctx.willRender = mountMock.callback
+            ctx.willRender = mock.callback
             return (_state, _props, children) => <div>{...children}</div>
         })
 
@@ -316,18 +435,18 @@ describe('updateComponent (stateful component)', () => {
         const newVNode = myra.h(component, {}, 'Child A') as ComponentVNode<any, any>
         updateComponent(document.body, newVNode, vNode, false)
 
-        expect(mountMock.callback).toHaveBeenCalledTimes(1)
+        expect(mock.callback).toHaveBeenCalledTimes(1)
     })
 
     it('calls the willRender event if the supplied children are not equal to the previous children', () => {
-        const mountMock = {
+        const mock = {
             callback: () => Promise.resolve({})
         }
 
-        spyOn(mountMock, 'callback').and.callThrough()
+        spyOn(mock, 'callback').and.callThrough()
 
         const component = myra.define({}, ctx => {
-            ctx.willRender = mountMock.callback
+            ctx.willRender = mock.callback
             return (_state, _props, children) => <div>{...children}</div>
         })
 
@@ -337,7 +456,7 @@ describe('updateComponent (stateful component)', () => {
         const newVNode = myra.h(component, {}, 'Child B') as ComponentVNode<any, any>
         updateComponent(document.body, newVNode, vNode, false)
 
-        expect(mountMock.callback).toHaveBeenCalledTimes(2)
+        expect(mock.callback).toHaveBeenCalledTimes(2)
     })
 })
 
