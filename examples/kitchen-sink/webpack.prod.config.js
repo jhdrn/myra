@@ -3,8 +3,10 @@ let webpack = require('webpack');
 let path = require('path');
 
 module.exports = {
+    mode: 'production',
+
     entry: {
-        app: './src/app.ts'
+        app: './src/app.tsx'
     },
 
     output: {
@@ -18,19 +20,14 @@ module.exports = {
         ]
     },
 
+    optimization: {
+        minimize: true
+    },
+
     plugins: [
         new webpack.LoaderOptionsPlugin({
             minimize: true,
             debug: false
-        }),
-        new webpack.optimize.UglifyJsPlugin({
-            compress: {
-                warnings: true
-            },
-            output: {
-                comments: false
-            },
-            sourceMap: false
         })
     ],
 
