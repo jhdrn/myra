@@ -1,7 +1,7 @@
 {
   "name": "myra",
   "private": true,
-  "version": "3.0.0-rc2",
+  "version": "3.0.0",
   "description": "Myra is a simple and small Typescript JSX rendering library.",
   "readme": "README.md",
   "repository": {
