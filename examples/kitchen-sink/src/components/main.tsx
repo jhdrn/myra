@@ -9,7 +9,7 @@ import TimeComponent from './time'
 /**
  * View
  */
-export default myra.define({}, () => () =>
+export const MainComponent = myra.define({}, () => () =>
     <div class="container">
         <h1>Kitchen sink demo</h1>
         <hr />

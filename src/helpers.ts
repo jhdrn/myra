@@ -18,7 +18,7 @@ export function typeOf(obj: any): Type {
     return ({}).toString.call(obj).slice(8, -1).toLowerCase()
 }
 
-const basicEqualityTypes = ['string', 'number', 'boolean', 'undefined', 'null']
+const basicEqualityTypes = ['string', 'number', 'boolean', 'undefined', 'null', 'function']
 
 /**
  * Does a deep equality check.
@@ -58,9 +58,6 @@ export function equal<T>(a: T, b: T): boolean {
     }
     else if (typeOfA === 'regexp' && typeOfB === 'regexp') {
         return (a as any).toString() === (b as any).toString()
-    }
-    else if (typeOfA === 'function' && typeOfB === 'function') {
-        return true
     }
     return false
 }

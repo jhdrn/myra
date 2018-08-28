@@ -1,12 +1,12 @@
 import { ComponentFactory, VNode, TextVNode } from './contract'
-import { VNODE_NONE, VNODE_TEXT, VNODE_ELEMENT, STATEFUL, VNODE_FUNCTION } from './constants';
+import { VNODE_NOTHING, VNODE_TEXT, VNODE_ELEMENT, STATEFUL, VNODE_FUNCTION } from './constants';
 
 function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
     const flattenedChildren = [] as (VNode | string)[]
 
     for (const child of children) {
         if (child === null || child === undefined || typeof child === 'boolean') {
-            flattenedChildren.push({ _: VNODE_NONE })
+            flattenedChildren.push({ _: VNODE_NOTHING })
         }
         else if (Array.isArray(child)) {
             for (const c of flattenChildren(child)) {
@@ -32,12 +32,16 @@ function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
  * Creates a JSX.Element/VNode from a JSX tag.
  */
 export function h<TProps>(
-    tagNameOrComponent: string | ComponentFactory<TProps>,
+    tagNameOrComponent: string | ComponentFactory<TProps> | undefined | null,
     props: TProps,
     ...children: (string | VNode)[]): JSX.Element {
 
-    if (tagNameOrComponent === 'nothing') {
-        return { _: VNODE_NONE }
+    if (tagNameOrComponent === 'nothing' ||
+        tagNameOrComponent === undefined ||
+        tagNameOrComponent === null ||
+        typeof tagNameOrComponent === 'boolean') {
+
+        return { _: VNODE_NOTHING }
     }
 
     if (props === null) {

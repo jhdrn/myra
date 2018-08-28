@@ -58,18 +58,18 @@ describe('core.helpers.equal', () => {
         expect(equal(fn, fn)).toBe(true)
     })
 
-    it('equals different anonymous functions', () => {
+    it('does not equal different anonymous functions', () => {
         const r1 = function () { }
         const r2 = function () { }
 
-        expect(equal(r1, r2)).toBe(true)
+        expect(equal(r1, r2)).toBe(false)
     })
 
-    it('equals different functions with the same name', () => {
+    it('does not equal different functions with the same name', () => {
         const r1 = function withName() { }
         const r2 = function withName() { }
 
-        expect(equal(r1, r2)).toBe(true)
+        expect(equal(r1, r2)).toBe(false)
     })
 
     it('does not equal string against undefined', () => {
@@ -122,14 +122,12 @@ describe('core.helpers.equal', () => {
         expect(equal(r1, r2)).toBe(false)
     })
 
-
     it('does not equal different types', () => {
         const a = 'A string'
         const b = 254
 
         expect(equal(a, b as any)).toBe(false)
     })
-    // FIXME: functions?
 })
 
 // describe('core.helpers.max', () => {

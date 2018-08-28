@@ -3,8 +3,8 @@ import {
     ComponentVNode,
     UpdateState,
     VNode,
-    Context,
-    StatelessComponentVNode
+    StatelessComponentVNode,
+    SetupContext
 } from './contract'
 import { equal } from './helpers'
 import { render } from './renderer'
@@ -25,7 +25,7 @@ export function initComponent(parentElement: Element, vNode: ComponentVNode<any,
         }
         vNode.link = link
 
-        const ctx: Context<any, any> = {
+        const ctx: SetupContext<any, any> = {
             get state() {
                 return link.vNode.state
             },
@@ -38,7 +38,7 @@ export function initComponent(parentElement: Element, vNode: ComponentVNode<any,
             evolve: function evolve(update: UpdateState<any>) {
 
                 if (typeof update === 'function') {
-                    update = update(vNode.state)
+                    update = update(link.vNode.state)
                 }
                 link.vNode.state = { ...(link.vNode.state as any), ...(update as object) }
 
@@ -50,19 +50,28 @@ export function initComponent(parentElement: Element, vNode: ComponentVNode<any,
         const view = vNode.spec(ctx)
         vNode.view = view
 
-        if (vNode.ctx.willMount !== undefined) {
+        // Merge any defaultProps with received props
+        if (ctx.defaultProps !== undefined) {
+            vNode.props = { ...ctx.defaultProps, ...vNode.props }
+        }
+
+        if (ctx.willMount !== undefined) {
             // Setting dispatchLevel to 1 will make any dispatch call just update
             // the state without rendering the view
             vNode.dispatchLevel = 1
-            vNode.ctx.willMount(vNode.props)
+            ctx.willMount(ctx)
         }
         vNode.dispatchLevel = 0
 
-        // Render the view. 
-        tryRender(parentElement, vNode, isSvg)
+        if (ctx.shouldRender === undefined
+            || ctx.shouldRender(ctx.defaultProps, vNode.props)) {
 
-        if (vNode.ctx.didMount !== undefined) {
-            vNode.ctx.didMount(vNode.ctx)
+            // Render the view. 
+            tryRender(parentElement, vNode, isSvg)
+        }
+
+        if (ctx.didMount !== undefined) {
+            ctx.didMount(ctx)
         }
     }
     else {
@@ -100,7 +109,10 @@ export function updateComponent<TState, TProps>(
         newVNode.dispatchLevel = 0
         newVNode.ctx = (oldVNode as ComponentVNode<TState, TProps>).ctx
 
-        if (shouldRender) {
+        if (shouldRender
+            && (newVNode.ctx.shouldRender === undefined
+                || newVNode.ctx.shouldRender(oldVNode.props, newVNode.props))) {
+
             tryRender(parentElement, newVNode, isSvg)
         }
     }
@@ -122,8 +134,10 @@ export function findAndUnmountComponentsRec(vNode: VNode) {
 
         findAndUnmountComponentsRec(vNode.rendition!)
     }
-    else if (vNode._ === VNODE_ELEMENT || vNode._ === VNODE_FUNCTION) {
-        // FIXME: vNode._ === VNODE_FUNCTION should probably check vNode.rendition
+    else if (vNode._ === VNODE_FUNCTION) {
+        findAndUnmountComponentsRec(vNode.rendition!)
+    }
+    else if (vNode._ === VNODE_ELEMENT) {
         for (const c of vNode.children) {
             findAndUnmountComponentsRec(c)
         }

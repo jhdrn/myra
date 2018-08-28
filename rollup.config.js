@@ -1,8 +1,12 @@
-import { minify } from 'uglify-es'
+import {
+    minify
+} from 'uglify-es'
 // import resolve from 'rollup-plugin-node-resolve'
 // import commonjs from 'rollup-plugin-commonjs'
 import sourceMaps from 'rollup-plugin-sourcemaps'
-import uglify from 'rollup-plugin-uglify'
+import {
+    uglify
+} from 'rollup-plugin-uglify'
 import camelCase from 'lodash.camelcase'
 import dts from 'dts-bundle'
 
@@ -28,13 +32,11 @@ const libraryName = 'myra'
 
 export default {
     input: `build/src/${libraryName}.js`,
-    output: [
-        {
-            file: `dist/${libraryName}.min.js`,
-            name: camelCase(libraryName),
-            format: 'umd',
-        }
-    ],
+    output: [{
+        file: `dist/${libraryName}.min.js`,
+        name: camelCase(libraryName),
+        format: 'umd',
+    }],
     banner: '/** @license MIT https://github.com/jhdrn/myra/blob/master/LICENSE - Copyright (c) 2017 Jonathan Hedrén */',
     sourcemap: false,
     // Indicate here external modules you don't wanna include in your bundle (i.e.: 'lodash')

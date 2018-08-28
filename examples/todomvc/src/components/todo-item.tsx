@@ -6,6 +6,7 @@ type Todo = todos.Todo
 type Props = {
     onchange: () => void
     todo: Todo
+    key: string
 }
 
 /**
@@ -43,8 +44,7 @@ const todoClass = (m: State) => {
  */
 export default myra.define<State, Props>(init, c => {
 
-    c.didMount = (props) => c.evolve({ todo: props.todo })
-    c.willUpdate = (props) => c.evolve({ todo: props.todo })
+    c.didMount = ({ props }) => c.evolve({ todo: props.todo })
 
     const editTodo = () => c.evolve({ editing: true })
 
