@@ -1,6 +1,8 @@
 var path = require("path");
 
 module.exports = {
+    mode: 'development',
+
     entry: {
         app: './src/app.tsx'
     },
