@@ -11,7 +11,7 @@ fs.readFile(definitionsFile, 'utf8', (err, data) => {
         throw err
     }
 
-    const result = data.replace('global  {', 'declare global {')
+    const result = data.replace('global {', 'declare global {')
 
     fs.writeFile(definitionsFile, result, 'utf8', err => {
         if (err) {
