@@ -9,7 +9,7 @@ import {
 } from './contract'
 import { equal } from './helpers'
 import { render } from './renderer'
-import { VNODE_COMPONENT, VNODE_ELEMENT, VNODE_FUNCTION } from './constants';
+import { VNODE_COMPONENT, VNODE_ELEMENT, VNODE_FUNCTION, VNODE_NOTHING } from './constants';
 
 /** 
  * Initializes a component from a ComponentVNode.
@@ -172,15 +172,25 @@ function tryRender<TState extends {}, TProps extends {}>(parentElement: Element,
 }
 
 function doRender(parentElement: Element, vNode: ComponentVNode<any, any> | StatelessComponentVNode<any>, isSvg: boolean) {
+    let newView: VNode
+
     try {
-        let newView: VNode
         if (vNode._ === VNODE_COMPONENT) {
             newView = vNode.view(vNode.state, vNode.props, vNode.children)
         }
         else {
             newView = vNode.view(vNode.props, vNode.children)
         }
+    }
+    catch (err) {
+        if (vNode._ === VNODE_COMPONENT && vNode.ctx.onError !== undefined) {
+            newView = vNode.ctx.onError(err)
+        } else {
+            newView = { _: VNODE_NOTHING }
+        }
+    }
 
+    try {
         let oldNode: Node | undefined
         if (vNode.rendition !== undefined) {
             oldNode = vNode.rendition.domRef
@@ -188,12 +198,11 @@ function doRender(parentElement: Element, vNode: ComponentVNode<any, any> | Stat
 
         render(parentElement, newView, vNode.rendition, oldNode, isSvg)
 
-        vNode.rendition = newView
-        vNode.domRef = newView.domRef
     }
     catch (err) {
-        if (vNode._ === VNODE_COMPONENT && vNode.ctx.onError !== undefined) {
-            vNode.ctx.onError(err)
-        }
+        console.error(err)
     }
+
+    vNode.rendition = newView
+    vNode.domRef = newView.domRef
 }

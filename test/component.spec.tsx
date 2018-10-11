@@ -141,7 +141,7 @@ describe('mount', () => {
 
     it('calls the onError listener', done => {
         const mock = {
-            callback: console.log
+            callback: () => <nothing />
         }
 
         spyOn(mock, 'callback').and.callThrough()

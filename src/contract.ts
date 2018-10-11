@@ -265,7 +265,7 @@ export interface SetupContext<TState, TProps> extends Context<TState, TProps> {
     willRender?: (ctx: Context<TState, TProps>) => void
     didRender?: (ctx: RenderedContext<TState, TProps>) => void
     willUnmount?: (ctx: RenderedContext<TState, TProps>) => void
-    onError?: (error: Error) => void
+    onError?: (error: Error) => VNode
 }
 
 export type ComponentSetup<TState, TProps> = (ctx: SetupContext<TState, TProps>) => View<TState, TProps>
