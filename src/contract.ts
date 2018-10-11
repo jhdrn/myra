@@ -254,14 +254,18 @@ export interface Context<TState, TProps> {
     readonly state: TState
     readonly domRef: Element | undefined
 }
+export interface RenderedContext<TState, TProps> extends Context<TState, TProps> {
+    readonly domRef: Element
+}
 export interface SetupContext<TState, TProps> extends Context<TState, TProps> {
     defaultProps?: Partial<TProps>
     willMount?: (ctx: Context<TState, TProps>) => void
-    didMount?: (ctx: Context<TState, TProps>) => void
+    didMount?: (ctx: RenderedContext<TState, TProps>) => void
     shouldRender?: (oldProps: TProps, newProps: TProps) => boolean
     willRender?: (ctx: Context<TState, TProps>) => void
-    didRender?: (ctx: Context<TState, TProps>) => void
-    willUnmount?: (ctx: Context<TState, TProps>) => void
+    didRender?: (ctx: RenderedContext<TState, TProps>) => void
+    willUnmount?: (ctx: RenderedContext<TState, TProps>) => void
+    onError?: (error: Error) => void
 }
 
 export type ComponentSetup<TState, TProps> = (ctx: SetupContext<TState, TProps>) => View<TState, TProps>

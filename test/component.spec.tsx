@@ -139,6 +139,25 @@ describe('mount', () => {
         done()
     })
 
+    it('calls the onError listener', done => {
+        const mock = {
+            callback: console.log
+        }
+
+        spyOn(mock, 'callback').and.callThrough()
+
+        const Component = myra.define({ val: 0 }, ctx => {
+            ctx.onError = mock.callback
+            return () => <div>{(undefined as any).property}</div>
+        })
+
+        myra.mount(<Component />, document.body)
+
+        expect(mock.callback).toHaveBeenCalled()
+
+        done()
+    })
+
     it(`passes the children of a component to it view`, done => {
         const viewMock = {
             view: (_s: any, _p: any, children: any) => {

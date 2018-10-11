@@ -4,7 +4,8 @@ import {
     UpdateState,
     VNode,
     StatelessComponentVNode,
-    SetupContext
+    SetupContext,
+    RenderedContext
 } from './contract'
 import { equal } from './helpers'
 import { render } from './renderer'
@@ -37,7 +38,7 @@ export function initComponent(parentElement: Element, vNode: ComponentVNode<any,
             },
             evolve: function evolve(update: UpdateState<any>) {
 
-                if (typeof update === 'function') {
+                if (typeof update !== 'object') {
                     update = update(link.vNode.state)
                 }
                 link.vNode.state = { ...(link.vNode.state as any), ...(update as object) }
@@ -64,14 +65,14 @@ export function initComponent(parentElement: Element, vNode: ComponentVNode<any,
         vNode.dispatchLevel = 0
 
         if (ctx.shouldRender === undefined
-            || ctx.shouldRender(ctx.defaultProps, vNode.props)) {
+            || ctx.shouldRender(ctx.defaultProps || {}, vNode.props)) {
 
             // Render the view. 
             tryRender(parentElement, vNode, isSvg)
         }
 
         if (ctx.didMount !== undefined) {
-            ctx.didMount(ctx)
+            ctx.didMount(ctx as RenderedContext<any, any>)
         }
     }
     else {
@@ -129,7 +130,7 @@ export function updateComponent<TState, TProps>(
 export function findAndUnmountComponentsRec(vNode: VNode) {
     if (vNode._ === VNODE_COMPONENT) {
         if (vNode.ctx.willUnmount !== undefined) {
-            vNode.ctx.willUnmount(vNode.ctx)
+            vNode.ctx.willUnmount(vNode.ctx as RenderedContext<any, any>)
         }
 
         findAndUnmountComponentsRec(vNode.rendition!)
@@ -164,28 +165,35 @@ function tryRender<TState extends {}, TProps extends {}>(parentElement: Element,
         doRender(parentElement, vNode, isSvg)
 
         if (vNode.ctx.didRender !== undefined) {
-            vNode.ctx.didRender(vNode.ctx)
+            vNode.ctx.didRender(vNode.ctx as RenderedContext<any, any>)
         }
     }
     vNode.dispatchLevel--
 }
 
 function doRender(parentElement: Element, vNode: ComponentVNode<any, any> | StatelessComponentVNode<any>, isSvg: boolean) {
-    let newView: VNode
-    if (vNode._ === VNODE_COMPONENT) {
-        newView = vNode.view(vNode.state, vNode.props, vNode.children)
-    }
-    else {
-        newView = vNode.view(vNode.props, vNode.children)
-    }
+    try {
+        let newView: VNode
+        if (vNode._ === VNODE_COMPONENT) {
+            newView = vNode.view(vNode.state, vNode.props, vNode.children)
+        }
+        else {
+            newView = vNode.view(vNode.props, vNode.children)
+        }
 
-    let oldNode: Node | undefined
-    if (vNode.rendition !== undefined) {
-        oldNode = vNode.rendition.domRef
+        let oldNode: Node | undefined
+        if (vNode.rendition !== undefined) {
+            oldNode = vNode.rendition.domRef
+        }
+
+        render(parentElement, newView, vNode.rendition, oldNode, isSvg)
+
+        vNode.rendition = newView
+        vNode.domRef = newView.domRef
     }
-
-    render(parentElement, newView, vNode.rendition, oldNode, isSvg)
-
-    vNode.rendition = newView
-    vNode.domRef = newView.domRef
+    catch (err) {
+        if (vNode._ === VNODE_COMPONENT && vNode.ctx.onError !== undefined) {
+            vNode.ctx.onError(err)
+        }
+    }
 }
