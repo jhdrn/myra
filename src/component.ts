@@ -186,6 +186,7 @@ function doRender(parentElement: Element, vNode: ComponentVNode<any, any> | Stat
         if (vNode._ === VNODE_COMPONENT && vNode.ctx.onError !== undefined) {
             newView = vNode.ctx.onError(err)
         } else {
+            console.error(err)
             newView = { _: VNODE_NOTHING }
         }
     }
@@ -197,7 +198,6 @@ function doRender(parentElement: Element, vNode: ComponentVNode<any, any> | Stat
         }
 
         render(parentElement, newView, vNode.rendition, oldNode, isSvg)
-
     }
     catch (err) {
         console.error(err)

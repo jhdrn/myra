@@ -64,7 +64,12 @@ with `myra.mount`:
 
             // The context can be used to attach event listeners
             // for lifecycle events
-            ctx.didMount = (props, domRef) => console.log('didMount')
+            ctx.didMount = () => console.log('didMount')
+
+            // The onError event listener will be called if a rendering error
+            // occurs. It is required to return a view to display in place of
+            // the component's (<nothing /> can be used).
+            ctx.onError = () => <p>An error occured!</p>
 
             // The context also holds the important 'evolve' function
             // which is used to update the state and re-render the component.
