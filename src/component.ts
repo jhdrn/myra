@@ -9,7 +9,7 @@ import {
 } from './contract'
 import { equal } from './helpers'
 import { render } from './renderer'
-import { VNODE_COMPONENT, VNODE_ELEMENT, VNODE_FUNCTION, VNODE_NOTHING } from './constants';
+import { VNODE_COMPONENT, VNODE_ELEMENT, VNODE_FUNCTION } from './constants'
 
 /** 
  * Initializes a component from a ComponentVNode.
@@ -65,7 +65,7 @@ export function initComponent(parentElement: Element, vNode: ComponentVNode<any,
         vNode.dispatchLevel = 0
 
         if (ctx.shouldRender === undefined
-            || ctx.shouldRender(ctx.defaultProps || {}, vNode.props)) {
+            || ctx.shouldRender(ctx.defaultProps === undefined ? {} : ctx.defaultProps, vNode.props)) {
 
             // Render the view. 
             tryRender(parentElement, vNode, isSvg)
@@ -80,7 +80,6 @@ export function initComponent(parentElement: Element, vNode: ComponentVNode<any,
     }
     return vNode.domRef!
 }
-
 
 /** 
  * Updates a component by comparing the new and old virtual nodes. 
@@ -121,7 +120,6 @@ export function updateComponent<TState, TProps>(
         doRender(parentElement, newVNode, isSvg)
     }
 }
-
 
 /** 
  * Traverses the virtual node hierarchy and unmounts any components in the 
@@ -186,8 +184,8 @@ function doRender(parentElement: Element, vNode: ComponentVNode<any, any> | Stat
         if (vNode._ === VNODE_COMPONENT && vNode.ctx.onError !== undefined) {
             newView = vNode.ctx.onError(err)
         } else {
-            console.error(err)
-            newView = { _: VNODE_NOTHING }
+            // Propagate the error upwards in the hierarchy
+            throw err
         }
     }
 
