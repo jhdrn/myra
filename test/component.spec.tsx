@@ -158,6 +158,30 @@ describe('mount', () => {
         done()
     })
 
+
+    it('passes on an exception up the component tree', done => {
+        const mock = {
+            callback: () => <nothing />
+        }
+
+        spyOn(mock, 'callback').and.callThrough()
+
+        const SubComponent = myra.define({}, _ => {
+            return () => <div>{(undefined as any).property}</div>
+        })
+
+        const Component = myra.define({ val: 0 }, ctx => {
+            ctx.onError = mock.callback
+            return () => <SubComponent />
+        })
+
+        myra.mount(<Component />, document.body)
+
+        expect(mock.callback).toHaveBeenCalled()
+
+        done()
+    })
+
     it(`passes the children of a component to it view`, done => {
         const viewMock = {
             view: (_s: any, _p: any, children: any) => {

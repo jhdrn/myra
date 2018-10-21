@@ -170,7 +170,12 @@ function tryRender<TState extends {}, TProps extends {}>(parentElement: Element,
 }
 
 function doRender(parentElement: Element, vNode: ComponentVNode<any, any> | StatelessComponentVNode<any>, isSvg: boolean) {
-    let newView: VNode
+    let newView: VNode | undefined
+
+    let oldNode: Node | undefined
+    if (vNode.rendition !== undefined) {
+        oldNode = vNode.rendition.domRef
+    }
 
     try {
         if (vNode._ === VNODE_COMPONENT) {
@@ -179,26 +184,31 @@ function doRender(parentElement: Element, vNode: ComponentVNode<any, any> | Stat
         else {
             newView = vNode.view(vNode.props, vNode.children)
         }
-    }
-    catch (err) {
-        if (vNode._ === VNODE_COMPONENT && vNode.ctx.onError !== undefined) {
-            newView = vNode.ctx.onError(err)
-        } else {
-            // Propagate the error upwards in the hierarchy
-            throw err
-        }
-    }
-
-    try {
-        let oldNode: Node | undefined
-        if (vNode.rendition !== undefined) {
-            oldNode = vNode.rendition.domRef
-        }
 
         render(parentElement, newView, vNode.rendition, oldNode, isSvg)
     }
     catch (err) {
-        console.error(err)
+        if (vNode._ === VNODE_COMPONENT && vNode.ctx.onError !== undefined) {
+            // Cleanup any nodes that already was rendered
+
+            let topNode: Node | undefined
+            if (newView !== undefined && newView.domRef !== undefined) {
+                topNode = newView.domRef
+            }
+            if (topNode === undefined) {
+                topNode = oldNode
+            }
+
+            if (topNode !== undefined) {
+                parentElement.removeChild(topNode)
+            }
+            // Render the error view
+            newView = vNode.ctx.onError(err)
+            render(parentElement, newView, vNode.rendition, oldNode, isSvg)
+        } else {
+            // Propagate the error upwards in the hierarchy
+            throw err
+        }
     }
 
     vNode.rendition = newView
