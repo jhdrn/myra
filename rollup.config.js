@@ -36,9 +36,9 @@ export default {
         file: `dist/${libraryName}.min.js`,
         name: camelCase(libraryName),
         format: 'umd',
+        banner: '/** @license MIT https://github.com/jhdrn/myra/blob/master/LICENSE - Copyright (c) 2017-2018 Jonathan Hedrén */',
+        sourcemap: false,
     }],
-    banner: '/** @license MIT https://github.com/jhdrn/myra/blob/master/LICENSE - Copyright (c) 2017 Jonathan Hedrén */',
-    sourcemap: false,
     // Indicate here external modules you don't wanna include in your bundle (i.e.: 'lodash')
     external: [],
     watch: {
