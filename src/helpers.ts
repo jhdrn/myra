@@ -15,7 +15,7 @@ export function typeOf(obj: any): Type {
     if (obj === null) {
         return 'null'
     }
-    return ({}).toString.call(obj).slice(8, -1).toLowerCase()
+    return ({}).toString.call(obj).slice(8, -1).toLowerCase() as Type
 }
 
 const basicEqualityTypes = ['string', 'number', 'boolean', 'undefined', 'null', 'function']
@@ -30,6 +30,9 @@ export function equal<T>(a: T, b: T): boolean {
         return a === b
     }
     else if (typeOfA === 'object' && typeOfB === 'object') {
+        if (a === b) {
+            return true
+        }
         if (Object.keys(a).length !== Object.keys(b).length) {
             return false
         }
@@ -43,6 +46,9 @@ export function equal<T>(a: T, b: T): boolean {
         return true
     }
     else if (typeOfA === 'array' && typeOfB === 'array') {
+        if (a === b) {
+            return true
+        }
         if ((a as any as Array<any>).length !== (b as any as Array<any>).length) {
             return false
         }

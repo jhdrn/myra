@@ -28,12 +28,25 @@ describe('core.helpers.equal', () => {
         expect(equal(a1, a2)).toBe(true)
     })
 
+    it('equals array against itself', () => {
+        const a1 = ['a', 5, true, undefined, null]
+        const a2 = a1
+        a1[2] = false
+        expect(equal(a1, a2)).toBe(true)
+    })
+
     it('equals object against object', () => {
         const o1 = { a: 'a', b: 5, c: true, d: undefined, e: null }
         const o2 = { a: 'a', b: 5, c: true, d: undefined, e: null }
         expect(equal(o1, o2)).toBe(true)
     })
 
+    it('equals object against itself', () => {
+        const o1 = { a: 'a', b: 5, c: true, d: undefined, e: null }
+        const o2 = o1
+        o2.c = false
+        expect(equal(o1, o2)).toBe(true)
+    })
     it('equals date against date', () => {
         const d1 = new Date('2016-01-01')
         const d2 = new Date('2016-01-01')
