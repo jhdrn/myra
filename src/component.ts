@@ -37,42 +37,50 @@ export function initComponent(parentElement: Element, vNode: ComponentVNode<any,
                 return link.vNode.domRef as Element | undefined
             },
             evolve: function evolve(update: UpdateState<any>) {
-
-                if (typeof update !== 'object') {
-                    update = update(link.vNode.state)
+                try {
+                    if (typeof update !== 'object') {
+                        update = update(link.vNode.state)
+                    }
+                    link.vNode.state = { ...(link.vNode.state as any), ...(update as object) }
+                    tryRender(parentElement, link.vNode, isSvg)
+                } catch (err) {
+                    tryHandleError(parentElement, link.vNode, isSvg, err)
                 }
-                link.vNode.state = { ...(link.vNode.state as any), ...(update as object) }
 
-                tryRender(parentElement, link.vNode, isSvg)
             }
         }
         vNode.ctx = ctx
 
-        const view = vNode.spec(ctx)
-        vNode.view = view
+        try {
+            const view = vNode.spec(ctx)
+            vNode.view = view
 
-        // Merge any defaultProps with received props
-        if (ctx.defaultProps !== undefined) {
-            vNode.props = { ...ctx.defaultProps, ...vNode.props }
+            // Merge any defaultProps with received props
+            if (ctx.defaultProps !== undefined) {
+                vNode.props = { ...ctx.defaultProps, ...vNode.props }
+            }
+
+            if (ctx.willMount !== undefined) {
+                // Setting dispatchLevel to 1 will make any dispatch call just update
+                // the state without rendering the view
+                vNode.dispatchLevel = 1
+                ctx.willMount(ctx)
+            }
+            vNode.dispatchLevel = 0
+
+            if (ctx.shouldRender === undefined
+                || ctx.shouldRender(ctx.defaultProps === undefined ? {} : ctx.defaultProps, vNode.props)) {
+
+                // Render the view. 
+                tryRender(parentElement, vNode, isSvg)
+            }
+
+            if (ctx.didMount !== undefined) {
+                ctx.didMount(ctx as RenderedContext<any, any>)
+            }
         }
-
-        if (ctx.willMount !== undefined) {
-            // Setting dispatchLevel to 1 will make any dispatch call just update
-            // the state without rendering the view
-            vNode.dispatchLevel = 1
-            ctx.willMount(ctx)
-        }
-        vNode.dispatchLevel = 0
-
-        if (ctx.shouldRender === undefined
-            || ctx.shouldRender(ctx.defaultProps === undefined ? {} : ctx.defaultProps, vNode.props)) {
-
-            // Render the view. 
-            tryRender(parentElement, vNode, isSvg)
-        }
-
-        if (ctx.didMount !== undefined) {
-            ctx.didMount(ctx as RenderedContext<any, any>)
+        catch (err) {
+            tryHandleError(parentElement, link.vNode, isSvg, err)
         }
     }
     else {
@@ -108,12 +116,15 @@ export function updateComponent<TState, TProps>(
         newVNode.link.vNode = newVNode
         newVNode.dispatchLevel = 0
         newVNode.ctx = (oldVNode as ComponentVNode<TState, TProps>).ctx
+        try {
+            if (shouldRender
+                && (newVNode.ctx.shouldRender === undefined
+                    || newVNode.ctx.shouldRender(oldVNode.props, newVNode.props))) {
 
-        if (shouldRender
-            && (newVNode.ctx.shouldRender === undefined
-                || newVNode.ctx.shouldRender(oldVNode.props, newVNode.props))) {
-
-            tryRender(parentElement, newVNode, isSvg)
+                tryRender(parentElement, newVNode, isSvg)
+            }
+        } catch (err) {
+            tryHandleError(parentElement, newVNode, isSvg, err)
         }
     }
     else if (shouldRender) {
@@ -202,9 +213,10 @@ function doRender(parentElement: Element, vNode: ComponentVNode<any, any> | Stat
             if (topNode !== undefined) {
                 parentElement.removeChild(topNode)
             }
-            // Render the error view
-            newView = vNode.ctx.onError(err)
-            render(parentElement, newView, vNode.rendition, oldNode, isSvg)
+
+            tryHandleError(parentElement, vNode, isSvg, err)
+
+            return
         } else {
             // Propagate the error upwards in the hierarchy
             throw err
@@ -213,4 +225,22 @@ function doRender(parentElement: Element, vNode: ComponentVNode<any, any> | Stat
 
     vNode.rendition = newView
     vNode.domRef = newView.domRef
+}
+
+function tryHandleError(parentElement: Element, vNode: ComponentVNode<any, any> | StatelessComponentVNode<any>, isSvg: boolean, err: Error) {
+
+    if (vNode._ === VNODE_COMPONENT && vNode.ctx.onError !== undefined) {
+
+        let oldNode: Node | undefined
+        if (vNode.rendition !== undefined) {
+            oldNode = vNode.rendition.domRef
+        }
+        const errorView = vNode.ctx.onError(err)
+        render(parentElement, errorView, vNode.rendition, oldNode, isSvg)
+        vNode.rendition = errorView
+        vNode.domRef = errorView.domRef
+    }
+    else {
+        throw err
+    }
 }

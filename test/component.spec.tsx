@@ -139,7 +139,7 @@ describe('mount', () => {
         done()
     })
 
-    it('calls the onError listener', done => {
+    it('calls the onError listener on view rendering error', done => {
         const mock = {
             callback: () => <nothing />
         }
@@ -151,13 +151,208 @@ describe('mount', () => {
             return () => <div>{(undefined as any).property}</div>
         })
 
-        myra.mount(<Component />, document.body)
+        const node = initComponent(document.body, <Component /> as ComponentVNode<any, any>, false)
+
+        expect(node.nodeType).toBe(Node.COMMENT_NODE)
+        expect(node.textContent).toBe('Nothing')
+        expect(mock.callback).toHaveBeenCalled()
+
+        done()
+    })
+
+    it('calls the onError listener on didMount error', done => {
+        const mock = {
+            callback: () => <nothing />
+        }
+
+        spyOn(mock, 'callback').and.callThrough()
+
+        const Component = myra.define({ val: 0 }, ctx => {
+            ctx.didMount = () => {
+                throw Error()
+            }
+            ctx.onError = mock.callback
+            return () => <div></div>
+        })
+
+        const node = initComponent(document.body, <Component /> as ComponentVNode<any, any>, false)
+
+        expect(node.nodeType).toBe(Node.COMMENT_NODE)
+        expect(node.textContent).toBe('Nothing')
+        expect(mock.callback).toHaveBeenCalled()
+
+        done()
+    })
+
+
+    it('calls the onError listener on didRender error', done => {
+        const mock = {
+            callback: () => <nothing />
+        }
+
+        spyOn(mock, 'callback').and.callThrough()
+
+        const Component = myra.define({ val: 0 }, ctx => {
+            ctx.didRender = () => {
+                throw Error()
+            }
+            ctx.onError = mock.callback
+            return () => <div></div>
+        })
+
+        const node = initComponent(document.body, <Component /> as ComponentVNode<any, any>, false)
+
+        expect(node.nodeType).toBe(Node.COMMENT_NODE)
+        expect(node.textContent).toBe('Nothing')
+        expect(mock.callback).toHaveBeenCalled()
+
+        done()
+    })
+
+    it('calls the onError listener on initialization error', done => {
+        const mock = {
+            callback: () => <nothing />
+        }
+
+        spyOn(mock, 'callback').and.callThrough()
+
+        const Component = myra.define({ val: 0 }, ctx => {
+            ctx.onError = mock.callback
+            throw Error()
+
+            return () => <div></div>
+        })
+
+        const node = initComponent(document.body, <Component /> as ComponentVNode<any, any>, false)
+
+        expect(node.nodeType).toBe(Node.COMMENT_NODE)
+        expect(node.textContent).toBe('Nothing')
+        expect(mock.callback).toHaveBeenCalled()
+
+        done()
+    })
+
+    it('calls the onError listener on evolve error', done => {
+        const mock = {
+            callback: () => <nothing />
+        }
+
+        spyOn(mock, 'callback').and.callThrough()
+
+        const Component = myra.define({ val: 0 }, ctx => {
+            ctx.onError = mock.callback
+
+            function doEvolve() {
+                ctx.evolve(() => {
+                    throw Error()
+                })
+            }
+            return () => <div onclick={doEvolve}></div>
+        })
+
+        const node = initComponent(document.body, <Component /> as ComponentVNode<any, any>, false) as HTMLDivElement
+        node.click()
 
         expect(mock.callback).toHaveBeenCalled()
 
         done()
     })
 
+    it('calls the onError listener on shouldRender error', done => {
+        const mock = {
+            callback: () => <nothing />
+        }
+
+        spyOn(mock, 'callback').and.callThrough()
+
+        const Component = myra.define({ val: 0 }, ctx => {
+            ctx.shouldRender = () => {
+                throw Error()
+            }
+            ctx.onError = mock.callback
+            return () => <div></div>
+        })
+
+        const node = initComponent(document.body, <Component /> as ComponentVNode<any, any>, false)
+
+        expect(node.nodeType).toBe(Node.COMMENT_NODE)
+        expect(node.textContent).toBe('Nothing')
+        expect(mock.callback).toHaveBeenCalled()
+
+        done()
+    })
+
+    it('calls the onError listener on willMount error', done => {
+        const mock = {
+            callback: () => <nothing />
+        }
+
+        spyOn(mock, 'callback').and.callThrough()
+
+        const Component = myra.define({ val: 0 }, ctx => {
+            ctx.willMount = () => {
+                throw Error()
+            }
+            ctx.onError = mock.callback
+            return () => <div></div>
+        })
+
+        const node = initComponent(document.body, <Component /> as ComponentVNode<any, any>, false)
+
+        expect(node.nodeType).toBe(Node.COMMENT_NODE)
+        expect(node.textContent).toBe('Nothing')
+        expect(mock.callback).toHaveBeenCalled()
+
+        done()
+    })
+
+    it('calls the onError listener on willRender error', done => {
+        const mock = {
+            callback: () => <nothing />
+        }
+
+        spyOn(mock, 'callback').and.callThrough()
+
+        const Component = myra.define({ val: 0 }, ctx => {
+            ctx.willRender = () => {
+                throw Error()
+            }
+            ctx.onError = mock.callback
+            return () => <div></div>
+        })
+
+        const node = initComponent(document.body, <Component /> as ComponentVNode<any, any>, false)
+
+        expect(node.nodeType).toBe(Node.COMMENT_NODE)
+        expect(node.textContent).toBe('Nothing')
+        expect(mock.callback).toHaveBeenCalled()
+
+        done()
+    })
+
+    it('does not call the onError listener on willUnmount error', done => {
+        const mock = {
+            callback: () => <nothing />
+        }
+
+        spyOn(mock, 'callback').and.callThrough()
+
+        const Component = myra.define({ val: 0 }, ctx => {
+            ctx.willUnmount = () => {
+                throw Error()
+            }
+            ctx.onError = mock.callback
+            return () => <div></div>
+        })
+
+        const node = initComponent(document.body, <Component /> as ComponentVNode<any, any>, false)
+
+        expect(node.nodeType).toBe(Node.ELEMENT_NODE)
+        expect(node.textContent).toBe('')
+        expect(mock.callback).not.toHaveBeenCalled()
+
+        done()
+    })
 
     it('passes on an exception up the component tree', done => {
         const mock = {
