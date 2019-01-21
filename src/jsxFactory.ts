@@ -1,5 +1,5 @@
 import { ComponentFactory, VNode, TextVNode } from './contract'
-import { VNODE_NOTHING, VNODE_TEXT, VNODE_ELEMENT, STATEFUL, VNODE_FUNCTION } from './constants';
+import { VNODE_NOTHING, VNODE_TEXT, VNODE_ELEMENT, STATEFUL, VNODE_FUNCTION } from './constants'
 
 function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
     const flattenedChildren = [] as (VNode | string)[]

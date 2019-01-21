@@ -1,6 +1,6 @@
 import * as myra from '../src/myra'
-import { initComponent, updateComponent, findAndUnmountComponentsRec } from '../src/component'
-import { VNode, StatelessComponentVNode, ComponentVNode, SetupContext } from '../src/contract';
+import { render } from '../src/component'
+import { VNode, StatelessComponentVNode, ComponentVNode, SetupContext } from '../src/contract'
 
 const q = (x: string) => document.querySelector(x)
 
@@ -151,7 +151,7 @@ describe('mount', () => {
             return () => <div>{(undefined as any).property}</div>
         })
 
-        const node = initComponent(document.body, <Component /> as ComponentVNode<any, any>, false)
+        const node = render(document.body, <Component /> as ComponentVNode<any, any>, undefined, undefined)
 
         expect(node.nodeType).toBe(Node.COMMENT_NODE)
         expect(node.textContent).toBe('Nothing')
@@ -175,7 +175,7 @@ describe('mount', () => {
             return () => <div></div>
         })
 
-        const node = initComponent(document.body, <Component /> as ComponentVNode<any, any>, false)
+        const node = render(document.body, <Component /> as ComponentVNode<any, any>, undefined, undefined)
 
         expect(node.nodeType).toBe(Node.COMMENT_NODE)
         expect(node.textContent).toBe('Nothing')
@@ -200,7 +200,7 @@ describe('mount', () => {
             return () => <div></div>
         })
 
-        const node = initComponent(document.body, <Component /> as ComponentVNode<any, any>, false)
+        const node = render(document.body, <Component /> as ComponentVNode<any, any>, undefined, undefined)
 
         expect(node.nodeType).toBe(Node.COMMENT_NODE)
         expect(node.textContent).toBe('Nothing')
@@ -223,7 +223,7 @@ describe('mount', () => {
             return () => <div></div>
         })
 
-        const node = initComponent(document.body, <Component /> as ComponentVNode<any, any>, false)
+        const node = render(document.body, <Component /> as ComponentVNode<any, any>, undefined, undefined)
 
         expect(node.nodeType).toBe(Node.COMMENT_NODE)
         expect(node.textContent).toBe('Nothing')
@@ -250,7 +250,7 @@ describe('mount', () => {
             return () => <div onclick={doEvolve}></div>
         })
 
-        const node = initComponent(document.body, <Component /> as ComponentVNode<any, any>, false) as HTMLDivElement
+        const node = render(document.body, <Component /> as ComponentVNode<any, any>, undefined, undefined) as HTMLDivElement
         node.click()
 
         expect(mock.callback).toHaveBeenCalled()
@@ -273,7 +273,7 @@ describe('mount', () => {
             return () => <div></div>
         })
 
-        const node = initComponent(document.body, <Component /> as ComponentVNode<any, any>, false)
+        const node = render(document.body, <Component /> as ComponentVNode<any, any>, undefined, undefined)
 
         expect(node.nodeType).toBe(Node.COMMENT_NODE)
         expect(node.textContent).toBe('Nothing')
@@ -297,7 +297,7 @@ describe('mount', () => {
             return () => <div></div>
         })
 
-        const node = initComponent(document.body, <Component /> as ComponentVNode<any, any>, false)
+        const node = render(document.body, <Component /> as ComponentVNode<any, any>, undefined, undefined)
 
         expect(node.nodeType).toBe(Node.COMMENT_NODE)
         expect(node.textContent).toBe('Nothing')
@@ -321,7 +321,7 @@ describe('mount', () => {
             return () => <div></div>
         })
 
-        const node = initComponent(document.body, <Component /> as ComponentVNode<any, any>, false)
+        const node = render(document.body, <Component /> as ComponentVNode<any, any>, undefined, undefined)
 
         expect(node.nodeType).toBe(Node.COMMENT_NODE)
         expect(node.textContent).toBe('Nothing')
@@ -345,7 +345,7 @@ describe('mount', () => {
             return () => <div></div>
         })
 
-        const node = initComponent(document.body, <Component /> as ComponentVNode<any, any>, false)
+        const node = render(document.body, <Component /> as ComponentVNode<any, any>, undefined, undefined)
 
         expect(node.nodeType).toBe(Node.ELEMENT_NODE)
         expect(node.textContent).toBe('')
@@ -451,8 +451,8 @@ describe('unmountComponent', () => {
 
         const instance = <Component /> as myra.ComponentVNode<{}, {}>
 
-        initComponent(document.body, instance, false)
-        findAndUnmountComponentsRec(instance)
+        const domNode = render(document.body, instance, undefined, undefined)
+        render(document.body, <div></div>, instance, domNode)
 
         expect(mountMock.unmount).toHaveBeenCalledTimes(1)
     })
@@ -477,8 +477,8 @@ describe('unmountComponent', () => {
         const component = myra.define({}, () => () => <div><ChildComponent /></div>)
 
         const instance = component({}, [])
-        initComponent(document.body, instance, false)
-        findAndUnmountComponentsRec(instance)
+        const domNode = render(document.body, instance, undefined, undefined)
+        render(document.body, <div></div>, instance, domNode)
 
         expect(mountMock.unmount).toHaveBeenCalledTimes(2)
     })
@@ -505,8 +505,8 @@ describe('unmountComponent', () => {
         const component = myra.define({}, () => () => <div><StateLessComponent /></div>)
 
         const instance = component({}, [])
-        initComponent(document.body, instance, false)
-        findAndUnmountComponentsRec(instance)
+        const domNode = render(document.body, instance, undefined, undefined)
+        render(document.body, <div></div>, instance, domNode)
 
         expect(mountMock.unmount).toHaveBeenCalledTimes(2)
     })
@@ -530,8 +530,8 @@ describe('updateComponent (stateful component)', () => {
         })
 
         const vNode = component({ val: 45 }, [])
-        initComponent(document.body, vNode, false)
-        updateComponent(document.body, component({ val: 45 }, []) as any, vNode as any, false)
+        const domNode = render(document.body, vNode, undefined, undefined)
+        render(document.body, component({ val: 45 }, []) as any, vNode as any, domNode)
 
         expect(mock.willRender).toHaveBeenCalledTimes(1)
     })
@@ -549,10 +549,9 @@ describe('updateComponent (stateful component)', () => {
         })
 
         const vNode = component({}, [])
-        initComponent(document.body, vNode, false)
-
+        const domNode = render(document.body, vNode, undefined, undefined)
         const newVNode = component({ forceUpdate: true }, [])
-        updateComponent(document.body, newVNode, vNode, false)
+        render(document.body, newVNode, vNode, domNode)
 
         expect(mountMock.mount).toHaveBeenCalledTimes(2)
     })
@@ -570,10 +569,10 @@ describe('updateComponent (stateful component)', () => {
         })
 
         const vNode = component({ prop: 'a value' }, [])
-        initComponent(document.body, vNode, false)
+        const domNode = render(document.body, vNode, undefined, undefined)
 
         const newVNode = component({ prop: 'a new value' }, [])
-        updateComponent(document.body, newVNode, vNode, false)
+        render(document.body, newVNode, vNode, domNode)
 
         expect(mountMock.callback).toHaveBeenCalledTimes(2)
     })
@@ -604,10 +603,10 @@ describe('updateComponent (stateful component)', () => {
         })
 
         const vNode = component({ a: 1 }, [])
-        initComponent(document.body, vNode, false)
+        const domNode = render(document.body, vNode, undefined, undefined)
 
         const newVNode = component({ a: 2 }, [])
-        updateComponent(document.body, newVNode, vNode, false)
+        render(document.body, newVNode, vNode, domNode)
 
     })
 
@@ -625,10 +624,10 @@ describe('updateComponent (stateful component)', () => {
         })
 
         const vNode = component({}, [])
-        initComponent(document.body, vNode, false)
+        const domNode = render(document.body, vNode, undefined, undefined)
 
         const newVNode = component({ forceUpdate: true }, [])
-        updateComponent(document.body, newVNode, vNode, false)
+        render(document.body, newVNode, vNode, domNode)
 
         expect(mock.willRender).toHaveBeenCalledTimes(2)
     })
@@ -647,10 +646,10 @@ describe('updateComponent (stateful component)', () => {
         })
 
         const vNode = component({}, [])
-        initComponent(document.body, vNode, false)
+        const domNode = render(document.body, vNode, undefined, undefined)
 
         const newVNode = component({ forceUpdate: true }, [])
-        updateComponent(document.body, newVNode, vNode, false)
+        render(document.body, newVNode, vNode, domNode)
 
         expect(mock.willRender).not.toHaveBeenCalled()
     })
@@ -668,10 +667,10 @@ describe('updateComponent (stateful component)', () => {
         })
 
         const vNode = myra.h(component, {}, 'Child A') as ComponentVNode<any, any>
-        initComponent(document.body, vNode, false)
+        const domNode = render(document.body, vNode, undefined, undefined)
 
         const newVNode = myra.h(component, {}, 'Child A') as ComponentVNode<any, any>
-        updateComponent(document.body, newVNode, vNode, false)
+        render(document.body, newVNode, vNode, domNode)
 
         expect(mock.callback).toHaveBeenCalledTimes(1)
     })
@@ -689,10 +688,10 @@ describe('updateComponent (stateful component)', () => {
         })
 
         const vNode = myra.h(component, {}, 'Child A') as ComponentVNode<any, any>
-        initComponent(document.body, vNode, false)
+        const domNode = render(document.body, vNode, undefined, undefined)
 
         const newVNode = myra.h(component, {}, 'Child B') as ComponentVNode<any, any>
-        updateComponent(document.body, newVNode, vNode, false)
+        render(document.body, newVNode, vNode, domNode)
 
         expect(mock.callback).toHaveBeenCalledTimes(2)
     })
@@ -707,11 +706,12 @@ describe('updateComponent (stateless component)', () => {
         const component2 = (_props: { val: number }, _: VNode[]) => <div>B</div>
 
         const vNode = myra.h(component, { val: 45 }, 'Child') as StatelessComponentVNode<any>
-        initComponent(document.body, vNode, false)
-        const vNode2 = myra.h(component2, { val: 45 }, 'Child') as StatelessComponentVNode<any>
-        updateComponent(document.body, vNode2, vNode, false)
+        const domNode = render(document.body, vNode, undefined, undefined)
 
-        expect(vNode2.rendition!.domRef!.childNodes.item(0).textContent).toBe('A')
+        const newVNode = myra.h(component2, { val: 45 }, 'Child') as StatelessComponentVNode<any>
+        render(document.body, newVNode, vNode, domNode)
+
+        expect(newVNode.rendition!.domRef!.childNodes.item(0).textContent).toBe('A')
 
     })
 
@@ -721,11 +721,12 @@ describe('updateComponent (stateless component)', () => {
         const component2 = (_props: { forceUpdate: boolean }, _: VNode[]) => <div>B</div>
 
         const vNode = myra.h(component, { forceUpdate: true }, 'Child') as StatelessComponentVNode<any>
-        initComponent(document.body, vNode, false)
-        const vNode2 = myra.h(component2, { forceUpdate: true }, 'Child') as StatelessComponentVNode<any>
-        updateComponent(document.body, vNode2, vNode, false)
+        const domNode = render(document.body, vNode, undefined, undefined)
 
-        expect(vNode2.rendition!.domRef!.childNodes.item(0).textContent).toBe('B')
+        const newVNode = myra.h(component2, { forceUpdate: true }, 'Child') as StatelessComponentVNode<any>
+        render(document.body, newVNode, vNode, domNode)
+
+        expect(newVNode.rendition!.domRef!.childNodes.item(0).textContent).toBe('B')
     })
 
     it('updates the stateless component if the supplied props are not equal to the previous props', () => {
@@ -734,11 +735,12 @@ describe('updateComponent (stateless component)', () => {
         const component2 = (_props: { val: number }, _: VNode[]) => <div>B</div>
 
         const vNode = myra.h(component, { val: 1 }, 'Child') as StatelessComponentVNode<any>
-        initComponent(document.body, vNode, false)
-        const vNode2 = myra.h(component2, { val: 2 }, 'Child') as StatelessComponentVNode<any>
-        updateComponent(document.body, vNode2, vNode, false)
+        const domNode = render(document.body, vNode, undefined, undefined)
 
-        expect(vNode2.rendition!.domRef!.childNodes.item(0).textContent).toBe('B')
+        const newVNode = myra.h(component2, { val: 2 }, 'Child') as StatelessComponentVNode<any>
+        render(document.body, newVNode, vNode, domNode)
+
+        expect(newVNode.rendition!.domRef!.childNodes.item(0).textContent).toBe('B')
     })
 
     it('does not update a stateless component if the children has not changed', () => {
@@ -747,11 +749,12 @@ describe('updateComponent (stateless component)', () => {
         const component2 = (_props: { val: number }, _: VNode[]) => <div>B</div>
 
         const vNode = myra.h(component, { val: 45 }, 'Child') as StatelessComponentVNode<any>
-        initComponent(document.body, vNode, false)
-        const vNode2 = myra.h(component2, { val: 45 }, 'Child') as StatelessComponentVNode<any>
-        updateComponent(document.body, vNode2, vNode, false)
+        const domNode = render(document.body, vNode, undefined, undefined)
 
-        expect(vNode2.rendition!.domRef!.childNodes.item(0).textContent).toBe('A')
+        const newVNode = myra.h(component2, { val: 45 }, 'Child') as StatelessComponentVNode<any>
+        render(document.body, newVNode, vNode, domNode)
+
+        expect(newVNode.rendition!.domRef!.childNodes.item(0).textContent).toBe('A')
     })
 
     it('updates the stateless component if the supplied children are not equal to the previous children', () => {
@@ -760,11 +763,12 @@ describe('updateComponent (stateless component)', () => {
         const component2 = (_props: { val: number }, _: VNode[]) => <div>B</div>
 
         const vNode = myra.h(component, { val: 45 }, 'Child A') as StatelessComponentVNode<any>
-        initComponent(document.body, vNode, false)
-        const vNode2 = myra.h(component2, { val: 45 }, 'Child B') as StatelessComponentVNode<any>
-        updateComponent(document.body, vNode2, vNode, false)
+        const domNode = render(document.body, vNode, undefined, undefined)
 
-        expect(vNode2.rendition!.domRef!.childNodes.item(0).textContent).toBe('B')
+        const newVNode = myra.h(component2, { val: 45 }, 'Child B') as StatelessComponentVNode<any>
+        render(document.body, newVNode, vNode, domNode)
+
+        expect(newVNode.rendition!.domRef!.childNodes.item(0).textContent).toBe('B')
     })
 })
 

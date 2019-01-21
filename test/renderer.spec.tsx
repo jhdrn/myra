@@ -1,6 +1,5 @@
 import { define, mount, ElementVNode } from '../src/myra'
-import { render } from '../src/renderer'
-import { initComponent } from '../src/component'
+import { render } from '../src/component'
 // tslint:disable-next-line
 import * as myra from '../src/myra'
 
@@ -92,7 +91,7 @@ describe('render', () => {
         })
 
         const instance = TestComponent({}, [])
-        initComponent(document.body, instance, false)
+        render(document.body, instance, undefined, undefined)
 
         render(document.body, <nothing />, instance, instance.domRef)
 
