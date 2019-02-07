@@ -1,3 +1,5 @@
+import { useDefaultProps } from "./component";
+
 declare global {
 
     namespace JSX {
@@ -253,11 +255,13 @@ export interface Context<TState, TProps> {
     readonly props: TProps
     readonly state: TState
     readonly domRef: Element | undefined
+    readonly options: WithContextOptions<TState, TProps>
 }
 export interface RenderedContext<TState, TProps> extends Context<TState, TProps> {
     readonly domRef: Element
 }
-export interface SetupContext<TState, TProps> extends Context<TState, TProps> {
+
+export interface WithContextOptions<TState, TProps> {
     defaultProps?: Partial<TProps>
     willMount?: (ctx: Context<TState, TProps>) => void
     didMount?: (ctx: RenderedContext<TState, TProps>) => void
@@ -266,9 +270,8 @@ export interface SetupContext<TState, TProps> extends Context<TState, TProps> {
     didRender?: (ctx: RenderedContext<TState, TProps>) => void
     willUnmount?: (ctx: RenderedContext<TState, TProps>) => void
     onError?: (error: Error) => VNode
+    state?: TState
 }
-
-export type ComponentSetup<TState, TProps> = (ctx: SetupContext<TState, TProps>) => View<TState, TProps>
 
 export interface ComponentFactory<TProps> {
     (props: TProps, children: VNode[]): VNode
@@ -330,26 +333,26 @@ export interface ElementVNode<TElement extends Element> extends VNodeBase {
  * A virtual node representing a component.
  */
 
-export interface ComponentVNode<TState extends {}, TProps extends {}> extends VNodeBase {
-    readonly _: 3
-    children: VNode[]
-    rendition?: VNode
-    props: TProps
-    state: Readonly<TState>
-    spec: ComponentSetup<TState, TProps>
-    ctx: SetupContext<TState, TProps>
-    view: View<TState, TProps>
-    dispatchLevel: number
-    link: { vNode: ComponentVNode<TState, TProps> }
+export interface XContext<TProps> {
+    useState: <TState>(init: TState) => [TState, Evolve<TState>]
+    useDefaultProps: (defaultProps: TProps) => void
+    useLifecycle: (lifecycle: {}) => void
 }
 
 export interface StatelessComponentVNode<TProps extends {}> extends VNodeBase {
-    readonly _: 4
+    readonly _: 3
     children: VNode[]
     props: TProps
-    view: (props: TProps, children: JSX.Element[]) => JSX.Element
+    view: (props: TProps, children: JSX.Element[], context: XContext<TProps>) => JSX.Element
     rendition?: VNode
 }
+export interface StatefulComponentVNode<TProps extends {}> extends StatelessComponentVNode<TProps> {
+    state: Readonly<{}>
+    dispatchLevel: number
+    link: { vNode: StatefulComponentVNode<TProps> }
+    ctx: Context<any, TProps>
+}
+
 /**
  * A virtual node representing nothing. Will be rendered as a comment DOM 
  * node.
@@ -361,7 +364,7 @@ export interface NothingVNode extends VNodeBase {
 /**
  * Union type of the different types of virtual nodes.
  */
-export type VNode = TextVNode | ElementVNode<any> | ComponentVNode<any, any> | StatelessComponentVNode<any> | NothingVNode
+export type VNode = TextVNode | ElementVNode<any> | StatelessComponentVNode<any> | NothingVNode
 
 export interface GlobalAttributes<TElement extends Element> {
     key?: any

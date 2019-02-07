@@ -1,4 +1,4 @@
-import { define, mount, ElementVNode } from '../src/myra'
+import { mount, ElementVNode } from '../src/myra'
 import { render } from '../src/component'
 // tslint:disable-next-line
 import * as myra from '../src/myra'
@@ -39,7 +39,7 @@ describe('render', () => {
     })
 
     it('mounts a component from a component virtual node', (done) => {
-        const TestComponent = define({}, _ => _ => <div id="testComponent"></div>)
+        const TestComponent = () => <div id="testComponent"></div>
 
         const view = <div><TestComponent /></div>
 
@@ -57,13 +57,16 @@ describe('render', () => {
 
         spyOn(mocks, 'willRender')
 
-        const testComponent = define({}, ctx => {
-            ctx.willRender = mocks.willRender
-            return _ => <div id="testComponent"></div>
-        })
+        const testComponent = (_p: { forceUpdate?: true }) => {
+            myra.useContext({
+                willRender: mocks.willRender
+            })
 
-        const view1 = testComponent({}, [])
-        const view2 = testComponent({ forceUpdate: true }, [])
+            return <div id="testComponent"></div>
+        }
+
+        const view1 = testComponent({})
+        const view2 = testComponent({ forceUpdate: true })
 
         render(document.body, view1, view1, undefined)
         const node = view1.domRef! as HTMLDivElement
@@ -79,18 +82,21 @@ describe('render', () => {
         const mocks = {
             unmount: () => {
                 done()
-                return Promise.resolve({})
+                return {}
             }
         }
 
         spyOn(mocks, 'unmount').and.callThrough()
 
-        const TestComponent = define({}, ctx => {
-            ctx.willUnmount = mocks.unmount
-            return _ => <div />
-        })
+        const TestComponent = () => {
+            myra.useContext({
+                willUnmount: mocks.unmount
+            })
 
-        const instance = TestComponent({}, [])
+            return <div />
+        }
+
+        const instance = TestComponent()
         render(document.body, instance, undefined, undefined)
 
         render(document.body, <nothing />, instance, instance.domRef)
@@ -417,12 +423,12 @@ describe('render', () => {
 
         spyOn(mocks, 'assertProps').and.callThrough()
 
-        const ChildComponent = define<{}, ChildComponentProps>({}, () => (_, props) => {
+        const ChildComponent = (props: ChildComponentProps) => {
             mocks.assertProps(props)
             return <nothing />
-        })
+        }
 
-        const ParentComponent = define({}, () => () => <ChildComponent test="test" />)
+        const ParentComponent = () => <ChildComponent test="test" />
 
         mount(<ParentComponent />, document.body)
 
@@ -446,16 +452,20 @@ describe('render', () => {
         type State = { clicked: boolean; itemId: number }
         type Props = { item: Item; forceUpdate: boolean }
 
-        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, ctx => {
-            const setClicked = () => ctx.evolve(_ => ({ clicked: true }))
-            const updateItemId = (itemId: number) => ctx.evolve(_ => ({ itemId: itemId }))
-            ctx.didMount = ({ props }) => updateItemId(props.item.id)
-            return (state) =>
-                <button id={`item-${state.itemId}`}
-                    class={state.clicked ? "clicked" : ""}
+        const ItemComponent = (_props: Props) => {
+            const ctx = myra.useContext<State, Props>({
+                didMount: ({ evolve, props }) => evolve({ itemId: props.item.id }),
+                state: { clicked: false, itemId: -1 }
+            })
+            const setClicked = () => ctx.evolve({ clicked: true })
+
+            return (
+                <button id={`item-${ctx.state.itemId}`}
+                    class={ctx.state.clicked ? "clicked" : ""}
                     onclick={setClicked}>
                 </button>
-        })
+            )
+        }
 
         const view1 =
             <div>
@@ -504,20 +514,23 @@ describe('render', () => {
         type State = { clicked: boolean; itemId: number }
         type Props = { item: Item; forceUpdate: boolean }
 
-        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, ctx => {
+        const ItemComponent = (_props: Props) => {
+            const ctx = myra.useContext<State, Props>({
+                didMount: ({ evolve, props }) => updateItemId(evolve, props.item.id),
+                willRender: ({ evolve, props }) => updateItemId(evolve, props.item.id),
+                state: { clicked: false, itemId: -1 }
+            })
 
-            const setClicked = () => ctx.evolve(_ => ({ clicked: true }))
-            const updateItemId = (itemId: number) => ctx.evolve(_ => ({ itemId: itemId }))
+            const setClicked = () => ctx.evolve({ clicked: true })
+            const updateItemId = (evolve: myra.Evolve<State>, itemId: number) => evolve({ itemId })
 
-            ctx.didMount = ({ props }) => updateItemId(props.item.id)
-            ctx.willRender = ({ props }) => updateItemId(props.item.id)
-
-            return (state) =>
-                <button id={`item-${state.itemId}`}
-                    class={state.clicked ? "clicked" : ""}
+            return (
+                <button id={`item-${ctx.state.itemId}`}
+                    class={ctx.state.clicked ? "clicked" : ""}
                     onclick={setClicked}>
                 </button>
-        })
+            )
+        }
 
         const view1 =
             <div>
@@ -566,19 +579,21 @@ describe('render', () => {
         type State = { clicked: boolean; itemId: number }
         type Props = { key: string; item: Item }
 
-        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, ctx => {
+        const ItemComponent = (_props: Props) => {
+            const ctx = myra.useContext<State, Props>({
+                didMount: ({ evolve, props }) => evolve({ itemId: props.item.id }),
+                state: { clicked: false, itemId: -1 }
+            })
 
-            const setClicked = () => ctx.evolve(_ => ({ clicked: true }))
-            const updateItemId = (itemId: number) => ctx.evolve(_ => ({ itemId: itemId }))
+            const setClicked = () => ctx.evolve({ clicked: true })
 
-            ctx.didMount = ({ props }) => updateItemId(props.item.id)
-
-            return (state) =>
-                <button id={`item-${state.itemId}`}
-                    class={state.clicked ? "clicked" : ""}
+            return (
+                <button id={`item-${ctx.state.itemId}`}
+                    class={ctx.state.clicked ? "clicked" : ""}
                     onclick={setClicked}>
                 </button>
-        })
+            )
+        }
 
         const view1 =
             <div>
@@ -626,20 +641,23 @@ describe('render', () => {
         type State = { clicked: boolean; itemId: number }
         type Props = { item: Item }
 
-        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, ctx => {
+        const ItemComponent = (_props: Props) => {
+            const ctx = myra.useContext<State, Props>({
+                didMount: ({ evolve, props }) => updateItemId(evolve, props.item.id),
+                willRender: ({ evolve, props }) => updateItemId(evolve, props.item.id),
+                state: { clicked: false, itemId: -1 }
+            })
 
-            const setClicked = () => ctx.evolve(_ => ({ clicked: true }))
-            const updateItemId = (itemId: number) => ctx.evolve(_ => ({ itemId: itemId }))
+            const setClicked = () => ctx.evolve({ clicked: true })
+            const updateItemId = (evolve: myra.Evolve<State>, itemId: number) => evolve({ itemId })
 
-            ctx.didMount = ({ props }) => updateItemId(props.item.id)
-            ctx.willRender = ({ props }) => updateItemId(props.item.id)
-
-            return (state) =>
-                <button id={`item-${state.itemId}`}
-                    class={state.clicked ? "clicked" : ""}
+            return (
+                <button id={`item-${ctx.state.itemId}`}
+                    class={ctx.state.clicked ? "clicked" : ""}
                     onclick={setClicked}>
                 </button>
-        })
+            )
+        }
 
         const view1 =
             <div>
@@ -689,23 +707,23 @@ describe('render', () => {
 
         let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
 
-        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, ctx => {
+        const ItemComponent = (_props: Props) => {
+            const ctx = myra.useContext<State, Props>({
+                didMount: ({ evolve, props }) => evolve({ itemId: props.item.id }),
+                state: { clicked: false, itemId: -1 }
+            })
 
-            const setClicked = () => ctx.evolve(_ => ({ clicked: true }))
-            const updateItemId = (itemId: number) => ctx.evolve(_ => ({ itemId: itemId }))
+            const setClicked = () => ctx.evolve({ clicked: true })
 
-            ctx.didMount = ({ props }) => updateItemId(props.item.id)
-
-            return (state) => {
-                const v = <button id={`item-${state.itemId}`} class={state.clicked ? "clicked" : ""}
-                    onclick={setClicked}>
-                </button>
-                if (state.itemId === 1) {
-                    btnVNode = v as ElementVNode<HTMLButtonElement>
-                }
-                return v
+            const v = <button id={`item-${ctx.state.itemId}`} class={ctx.state.clicked ? "clicked" : ""}
+                onclick={setClicked}>
+            </button>
+            if (ctx.state.itemId === 1) {
+                btnVNode = v as ElementVNode<HTMLButtonElement>
             }
-        })
+            return v
+
+        }
 
         const view1 =
             <div>
@@ -763,27 +781,28 @@ describe('render', () => {
 
         let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
 
-        const ItemComponent = define<State, Props>({ clicked: false, itemId: -1 }, ctx => {
+        const ItemComponent = (_props: Props) => {
 
-            const setClicked = () => ctx.evolve(_ => ({ clicked: true }))
-            const updateItemId = (itemId: number) => ctx.evolve(_ => ({ itemId: itemId }))
+            const ctx = myra.useContext<State, Props>({
+                didMount: ({ evolve, props }) => updateItemId(evolve, props.item.id),
+                willRender: ({ evolve, props }) => updateItemId(evolve, props.item.id),
+                state: { clicked: false, itemId: -1 }
+            })
 
-            ctx.didMount = ({ props }) => updateItemId(props.item.id)
-            ctx.willRender = ({ props }) => updateItemId(props.item.id)
+            const setClicked = () => ctx.evolve({ clicked: true })
+            const updateItemId = (evolve: myra.Evolve<State>, itemId: number) => evolve({ itemId })
 
-            return (state) => {
-                const v =
-                    <button
-                        id={`item-${state.itemId}`}
-                        class={state.clicked ? "clicked" : ""}
-                        onclick={setClicked}>
-                    </button>
-                if (state.itemId === 1) {
-                    btnVNode = v as ElementVNode<HTMLButtonElement>
-                }
-                return v
+            const v =
+                <button
+                    id={`item-${ctx.state.itemId}`}
+                    class={ctx.state.clicked ? "clicked" : ""}
+                    onclick={setClicked}>
+                </button>
+            if (ctx.state.itemId === 1) {
+                btnVNode = v as ElementVNode<HTMLButtonElement>
             }
-        })
+            return v
+        }
 
         const view1 =
             <div>
@@ -829,15 +848,17 @@ describe('render', () => {
 
     it('unmounts a component which is a child of removed virtual node', () => {
         const mountMock = {
-            unmount: () => Promise.resolve({})
+            unmount: () => { }
         }
 
         spyOn(mountMock, 'unmount').and.callThrough()
 
-        const ChildComponent = define({}, ctx => {
-            ctx.willUnmount = mountMock.unmount
-            return () => <div />
-        })
+        const ChildComponent = () => {
+            myra.useContext({
+                willUnmount: mountMock.unmount
+            })
+            return <div />
+        }
 
         const view1 = <div><div><ChildComponent /></div></div>
         render(document.body, view1, view1, undefined)

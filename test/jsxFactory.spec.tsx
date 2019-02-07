@@ -1,5 +1,5 @@
 import * as myra from '../src/myra'
-import { h } from '../src/myra';
+import { StatelessComponentVNode } from '../src/myra';
 
 describe('jsxFactory', () => {
 
@@ -156,28 +156,15 @@ describe('jsxFactory', () => {
     })
 
     it('Object element creates a ComponentVNode', () => {
-        type State = {
-
-        }
         type TestProps = {
             test: string
         }
 
-        const TestComponent = myra.define<State, TestProps>({}, () => () => <div></div>)
+        const TestComponent = (_p: TestProps) => <div></div>
 
-        const view = <TestComponent test="test" /> as myra.ComponentVNode<State, TestProps>
+        const view = <TestComponent test="test" /> as StatelessComponentVNode<TestProps>
 
         expect(view._).toBe(3)
         expect(view.props).toEqual({ test: 'test' })
-    })
-
-
-    it('Stateless component creates a StatelessComponentVNode', () => {
-
-        const TestComponent = (props: { test: string }) => <div>{props}</div>
-
-        const view = h(TestComponent, { test: "test" })
-
-        expect(view._).toBe(4)
     })
 })

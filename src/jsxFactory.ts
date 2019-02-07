@@ -1,5 +1,5 @@
 import { ComponentFactory, VNode, TextVNode } from './contract'
-import { VNODE_NOTHING, VNODE_TEXT, VNODE_ELEMENT, STATEFUL, VNODE_FUNCTION } from './constants'
+import { VNODE_NOTHING, VNODE_TEXT, VNODE_ELEMENT, VNODE_FUNCTION } from './constants'
 
 function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
     const flattenedChildren = [] as (VNode | string)[]
@@ -56,9 +56,6 @@ export function h<TProps>(
             props: props,
             children: flattenChildren(children)
         }
-    }
-    if ((tagNameOrComponent as any)._ === STATEFUL) {
-        return tagNameOrComponent(props, children as VNode[])
     }
     return {
         _: VNODE_FUNCTION,
