@@ -277,6 +277,10 @@ export interface ComponentFactory<TProps> {
     (props: TProps, children: VNode[]): VNode
 }
 
+export interface ComponentFactoryWithContext<TProps> {
+    (props: TProps, children: VNode[], context: XContext<TProps>): VNode
+}
+
 export interface AttributeMap { [name: string]: string }
 
 export interface GenericEvent<T extends EventTarget> extends Event {
@@ -335,8 +339,9 @@ export interface ElementVNode<TElement extends Element> extends VNodeBase {
 
 export interface XContext<TProps> {
     useState: <TState>(init: TState) => [TState, Evolve<TState>]
-    useDefaultProps: (defaultProps: TProps) => void
-    useLifecycle: (lifecycle: {}) => void
+    useDefaultProps: (defaultProps: TProps) => TProps
+    getDomRef: () => Node | undefined
+    // useLifecycle: (lifecycle: {}) => void
 }
 
 export interface StatelessComponentVNode<TProps extends {}> extends VNodeBase {
@@ -347,10 +352,9 @@ export interface StatelessComponentVNode<TProps extends {}> extends VNodeBase {
     rendition?: VNode
 }
 export interface StatefulComponentVNode<TProps extends {}> extends StatelessComponentVNode<TProps> {
-    state: Readonly<{}>
     dispatchLevel: number
+    state: any[]
     link: { vNode: StatefulComponentVNode<TProps> }
-    ctx: Context<any, TProps>
 }
 
 /**

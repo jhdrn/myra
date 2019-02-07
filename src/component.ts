@@ -6,9 +6,9 @@ import {
     StatelessComponentVNode,
     RenderedContext,
     StatefulComponentVNode,
-    WithContextOptions,
-    Context,
-    Evolve
+    Evolve,
+    ComponentFactoryWithContext,
+    XContext
 } from './contract'
 import { equal } from './helpers'
 import { VNODE_ELEMENT, VNODE_FUNCTION, VNODE_TEXT, VNODE_NOTHING } from './constants'
@@ -17,133 +17,96 @@ interface IRenderingContext {
     vNode: StatelessComponentVNode<any>
     isSvg: boolean
     parentElement: Element
+    stateIndex: number
 }
 
 let renderingContext: IRenderingContext | undefined
 
-export function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
-    if (renderingContext === undefined) {
-        throw 'Internal error, renderingContext undefined'
-    }
-
-    const vNode = renderingContext.vNode as StatefulComponentVNode<any>
-    const parentElement = renderingContext.parentElement
-    const isSvg = renderingContext.isSvg
-
-    if (vNode.state === undefined) {
-        vNode.state = initialState
-    }
-
-    let link = vNode.link
-    if (link === undefined) {
-        link = {
-            vNode
-        }
-        vNode.link = link
-    }
-
-    function evolve(update: UpdateState<any>) {
-        try {
-            if (typeof update !== 'object') {
-                update = update(link.vNode.state)
-            }
-            link.vNode.state = { ...(link.vNode.state as any), ...(update as object) }
-            tryRenderComponent(parentElement, link.vNode, isSvg)
-        } catch (err) {
-            tryHandleComponentError(parentElement, link.vNode, isSvg, err)
-        }
-    }
-
-    return [initialState, evolve]
+export function withContext<TProps>(componentFactory: ComponentFactoryWithContext<TProps>): ComponentFactoryWithContext<TProps> {
+    return componentFactory
 }
 
-export function useDomRef(): Node | undefined {
-    if (renderingContext === undefined) {
-        throw 'Internal error, currentComponent undefined'
-    }
-    const vNode = renderingContext.vNode as StatefulComponentVNode<any>
-    return vNode.domRef
-}
+// function withAppContext<TProps>(componentFactory: ComponentFactoryWithContext<TProps>): ComponentFactoryWithContext<TProps> {
+//     return withContext((props, children, ctx) => {
+//         ctx.customProp = 'foobar'
+//         return componentFactory(props, children, ctx)
+//     })
+// }
 
-export function useDefaultProps<TProps>(defaultProps: TProps) {
 
-    // Merge any defaultProps with received props
-    vNode.props = { ...options.defaultProps, ...vNode.props }
-}
+// export function useContext<TState, TProps>(options: WithContextOptions<TState, TProps>): Context<TState, TProps> {
+//     if (renderingContext === undefined) {
+//         throw 'Internal error, currentComponent undefined'
+//     }
+//     const vNode = renderingContext.vNode as StatefulComponentVNode<TProps>
+//     const parentElement = renderingContext.parentElement
+//     const isSvg = renderingContext.isSvg
+//     if (vNode.ctx === undefined) {
 
-export function useContext<TState, TProps>(options: WithContextOptions<TState, TProps>): Context<TState, TProps> {
-    if (renderingContext === undefined) {
-        throw 'Internal error, currentComponent undefined'
-    }
-    const vNode = renderingContext.vNode as StatefulComponentVNode<TProps>
-    const parentElement = renderingContext.parentElement
-    const isSvg = renderingContext.isSvg
-    if (vNode.ctx === undefined) {
+//         vNode.state = options.state || {}
+//         const link = {
+//             vNode
+//         }
+//         vNode.link = link
 
-        vNode.state = options.state || {}
-        const link = {
-            vNode
-        }
-        vNode.link = link
+//         const ctx: Context<any, any> = {
+//             get state() {
+//                 return link.vNode.state
+//             },
+//             get props() {
+//                 return link.vNode.props
+//             },
+//             get domRef() {
+//                 return link.vNode.domRef as Element | undefined
+//             },
+//             evolve: function evolve(update: UpdateState<any>) {
+//                 try {
+//                     if (typeof update !== 'object') {
+//                         update = update(link.vNode.state)
+//                     }
+//                     link.vNode.state = { ...(link.vNode.state as any), ...(update as object) }
+//                     tryRenderComponent(parentElement, link.vNode, isSvg)
+//                 } catch (err) {
+//                     tryHandleComponentError(parentElement, link.vNode, isSvg, err)
+//                 }
 
-        const ctx: Context<any, any> = {
-            get state() {
-                return link.vNode.state
-            },
-            get props() {
-                return link.vNode.props
-            },
-            get domRef() {
-                return link.vNode.domRef as Element | undefined
-            },
-            evolve: function evolve(update: UpdateState<any>) {
-                try {
-                    if (typeof update !== 'object') {
-                        update = update(link.vNode.state)
-                    }
-                    link.vNode.state = { ...(link.vNode.state as any), ...(update as object) }
-                    tryRenderComponent(parentElement, link.vNode, isSvg)
-                } catch (err) {
-                    tryHandleComponentError(parentElement, link.vNode, isSvg, err)
-                }
+//             },
+//             options
+//         }
 
-            },
-            options
-        }
+//         vNode.ctx = ctx
 
-        vNode.ctx = ctx
+//         try {
+//             // Merge any defaultProps with received props
+//             if (options.defaultProps !== undefined) {
+//                 vNode.props = { ...options.defaultProps, ...vNode.props }
+//             }
 
-        try {
-            // Merge any defaultProps with received props
-            if (options.defaultProps !== undefined) {
-                vNode.props = { ...options.defaultProps, ...vNode.props }
-            }
+//             if (options.willMount !== undefined) {
+//                 // Setting dispatchLevel to 1 will make any dispatch call just update
+//                 // the state without rendering the view
+//                 vNode.dispatchLevel = 1
+//                 options.willMount(ctx)
+//             }
+//             vNode.dispatchLevel = 0
 
-            if (options.willMount !== undefined) {
-                // Setting dispatchLevel to 1 will make any dispatch call just update
-                // the state without rendering the view
-                vNode.dispatchLevel = 1
-                options.willMount(ctx)
-            }
-            vNode.dispatchLevel = 0
+//             if (options.shouldRender === undefined
+//                 || options.shouldRender(options.defaultProps === undefined ? {} as TProps : options.defaultProps as TProps, vNode.props)) {
 
-            if (options.shouldRender === undefined
-                || options.shouldRender(options.defaultProps === undefined ? {} as TProps : options.defaultProps as TProps, vNode.props)) {
+//                 // Render the view. 
+//                 tryRenderComponent(parentElement, vNode, isSvg)
+//             }
 
-                // Render the view. 
-                tryRenderComponent(parentElement, vNode, isSvg)
-            }
-
-            if (options.didMount !== undefined) {
-                options.didMount(ctx as RenderedContext<any, any>)
-            }
-        }
-        catch (err) {
-            tryHandleComponentError(parentElement, link.vNode, isSvg, err)
-        }
-    }
-    return vNode.ctx
-}
+//             if (options.didMount !== undefined) {
+//                 options.didMount(ctx as RenderedContext<any, any>)
+//             }
+//         }
+//         catch (err) {
+//             tryHandleComponentError(parentElement, link.vNode, isSvg, err)
+//         }
+//     }
+//     return vNode.ctx
+// }
 
 
 /** 
@@ -188,6 +151,65 @@ function tryRenderComponent<TProps extends {}>(parentElement: Element, vNode: St
     vNode.dispatchLevel--
 }
 
+function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
+    if (renderingContext === undefined) {
+        throw 'useState: Internal error, renderingContext undefined'
+    }
+
+    const vNode = renderingContext.vNode as StatefulComponentVNode<any>
+    const parentElement = renderingContext.parentElement
+    const isSvg = renderingContext.isSvg
+    const stateIndex = renderingContext.stateIndex
+
+    if (vNode.state[stateIndex] === undefined) {
+        vNode.state[stateIndex] = initialState
+    }
+
+    let link = vNode.link
+    if (link === undefined) {
+        link = {
+            vNode
+        }
+        vNode.link = link
+    }
+
+    function evolve(update: UpdateState<any>) {
+        try {
+            if (typeof update !== 'object') {
+                update = update(link.vNode.state[stateIndex])
+            }
+            link.vNode.state[stateIndex] = { ...(link.vNode.state[stateIndex] as any), ...(update as object) }
+            tryRenderComponent(parentElement, link.vNode, isSvg)
+        } catch (err) {
+            tryHandleComponentError(parentElement, link.vNode, isSvg, err)
+        }
+    }
+
+    return [initialState, evolve]
+}
+
+function getDomRef(): Node | undefined {
+    if (renderingContext === undefined) {
+        throw 'getDomRef: Internal error, currentComponent undefined'
+    }
+    const vNode = renderingContext.vNode as StatefulComponentVNode<any>
+    return vNode.domRef
+}
+
+function useDefaultProps<TProps>(defaultProps: TProps) {
+    if (renderingContext === undefined) {
+        throw 'useDefaultProps: Internal error, renderingContext undefined'
+    }
+    // Merge any defaultProps with received props
+    return { ...defaultProps, ...renderingContext.vNode.props }
+}
+
+const context: XContext<any> = {
+    getDomRef,
+    useState,
+    useDefaultProps
+}
+
 function doRenderComponent(parentElement: Element, vNode: StatefulComponentVNode<any>, isSvg: boolean) {
     let newView: VNode | undefined
 
@@ -200,10 +222,10 @@ function doRenderComponent(parentElement: Element, vNode: StatefulComponentVNode
         renderingContext = {
             vNode,
             isSvg,
-            parentElement
+            parentElement,
+            stateIndex: 0
         }
         newView = vNode.view(vNode.props, vNode.children, context)
-
         renderingContext = undefined
 
         render(parentElement, newView, vNode.rendition, oldNode, isSvg)
