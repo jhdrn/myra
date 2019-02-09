@@ -1,4 +1,4 @@
-import { mount, ElementVNode } from '../src/myra'
+import { mount } from '../src/myra'
 import { render } from '../src/component'
 // tslint:disable-next-line
 import * as myra from '../src/myra'
@@ -50,59 +50,59 @@ describe('render', () => {
         done()
     })
 
-    it('remounts a component if forceUpdate is set to true', (done) => {
-        const mocks = {
-            willRender: () => { /* dummy */ }
-        }
+    // it('remounts a component if forceUpdate is set to true', (done) => {
+    //     const mocks = {
+    //         willRender: () => { /* dummy */ }
+    //     }
 
-        spyOn(mocks, 'willRender')
+    //     spyOn(mocks, 'willRender')
 
-        const testComponent = (_p: { forceUpdate?: true }) => {
-            myra.useContext({
-                willRender: mocks.willRender
-            })
+    //     const testComponent = (_p: { forceUpdate?: true }) => {
+    //         myra.useContext({
+    //             willRender: mocks.willRender
+    //         })
 
-            return <div id="testComponent"></div>
-        }
+    //         return <div id="testComponent"></div>
+    //     }
 
-        const view1 = testComponent({})
-        const view2 = testComponent({ forceUpdate: true })
+    //     const view1 = testComponent({})
+    //     const view2 = testComponent({ forceUpdate: true })
 
-        render(document.body, view1, view1, undefined)
-        const node = view1.domRef! as HTMLDivElement
+    //     render(document.body, view1, view1, undefined)
+    //     const node = view1.domRef! as HTMLDivElement
 
-        render(document.body, view2, view1, node)
+    //     render(document.body, view2, view1, node)
 
-        expect(mocks.willRender).toHaveBeenCalledTimes(2)
+    //     expect(mocks.willRender).toHaveBeenCalledTimes(2)
 
-        done()
-    })
+    //     done()
+    // })
 
-    it(`render unmounts a component when it's replaced`, (done) => {
-        const mocks = {
-            unmount: () => {
-                done()
-                return {}
-            }
-        }
+    // it(`render unmounts a component when it's replaced`, (done) => {
+    //     const mocks = {
+    //         unmount: () => {
+    //             done()
+    //             return {}
+    //         }
+    //     }
 
-        spyOn(mocks, 'unmount').and.callThrough()
+    //     spyOn(mocks, 'unmount').and.callThrough()
 
-        const TestComponent = () => {
-            myra.useContext({
-                willUnmount: mocks.unmount
-            })
+    //     const TestComponent = () => {
+    //         myra.useContext({
+    //             willUnmount: mocks.unmount
+    //         })
 
-            return <div />
-        }
+    //         return <div />
+    //     }
 
-        const instance = TestComponent()
-        render(document.body, instance, undefined, undefined)
+    //     const instance = TestComponent()
+    //     render(document.body, instance, undefined, undefined)
 
-        render(document.body, <nothing />, instance, instance.domRef)
+    //     render(document.body, <nothing />, instance, instance.domRef)
 
-        expect(mocks.unmount).toHaveBeenCalledTimes(1)
-    })
+    //     expect(mocks.unmount).toHaveBeenCalledTimes(1)
+    // })
 
     it('removes excessive child nodes', (done) => {
         const viewItems1 = ['a', 'b', 'c', 'd']
@@ -436,438 +436,438 @@ describe('render', () => {
     })
 
 
-    it('retains view state when element children are reordered with keys', () => {
-
-        type Item = {
-            id: number
-        }
-        const items = [
-            { id: 1 },
-            { id: 2 },
-            { id: 3 },
-            { id: 4 },
-            { id: 5 },
-        ] as Item[]
-
-        type State = { clicked: boolean; itemId: number }
-        type Props = { item: Item; forceUpdate: boolean }
-
-        const ItemComponent = (_props: Props) => {
-            const ctx = myra.useContext<State, Props>({
-                didMount: ({ evolve, props }) => evolve({ itemId: props.item.id }),
-                state: { clicked: false, itemId: -1 }
-            })
-            const setClicked = () => ctx.evolve({ clicked: true })
-
-            return (
-                <button id={`item-${ctx.state.itemId}`}
-                    class={ctx.state.clicked ? "clicked" : ""}
-                    onclick={setClicked}>
-                </button>
-            )
-        }
-
-        const view1 =
-            <div>
-                {items.map(x => <div key={x.id.toString()}><ItemComponent forceUpdate item={x} /></div>)}
-            </div>
-
-        render(document.body, view1, view1, undefined)
-
-        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
-        btn.click()
-
-        expect(btn.className).toBe("clicked")
-        expect(btn.id).toBe("item-1")
-
-        const view2 =
-            <div>
-                {items.reverse().map(x => <div key={x.id.toString()}><ItemComponent forceUpdate item={x} /></div>)}
-            </div>
-
-        render(document.body, view2, view1, view1.domRef)
-
-        btn = (view2.domRef as HTMLDivElement).querySelector('button')!
-        expect(btn.id).toBe("item-5")
-        expect(btn.className).toBe("")
-
-        // The last element should've been updated
-        btn = ((view2.domRef as HTMLDivElement).lastChild as HTMLDivElement).firstChild as HTMLButtonElement
-
-        expect(btn.id).toBe("item-1")
-        expect(btn.className).toBe("clicked")
-    })
-
-    it('does not retain view state when element children are reordered without keys', () => {
-
-        type Item = {
-            id: number
-        }
-        const items = [
-            { id: 1 },
-            { id: 2 },
-            { id: 3 },
-            { id: 4 },
-            { id: 5 },
-        ] as Item[]
-
-        type State = { clicked: boolean; itemId: number }
-        type Props = { item: Item; forceUpdate: boolean }
-
-        const ItemComponent = (_props: Props) => {
-            const ctx = myra.useContext<State, Props>({
-                didMount: ({ evolve, props }) => updateItemId(evolve, props.item.id),
-                willRender: ({ evolve, props }) => updateItemId(evolve, props.item.id),
-                state: { clicked: false, itemId: -1 }
-            })
-
-            const setClicked = () => ctx.evolve({ clicked: true })
-            const updateItemId = (evolve: myra.Evolve<State>, itemId: number) => evolve({ itemId })
-
-            return (
-                <button id={`item-${ctx.state.itemId}`}
-                    class={ctx.state.clicked ? "clicked" : ""}
-                    onclick={setClicked}>
-                </button>
-            )
-        }
-
-        const view1 =
-            <div>
-                {items.map(x => <div><ItemComponent forceUpdate item={x} /></div>)}
-            </div>
-
-        render(document.body, view1, view1, undefined)
-
-        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
-        btn.click()
-
-        expect(btn.className).toBe("clicked")
-        expect(btn.id).toBe("item-1")
-
-        const view2 =
-            <div>
-                {items.reverse().map(x => <div><ItemComponent forceUpdate item={x} /></div>)}
-            </div>
-
-        render(document.body, view2, view1, view1.domRef)
-
-        btn = (view2.domRef as HTMLDivElement).querySelector('button')!
-        expect(btn.id).toBe("item-5")
-        expect(btn.className).toBe("clicked")
-
-        // The last element shoul've been updated
-        btn = ((view2.domRef as HTMLDivElement).lastChild as HTMLDivElement).firstChild as HTMLButtonElement
-
-        expect(btn.id).toBe("item-1")
-        expect(btn.className).toBe("")
-    })
-
-    it('retains view state when component children are reordered with keys', () => {
-
-        type Item = {
-            id: number
-        }
-        const items = [
-            { id: 1 },
-            { id: 2 },
-            { id: 3 },
-            { id: 4 },
-            { id: 5 },
-        ] as Item[]
-
-        type State = { clicked: boolean; itemId: number }
-        type Props = { key: string; item: Item }
-
-        const ItemComponent = (_props: Props) => {
-            const ctx = myra.useContext<State, Props>({
-                didMount: ({ evolve, props }) => evolve({ itemId: props.item.id }),
-                state: { clicked: false, itemId: -1 }
-            })
-
-            const setClicked = () => ctx.evolve({ clicked: true })
-
-            return (
-                <button id={`item-${ctx.state.itemId}`}
-                    class={ctx.state.clicked ? "clicked" : ""}
-                    onclick={setClicked}>
-                </button>
-            )
-        }
-
-        const view1 =
-            <div>
-                {items.map(x => <ItemComponent key={x.id.toString()} item={x} />)}
-            </div>
-
-        render(document.body, view1, view1, undefined)
-
-        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
-        btn.click()
-
-        expect(btn.className).toBe("clicked")
-        expect(btn.id).toBe("item-1")
-
-        const view2 =
-            <div>
-                {items.reverse().map(x => <ItemComponent key={x.id.toString()} item={x} />)}
-            </div>
-
-        render(document.body, view2, view1, view1.domRef)
-
-        btn = (view2.domRef as HTMLDivElement).querySelector('button')!
-        expect(btn.className).toBe("")
-        expect(btn.id).toBe("item-5")
-
-        // The last element should've been updated
-        btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
-        expect(btn.className).toBe("clicked")
-        expect(btn.id).toBe("item-1")
-    })
-
-    it('does not retain view state when component children reordered without keys', () => {
-
-        type Item = {
-            id: number
-        }
-        const items = [
-            { id: 1 },
-            { id: 2 },
-            { id: 3 },
-            { id: 4 },
-            { id: 5 },
-        ] as Item[]
-
-        type State = { clicked: boolean; itemId: number }
-        type Props = { item: Item }
-
-        const ItemComponent = (_props: Props) => {
-            const ctx = myra.useContext<State, Props>({
-                didMount: ({ evolve, props }) => updateItemId(evolve, props.item.id),
-                willRender: ({ evolve, props }) => updateItemId(evolve, props.item.id),
-                state: { clicked: false, itemId: -1 }
-            })
-
-            const setClicked = () => ctx.evolve({ clicked: true })
-            const updateItemId = (evolve: myra.Evolve<State>, itemId: number) => evolve({ itemId })
-
-            return (
-                <button id={`item-${ctx.state.itemId}`}
-                    class={ctx.state.clicked ? "clicked" : ""}
-                    onclick={setClicked}>
-                </button>
-            )
-        }
-
-        const view1 =
-            <div>
-                {items.map(x => <ItemComponent item={x} />)}
-            </div>
-
-        render(document.body, view1, view1, undefined)
-
-        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
-        btn.click()
-
-        expect(btn.className).toBe("clicked")
-        expect(btn.id).toBe("item-1")
-
-        const view2 =
-            <div>
-                {items.reverse().map(x => <ItemComponent item={x} />)}
-            </div>
-
-        render(document.body, view2, view1, view1.domRef)
-
-        btn = (view2.domRef as HTMLDivElement).querySelector('button')!
-        expect(btn.className).toBe("clicked")
-        expect(btn.id).toBe("item-5")
-
-        // The last element should've been updated
-        btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
-        expect(btn.className).toBe("")
-        expect(btn.id).toBe("item-1")
-    })
-
-    it('retains component state when component children are reordered with keys', () => {
-
-        type Item = {
-            id: number
-        }
-        const items = [
-            { id: 1 },
-            { id: 2 },
-            { id: 3 },
-            { id: 4 },
-            { id: 5 },
-        ] as Item[]
-
-        type State = { clicked: boolean; itemId: number }
-        type Props = { key: string; item: Item; forceUpdate: boolean }
-
-        let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
-
-        const ItemComponent = (_props: Props) => {
-            const ctx = myra.useContext<State, Props>({
-                didMount: ({ evolve, props }) => evolve({ itemId: props.item.id }),
-                state: { clicked: false, itemId: -1 }
-            })
-
-            const setClicked = () => ctx.evolve({ clicked: true })
-
-            const v = <button id={`item-${ctx.state.itemId}`} class={ctx.state.clicked ? "clicked" : ""}
-                onclick={setClicked}>
-            </button>
-            if (ctx.state.itemId === 1) {
-                btnVNode = v as ElementVNode<HTMLButtonElement>
-            }
-            return v
-
-        }
-
-        const view1 =
-            <div>
-                {items.map(x => <ItemComponent key={x.id.toString()} item={x} forceUpdate={true} />)}
-            </div> as ElementVNode<HTMLDivElement>
-
-        render(document.body, view1, view1, undefined)
-
-        let btn = view1.domRef!.querySelector('button')!
-        btn.click()
-
-        expect(btn.className).toBe("clicked")
-        expect(btn.id).toBe("item-1")
-
-        // Clear id so it's set from state
-        btn.id = ""
-        btn.className = ""
-        // We also need to modify the node, else the attributes won't be updated
-
-        delete btnVNode!.props.id
-        delete btnVNode!.props.class
-        const reversedItems = items.reverse()
-        const view2 =
-            <div>
-                {reversedItems.map(x => <ItemComponent key={x.id.toString()} item={x} forceUpdate={true} />)}
-            </div> as ElementVNode<HTMLDivElement>
-
-        render(document.body, view2, view1, view1.domRef)
-
-        btn = view2.domRef!.querySelector('button')!
-        expect(btn.className).toBe("")
-        expect(btn.id).toBe("item-5")
-
-        // The last element should've been updated with the same values
-        btn = view2.domRef!.lastChild as HTMLButtonElement
-        expect(btn.className).toBe("clicked")
-        expect(btn.id).toBe("item-1")
-    })
-
-    it('does not retain component state when component children are reordered without keys', () => {
-
-        type Item = {
-            id: number
-        }
-        const items = [
-            { id: 1 },
-            { id: 2 },
-            { id: 3 },
-            { id: 4 },
-            { id: 5 },
-        ] as Item[]
-
-        type State = { clicked: boolean; itemId: number }
-        type Props = { item: Item; forceUpdate: boolean }
-
-        let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
-
-        const ItemComponent = (_props: Props) => {
-
-            const ctx = myra.useContext<State, Props>({
-                didMount: ({ evolve, props }) => updateItemId(evolve, props.item.id),
-                willRender: ({ evolve, props }) => updateItemId(evolve, props.item.id),
-                state: { clicked: false, itemId: -1 }
-            })
-
-            const setClicked = () => ctx.evolve({ clicked: true })
-            const updateItemId = (evolve: myra.Evolve<State>, itemId: number) => evolve({ itemId })
-
-            const v =
-                <button
-                    id={`item-${ctx.state.itemId}`}
-                    class={ctx.state.clicked ? "clicked" : ""}
-                    onclick={setClicked}>
-                </button>
-            if (ctx.state.itemId === 1) {
-                btnVNode = v as ElementVNode<HTMLButtonElement>
-            }
-            return v
-        }
-
-        const view1 =
-            <div>
-                {items.map(x => <ItemComponent item={x} forceUpdate={true} />)}
-            </div> as ElementVNode<HTMLDivElement>
-
-        render(document.body, view1, view1, undefined)
-
-        let btn = view1.domRef!.querySelector('button')!
-        btn.click()
-
-        expect(btn.className).toBe("clicked")
-        expect(btn.id).toBe("item-1")
-
-        // Clear id so it's set from state
-        btn.id = ""
-        btn.className = ""
-
-        // We also need to modify the node, else the attributes won't be updated
-        delete btnVNode!.props.id
-        delete btnVNode!.props.class
-
-        const reversedItems = items.reverse()
-        const view2 =
-            <div>
-                {reversedItems.map(x => <ItemComponent item={x} forceUpdate={true} />)}
-            </div> as ElementVNode<HTMLDivElement>
-
-        render(document.body, view2, view1, view1.domRef)
-
-        btn = view2.domRef!.querySelector('button')!
-
-        expect(btn.className).toBe("clicked")
-        expect(btn.id).toBe("item-5")
-
-        // The last element should've been updated with the same values
-        btn = view2.domRef!.lastChild as HTMLButtonElement
-
-        expect(btn.className).toBe("")
-        expect(btn.id).toBe("item-1")
-    })
-
-
-    it('unmounts a component which is a child of removed virtual node', () => {
-        const mountMock = {
-            unmount: () => { }
-        }
-
-        spyOn(mountMock, 'unmount').and.callThrough()
-
-        const ChildComponent = () => {
-            myra.useContext({
-                willUnmount: mountMock.unmount
-            })
-            return <div />
-        }
-
-        const view1 = <div><div><ChildComponent /></div></div>
-        render(document.body, view1, view1, undefined)
-
-        const view2 = <div></div>
-        render(document.body, view2, view1, view1.domRef)
-
-        expect(mountMock.unmount).toHaveBeenCalledTimes(1)
-    })
+    // it('retains view state when element children are reordered with keys', () => {
+
+    //     type Item = {
+    //         id: number
+    //     }
+    //     const items = [
+    //         { id: 1 },
+    //         { id: 2 },
+    //         { id: 3 },
+    //         { id: 4 },
+    //         { id: 5 },
+    //     ] as Item[]
+
+    //     type State = { clicked: boolean; itemId: number }
+    //     type Props = { item: Item; forceUpdate: boolean }
+
+    //     const ItemComponent = (_props: Props) => {
+    //         const ctx = myra.useContext<State, Props>({
+    //             didMount: ({ evolve, props }) => evolve({ itemId: props.item.id }),
+    //             state: { clicked: false, itemId: -1 }
+    //         })
+    //         const setClicked = () => ctx.evolve({ clicked: true })
+
+    //         return (
+    //             <button id={`item-${ctx.state.itemId}`}
+    //                 class={ctx.state.clicked ? "clicked" : ""}
+    //                 onclick={setClicked}>
+    //             </button>
+    //         )
+    //     }
+
+    //     const view1 =
+    //         <div>
+    //             {items.map(x => <div key={x.id.toString()}><ItemComponent forceUpdate item={x} /></div>)}
+    //         </div>
+
+    //     render(document.body, view1, view1, undefined)
+
+    //     let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
+    //     btn.click()
+
+    //     expect(btn.className).toBe("clicked")
+    //     expect(btn.id).toBe("item-1")
+
+    //     const view2 =
+    //         <div>
+    //             {items.reverse().map(x => <div key={x.id.toString()}><ItemComponent forceUpdate item={x} /></div>)}
+    //         </div>
+
+    //     render(document.body, view2, view1, view1.domRef)
+
+    //     btn = (view2.domRef as HTMLDivElement).querySelector('button')!
+    //     expect(btn.id).toBe("item-5")
+    //     expect(btn.className).toBe("")
+
+    //     // The last element should've been updated
+    //     btn = ((view2.domRef as HTMLDivElement).lastChild as HTMLDivElement).firstChild as HTMLButtonElement
+
+    //     expect(btn.id).toBe("item-1")
+    //     expect(btn.className).toBe("clicked")
+    // })
+
+    // it('does not retain view state when element children are reordered without keys', () => {
+
+    //     type Item = {
+    //         id: number
+    //     }
+    //     const items = [
+    //         { id: 1 },
+    //         { id: 2 },
+    //         { id: 3 },
+    //         { id: 4 },
+    //         { id: 5 },
+    //     ] as Item[]
+
+    //     type State = { clicked: boolean; itemId: number }
+    //     type Props = { item: Item; forceUpdate: boolean }
+
+    //     const ItemComponent = (_props: Props) => {
+    //         const ctx = myra.useContext<State, Props>({
+    //             didMount: ({ evolve, props }) => updateItemId(evolve, props.item.id),
+    //             willRender: ({ evolve, props }) => updateItemId(evolve, props.item.id),
+    //             state: { clicked: false, itemId: -1 }
+    //         })
+
+    //         const setClicked = () => ctx.evolve({ clicked: true })
+    //         const updateItemId = (evolve: myra.Evolve<State>, itemId: number) => evolve({ itemId })
+
+    //         return (
+    //             <button id={`item-${ctx.state.itemId}`}
+    //                 class={ctx.state.clicked ? "clicked" : ""}
+    //                 onclick={setClicked}>
+    //             </button>
+    //         )
+    //     }
+
+    //     const view1 =
+    //         <div>
+    //             {items.map(x => <div><ItemComponent forceUpdate item={x} /></div>)}
+    //         </div>
+
+    //     render(document.body, view1, view1, undefined)
+
+    //     let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
+    //     btn.click()
+
+    //     expect(btn.className).toBe("clicked")
+    //     expect(btn.id).toBe("item-1")
+
+    //     const view2 =
+    //         <div>
+    //             {items.reverse().map(x => <div><ItemComponent forceUpdate item={x} /></div>)}
+    //         </div>
+
+    //     render(document.body, view2, view1, view1.domRef)
+
+    //     btn = (view2.domRef as HTMLDivElement).querySelector('button')!
+    //     expect(btn.id).toBe("item-5")
+    //     expect(btn.className).toBe("clicked")
+
+    //     // The last element shoul've been updated
+    //     btn = ((view2.domRef as HTMLDivElement).lastChild as HTMLDivElement).firstChild as HTMLButtonElement
+
+    //     expect(btn.id).toBe("item-1")
+    //     expect(btn.className).toBe("")
+    // })
+
+    // it('retains view state when component children are reordered with keys', () => {
+
+    //     type Item = {
+    //         id: number
+    //     }
+    //     const items = [
+    //         { id: 1 },
+    //         { id: 2 },
+    //         { id: 3 },
+    //         { id: 4 },
+    //         { id: 5 },
+    //     ] as Item[]
+
+    //     type State = { clicked: boolean; itemId: number }
+    //     type Props = { key: string; item: Item }
+
+    //     const ItemComponent = (_props: Props) => {
+    //         const ctx = myra.useContext<State, Props>({
+    //             didMount: ({ evolve, props }) => evolve({ itemId: props.item.id }),
+    //             state: { clicked: false, itemId: -1 }
+    //         })
+
+    //         const setClicked = () => ctx.evolve({ clicked: true })
+
+    //         return (
+    //             <button id={`item-${ctx.state.itemId}`}
+    //                 class={ctx.state.clicked ? "clicked" : ""}
+    //                 onclick={setClicked}>
+    //             </button>
+    //         )
+    //     }
+
+    //     const view1 =
+    //         <div>
+    //             {items.map(x => <ItemComponent key={x.id.toString()} item={x} />)}
+    //         </div>
+
+    //     render(document.body, view1, view1, undefined)
+
+    //     let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
+    //     btn.click()
+
+    //     expect(btn.className).toBe("clicked")
+    //     expect(btn.id).toBe("item-1")
+
+    //     const view2 =
+    //         <div>
+    //             {items.reverse().map(x => <ItemComponent key={x.id.toString()} item={x} />)}
+    //         </div>
+
+    //     render(document.body, view2, view1, view1.domRef)
+
+    //     btn = (view2.domRef as HTMLDivElement).querySelector('button')!
+    //     expect(btn.className).toBe("")
+    //     expect(btn.id).toBe("item-5")
+
+    //     // The last element should've been updated
+    //     btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
+    //     expect(btn.className).toBe("clicked")
+    //     expect(btn.id).toBe("item-1")
+    // })
+
+    // it('does not retain view state when component children reordered without keys', () => {
+
+    //     type Item = {
+    //         id: number
+    //     }
+    //     const items = [
+    //         { id: 1 },
+    //         { id: 2 },
+    //         { id: 3 },
+    //         { id: 4 },
+    //         { id: 5 },
+    //     ] as Item[]
+
+    //     type State = { clicked: boolean; itemId: number }
+    //     type Props = { item: Item }
+
+    //     const ItemComponent = (_props: Props) => {
+    //         const ctx = myra.useContext<State, Props>({
+    //             didMount: ({ evolve, props }) => updateItemId(evolve, props.item.id),
+    //             willRender: ({ evolve, props }) => updateItemId(evolve, props.item.id),
+    //             state: { clicked: false, itemId: -1 }
+    //         })
+
+    //         const setClicked = () => ctx.evolve({ clicked: true })
+    //         const updateItemId = (evolve: myra.Evolve<State>, itemId: number) => evolve({ itemId })
+
+    //         return (
+    //             <button id={`item-${ctx.state.itemId}`}
+    //                 class={ctx.state.clicked ? "clicked" : ""}
+    //                 onclick={setClicked}>
+    //             </button>
+    //         )
+    //     }
+
+    //     const view1 =
+    //         <div>
+    //             {items.map(x => <ItemComponent item={x} />)}
+    //         </div>
+
+    //     render(document.body, view1, view1, undefined)
+
+    //     let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
+    //     btn.click()
+
+    //     expect(btn.className).toBe("clicked")
+    //     expect(btn.id).toBe("item-1")
+
+    //     const view2 =
+    //         <div>
+    //             {items.reverse().map(x => <ItemComponent item={x} />)}
+    //         </div>
+
+    //     render(document.body, view2, view1, view1.domRef)
+
+    //     btn = (view2.domRef as HTMLDivElement).querySelector('button')!
+    //     expect(btn.className).toBe("clicked")
+    //     expect(btn.id).toBe("item-5")
+
+    //     // The last element should've been updated
+    //     btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
+    //     expect(btn.className).toBe("")
+    //     expect(btn.id).toBe("item-1")
+    // })
+
+    // it('retains component state when component children are reordered with keys', () => {
+
+    //     type Item = {
+    //         id: number
+    //     }
+    //     const items = [
+    //         { id: 1 },
+    //         { id: 2 },
+    //         { id: 3 },
+    //         { id: 4 },
+    //         { id: 5 },
+    //     ] as Item[]
+
+    //     type State = { clicked: boolean; itemId: number }
+    //     type Props = { key: string; item: Item; forceUpdate: boolean }
+
+    //     let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
+
+    //     const ItemComponent = (_props: Props) => {
+    //         const ctx = myra.useContext<State, Props>({
+    //             didMount: ({ evolve, props }) => evolve({ itemId: props.item.id }),
+    //             state: { clicked: false, itemId: -1 }
+    //         })
+
+    //         const setClicked = () => ctx.evolve({ clicked: true })
+
+    //         const v = <button id={`item-${ctx.state.itemId}`} class={ctx.state.clicked ? "clicked" : ""}
+    //             onclick={setClicked}>
+    //         </button>
+    //         if (ctx.state.itemId === 1) {
+    //             btnVNode = v as ElementVNode<HTMLButtonElement>
+    //         }
+    //         return v
+
+    //     }
+
+    //     const view1 =
+    //         <div>
+    //             {items.map(x => <ItemComponent key={x.id.toString()} item={x} forceUpdate={true} />)}
+    //         </div> as ElementVNode<HTMLDivElement>
+
+    //     render(document.body, view1, view1, undefined)
+
+    //     let btn = view1.domRef!.querySelector('button')!
+    //     btn.click()
+
+    //     expect(btn.className).toBe("clicked")
+    //     expect(btn.id).toBe("item-1")
+
+    //     // Clear id so it's set from state
+    //     btn.id = ""
+    //     btn.className = ""
+    //     // We also need to modify the node, else the attributes won't be updated
+
+    //     delete btnVNode!.props.id
+    //     delete btnVNode!.props.class
+    //     const reversedItems = items.reverse()
+    //     const view2 =
+    //         <div>
+    //             {reversedItems.map(x => <ItemComponent key={x.id.toString()} item={x} forceUpdate={true} />)}
+    //         </div> as ElementVNode<HTMLDivElement>
+
+    //     render(document.body, view2, view1, view1.domRef)
+
+    //     btn = view2.domRef!.querySelector('button')!
+    //     expect(btn.className).toBe("")
+    //     expect(btn.id).toBe("item-5")
+
+    //     // The last element should've been updated with the same values
+    //     btn = view2.domRef!.lastChild as HTMLButtonElement
+    //     expect(btn.className).toBe("clicked")
+    //     expect(btn.id).toBe("item-1")
+    // })
+
+    // it('does not retain component state when component children are reordered without keys', () => {
+
+    //     type Item = {
+    //         id: number
+    //     }
+    //     const items = [
+    //         { id: 1 },
+    //         { id: 2 },
+    //         { id: 3 },
+    //         { id: 4 },
+    //         { id: 5 },
+    //     ] as Item[]
+
+    //     type State = { clicked: boolean; itemId: number }
+    //     type Props = { item: Item; forceUpdate: boolean }
+
+    //     let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
+
+    //     const ItemComponent = (_props: Props) => {
+
+    //         const ctx = myra.useContext<State, Props>({
+    //             didMount: ({ evolve, props }) => updateItemId(evolve, props.item.id),
+    //             willRender: ({ evolve, props }) => updateItemId(evolve, props.item.id),
+    //             state: { clicked: false, itemId: -1 }
+    //         })
+
+    //         const setClicked = () => ctx.evolve({ clicked: true })
+    //         const updateItemId = (evolve: myra.Evolve<State>, itemId: number) => evolve({ itemId })
+
+    //         const v =
+    //             <button
+    //                 id={`item-${ctx.state.itemId}`}
+    //                 class={ctx.state.clicked ? "clicked" : ""}
+    //                 onclick={setClicked}>
+    //             </button>
+    //         if (ctx.state.itemId === 1) {
+    //             btnVNode = v as ElementVNode<HTMLButtonElement>
+    //         }
+    //         return v
+    //     }
+
+    //     const view1 =
+    //         <div>
+    //             {items.map(x => <ItemComponent item={x} forceUpdate={true} />)}
+    //         </div> as ElementVNode<HTMLDivElement>
+
+    //     render(document.body, view1, view1, undefined)
+
+    //     let btn = view1.domRef!.querySelector('button')!
+    //     btn.click()
+
+    //     expect(btn.className).toBe("clicked")
+    //     expect(btn.id).toBe("item-1")
+
+    //     // Clear id so it's set from state
+    //     btn.id = ""
+    //     btn.className = ""
+
+    //     // We also need to modify the node, else the attributes won't be updated
+    //     delete btnVNode!.props.id
+    //     delete btnVNode!.props.class
+
+    //     const reversedItems = items.reverse()
+    //     const view2 =
+    //         <div>
+    //             {reversedItems.map(x => <ItemComponent item={x} forceUpdate={true} />)}
+    //         </div> as ElementVNode<HTMLDivElement>
+
+    //     render(document.body, view2, view1, view1.domRef)
+
+    //     btn = view2.domRef!.querySelector('button')!
+
+    //     expect(btn.className).toBe("clicked")
+    //     expect(btn.id).toBe("item-5")
+
+    //     // The last element should've been updated with the same values
+    //     btn = view2.domRef!.lastChild as HTMLButtonElement
+
+    //     expect(btn.className).toBe("")
+    //     expect(btn.id).toBe("item-1")
+    // })
+
+
+    // it('unmounts a component which is a child of removed virtual node', () => {
+    //     const mountMock = {
+    //         unmount: () => { }
+    //     }
+
+    //     spyOn(mountMock, 'unmount').and.callThrough()
+
+    //     const ChildComponent = () => {
+    //         myra.useContext({
+    //             willUnmount: mountMock.unmount
+    //         })
+    //         return <div />
+    //     }
+
+    //     const view1 = <div><div><ChildComponent /></div></div>
+    //     render(document.body, view1, view1, undefined)
+
+    //     const view2 = <div></div>
+    //     render(document.body, view2, view1, view1.domRef)
+
+    //     expect(mountMock.unmount).toHaveBeenCalledTimes(1)
+    // })
 
     it('renders svg nodes with correct namespace', () => {
         const view = <svg id="svg-test1"></svg>

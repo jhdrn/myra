@@ -1,10 +1,10 @@
-import { render, useContext } from './component'
+import { render, withContext } from './component'
 import { VNode } from './contract'
 
 export * from './jsxFactory'
 export * from './contract'
 
-export { useContext }
+export { withContext }
 
 /** 
  * Mounts the component onto the supplied element by calling the supplied 

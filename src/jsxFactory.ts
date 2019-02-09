@@ -61,6 +61,7 @@ export function h<TProps>(
         _: VNODE_FUNCTION,
         props,
         children: children as VNode[],
+        dispatchLevel: 0,
         view: tagNameOrComponent
     }
 }

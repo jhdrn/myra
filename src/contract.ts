@@ -1,5 +1,3 @@
-import { useDefaultProps } from "./component";
-
 declare global {
 
     namespace JSX {
@@ -278,7 +276,7 @@ export interface ComponentFactory<TProps> {
 }
 
 export interface ComponentFactoryWithContext<TProps> {
-    (props: TProps, children: VNode[], context: XContext<TProps>): VNode
+    (props: TProps, children: VNode[], context: XContext<TProps, Events>): VNode
 }
 
 export interface AttributeMap { [name: string]: string }
@@ -337,23 +335,39 @@ export interface ElementVNode<TElement extends Element> extends VNodeBase {
  * A virtual node representing a component.
  */
 
-export interface XContext<TProps> {
-    useState: <TState>(init: TState) => [TState, Evolve<TState>]
-    useDefaultProps: (defaultProps: TProps) => TProps
-    getDomRef: () => Node | undefined
-    // useLifecycle: (lifecycle: {}) => void
+export interface XContext<TProps, TEvents> {
+    readonly getDomRef: () => Node | undefined
+    readonly useState: <TState>(init: TState) => [TState, Evolve<TState>]
+    readonly useDefaultProps: (defaultProps: Partial<TProps>) => TProps
+    readonly useEvent: <TEvent extends keyof TEvents>(event: TEvent, callback: TEvents[TEvent]) => void
+    // shouldRender: (preventRender: boolean) => void
+    // readonly useLifecycle: (lifecycle: {}) => void
+    // readonly willMount: boolean
+    // readonly willRender: boolean
+    // readonly willUnmount: boolean
+}
+
+export interface Events {
+    'didMount': () => void
+    'didRender': () => void
+    'onError': () => VNode
+    'shouldRender': () => boolean
+    'willMount': () => void
+    'willRender': () => void
+    'willUnmount': () => void
 }
 
 export interface StatelessComponentVNode<TProps extends {}> extends VNodeBase {
     readonly _: 3
     children: VNode[]
     props: TProps
-    view: (props: TProps, children: JSX.Element[], context: XContext<TProps>) => JSX.Element
+    view: (props: TProps, children: JSX.Element[], context: XContext<TProps, Events>) => JSX.Element
     rendition?: VNode
+    dispatchLevel: number
 }
 export interface StatefulComponentVNode<TProps extends {}> extends StatelessComponentVNode<TProps> {
-    dispatchLevel: number
     state: any[]
+    events: Record<string, Function[]>
     link: { vNode: StatefulComponentVNode<TProps> }
 }
 
