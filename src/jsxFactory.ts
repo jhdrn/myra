@@ -62,6 +62,6 @@ export function h<TProps extends object>(
         props,
         children: flattenChildren(children),
         dispatchLevel: 0,
-        tagNameOrComponent
+        view: tagNameOrComponent
     } as any as ComponentVNode<object>
 }

@@ -646,6 +646,7 @@ function createNode(vNode: VNode, parentElement: Element, isSvg: boolean): Node 
         case VNODE_TEXT:
             return document.createTextNode(vNode.value)
         case VNODE_FUNCTION:
+
             doRenderComponent(parentElement, (vNode as ComponentVNode<any>), isSvg)
 
             if (vNode.domRef === undefined) {
