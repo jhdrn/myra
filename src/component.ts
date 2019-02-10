@@ -6,7 +6,7 @@ import {
     ComponentVNode,
     Evolve,
     ComponentFactoryWithContext,
-    XContext,
+    Context,
     Events
 } from './contract'
 import { equal } from './helpers'
@@ -138,7 +138,7 @@ function tryRenderComponent<TProps extends {}>(parentElement: Element, vNode: Co
 
     if (vNode.events !== undefined && vNode.events['willRender'] !== undefined) {
         const events = vNode.events['willRender']
-        for (let i = 0; i > events.length; i++) {
+        for (let i = 0; i < events.length; i++) {
             events[i]()
         }
     }
@@ -147,7 +147,7 @@ function tryRenderComponent<TProps extends {}>(parentElement: Element, vNode: Co
 
     if (vNode.events !== undefined && vNode.events['didRender'] !== undefined) {
         const events = vNode.events['didRender']
-        for (let i = 0; i > events.length; i++) {
+        for (let i = 0; i < events.length; i++) {
             events[i]()
         }
     }
@@ -244,7 +244,7 @@ function useEvent<TEvent extends keyof Events>(event: TEvent, callback: Events[T
     vNode.events[event].push(callback)
 }
 
-const context: XContext<any, Events> = {
+const context: Context<any, Events> = {
     getDomRef,
     useEvent,
     useState,
@@ -273,7 +273,25 @@ function doRenderComponent(parentElement: Element, vNode: ComponentVNode<any>, i
             newView = vNode.view(vNode.props, vNode.children, context)
             renderingContext = undefined
 
+            if (oldNode === undefined) {
+                if (vNode.events !== undefined && vNode.events['willMount'] !== undefined) {
+                    const events = vNode.events['willMount']
+                    for (let i = 0; i < events.length; i++) {
+                        events[i]()
+                    }
+                }
+            }
+
             render(parentElement, newView, vNode.rendition, oldNode, isSvg)
+
+            if (oldNode === undefined) {
+                if (vNode.events !== undefined && vNode.events['didMount'] !== undefined) {
+                    const events = vNode.events['didMount']
+                    for (let i = 0; i < events.length; i++) {
+                        events[i]()
+                    }
+                }
+            }
         }
         catch (err) {
             // if (vNode.ctx !== undefined && vNode.ctx.options.onError !== undefined) {

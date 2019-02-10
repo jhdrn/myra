@@ -245,35 +245,24 @@ declare global {
 export type UpdateState<TState> = Partial<TState> | ((s: Readonly<TState>) => Partial<TState>)
 export type Evolve<TState> = (update: UpdateState<TState>) => void
 
-export interface Context<TState, TProps> {
-    readonly evolve: Evolve<TState>
-    readonly props: TProps
-    readonly state: TState
-    readonly domRef: Element | undefined
-    readonly options: WithContextOptions<TState, TProps>
-}
-export interface RenderedContext<TState, TProps> extends Context<TState, TProps> {
-    readonly domRef: Element
-}
+// export interface WithContextOptions<TState, TProps> {
+//     defaultProps?: Partial<TProps>
+//     willMount?: (ctx: Context<TState, TProps>) => void
+//     didMount?: (ctx: RenderedContext<TState, TProps>) => void
+//     shouldRender?: (oldProps: TProps, newProps: TProps) => boolean
+//     willRender?: (ctx: Context<TState, TProps>) => void
+//     didRender?: (ctx: RenderedContext<TState, TProps>) => void
+//     willUnmount?: (ctx: RenderedContext<TState, TProps>) => void
+//     onError?: (error: Error) => VNode
+//     state?: TState
+// }
 
-export interface WithContextOptions<TState, TProps> {
-    defaultProps?: Partial<TProps>
-    willMount?: (ctx: Context<TState, TProps>) => void
-    didMount?: (ctx: RenderedContext<TState, TProps>) => void
-    shouldRender?: (oldProps: TProps, newProps: TProps) => boolean
-    willRender?: (ctx: Context<TState, TProps>) => void
-    didRender?: (ctx: RenderedContext<TState, TProps>) => void
-    willUnmount?: (ctx: RenderedContext<TState, TProps>) => void
-    onError?: (error: Error) => VNode
-    state?: TState
-}
-
-export interface ComponentFactory<TProps> {
-    (props: TProps, children: VNode[]): VNode
+export interface ComponentFactory<TProps, TContext> {
+    (props: TProps, children: VNode[], context: TContext): VNode
 }
 
 export interface ComponentFactoryWithContext<TProps> {
-    (props: TProps, children: VNode[], context: XContext<TProps, Events>): VNode
+    (props: TProps, children: VNode[], context: Context<TProps, Events>): VNode
 }
 
 export interface AttributeMap { [name: string]: string }
@@ -332,7 +321,7 @@ export interface ElementVNode<TElement extends Element> extends VNodeBase {
  * A virtual node representing a component.
  */
 
-export interface XContext<TProps, TEvents> {
+export interface Context<TProps, TEvents> {
     readonly getDomRef: () => Node | undefined
     readonly useState: <TState>(init: TState) => [TState, Evolve<TState>]
     readonly useDefaultProps: (defaultProps: Partial<TProps>) => TProps
@@ -342,6 +331,10 @@ export interface XContext<TProps, TEvents> {
     // readonly willMount: boolean
     // readonly willRender: boolean
     // readonly willUnmount: boolean
+}
+
+export interface DefaultContext<TProps> extends Context<TProps, Events> {
+
 }
 
 export interface Events {
