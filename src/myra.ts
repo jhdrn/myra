@@ -11,5 +11,7 @@ export { withContext }
  * component factory. 
  */
 export function mount(vNode: VNode, element: Element) {
-    render(element, vNode, undefined, undefined)
+    requestAnimationFrame(() => {
+        render(element, vNode, undefined, undefined)
+    })
 }
