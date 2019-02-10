@@ -32,120 +32,103 @@ describe('mount', () => {
 
         myra.mount(<Component />, document.body)
 
-        const rootNode = q('#root')
+        requestAnimationFrame(() => {
+            const rootNode = q('#root')
 
-        expect(rootNode).not.toBeNull()
+            expect(rootNode).not.toBeNull()
 
-        done()
-    })
-
-    it('mounts a stateless component', done => {
-
-        const Component = () => <div id="stateless-root" />
-
-        myra.mount(<Component />, document.body)
-
-        const rootNode = q('#stateless-root')
-
-        expect(rootNode).not.toBeNull()
-
-        done()
+            done()
+        })
     })
 
     it('mounts any JSX element', done => {
 
         myra.mount(<div id="root" />, document.body)
 
-        const rootNode = q('#root')
+        requestAnimationFrame(() => {
+            const rootNode = q('#root')
 
-        expect(rootNode).not.toBeNull()
+            expect(rootNode).not.toBeNull()
+
+            done()
+        })
+    })
+
+    it('calls the willMount listener', done => {
+        const mock = {
+            callback: () => { }
+        }
+
+        spyOn(mock, 'callback').and.callThrough()
+
+        const Component = myra.withContext((_p, _c, ctx) => {
+            ctx.useEvent('willMount', mock.callback)
+            return <div />
+        })
+
+        render(document.body, <Component />, undefined, undefined)
+
+        expect(mock.callback).toHaveBeenCalled()
 
         done()
     })
 
-    // it('calls the willMount listener', done => {
-    //     const mock = {
-    //         callback: () => { }
-    //     }
+    it('calls the didMount listener', done => {
+        const mock = {
+            callback: () => { }
+        }
 
-    //     spyOn(mock, 'callback').and.callThrough()
+        spyOn(mock, 'callback').and.callThrough()
 
-    //     const Component = () => {
-    //         myra.useContext({
-    //             didMount: mock.callback
-    //         })
-    //         return <div />
-    //     }
+        const Component = myra.withContext((_p, _c, ctx) => {
+            ctx.useEvent('didMount', mock.callback)
+            return <div />
+        })
 
-    //     myra.mount(<Component />, document.body)
+        render(document.body, <Component />, undefined, undefined)
 
-    //     expect(mock.callback).toHaveBeenCalled()
+        expect(mock.callback).toHaveBeenCalled()
 
-    //     done()
-    // })
+        done()
+    })
 
-    // it('calls the didMount listener', done => {
-    //     const mock = {
-    //         callback: () => { }
-    //     }
+    it('calls the willRender listener', done => {
+        const mock = {
+            callback: () => { }
+        }
 
-    //     spyOn(mock, 'callback').and.callThrough()
+        spyOn(mock, 'callback').and.callThrough()
 
-    //     const Component = () => {
-    //         myra.useContext({
-    //             didMount: mock.callback
-    //         })
-    //         return <div />
-    //     }
+        const Component = myra.withContext((_p, _c, ctx) => {
+            ctx.useEvent('willRender', mock.callback)
+            return <div />
+        })
 
-    //     myra.mount(<Component />, document.body)
+        render(document.body, <Component />, undefined, undefined)
 
-    //     expect(mock.callback).toHaveBeenCalled()
+        expect(mock.callback).toHaveBeenCalled()
 
-    //     done()
-    // })
+        done()
+    })
 
-    // it('calls the willRender listener', done => {
-    //     const mock = {
-    //         callback: () => { }
-    //     }
+    it('calls the didRender listener', done => {
+        const mock = {
+            callback: () => { }
+        }
 
-    //     spyOn(mock, 'callback').and.callThrough()
+        spyOn(mock, 'callback').and.callThrough()
 
-    //     const Component = () => {
-    //         myra.useContext({
-    //             didMount: mock.callback
-    //         })
-    //         return <div />
-    //     }
+        const Component = myra.withContext((_p, _c, ctx) => {
+            ctx.useEvent('didRender', mock.callback)
+            return <div />
+        })
 
-    //     myra.mount(<Component />, document.body)
+        render(document.body, <Component />, undefined, undefined)
 
-    //     expect(mock.callback).toHaveBeenCalled()
+        expect(mock.callback).toHaveBeenCalled()
 
-    //     done()
-    // })
-
-    // it('calls the didRender listener', done => {
-    //     const mock = {
-    //         callback: () => { }
-    //     }
-
-    //     spyOn(mock, 'callback').and.callThrough()
-
-    //     const Component = () => {
-    //         myra.useContext({
-    //             didMount: mock.callback
-    //         })
-    //         return <div />
-    //     }
-
-    //     myra.mount(<Component />, document.body)
-
-    //     expect(mock.callback).toHaveBeenCalled()
-
-    //     done()
-    // })
+        done()
+    })
 
     // it('calls the onError listener on view rendering error', done => {
     //     const mock = {
@@ -421,7 +404,7 @@ describe('mount', () => {
             </Component>
 
 
-        myra.mount(<Parent />, document.body)
+        render(document.body, <Parent />, undefined, undefined)
 
         expect(q('#divTestId')).not.toBeNull()
 
@@ -761,14 +744,14 @@ describe('updateComponent (stateless component)', () => {
 
     it('does not update a stateless component if the props has not changed', () => {
 
-        const component = (_props: { val: number }, _: VNode[]) => <div>A</div>
+        const Component = (_props: { val: number }, _: VNode[]) => <div>A</div>
         // This is actually a new component, but functions are treated as equal anyway
-        const component2 = (_props: { val: number }, _: VNode[]) => <div>B</div>
+        const Component2 = (_props: { val: number }, _: VNode[]) => <div>B</div>
 
-        const vNode = myra.h(component, { val: 45 }, 'Child') as ComponentVNode<any>
+        const vNode = <Component val={45} />
         const domNode = render(document.body, vNode, undefined, undefined)
 
-        const newVNode = myra.h(component2, { val: 45 }, 'Child') as ComponentVNode<any>
+        const newVNode = <Component2 val={45} /> as ComponentVNode<any>
         render(document.body, newVNode, vNode, domNode)
 
         expect(newVNode.rendition!.domRef!.childNodes.item(0).textContent).toBe('A')
@@ -776,56 +759,56 @@ describe('updateComponent (stateless component)', () => {
     })
 
     it('updates the stateless component if forceUpdate is true', () => {
-        const component = (_props: { forceUpdate: boolean }, _: VNode[]) => <div>A</div>
+        const Component = (_props: { forceUpdate: boolean }, _: VNode[]) => <div>A</div>
         // This is actually a new component, but functions are treated as equal anyway
-        const component2 = (_props: { forceUpdate: boolean }, _: VNode[]) => <div>B</div>
+        const Component2 = (_props: { forceUpdate: boolean }, _: VNode[]) => <div>B</div>
 
-        const vNode = myra.h(component, { forceUpdate: true }, 'Child') as ComponentVNode<any>
+        const vNode = <Component forceUpdate={true} />
         const domNode = render(document.body, vNode, undefined, undefined)
 
-        const newVNode = myra.h(component2, { forceUpdate: true }, 'Child') as ComponentVNode<any>
+        const newVNode = <Component2 forceUpdate={true} /> as ComponentVNode<any>
         render(document.body, newVNode, vNode, domNode)
 
         expect(newVNode.rendition!.domRef!.childNodes.item(0).textContent).toBe('B')
     })
 
     it('updates the stateless component if the supplied props are not equal to the previous props', () => {
-        const component = (_props: { val: number }, _: VNode[]) => <div>A</div>
+        const Component = (_props: { val: number }, _: VNode[]) => <div>A</div>
         // This is actually a new component, but functions are treated as equal anyway
-        const component2 = (_props: { val: number }, _: VNode[]) => <div>B</div>
+        const Component2 = (_props: { val: number }, _: VNode[]) => <div>B</div>
 
-        const vNode = myra.h(component, { val: 1 }, 'Child') as ComponentVNode<any>
+        const vNode = <Component val={1} />
         const domNode = render(document.body, vNode, undefined, undefined)
 
-        const newVNode = myra.h(component2, { val: 2 }, 'Child') as ComponentVNode<any>
+        const newVNode = <Component2 val={2} /> as ComponentVNode<any>
         render(document.body, newVNode, vNode, domNode)
 
         expect(newVNode.rendition!.domRef!.childNodes.item(0).textContent).toBe('B')
     })
 
     it('does not update a stateless component if the children has not changed', () => {
-        const component = (_props: { val: number }, _: VNode[]) => <div>A</div>
+        const Component = (_props: { val: number }, _: VNode[]) => <div>A</div>
         // This is actually a new component, but functions are treated as equal anyway
-        const component2 = (_props: { val: number }, _: VNode[]) => <div>B</div>
+        const Component2 = (_props: { val: number }, _: VNode[]) => <div>B</div>
 
-        const vNode = myra.h(component, { val: 45 }, 'Child') as ComponentVNode<any>
+        const vNode = <Component val={45}>Child</Component>
         const domNode = render(document.body, vNode, undefined, undefined)
 
-        const newVNode = myra.h(component2, { val: 45 }, 'Child') as ComponentVNode<any>
+        const newVNode = <Component2 val={45}>Child</Component2> as ComponentVNode<any>
         render(document.body, newVNode, vNode, domNode)
 
         expect(newVNode.rendition!.domRef!.childNodes.item(0).textContent).toBe('A')
     })
 
     it('updates the stateless component if the supplied children are not equal to the previous children', () => {
-        const component = (_props: { val: number }, _: VNode[]) => <div>A</div>
+        const Component = (_props: { val: number }, _: VNode[]) => <div>A</div>
         // This is actually a new component, but functions are treated as equal anyway
-        const component2 = (_props: { val: number }, _: VNode[]) => <div>B</div>
+        const Component2 = (_props: { val: number }, _: VNode[]) => <div>B</div>
 
-        const vNode = myra.h(component, { val: 45 }, 'Child A') as ComponentVNode<any>
+        const vNode = <Component val={45}>Child A</Component>
         const domNode = render(document.body, vNode, undefined, undefined)
 
-        const newVNode = myra.h(component2, { val: 45 }, 'Child B') as ComponentVNode<any>
+        const newVNode = <Component2 val={45}>Child B</Component2> as ComponentVNode<any>
         render(document.body, newVNode, vNode, domNode)
 
         expect(newVNode.rendition!.domRef!.childNodes.item(0).textContent).toBe('B')
@@ -857,7 +840,7 @@ describe('evolve', () => {
         })
 
 
-        myra.mount(<Component />, document.body)
+        render(document.body, <Component />, undefined, undefined)
 
         const postBtn = document.getElementById('postButton') as HTMLButtonElement
         postBtn.click()
@@ -890,7 +873,7 @@ describe('evolve', () => {
             return <button id="postButton2" onclick={() => evolve(state => mocks.onclickUpdate(state, { val: 2 }))}></button>
         })
 
-        myra.mount(<Component />, document.body)
+        render(document.body, <Component />, undefined, undefined)
 
         const postBtn = document.getElementById('postButton2') as HTMLButtonElement
         postBtn.click()

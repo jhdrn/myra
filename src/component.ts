@@ -114,9 +114,13 @@ export function withContext<TProps>(componentFactory: ComponentFactoryWithContex
  */
 function findAndUnmountComponentsRec(vNode: VNode) {
     if (vNode._ === VNODE_FUNCTION) {
-        // if ((vNode as ComponentVNode<any>).ctx !== undefined && (vNode as ComponentVNode<any>).ctx.options.willUnmount !== undefined) {
-        //     (vNode as ComponentVNode<any>).ctx.options.willUnmount!((vNode as ComponentVNode<any>).ctx as RenderedContext<any, any>)
-        // }
+
+        if (vNode.events !== undefined && vNode.events['willUnmount'] !== undefined) {
+            const events = vNode.events['willUnmount']
+            for (let i = 0; i < events.length; i++) {
+                events[i]()
+            }
+        }
         findAndUnmountComponentsRec(vNode.rendition!)
     }
     else if (vNode._ === VNODE_ELEMENT) {
@@ -136,21 +140,9 @@ function tryRenderComponent<TProps extends {}>(parentElement: Element, vNode: Co
     // dispatchLevel is at "lowest" level (i.e. 1).
     // if (vNode.dispatchLevel === 1) {
 
-    if (vNode.events !== undefined && vNode.events['willRender'] !== undefined) {
-        const events = vNode.events['willRender']
-        for (let i = 0; i < events.length; i++) {
-            events[i]()
-        }
-    }
 
     doRenderComponent(parentElement, vNode, isSvg)
 
-    if (vNode.events !== undefined && vNode.events['didRender'] !== undefined) {
-        const events = vNode.events['didRender']
-        for (let i = 0; i < events.length; i++) {
-            events[i]()
-        }
-    }
     // }
     // vNode.dispatchLevel--
 }
@@ -282,7 +274,21 @@ function doRenderComponent(parentElement: Element, vNode: ComponentVNode<any>, i
                 }
             }
 
+            if (vNode.events !== undefined && vNode.events['willRender'] !== undefined) {
+                const events = vNode.events['willRender']
+                for (let i = 0; i < events.length; i++) {
+                    events[i]()
+                }
+            }
+
             render(parentElement, newView, vNode.rendition, oldNode, isSvg)
+
+            if (vNode.events !== undefined && vNode.events['didRender'] !== undefined) {
+                const events = vNode.events['didRender']
+                for (let i = 0; i < events.length; i++) {
+                    events[i]()
+                }
+            }
 
             if (oldNode === undefined) {
                 if (vNode.events !== undefined && vNode.events['didMount'] !== undefined) {
@@ -444,12 +450,6 @@ export function render(
                 }
             }
 
-            // if (newVNode._ === VNODE_FUNCTION) {
-            //     if (newVNode.events !== undefined) {
-            //         const events = newVNode.events['']
-            //     }
-            //     newVNode.
-            // }
             return newVNode.domRef
 
         case RenderingAction.UPDATE:
@@ -614,7 +614,6 @@ export function render(
                         || !equal((oldVNode as ComponentVNode<any>).children, newVNode.children)
 
                     newVNode.rendition = (oldVNode as ComponentVNode<any>).rendition;
-
 
                     // newVNode.view = (oldVNode as StatelessComponentVNode<any>).view;
                     (newVNode as ComponentVNode<any>).state = (oldVNode as ComponentVNode<any>).state
