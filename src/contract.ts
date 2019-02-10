@@ -245,9 +245,6 @@ declare global {
 export type UpdateState<TState> = Partial<TState> | ((s: Readonly<TState>) => Partial<TState>)
 export type Evolve<TState> = (update: UpdateState<TState>) => void
 
-export interface View<TState, TProps> {
-    (state: TState, props: TProps, children: JSX.Element[]): JSX.Element
-}
 export interface Context<TState, TProps> {
     readonly evolve: Evolve<TState>
     readonly props: TProps
@@ -357,18 +354,17 @@ export interface Events {
     'willUnmount': () => void
 }
 
-export interface StatelessComponentVNode<TProps extends {}> extends VNodeBase {
+
+export interface ComponentVNode<TProps extends {}> extends VNodeBase {
     readonly _: 3
     children: VNode[]
     props: TProps
-    view: (props: TProps, children: JSX.Element[], context: XContext<TProps, Events>) => JSX.Element
+    view: ComponentFactoryWithContext<TProps>
     rendition?: VNode
     dispatchLevel: number
-}
-export interface StatefulComponentVNode<TProps extends {}> extends StatelessComponentVNode<TProps> {
-    state: any[]
-    events: Record<string, Function[]>
-    link: { vNode: StatefulComponentVNode<TProps> }
+    state?: any[]
+    events?: Record<string, Function[]>
+    link: { vNode: ComponentVNode<TProps> }
 }
 
 /**
@@ -382,7 +378,7 @@ export interface NothingVNode extends VNodeBase {
 /**
  * Union type of the different types of virtual nodes.
  */
-export type VNode = TextVNode | ElementVNode<any> | StatelessComponentVNode<any> | NothingVNode
+export type VNode = TextVNode | ElementVNode<any> | ComponentVNode<any> | NothingVNode
 
 export interface GlobalAttributes<TElement extends Element> {
     key?: any

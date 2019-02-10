@@ -1,6 +1,6 @@
 import * as myra from '../src/myra'
 import { render } from '../src/component'
-import { VNode, StatelessComponentVNode } from '../src/contract'
+import { VNode, ComponentVNode } from '../src/contract'
 
 const q = (x: string) => document.querySelector(x)
 
@@ -765,10 +765,10 @@ describe('updateComponent (stateless component)', () => {
         // This is actually a new component, but functions are treated as equal anyway
         const component2 = (_props: { val: number }, _: VNode[]) => <div>B</div>
 
-        const vNode = myra.h(component, { val: 45 }, 'Child') as StatelessComponentVNode<any>
+        const vNode = myra.h(component, { val: 45 }, 'Child') as ComponentVNode<any>
         const domNode = render(document.body, vNode, undefined, undefined)
 
-        const newVNode = myra.h(component2, { val: 45 }, 'Child') as StatelessComponentVNode<any>
+        const newVNode = myra.h(component2, { val: 45 }, 'Child') as ComponentVNode<any>
         render(document.body, newVNode, vNode, domNode)
 
         expect(newVNode.rendition!.domRef!.childNodes.item(0).textContent).toBe('A')
@@ -780,10 +780,10 @@ describe('updateComponent (stateless component)', () => {
         // This is actually a new component, but functions are treated as equal anyway
         const component2 = (_props: { forceUpdate: boolean }, _: VNode[]) => <div>B</div>
 
-        const vNode = myra.h(component, { forceUpdate: true }, 'Child') as StatelessComponentVNode<any>
+        const vNode = myra.h(component, { forceUpdate: true }, 'Child') as ComponentVNode<any>
         const domNode = render(document.body, vNode, undefined, undefined)
 
-        const newVNode = myra.h(component2, { forceUpdate: true }, 'Child') as StatelessComponentVNode<any>
+        const newVNode = myra.h(component2, { forceUpdate: true }, 'Child') as ComponentVNode<any>
         render(document.body, newVNode, vNode, domNode)
 
         expect(newVNode.rendition!.domRef!.childNodes.item(0).textContent).toBe('B')
@@ -794,10 +794,10 @@ describe('updateComponent (stateless component)', () => {
         // This is actually a new component, but functions are treated as equal anyway
         const component2 = (_props: { val: number }, _: VNode[]) => <div>B</div>
 
-        const vNode = myra.h(component, { val: 1 }, 'Child') as StatelessComponentVNode<any>
+        const vNode = myra.h(component, { val: 1 }, 'Child') as ComponentVNode<any>
         const domNode = render(document.body, vNode, undefined, undefined)
 
-        const newVNode = myra.h(component2, { val: 2 }, 'Child') as StatelessComponentVNode<any>
+        const newVNode = myra.h(component2, { val: 2 }, 'Child') as ComponentVNode<any>
         render(document.body, newVNode, vNode, domNode)
 
         expect(newVNode.rendition!.domRef!.childNodes.item(0).textContent).toBe('B')
@@ -808,10 +808,10 @@ describe('updateComponent (stateless component)', () => {
         // This is actually a new component, but functions are treated as equal anyway
         const component2 = (_props: { val: number }, _: VNode[]) => <div>B</div>
 
-        const vNode = myra.h(component, { val: 45 }, 'Child') as StatelessComponentVNode<any>
+        const vNode = myra.h(component, { val: 45 }, 'Child') as ComponentVNode<any>
         const domNode = render(document.body, vNode, undefined, undefined)
 
-        const newVNode = myra.h(component2, { val: 45 }, 'Child') as StatelessComponentVNode<any>
+        const newVNode = myra.h(component2, { val: 45 }, 'Child') as ComponentVNode<any>
         render(document.body, newVNode, vNode, domNode)
 
         expect(newVNode.rendition!.domRef!.childNodes.item(0).textContent).toBe('A')
@@ -822,10 +822,10 @@ describe('updateComponent (stateless component)', () => {
         // This is actually a new component, but functions are treated as equal anyway
         const component2 = (_props: { val: number }, _: VNode[]) => <div>B</div>
 
-        const vNode = myra.h(component, { val: 45 }, 'Child A') as StatelessComponentVNode<any>
+        const vNode = myra.h(component, { val: 45 }, 'Child A') as ComponentVNode<any>
         const domNode = render(document.body, vNode, undefined, undefined)
 
-        const newVNode = myra.h(component2, { val: 45 }, 'Child B') as StatelessComponentVNode<any>
+        const newVNode = myra.h(component2, { val: 45 }, 'Child B') as ComponentVNode<any>
         render(document.body, newVNode, vNode, domNode)
 
         expect(newVNode.rendition!.domRef!.childNodes.item(0).textContent).toBe('B')

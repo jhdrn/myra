@@ -1,5 +1,5 @@
 import * as myra from '../src/myra'
-import { StatelessComponentVNode } from '../src/myra';
+import { ComponentVNode } from '../src/myra';
 
 describe('jsxFactory', () => {
 
@@ -162,7 +162,7 @@ describe('jsxFactory', () => {
 
         const TestComponent = (_p: TestProps) => <div></div>
 
-        const view = <TestComponent test="test" /> as StatelessComponentVNode<TestProps>
+        const view = <TestComponent test="test" /> as ComponentVNode<TestProps>
 
         expect(view._).toBe(3)
         expect(view.props).toEqual({ test: 'test' })

@@ -3,8 +3,7 @@ import {
     ElementVNode,
     UpdateState,
     VNode,
-    StatelessComponentVNode,
-    StatefulComponentVNode,
+    ComponentVNode,
     Evolve,
     ComponentFactoryWithContext,
     XContext,
@@ -14,7 +13,7 @@ import { equal } from './helpers'
 import { VNODE_ELEMENT, VNODE_FUNCTION, VNODE_TEXT, VNODE_NOTHING } from './constants'
 
 interface IRenderingContext {
-    vNode: StatelessComponentVNode<any>
+    vNode: ComponentVNode<object>
     isSvg: boolean
     parentElement: Element
     stateIndex: number
@@ -38,7 +37,7 @@ export function withContext<TProps>(componentFactory: ComponentFactoryWithContex
 //     if (renderingContext === undefined) {
 //         throw 'Internal error, currentComponent undefined'
 //     }
-//     const vNode = renderingContext.vNode as StatefulComponentVNode<TProps>
+//     const vNode = renderingContext.vNode as ComponentVNode<TProps>
 //     const parentElement = renderingContext.parentElement
 //     const isSvg = renderingContext.isSvg
 //     if (vNode.ctx === undefined) {
@@ -115,8 +114,8 @@ export function withContext<TProps>(componentFactory: ComponentFactoryWithContex
  */
 function findAndUnmountComponentsRec(vNode: VNode) {
     if (vNode._ === VNODE_FUNCTION) {
-        // if ((vNode as StatefulComponentVNode<any>).ctx !== undefined && (vNode as StatefulComponentVNode<any>).ctx.options.willUnmount !== undefined) {
-        //     (vNode as StatefulComponentVNode<any>).ctx.options.willUnmount!((vNode as StatefulComponentVNode<any>).ctx as RenderedContext<any, any>)
+        // if ((vNode as ComponentVNode<any>).ctx !== undefined && (vNode as ComponentVNode<any>).ctx.options.willUnmount !== undefined) {
+        //     (vNode as ComponentVNode<any>).ctx.options.willUnmount!((vNode as ComponentVNode<any>).ctx as RenderedContext<any, any>)
         // }
         findAndUnmountComponentsRec(vNode.rendition!)
     }
@@ -130,22 +129,28 @@ function findAndUnmountComponentsRec(vNode: VNode) {
 /**
  * Tries to render the view.
  */
-function tryRenderComponent<TProps extends {}>(parentElement: Element, vNode: StatefulComponentVNode<TProps>, isSvg: boolean) {
+function tryRenderComponent<TProps extends {}>(parentElement: Element, vNode: ComponentVNode<TProps>, isSvg: boolean) {
     // vNode.dispatchLevel++
 
     // Render view if the component was already initialized and the 
     // dispatchLevel is at "lowest" level (i.e. 1).
     // if (vNode.dispatchLevel === 1) {
 
-    // if (vNode.ctx.options.willRender !== undefined) {
-    //     vNode.ctx.options.willRender(vNode.ctx)
-    // }
+    if (vNode.events !== undefined && vNode.events['willRender'] !== undefined) {
+        const events = vNode.events['willRender']
+        for (let i = 0; i > events.length; i++) {
+            events[i]()
+        }
+    }
 
     doRenderComponent(parentElement, vNode, isSvg)
 
-    // if (vNode.ctx.options.didRender !== undefined) {
-    //     vNode.ctx.options.didRender(vNode.ctx as RenderedContext<any, any>)
-    // }
+    if (vNode.events !== undefined && vNode.events['didRender'] !== undefined) {
+        const events = vNode.events['didRender']
+        for (let i = 0; i > events.length; i++) {
+            events[i]()
+        }
+    }
     // }
     // vNode.dispatchLevel--
 }
@@ -155,7 +160,7 @@ function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
         throw 'useState: Internal error, renderingContext undefined'
     }
 
-    const vNode = renderingContext.vNode as StatefulComponentVNode<any>
+    const vNode = renderingContext.vNode as ComponentVNode<any>
     if (vNode.state === undefined) {
         vNode.state = []
     }
@@ -179,9 +184,9 @@ function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
     function evolve(update: UpdateState<any>) {
         try {
             if (typeof update === 'function') {
-                update = update(link.vNode.state[stateIndex])
+                update = update(link.vNode.state![stateIndex])
             }
-            link.vNode.state[stateIndex] = { ...(link.vNode.state[stateIndex] as any), ...(update as object) }
+            link.vNode.state![stateIndex] = { ...(link.vNode.state![stateIndex] as any), ...(update as object) }
             if (link.vNode.dispatchLevel === 0) {
                 link.vNode.dispatchLevel++
                 if (renderingContext === undefined) {
@@ -212,20 +217,31 @@ function getDomRef(): Node | undefined {
     if (renderingContext === undefined) {
         throw 'getDomRef: Internal error, currentComponent undefined'
     }
-    const vNode = renderingContext.vNode as StatefulComponentVNode<any>
+    const vNode = renderingContext.vNode as ComponentVNode<any>
     return vNode.domRef
 }
 
-function useDefaultProps<TProps>(defaultProps: TProps) {
+function useDefaultProps<TProps extends object>(defaultProps: TProps): TProps {
     if (renderingContext === undefined) {
         throw 'useDefaultProps: Internal error, renderingContext undefined'
     }
     // Merge any defaultProps with received props
-    return { ...defaultProps, ...renderingContext.vNode.props }
+    return { ...(defaultProps as object), ...renderingContext.vNode.props } as TProps
 }
 
-function useEvent<TEvent extends keyof Events>(_event: TEvent, _callback: Events[TEvent]) {
+function useEvent<TEvent extends keyof Events>(event: TEvent, callback: Events[TEvent]) {
+    if (renderingContext === undefined) {
+        throw 'useState: Internal error, renderingContext undefined'
+    }
 
+    const vNode = renderingContext.vNode as ComponentVNode<any>
+    if (vNode.events === undefined) {
+        vNode.events = {}
+    }
+    if (vNode.events[event] === undefined) {
+        vNode.events[event] = []
+    }
+    vNode.events[event].push(callback)
 }
 
 const context: XContext<any, Events> = {
@@ -235,7 +251,7 @@ const context: XContext<any, Events> = {
     useDefaultProps
 }
 
-function doRenderComponent(parentElement: Element, vNode: StatefulComponentVNode<any>, isSvg: boolean) {
+function doRenderComponent(parentElement: Element, vNode: ComponentVNode<any>, isSvg: boolean) {
 
     let newView: VNode | undefined
 
@@ -290,7 +306,7 @@ function doRenderComponent(parentElement: Element, vNode: StatefulComponentVNode
     }
 }
 
-function tryHandleComponentError(_parentElement: Element, _vNode: StatefulComponentVNode<any>, _isSvg: boolean, err: Error) {
+function tryHandleComponentError(_parentElement: Element, _vNode: ComponentVNode<any>, _isSvg: boolean, err: Error) {
 
     // if (vNode.ctx.options.onError !== undefined) {
 
@@ -410,6 +426,12 @@ export function render(
                 }
             }
 
+            // if (newVNode._ === VNODE_FUNCTION) {
+            //     if (newVNode.events !== undefined) {
+            //         const events = newVNode.events['']
+            //     }
+            //     newVNode.
+            // }
             return newVNode.domRef
 
         case RenderingAction.UPDATE:
@@ -570,29 +592,29 @@ export function render(
                         newVNode.props !== undefined
                         && newVNode.props !== null
                         && (newVNode.props as any).forceUpdate
-                        || !equal((oldVNode as StatelessComponentVNode<any>).props, newVNode.props)
-                        || !equal((oldVNode as StatelessComponentVNode<any>).children, newVNode.children)
+                        || !equal((oldVNode as ComponentVNode<any>).props, newVNode.props)
+                        || !equal((oldVNode as ComponentVNode<any>).children, newVNode.children)
 
-                    newVNode.rendition = (oldVNode as StatelessComponentVNode<any>).rendition;
+                    newVNode.rendition = (oldVNode as ComponentVNode<any>).rendition;
 
 
                     // newVNode.view = (oldVNode as StatelessComponentVNode<any>).view;
-                    (newVNode as StatefulComponentVNode<any>).state = (oldVNode as StatefulComponentVNode<any>).state
-                    // (newVNode as StatefulComponentVNode<any>).link = (oldVNode as StatefulComponentVNode<any>).link;
-                    // (newVNode as StatefulComponentVNode<any>).link.vNode = newVNode as StatefulComponentVNode<any>;
-                    // (newVNode as StatefulComponentVNode<any>).dispatchLevel = 0;
-                    // (newVNode as StatefulComponentVNode<any>).ctx = (oldVNode as StatefulComponentVNode<any>).ctx
+                    (newVNode as ComponentVNode<any>).state = (oldVNode as ComponentVNode<any>).state
+                    // (newVNode as ComponentVNode<any>).link = (oldVNode as ComponentVNode<any>).link;
+                    // (newVNode as ComponentVNode<any>).link.vNode = newVNode as ComponentVNode<any>;
+                    // (newVNode as ComponentVNode<any>).dispatchLevel = 0;
+                    // (newVNode as ComponentVNode<any>).ctx = (oldVNode as ComponentVNode<any>).ctx
 
                     try {
                         if (shouldRender
-                            // && ((newVNode as StatefulComponentVNode<any>).ctx.options.shouldRender === undefined
-                            // || (newVNode as StatefulComponentVNode<any>).ctx.options.shouldRender!((oldVNode as StatelessComponentVNode<any>).props, newVNode.props))
+                            // && ((newVNode as ComponentVNode<any>).ctx.options.shouldRender === undefined
+                            // || (newVNode as ComponentVNode<any>).ctx.options.shouldRender!((oldVNode as StatelessComponentVNode<any>).props, newVNode.props))
                         ) {
 
-                            tryRenderComponent(parentDomNode, (newVNode as StatefulComponentVNode<any>), isSvg)
+                            tryRenderComponent(parentDomNode, (newVNode as ComponentVNode<any>), isSvg)
                         }
                     } catch (err) {
-                        tryHandleComponentError(parentDomNode, (newVNode as StatefulComponentVNode<any>), isSvg, err)
+                        tryHandleComponentError(parentDomNode, (newVNode as ComponentVNode<any>), isSvg, err)
                     }
 
                     break
@@ -624,7 +646,7 @@ function createNode(vNode: VNode, parentElement: Element, isSvg: boolean): Node 
         case VNODE_TEXT:
             return document.createTextNode(vNode.value)
         case VNODE_FUNCTION:
-            doRenderComponent(parentElement, (vNode as StatefulComponentVNode<any>), isSvg)
+            doRenderComponent(parentElement, (vNode as ComponentVNode<any>), isSvg)
 
             if (vNode.domRef === undefined) {
                 vNode.domRef = document.createComment('Nothing')
