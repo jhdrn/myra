@@ -1,5 +1,5 @@
 import { ComponentFactory, VNode, TextVNode, ComponentVNode, DefaultContext } from './contract'
-import { VNODE_NOTHING, VNODE_TEXT, VNODE_ELEMENT, VNODE_FUNCTION } from './constants'
+import { VNODE_NOTHING, VNODE_TEXT, VNODE_ELEMENT, VNODE_COMPONENT } from './constants'
 
 function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
     const flattenedChildren = [] as (VNode | string)[]
@@ -58,7 +58,7 @@ export function h<TProps extends object>(
         }
     }
     return {
-        _: VNODE_FUNCTION,
+        _: VNODE_COMPONENT,
         props,
         children: flattenChildren(children),
         dispatchLevel: 0,

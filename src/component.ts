@@ -10,7 +10,7 @@ import {
     Events
 } from './contract'
 import { equal } from './helpers'
-import { VNODE_ELEMENT, VNODE_FUNCTION, VNODE_TEXT, VNODE_NOTHING } from './constants'
+import { VNODE_ELEMENT, VNODE_COMPONENT, VNODE_TEXT, VNODE_NOTHING } from './constants'
 
 interface IRenderingContext {
     vNode: ComponentVNode<object>
@@ -113,7 +113,7 @@ export function withContext<TProps>(componentFactory: ComponentFactoryWithContex
  * hierarchy.
  */
 function findAndUnmountComponentsRec(vNode: VNode) {
-    if (vNode._ === VNODE_FUNCTION) {
+    if (vNode._ === VNODE_COMPONENT) {
 
         if (vNode.events !== undefined && vNode.events['willUnmount'] !== undefined) {
             const events = vNode.events['willUnmount']
@@ -411,7 +411,7 @@ export function render(
 
                 // If it's a component node or an element node and it should be 
                 // replaced, unmount any components in the tree.
-                if (oldVNode!._ === VNODE_ELEMENT) {
+                if (oldVNode!._ === VNODE_COMPONENT || oldVNode!._ === VNODE_ELEMENT) {
                     findAndUnmountComponentsRec(oldVNode!)
                 }
 
@@ -604,7 +604,7 @@ export function render(
                 case VNODE_TEXT: // text node
                     existingDomNode!.textContent = newVNode.value
                     break
-                case VNODE_FUNCTION: // stateless component node
+                case VNODE_COMPONENT: // stateless component node
 
                     const shouldRender =
                         newVNode.props !== undefined
@@ -662,7 +662,7 @@ function createNode(vNode: VNode, parentElement: Element, isSvg: boolean): Node 
             return document.createElement(vNode.tagName)
         case VNODE_TEXT:
             return document.createTextNode(vNode.value)
-        case VNODE_FUNCTION:
+        case VNODE_COMPONENT:
 
             doRenderComponent(parentElement, (vNode as ComponentVNode<any>), isSvg)
 
