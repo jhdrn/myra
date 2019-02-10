@@ -381,7 +381,10 @@ export function render(
             newVNode.tagName !== oldVNode.tagName) {
             action = RenderingAction.REPLACE
         }
-        else {
+        else if (newVNode._ === VNODE_COMPONENT && oldVNode._ === VNODE_COMPONENT &&
+            newVNode.view !== oldVNode.view) {
+            action = RenderingAction.REPLACE
+        } else {
             action = RenderingAction.UPDATE
         }
     }
@@ -445,7 +448,7 @@ export function render(
 
                 for (const c of newVNode.children) {
                     if (c !== undefined) {
-                        render(newNode as Element, c, c, undefined, isSvg, undefined)
+                        render(newNode as Element, c, c, undefined, isSvg, action)
                     }
                 }
             }
@@ -470,10 +473,10 @@ export function render(
 
                     if (newVNode.children.length > 0) {
                         // Create a map holding references to all the old child 
-                        // VNodes indexed by key    
+                        // VNodes indexed by key
                         const keyMap: Record<string, [VNode, Node] | undefined> = {}
 
-                        // 
+                        // Node "pool" for reuse
                         const unkeyedNodes: Node[] = []
 
                         // Prepare the map with the keys from the new nodes
@@ -613,12 +616,14 @@ export function render(
                         || !equal((oldVNode as ComponentVNode<any>).props, newVNode.props)
                         || !equal((oldVNode as ComponentVNode<any>).children, newVNode.children)
 
-                    newVNode.rendition = (oldVNode as ComponentVNode<any>).rendition;
+                    newVNode.rendition = (oldVNode as ComponentVNode<any>).rendition
 
                     // newVNode.view = (oldVNode as StatelessComponentVNode<any>).view;
-                    (newVNode as ComponentVNode<any>).state = (oldVNode as ComponentVNode<any>).state
-                    // (newVNode as ComponentVNode<any>).link = (oldVNode as ComponentVNode<any>).link;
-                    // (newVNode as ComponentVNode<any>).link.vNode = newVNode as ComponentVNode<any>;
+                    newVNode.state = (oldVNode as ComponentVNode<any>).state
+                    if ((oldVNode as ComponentVNode<any>).link !== undefined) {
+                        newVNode.link = (oldVNode as ComponentVNode<any>).link
+                        newVNode.link.vNode = newVNode
+                    }
                     // (newVNode as ComponentVNode<any>).dispatchLevel = 0;
                     // (newVNode as ComponentVNode<any>).ctx = (oldVNode as ComponentVNode<any>).ctx
 
@@ -628,10 +633,10 @@ export function render(
                             // || (newVNode as ComponentVNode<any>).ctx.options.shouldRender!((oldVNode as StatelessComponentVNode<any>).props, newVNode.props))
                         ) {
 
-                            tryRenderComponent(parentDomNode, (newVNode as ComponentVNode<any>), isSvg)
+                            tryRenderComponent(parentDomNode, newVNode, isSvg)
                         }
                     } catch (err) {
-                        tryHandleComponentError(parentDomNode, (newVNode as ComponentVNode<any>), isSvg, err)
+                        tryHandleComponentError(parentDomNode, newVNode, isSvg, err)
                     }
 
                     break

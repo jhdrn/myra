@@ -536,7 +536,6 @@ describe('render', () => {
         let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
         btn.click()
 
-
         requestAnimationFrame(() => {
             expect(btn.className).toBe("clicked")
             expect(btn.id).toBe("item-1")
@@ -552,7 +551,7 @@ describe('render', () => {
             expect(btn.id).toBe("item-5")
             expect(btn.className).toBe("clicked")
 
-            // The last element shoul've been updated
+            // The last element should've been updated
             btn = ((view2.domRef as HTMLDivElement).lastChild as HTMLDivElement).firstChild as HTMLButtonElement
 
             expect(btn.id).toBe("item-1")
@@ -642,11 +641,7 @@ describe('render', () => {
         type Props = { item: Item }
 
         const ItemComponent = myra.withContext<Props>((props, _c, ctx) => {
-            const [state, evolve] = ctx.useState<State>({ clicked: false, itemId: -1 })
-
-            const updateItemId = (evolve: myra.Evolve<State>, itemId: number) => evolve({ itemId })
-            ctx.useEvent('didMount', () => updateItemId(evolve, props.item.id))
-            ctx.useEvent('willRender', () => updateItemId(evolve, props.item.id))
+            const [state, evolve] = ctx.useState<State>({ clicked: false, itemId: props.item.id })
 
             const setClicked = () => evolve({ clicked: true })
 
@@ -785,11 +780,7 @@ describe('render', () => {
         let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
 
         const ItemComponent = myra.withContext<Props>((props, _c, ctx) => {
-            const [state, evolve] = ctx.useState<State>({ clicked: false, itemId: -1 })
-
-            const updateItemId = (evolve: myra.Evolve<State>, itemId: number) => evolve({ itemId })
-            ctx.useEvent('didMount', () => updateItemId(evolve, props.item.id))
-            ctx.useEvent('willRender', () => updateItemId(evolve, props.item.id))
+            const [state, evolve] = ctx.useState<State>({ clicked: false, itemId: props.item.id })
 
             const setClicked = () => evolve({ clicked: true })
 
