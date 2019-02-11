@@ -112,7 +112,10 @@ export function withContext<TProps>(componentFactory: ComponentFactoryWithContex
  * Traverses the virtual node hierarchy and unmounts any components in the 
  * hierarchy.
  */
-function findAndUnmountComponentsRec(vNode: VNode) {
+function findAndUnmountComponentsRec(vNode: VNode | undefined) {
+    if (vNode === undefined) {
+        return
+    }
     if (vNode._ === VNODE_COMPONENT) {
 
         if (vNode.events !== undefined && vNode.events['willUnmount'] !== undefined) {
@@ -165,36 +168,28 @@ function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
         vNode.state[stateIndex] = initialState
     }
 
-    let link = vNode.link
-    if (link === undefined) {
-        link = {
-            vNode
-        }
-        vNode.link = link
-    }
-
     function evolve(update: UpdateState<any>) {
         try {
             if (typeof update === 'function') {
-                update = update(link.vNode.state![stateIndex])
+                update = update(vNode.state![stateIndex])
             }
-            link.vNode.state![stateIndex] = { ...(link.vNode.state![stateIndex] as any), ...(update as object) }
-            if (link.vNode.dispatchLevel === 0) {
-                link.vNode.dispatchLevel++
+            vNode.state![stateIndex] = { ...(vNode.state![stateIndex] as any), ...(update as object) }
+            if (vNode.dispatchLevel === 0) {
+                vNode.dispatchLevel++
                 if (renderingContext === undefined) {
                     requestAnimationFrame(() => {
-                        tryRenderComponent(parentElement, link.vNode, isSvg)
-                        link.vNode.dispatchLevel--
+                        tryRenderComponent(parentElement, vNode, isSvg)
+                        vNode.dispatchLevel--
                     })
                 }
                 else {
-                    tryRenderComponent(parentElement, link.vNode, isSvg)
-                    link.vNode.dispatchLevel--
+                    tryRenderComponent(parentElement, vNode, isSvg)
+                    vNode.dispatchLevel--
                 }
             }
         } catch (err) {
             requestAnimationFrame(() => {
-                tryHandleComponentError(parentElement, link.vNode, isSvg, err)
+                tryHandleComponentError(parentElement, vNode, isSvg, err)
             })
         }
     }
@@ -448,7 +443,7 @@ export function render(
 
                 for (const c of newVNode.children) {
                     if (c !== undefined) {
-                        render(newNode as Element, c, c, undefined, isSvg, action)
+                        render(newNode as Element, c, c, undefined, isSvg, undefined)
                     }
                 }
             }
@@ -620,19 +615,18 @@ export function render(
 
                     // newVNode.view = (oldVNode as StatelessComponentVNode<any>).view;
                     newVNode.state = (oldVNode as ComponentVNode<any>).state
-                    if ((oldVNode as ComponentVNode<any>).link !== undefined) {
-                        newVNode.link = (oldVNode as ComponentVNode<any>).link
-                        newVNode.link.vNode = newVNode
-                    }
+                    // if ((oldVNode as ComponentVNode<any>).link !== undefined) {
+                    //     newVNode.link = (oldVNode as ComponentVNode<any>).link
+                    //     newVNode.link.vNode = newVNode
+                    // }
                     // (newVNode as ComponentVNode<any>).dispatchLevel = 0;
                     // (newVNode as ComponentVNode<any>).ctx = (oldVNode as ComponentVNode<any>).ctx
 
                     try {
                         if (shouldRender
-                            // && ((newVNode as ComponentVNode<any>).ctx.options.shouldRender === undefined
-                            // || (newVNode as ComponentVNode<any>).ctx.options.shouldRender!((oldVNode as StatelessComponentVNode<any>).props, newVNode.props))
+                            // && (newVNode.shouldRender === undefined
+                            // || newVNode.shouldRender!((oldVNode as ComponentVNode<any>).props, newVNode.props)
                         ) {
-
                             tryRenderComponent(parentDomNode, newVNode, isSvg)
                         }
                     } catch (err) {

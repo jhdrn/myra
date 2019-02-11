@@ -357,7 +357,7 @@ export interface ComponentVNode<TProps extends {}> extends VNodeBase {
     dispatchLevel: number
     state?: any[]
     events?: Record<string, Function[]>
-    link: { vNode: ComponentVNode<TProps> }
+    // link: { vNode: ComponentVNode<TProps> }
 }
 
 /**
