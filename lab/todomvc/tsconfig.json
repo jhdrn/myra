@@ -1,0 +1,25 @@
+{
+	"compileOnSave": true,
+	"compilerOptions": {
+		"sourceMap": true,
+		"target": "es5",
+		"module": "commonjs",
+		"strict": true,
+		"noFallthroughCasesInSwitch": true,
+		"noImplicitReturns": true,
+		"noUnusedParameters": true,
+		"noUnusedLocals": true,
+		"moduleResolution": "node",
+		"pretty": true,
+		"jsxFactory": "myra.h",
+		"jsx": "react",
+		"lib": [
+			"es5",
+			"dom",
+			"es2015.promise"
+		]
+	},
+	"include": [
+		"src/**/*"
+	]
+}
