@@ -17,6 +17,7 @@ interface IRenderingContext {
     isSvg: boolean
     parentElement: Element
     stateIndex: number
+    eventIndex: number
 }
 
 let renderingContext: IRenderingContext | undefined
@@ -222,13 +223,20 @@ function useEvent<TEvent extends keyof Events>(event: TEvent, callback: Events[T
     }
 
     const vNode = renderingContext.vNode as ComponentVNode<any>
+
     if (vNode.events === undefined) {
         vNode.events = {}
     }
+
     if (vNode.events[event] === undefined) {
         vNode.events[event] = []
     }
-    vNode.events[event].push(callback)
+
+    if (vNode.events[event][renderingContext.eventIndex] === undefined) {
+        vNode.events[event][renderingContext.eventIndex] = callback
+    }
+
+    renderingContext.eventIndex++
 }
 
 const context: Context<any, Events> = {
@@ -253,7 +261,8 @@ function doRenderComponent(parentElement: Element, vNode: ComponentVNode<any>, i
             vNode,
             isSvg,
             parentElement,
-            stateIndex: 0
+            stateIndex: 0,
+            eventIndex: 0
         }
         // requestAnimationFrame(() => {
         try {

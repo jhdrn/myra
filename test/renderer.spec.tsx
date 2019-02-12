@@ -510,16 +510,16 @@ describe('render', () => {
             { id: 5 },
         ] as Item[]
 
-        type State = { clicked: boolean; itemId: number }
+        type State = { clicked: boolean }
         type Props = { item: Item; forceUpdate: boolean }
 
         const ItemComponent = myra.withContext<Props>((props, _c, ctx) => {
-            const [state, evolve] = ctx.useState<State>({ clicked: false, itemId: props.item.id })
+            const [state, evolve] = ctx.useState<State>({ clicked: false })
 
             const setClicked = () => evolve({ clicked: true })
 
             return (
-                <button id={`item-${state.itemId}`}
+                <button id={`item-${props.item.id}`}
                     class={state.clicked ? "clicked" : ""}
                     onclick={setClicked}>
                 </button>
@@ -637,16 +637,16 @@ describe('render', () => {
             { id: 5 },
         ] as Item[]
 
-        type State = { clicked: boolean; itemId: number }
+        type State = { clicked: boolean }
         type Props = { item: Item }
 
         const ItemComponent = myra.withContext<Props>((props, _c, ctx) => {
-            const [state, evolve] = ctx.useState<State>({ clicked: false, itemId: props.item.id })
+            const [state, evolve] = ctx.useState<State>({ clicked: false })
 
             const setClicked = () => evolve({ clicked: true })
 
             return (
-                <button id={`item-${state.itemId}`}
+                <button id={`item-${props.item.id}`}
                     class={state.clicked ? "clicked" : ""}
                     onclick={setClicked}>
                 </button>
@@ -699,21 +699,20 @@ describe('render', () => {
             { id: 5 },
         ] as Item[]
 
-        type State = { clicked: boolean; itemId: number }
+        type State = { clicked: boolean }
         type Props = { key: string; item: Item; forceUpdate: boolean }
 
         let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
 
         const ItemComponent = myra.withContext<Props>((props, _c, ctx) => {
-            const [state, evolve] = ctx.useState<State>({ clicked: false, itemId: -1 })
+            const [state, evolve] = ctx.useState<State>({ clicked: false })
 
-            ctx.useEvent('didMount', () => evolve({ itemId: props.item.id }))
             const setClicked = () => evolve({ clicked: true })
 
-            const v = <button id={`item-${state.itemId}`} class={state.clicked ? "clicked" : ""}
+            const v = <button id={`item-${props.item.id}`} class={state.clicked ? "clicked" : ""}
                 onclick={setClicked}>
             </button>
-            if (state.itemId === 1) {
+            if (props.item.id === 1) {
                 btnVNode = v as ElementVNode<HTMLButtonElement>
             }
             return v
@@ -774,23 +773,23 @@ describe('render', () => {
             { id: 5 },
         ] as Item[]
 
-        type State = { clicked: boolean; itemId: number }
+        type State = { clicked: boolean; }
         type Props = { item: Item; forceUpdate: boolean }
 
         let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
 
         const ItemComponent = myra.withContext<Props>((props, _c, ctx) => {
-            const [state, evolve] = ctx.useState<State>({ clicked: false, itemId: props.item.id })
+            const [state, evolve] = ctx.useState<State>({ clicked: false })
 
             const setClicked = () => evolve({ clicked: true })
 
             const v =
                 <button
-                    id={`item-${state.itemId}`}
+                    id={`item-${props.item.id}`}
                     class={state.clicked ? "clicked" : ""}
                     onclick={setClicked}>
                 </button>
-            if (state.itemId === 1) {
+            if (props.item.id === 1) {
                 btnVNode = v as ElementVNode<HTMLButtonElement>
             }
             return v
