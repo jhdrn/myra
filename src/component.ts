@@ -271,7 +271,9 @@ function doRenderComponent(parentElement: Element, vNode: ComponentVNode<any>, i
 
             triggerLifeCycleEvent(vNode.events, 'didRender')
 
-            triggerLifeCycleEvent(vNode.events, 'didMount')
+            if (oldNode === undefined) {
+                triggerLifeCycleEvent(vNode.events, 'didMount')
+            }
         }
         catch (err) {
             // if (vNode.ctx !== undefined && vNode.ctx.options.onError !== undefined) {

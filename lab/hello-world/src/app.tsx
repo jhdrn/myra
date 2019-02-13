@@ -20,7 +20,7 @@ const AppComponent = myra.withContext((_props, _children, ctx) => {
     const [state2, evolve2] = ctx.useState({ hello: 'Hello world 2' })
 
     ctx.useEvent(ev => {
-        if (ev === 'willMount') {
+        if (ev === 'didRender') {
             evolve({ hello: 'Hello world 3' })
         }
     })
