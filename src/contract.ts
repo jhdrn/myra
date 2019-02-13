@@ -262,7 +262,7 @@ export interface ComponentFactory<TProps, TContext> {
 }
 
 export interface ComponentFactoryWithContext<TProps> {
-    (props: TProps, children: VNode[], context: Context<TProps, Events>): VNode
+    (props: TProps, children: VNode[], context: Context<TProps, LifeCycleEvents>): VNode
 }
 
 export interface AttributeMap { [name: string]: string }
@@ -325,28 +325,25 @@ export interface Context<TProps, TEvents> {
     readonly getDomRef: () => Node | undefined
     readonly useState: <TState>(init: TState) => [TState, Evolve<TState>]
     readonly useDefaultProps: (defaultProps: Partial<TProps>) => TProps
-    readonly useEvent: <TEvent extends keyof TEvents>(event: TEvent, callback: TEvents[TEvent]) => void
+    readonly useEvent: (callback: LifeCycleEventListener<TEvents>) => void
     // shouldRender: (preventRender: boolean) => void
     // readonly useLifecycle: (lifecycle: {}) => void
-    // readonly willMount: boolean
-    // readonly willRender: boolean
-    // readonly willUnmount: boolean
 }
 
-export interface DefaultContext<TProps> extends Context<TProps, Events> {
+export interface DefaultContext<TProps> extends Context<TProps, LifeCycleEvents> {
 
 }
 
-export interface Events {
-    'didMount': () => void
-    'didRender': () => void
-    'onError': () => VNode
-    'shouldRender': () => boolean
-    'willMount': () => void
-    'willRender': () => void
-    'willUnmount': () => void
-}
+export type LifeCycleEvents =
+    'didMount' |
+    'didRender' |
+    'willMount' |
+    'willRender' |
+    'willUnmount'
 
+export interface LifeCycleEventListener<TEvent> {
+    (event: TEvent): void
+}
 
 export interface ComponentVNode<TProps extends {}> extends VNodeBase {
     readonly _: 3
@@ -356,7 +353,7 @@ export interface ComponentVNode<TProps extends {}> extends VNodeBase {
     rendition?: VNode
     dispatchLevel: number
     state?: any[]
-    events?: Record<string, Function[]>
+    events?: Array<LifeCycleEventListener<LifeCycleEvents>>
     // link: { vNode: ComponentVNode<TProps> }
 }
 

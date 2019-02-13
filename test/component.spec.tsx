@@ -1,6 +1,5 @@
 import * as myra from '../src/myra'
 import { render } from '../src/component'
-import { VNode, ComponentVNode } from '../src/contract'
 
 const q = (x: string) => document.querySelector(x)
 
@@ -62,7 +61,7 @@ describe('mount', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((_p, _c, ctx) => {
-            ctx.useEvent('willMount', mock.callback)
+            ctx.useEvent(ev => ev === 'willMount' && mock.callback())
             return <div />
         })
 
@@ -81,7 +80,7 @@ describe('mount', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((_p, _c, ctx) => {
-            ctx.useEvent('didMount', mock.callback)
+            ctx.useEvent(ev => ev === 'didMount' && mock.callback())
             return <div />
         })
 
@@ -100,7 +99,7 @@ describe('mount', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((_p, _c, ctx) => {
-            ctx.useEvent('willRender', mock.callback)
+            ctx.useEvent(ev => ev === 'willRender' && mock.callback())
             return <div />
         })
 
@@ -119,7 +118,7 @@ describe('mount', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((_p, _c, ctx) => {
-            ctx.useEvent('didRender', mock.callback)
+            ctx.useEvent(ev => ev === 'didRender' && mock.callback())
             return <div />
         })
 
@@ -449,7 +448,7 @@ describe('unmountComponent', () => {
                 a: 'foo',
                 b: 123
             })
-            ctx.useEvent('willUnmount', mock.unmount)
+            ctx.useEvent(ev => ev === 'willUnmount' && mock.unmount())
             return <div />
         })
 
@@ -469,12 +468,12 @@ describe('unmountComponent', () => {
         spyOn(mock, 'unmount').and.callThrough()
 
         const ChildChildComponent = myra.withContext((_p, _c, ctx) => {
-            ctx.useEvent('willUnmount', mock.unmount)
+            ctx.useEvent(ev => ev === 'willUnmount' && mock.unmount())
             return <div />
         })
 
         const ChildComponent = myra.withContext((_p, _c, ctx) => {
-            ctx.useEvent('willUnmount', mock.unmount)
+            ctx.useEvent(ev => ev === 'willUnmount' && mock.unmount())
             return <ChildChildComponent />
         })
 
@@ -487,7 +486,7 @@ describe('unmountComponent', () => {
         expect(mock.unmount).toHaveBeenCalledTimes(2)
     })
 
-    it('calls the willUnmount listener on child components of a stateless component', () => {
+    it('calls the willUnmount listener on child components of a component', () => {
         const mock = {
             unmount: () => { }
         }
@@ -495,12 +494,12 @@ describe('unmountComponent', () => {
         spyOn(mock, 'unmount').and.callThrough()
 
         const ChildChildComponent = myra.withContext((_p, _c, ctx) => {
-            ctx.useEvent('willUnmount', mock.unmount)
+            ctx.useEvent(ev => ev === 'willUnmount' && mock.unmount())
             return <div />
         })
 
         const ChildComponent = myra.withContext((_p, _c, ctx) => {
-            ctx.useEvent('willUnmount', mock.unmount)
+            ctx.useEvent(ev => ev === 'willUnmount' && mock.unmount())
             return <ChildChildComponent />
         })
 
@@ -529,7 +528,7 @@ describe('updateComponent (stateful component)', () => {
         spyOn(mock, 'willRender').and.callThrough()
 
         const Component = myra.withContext((_p: { val: number }, _c, ctx) => {
-            ctx.useEvent('willRender', mock.willRender)
+            ctx.useEvent(ev => ev === 'willRender' && mock.willRender())
             return <div />
         })
 
@@ -548,7 +547,7 @@ describe('updateComponent (stateful component)', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((_p: { forceUpdate?: boolean }, _c, ctx) => {
-            ctx.useEvent('willRender', mock.callback)
+            ctx.useEvent(ev => ev === 'willRender' && mock.callback())
             return <div />
         })
 
@@ -568,7 +567,7 @@ describe('updateComponent (stateful component)', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((_p: { prop: string }, _c, ctx) => {
-            ctx.useEvent('willRender', mock.callback)
+            ctx.useEvent(ev => ev === 'willRender' && mock.callback())
             return <div />
         })
 
@@ -679,7 +678,7 @@ describe('updateComponent (stateful component)', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((_p, children, ctx) => {
-            ctx.useEvent('willRender', mock.callback)
+            ctx.useEvent(ev => ev === 'willRender' && mock.callback())
             return <div>{...children}</div>
         })
 
@@ -700,7 +699,7 @@ describe('updateComponent (stateful component)', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((_p, children, ctx) => {
-            ctx.useEvent('willRender', mock.callback)
+            ctx.useEvent(ev => ev === 'willRender' && mock.callback())
             return <div>{...children}</div>
         })
 
@@ -712,81 +711,7 @@ describe('updateComponent (stateful component)', () => {
 
         expect(mock.callback).toHaveBeenCalledTimes(2)
     })
-})
 
-describe('updateComponent (stateless component)', () => {
-
-    it('does not update a stateless component if the props has not changed', () => {
-
-        const Component = (_props: { val: number }, _: VNode[]) => <div>A</div>
-        // This is actually a new component, but functions are treated as equal anyway
-        const Component2 = (_props: { val: number }, _: VNode[]) => <div>B</div>
-
-        const vNode = <Component val={45} />
-        const domNode = render(document.body, vNode, undefined, undefined)
-
-        const newVNode = <Component2 val={45} /> as ComponentVNode<any>
-        render(document.body, newVNode, vNode, domNode)
-
-        expect(newVNode.rendition!.domRef!.childNodes.item(0).textContent).toBe('A')
-
-    })
-
-    it('updates the stateless component if forceUpdate is true', () => {
-        const Component = (_props: { forceUpdate: boolean }, _: VNode[]) => <div>A</div>
-        // This is actually a new component, but functions are treated as equal anyway
-        const Component2 = (_props: { forceUpdate: boolean }, _: VNode[]) => <div>B</div>
-
-        const vNode = <Component forceUpdate={true} />
-        const domNode = render(document.body, vNode, undefined, undefined)
-
-        const newVNode = <Component2 forceUpdate={true} /> as ComponentVNode<any>
-        render(document.body, newVNode, vNode, domNode)
-
-        expect(newVNode.rendition!.domRef!.childNodes.item(0).textContent).toBe('B')
-    })
-
-    it('updates the stateless component if the supplied props are not equal to the previous props', () => {
-        const Component = (_props: { val: number }, _: VNode[]) => <div>A</div>
-        // This is actually a new component, but functions are treated as equal anyway
-        const Component2 = (_props: { val: number }, _: VNode[]) => <div>B</div>
-
-        const vNode = <Component val={1} />
-        const domNode = render(document.body, vNode, undefined, undefined)
-
-        const newVNode = <Component2 val={2} /> as ComponentVNode<any>
-        render(document.body, newVNode, vNode, domNode)
-
-        expect(newVNode.rendition!.domRef!.childNodes.item(0).textContent).toBe('B')
-    })
-
-    it('does not update a stateless component if the children has not changed', () => {
-        const Component = (_props: { val: number }, _: VNode[]) => <div>A</div>
-        // This is actually a new component, but functions are treated as equal anyway
-        const Component2 = (_props: { val: number }, _: VNode[]) => <div>B</div>
-
-        const vNode = <Component val={45}>Child</Component>
-        const domNode = render(document.body, vNode, undefined, undefined)
-
-        const newVNode = <Component2 val={45}>Child</Component2> as ComponentVNode<any>
-        render(document.body, newVNode, vNode, domNode)
-
-        expect(newVNode.rendition!.domRef!.childNodes.item(0).textContent).toBe('A')
-    })
-
-    it('updates the stateless component if the supplied children are not equal to the previous children', () => {
-        const Component = (_props: { val: number }, _: VNode[]) => <div>A</div>
-        // This is actually a new component, but functions are treated as equal anyway
-        const Component2 = (_props: { val: number }, _: VNode[]) => <div>B</div>
-
-        const vNode = <Component val={45}>Child A</Component>
-        const domNode = render(document.body, vNode, undefined, undefined)
-
-        const newVNode = <Component2 val={45}>Child B</Component2> as ComponentVNode<any>
-        render(document.body, newVNode, vNode, domNode)
-
-        expect(newVNode.rendition!.domRef!.childNodes.item(0).textContent).toBe('B')
-    })
 })
 
 describe('evolve', () => {

@@ -58,7 +58,7 @@ describe('render', () => {
         spyOn(mocks, 'willRender')
 
         const TestComponent = myra.withContext((_p: { forceUpdate?: true }, _c, ctx) => {
-            ctx.useEvent('willRender', mocks.willRender)
+            ctx.useEvent(ev => ev === 'willRender' && mocks.willRender())
 
             return <div id="testComponent"></div>
         })
@@ -87,7 +87,7 @@ describe('render', () => {
         spyOn(mocks, 'unmount').and.callThrough()
 
         const TestComponent = myra.withContext((_p, _c, ctx) => {
-            ctx.useEvent('willUnmount', mocks.unmount)
+            ctx.useEvent(ev => ev === 'willUnmount' && mocks.unmount())
 
             return <div />
         })
@@ -573,17 +573,16 @@ describe('render', () => {
             { id: 5 },
         ] as Item[]
 
-        type State = { clicked: boolean; itemId: number }
+        type State = { clicked: boolean }
         type Props = { key: string; item: Item }
 
         const ItemComponent = myra.withContext<Props>((props, _c, ctx) => {
-            const [state, evolve] = ctx.useState<State>({ clicked: false, itemId: -1 })
+            const [state, evolve] = ctx.useState<State>({ clicked: false })
 
-            ctx.useEvent('didMount', () => evolve({ itemId: props.item.id }))
             const setClicked = () => evolve({ clicked: true })
 
             return (
-                <button id={`item-${state.itemId}`}
+                <button id={`item-${props.item.id}`}
                     class={state.clicked ? "clicked" : ""}
                     onclick={setClicked}>
                 </button>
@@ -847,7 +846,7 @@ describe('render', () => {
         spyOn(mountMock, 'unmount').and.callThrough()
 
         const ChildComponent = myra.withContext((_props, _c, ctx) => {
-            ctx.useEvent('willUnmount', mountMock.unmount)
+            ctx.useEvent(ev => ev === 'willUnmount' && mountMock.unmount())
             return <div />
         })
 

@@ -7,7 +7,8 @@ import {
     Evolve,
     ComponentFactoryWithContext,
     Context,
-    Events
+    LifeCycleEvents as LifeCycleEvent,
+    LifeCycleEventListener
 } from './contract'
 import { equal } from './helpers'
 import { VNODE_ELEMENT, VNODE_COMPONENT, VNODE_TEXT, VNODE_NOTHING } from './constants'
@@ -118,13 +119,8 @@ function findAndUnmountComponentsRec(vNode: VNode | undefined) {
         return
     }
     if (vNode._ === VNODE_COMPONENT) {
+        triggerLifeCycleEvent(vNode.events, 'willUnmount')
 
-        if (vNode.events !== undefined && vNode.events['willUnmount'] !== undefined) {
-            const events = vNode.events['willUnmount']
-            for (let i = 0; i < events.length; i++) {
-                events[i]()
-            }
-        }
         findAndUnmountComponentsRec(vNode.rendition!)
     }
     else if (vNode._ === VNODE_ELEMENT) {
@@ -217,7 +213,7 @@ function useDefaultProps<TProps extends object>(defaultProps: TProps): TProps {
     return { ...(defaultProps as object), ...renderingContext.vNode.props } as TProps
 }
 
-function useEvent<TEvent extends keyof Events>(event: TEvent, callback: Events[TEvent]) {
+function useEvent(callback: LifeCycleEventListener<LifeCycleEvent>) {
     if (renderingContext === undefined) {
         throw 'useState: Internal error, renderingContext undefined'
     }
@@ -225,21 +221,17 @@ function useEvent<TEvent extends keyof Events>(event: TEvent, callback: Events[T
     const vNode = renderingContext.vNode as ComponentVNode<any>
 
     if (vNode.events === undefined) {
-        vNode.events = {}
+        vNode.events = []
     }
 
-    if (vNode.events[event] === undefined) {
-        vNode.events[event] = []
-    }
-
-    if (vNode.events[event][renderingContext.eventIndex] === undefined) {
-        vNode.events[event][renderingContext.eventIndex] = callback
+    if (vNode.events[renderingContext.eventIndex] === undefined) {
+        vNode.events[renderingContext.eventIndex] = callback
     }
 
     renderingContext.eventIndex++
 }
 
-const context: Context<any, Events> = {
+const context: Context<any, LifeCycleEvent> = {
     getDomRef,
     useEvent,
     useState,
@@ -270,38 +262,16 @@ function doRenderComponent(parentElement: Element, vNode: ComponentVNode<any>, i
             renderingContext = undefined
 
             if (oldNode === undefined) {
-                if (vNode.events !== undefined && vNode.events['willMount'] !== undefined) {
-                    const events = vNode.events['willMount']
-                    for (let i = 0; i < events.length; i++) {
-                        events[i]()
-                    }
-                }
+                triggerLifeCycleEvent(vNode.events, 'willMount')
             }
 
-            if (vNode.events !== undefined && vNode.events['willRender'] !== undefined) {
-                const events = vNode.events['willRender']
-                for (let i = 0; i < events.length; i++) {
-                    events[i]()
-                }
-            }
+            triggerLifeCycleEvent(vNode.events, 'willRender')
 
             render(parentElement, newView, vNode.rendition, oldNode, isSvg)
 
-            if (vNode.events !== undefined && vNode.events['didRender'] !== undefined) {
-                const events = vNode.events['didRender']
-                for (let i = 0; i < events.length; i++) {
-                    events[i]()
-                }
-            }
+            triggerLifeCycleEvent(vNode.events, 'didRender')
 
-            if (oldNode === undefined) {
-                if (vNode.events !== undefined && vNode.events['didMount'] !== undefined) {
-                    const events = vNode.events['didMount']
-                    for (let i = 0; i < events.length; i++) {
-                        events[i]()
-                    }
-                }
-            }
+            triggerLifeCycleEvent(vNode.events, 'didMount')
         }
         catch (err) {
             // if (vNode.ctx !== undefined && vNode.ctx.options.onError !== undefined) {
@@ -331,6 +301,14 @@ function doRenderComponent(parentElement: Element, vNode: ComponentVNode<any>, i
         vNode.rendition = newView
         vNode.domRef = newView.domRef
         // })
+    }
+}
+
+function triggerLifeCycleEvent(events: Array<LifeCycleEventListener<LifeCycleEvent>> | undefined, event: LifeCycleEvent) {
+    if (events !== undefined) {
+        for (let i = 0; i < events.length; i++) {
+            events[i](event)
+        }
     }
 }
 
