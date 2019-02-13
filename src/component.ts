@@ -9,7 +9,8 @@ import {
     Context,
     LifeCycleEvents as LifeCycleEvent,
     LifeCycleEventListener,
-    ComponentProps
+    ComponentProps,
+    TextVNode
 } from './contract'
 import { equal } from './helpers'
 import { VNODE_ELEMENT, VNODE_COMPONENT, VNODE_TEXT, VNODE_NOTHING } from './constants'
@@ -149,18 +150,15 @@ function tryRenderComponent<TProps extends ComponentProps>(parentElement: Elemen
 }
 
 function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
-    if (renderingContext === undefined) {
-        throw 'useState: Internal error, renderingContext undefined'
-    }
 
-    const vNode = renderingContext.vNode as ComponentVNode<any>
+    const vNode = renderingContext!.vNode as ComponentVNode<any>
     if (vNode.state === undefined) {
         vNode.state = []
     }
 
-    const parentElement = renderingContext.parentElement
-    const isSvg = renderingContext.isSvg
-    const stateIndex = renderingContext.stateIndex
+    const parentElement = renderingContext!.parentElement
+    const isSvg = renderingContext!.isSvg
+    const stateIndex = renderingContext!.stateIndex
 
     if (vNode.state[stateIndex] === undefined) {
         vNode.state[stateIndex] = initialState
@@ -194,43 +192,34 @@ function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
     }
 
     const state = vNode.state[stateIndex]
-    renderingContext.stateIndex++
+    renderingContext!.stateIndex++
 
     return [state, evolve]
 }
 
 function getDomRef(): Node | undefined {
-    if (renderingContext === undefined) {
-        throw 'getDomRef: Internal error, currentComponent undefined'
-    }
-    const vNode = renderingContext.vNode as ComponentVNode<any>
+    const vNode = renderingContext!.vNode as ComponentVNode<any>
     return vNode.domRef
 }
 
 function useDefaultProps<TProps extends object>(defaultProps: TProps): TProps {
-    if (renderingContext === undefined) {
-        throw 'useDefaultProps: Internal error, renderingContext undefined'
-    }
     // Merge any defaultProps with received props
-    return { ...(defaultProps as object), ...renderingContext.vNode.props } as TProps
+    return { ...(defaultProps as object), ...renderingContext!.vNode.props } as TProps
 }
 
 function useEvent(callback: LifeCycleEventListener<LifeCycleEvent>) {
-    if (renderingContext === undefined) {
-        throw 'useState: Internal error, renderingContext undefined'
-    }
 
-    const vNode = renderingContext.vNode as ComponentVNode<any>
+    const vNode = renderingContext!.vNode as ComponentVNode<any>
 
     if (vNode.events === undefined) {
         vNode.events = []
     }
 
-    if (vNode.events[renderingContext.eventIndex] === undefined) {
-        vNode.events[renderingContext.eventIndex] = callback
+    if (vNode.events[renderingContext!.eventIndex] === undefined) {
+        vNode.events[renderingContext!.eventIndex] = callback
     }
 
-    renderingContext.eventIndex++
+    renderingContext!.eventIndex++
 }
 
 const context: Context<any, LifeCycleEvent> = {
@@ -599,8 +588,7 @@ export function render(
                         newVNode.props !== undefined
                         && newVNode.props !== null
                         && (newVNode.props as any).forceUpdate
-                        || !equal((oldVNode as ComponentVNode<any>).props, newVNode.props)
-                        || !equal((oldVNode as ComponentVNode<any>).props.children, newVNode.props.children)
+                        || !equalProps((oldVNode as ComponentVNode<any>).props, newVNode.props)
 
                     newVNode.rendition = (oldVNode as ComponentVNode<any>).rendition
 
@@ -637,6 +625,42 @@ export function render(
             }
             return newVNode.domRef
     }
+}
+
+function equalProps(a: ComponentProps, b: ComponentProps) {
+    if (Object.keys(a).length !== Object.keys(b).length) {
+        return false
+    }
+    for (const k in a) {
+        if (a.hasOwnProperty(k)) {
+            if (k === 'children') {
+                const children = a[k]
+                if (children.length !== b[k].length) {
+                    return false
+                }
+
+                for (let i = 0; i < children.length; i++) {
+                    const aChild = children[i]
+                    const bChild = b[k][i]
+                    if (aChild._ !== bChild._) {
+                        return false
+                    }
+                    if (aChild._ === VNODE_COMPONENT || aChild._ === VNODE_ELEMENT) {
+                        if (!equalProps(aChild.props, (bChild as ElementVNode<any>).props)) {
+                            return false
+                        }
+                    }
+                    else if (aChild._ === VNODE_TEXT && !equal(aChild.value, (bChild as TextVNode).value)) {
+                        return false
+                    }
+                }
+            }
+            else if (!equal((a as any)[k], (b as any)[k])) {
+                return false
+            }
+        }
+    }
+    return true
 }
 
 /** 
