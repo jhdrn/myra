@@ -9,7 +9,7 @@ const q = (x: string) => document.querySelector(x)
 describe('define', () => {
     it('the "ctx" object is passed', (done) => {
 
-        const Component = myra.withContext((_props, _children, ctx) => {
+        const Component = myra.withContext((_props, ctx) => {
             expect(ctx).toBeDefined()
             expect(typeof ctx === 'object').toBeTruthy()
             done()
@@ -60,8 +60,8 @@ describe('mount', () => {
 
         spyOn(mock, 'callback').and.callThrough()
 
-        const Component = myra.withContext((_p, _c, ctx) => {
-            ctx.useEvent(ev => ev === 'willMount' && mock.callback())
+        const Component = myra.withContext((_p, ctx) => {
+            ctx.useEvent(ev => ev.type === 'willMount' && mock.callback())
             return <div />
         })
 
@@ -79,8 +79,8 @@ describe('mount', () => {
 
         spyOn(mock, 'callback').and.callThrough()
 
-        const Component = myra.withContext((_p, _c, ctx) => {
-            ctx.useEvent(ev => ev === 'didMount' && mock.callback())
+        const Component = myra.withContext((_p, ctx) => {
+            ctx.useEvent(ev => ev.type === 'didMount' && mock.callback())
             return <div />
         })
 
@@ -98,8 +98,8 @@ describe('mount', () => {
 
         spyOn(mock, 'callback').and.callThrough()
 
-        const Component = myra.withContext((_p, _c, ctx) => {
-            ctx.useEvent(ev => ev === 'willRender' && mock.callback())
+        const Component = myra.withContext((_p, ctx) => {
+            ctx.useEvent(ev => ev.type === 'willRender' && mock.callback())
             return <div />
         })
 
@@ -117,8 +117,8 @@ describe('mount', () => {
 
         spyOn(mock, 'callback').and.callThrough()
 
-        const Component = myra.withContext((_p, _c, ctx) => {
-            ctx.useEvent(ev => ev === 'didRender' && mock.callback())
+        const Component = myra.withContext((_p, ctx) => {
+            ctx.useEvent(ev => ev.type === 'didRender' && mock.callback())
             return <div />
         })
 
@@ -387,9 +387,9 @@ describe('mount', () => {
 
     it(`passes the children of a component to it view`, done => {
         const viewMock = {
-            view: (_p: any, children: any) => {
-                expect(Array.isArray(children)).toBe(true)
-                return <div>{children}</div>
+            view: (p: any) => {
+                expect(Array.isArray(p.children)).toBe(true)
+                return <div>{p.children}</div>
             }
         }
 
@@ -414,7 +414,7 @@ describe('mount', () => {
 
     it('merges defaultProps with received props', done => {
 
-        const Component = myra.withContext((_p: { a?: string, b?: number }, _children, ctx) => {
+        const Component = myra.withContext((_p: { a?: string, b?: number }, ctx) => {
             const props = ctx.useDefaultProps({
                 a: 'foo',
                 b: 123
@@ -443,12 +443,8 @@ describe('unmountComponent', () => {
 
         spyOn(mock, 'unmount').and.callThrough()
 
-        const Component = myra.withContext((_p, _c, ctx) => {
-            ctx.useDefaultProps({
-                a: 'foo',
-                b: 123
-            })
-            ctx.useEvent(ev => ev === 'willUnmount' && mock.unmount())
+        const Component = myra.withContext((_p, ctx) => {
+            ctx.useEvent(ev => ev.type === 'willUnmount' && mock.unmount())
             return <div />
         })
 
@@ -467,13 +463,13 @@ describe('unmountComponent', () => {
 
         spyOn(mock, 'unmount').and.callThrough()
 
-        const ChildChildComponent = myra.withContext((_p, _c, ctx) => {
-            ctx.useEvent(ev => ev === 'willUnmount' && mock.unmount())
+        const ChildChildComponent = myra.withContext((_p, ctx) => {
+            ctx.useEvent(ev => ev.type === 'willUnmount' && mock.unmount())
             return <div />
         })
 
-        const ChildComponent = myra.withContext((_p, _c, ctx) => {
-            ctx.useEvent(ev => ev === 'willUnmount' && mock.unmount())
+        const ChildComponent = myra.withContext((_p, ctx) => {
+            ctx.useEvent(ev => ev.type === 'willUnmount' && mock.unmount())
             return <ChildChildComponent />
         })
 
@@ -493,13 +489,13 @@ describe('unmountComponent', () => {
 
         spyOn(mock, 'unmount').and.callThrough()
 
-        const ChildChildComponent = myra.withContext((_p, _c, ctx) => {
-            ctx.useEvent(ev => ev === 'willUnmount' && mock.unmount())
+        const ChildChildComponent = myra.withContext((_p, ctx) => {
+            ctx.useEvent(ev => ev.type === 'willUnmount' && mock.unmount())
             return <div />
         })
 
-        const ChildComponent = myra.withContext((_p, _c, ctx) => {
-            ctx.useEvent(ev => ev === 'willUnmount' && mock.unmount())
+        const ChildComponent = myra.withContext((_p, ctx) => {
+            ctx.useEvent(ev => ev.type === 'willUnmount' && mock.unmount())
             return <ChildChildComponent />
         })
 
@@ -527,8 +523,8 @@ describe('updateComponent (stateful component)', () => {
 
         spyOn(mock, 'willRender').and.callThrough()
 
-        const Component = myra.withContext((_p: { val: number }, _c, ctx) => {
-            ctx.useEvent(ev => ev === 'willRender' && mock.willRender())
+        const Component = myra.withContext((_p: { val: number }, ctx) => {
+            ctx.useEvent(ev => ev.type === 'willRender' && mock.willRender())
             return <div />
         })
 
@@ -546,8 +542,8 @@ describe('updateComponent (stateful component)', () => {
 
         spyOn(mock, 'callback').and.callThrough()
 
-        const Component = myra.withContext((_p: { forceUpdate?: boolean }, _c, ctx) => {
-            ctx.useEvent(ev => ev === 'willRender' && mock.callback())
+        const Component = myra.withContext((_p: { forceUpdate?: boolean }, ctx) => {
+            ctx.useEvent(ev => ev.type === 'willRender' && mock.callback())
             return <div />
         })
 
@@ -566,8 +562,8 @@ describe('updateComponent (stateful component)', () => {
 
         spyOn(mock, 'callback').and.callThrough()
 
-        const Component = myra.withContext((_p: { prop: string }, _c, ctx) => {
-            ctx.useEvent(ev => ev === 'willRender' && mock.callback())
+        const Component = myra.withContext((_p: { prop: string }, ctx) => {
+            ctx.useEvent(ev => ev.type === 'willRender' && mock.callback())
             return <div />
         })
 
@@ -610,7 +606,7 @@ describe('updateComponent (stateful component)', () => {
     //         )
     //     })
 
-    //     const Component = myra.withContext((_p: { a?: number }, _c, ctx) => {
+    //     const Component = myra.withContext((_p: { a?: number }, ctx) => {
     //         ctx.useDefaultProps({
     //             a: 0
     //         })
@@ -633,7 +629,7 @@ describe('updateComponent (stateful component)', () => {
 
     //     spyOn(mock, 'willRender').and.callThrough()
 
-    //     const Component = myra.withContext((_p: { forceUpdate?: boolean }, _c, ctx) => {
+    //     const Component = myra.withContext((_p: { forceUpdate?: boolean }, ctx) => {
     //         ctx.shouldRender: mock.shouldRender
     //         ctx.useEvent('willRender', mock.willRender)
     //         return <div />
@@ -655,7 +651,7 @@ describe('updateComponent (stateful component)', () => {
 
     //     spyOn(mock, 'willRender').and.callThrough()
 
-    //     const Component = myra.withContext((_p: { forceUpdate?: boolean }, _c, ctx) => {
+    //     const Component = myra.withContext((_p: { forceUpdate?: boolean }, ctx) => {
     //         ctx.shouldRender: mock.shouldRender
     //         ctx.useEvent('willRender', mock.willRender)
     //         return <div />
@@ -677,9 +673,9 @@ describe('updateComponent (stateful component)', () => {
 
         spyOn(mock, 'callback').and.callThrough()
 
-        const Component = myra.withContext((_p, children, ctx) => {
-            ctx.useEvent(ev => ev === 'willRender' && mock.callback())
-            return <div>{...children}</div>
+        const Component = myra.withContext((props, ctx) => {
+            ctx.useEvent(ev => ev.type === 'willRender' && mock.callback())
+            return <div>{...props.children}</div>
         })
 
         const vNode = <Component>Child A</Component>
@@ -698,9 +694,9 @@ describe('updateComponent (stateful component)', () => {
 
         spyOn(mock, 'callback').and.callThrough()
 
-        const Component = myra.withContext((_p, children, ctx) => {
-            ctx.useEvent(ev => ev === 'willRender' && mock.callback())
-            return <div>{...children}</div>
+        const Component = myra.withContext((props, ctx) => {
+            ctx.useEvent(ev => ev.type === 'willRender' && mock.callback())
+            return <div>{...props.children}</div>
         })
 
         const vNode = <Component>Child A</Component>
@@ -732,7 +728,7 @@ describe('evolve', () => {
 
         spyOn(mocks, 'onclickUpdate').and.callThrough()
 
-        const Component = myra.withContext((_props, _children, ctx) => {
+        const Component = myra.withContext((_props, ctx) => {
             const [, evolve] = ctx.useState({ val: 1 })
             const onclickUpdate = () => evolve(mocks.onclickUpdate)
             return <button id="postButton" onclick={onclickUpdate}></button>
@@ -767,7 +763,7 @@ describe('evolve', () => {
 
         spyOn(mocks, 'onclickUpdate').and.callThrough()
 
-        const Component = myra.withContext((_props, _children, ctx) => {
+        const Component = myra.withContext((_props, ctx) => {
             const [, evolve] = ctx.useState({ val: 1 })
             return <button id="postButton2" onclick={() => evolve(state => mocks.onclickUpdate(state, { val: 2 }))}></button>
         })

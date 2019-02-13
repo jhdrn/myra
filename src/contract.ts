@@ -246,23 +246,16 @@ export type UpdateState<TState> = Partial<TState> | ((s: Readonly<TState>) => Pa
 export type Evolve<TState> = (update: UpdateState<TState>) => void
 
 // export interface WithContextOptions<TState, TProps> {
-//     defaultProps?: Partial<TProps>
-//     willMount?: (ctx: Context<TState, TProps>) => void
-//     didMount?: (ctx: RenderedContext<TState, TProps>) => void
 //     shouldRender?: (oldProps: TProps, newProps: TProps) => boolean
-//     willRender?: (ctx: Context<TState, TProps>) => void
-//     didRender?: (ctx: RenderedContext<TState, TProps>) => void
-//     willUnmount?: (ctx: RenderedContext<TState, TProps>) => void
 //     onError?: (error: Error) => VNode
-//     state?: TState
 // }
 
 export interface ComponentFactory<TProps, TContext> {
-    (props: TProps, children: VNode[], context: TContext): VNode
+    (props: TProps, context: TContext): VNode
 }
 
 export interface ComponentFactoryWithContext<TProps> {
-    (props: TProps, children: VNode[], context: Context<TProps, LifeCycleEvents>): VNode
+    (props: TProps, context: Context<TProps, LifeCycleEvents>): VNode
 }
 
 export interface AttributeMap { [name: string]: string }
@@ -312,8 +305,7 @@ export interface TextVNode extends VNodeBase {
 export interface ElementVNode<TElement extends Element> extends VNodeBase {
     readonly _: 2
     readonly tagName: string
-    readonly props: GlobalAttributes<TElement>
-    readonly children: VNode[]
+    readonly props: GlobalAttributes<TElement> & { children: VNode[] }
     domRef?: TElement
 }
 
@@ -324,37 +316,56 @@ export interface ElementVNode<TElement extends Element> extends VNodeBase {
 export interface Context<TProps, TEvents> {
     readonly getDomRef: () => Node | undefined
     readonly useState: <TState>(init: TState) => [TState, Evolve<TState>]
-    readonly useDefaultProps: (defaultProps: Partial<TProps>) => TProps
+    readonly useDefaultProps: (defaultProps: Partial<Exclude<TProps & ComponentProps, 'children' | 'forceUpdate'>>) => TProps
     readonly useEvent: (callback: LifeCycleEventListener<TEvents>) => void
     // shouldRender: (preventRender: boolean) => void
     // readonly useLifecycle: (lifecycle: {}) => void
 }
-
 export interface DefaultContext<TProps> extends Context<TProps, LifeCycleEvents> {
 
 }
 
 export type LifeCycleEvents =
-    'didMount' |
-    'didRender' |
-    'willMount' |
-    'willRender' |
-    'willUnmount'
+    LifeCycleDidMountEvent |
+    LifeCycleDidRenderEvent |
+    LifeCycleWillMountEvent |
+    LifeCycleWillRenderEvent |
+    LifeCycleWillUnmountEvent
+
+export interface LifeCycleDidMountEvent {
+    type: 'didMount'
+}
+export interface LifeCycleDidRenderEvent {
+    type: 'didRender'
+}
+export interface LifeCycleWillMountEvent {
+    type: 'willMount'
+}
+export interface LifeCycleWillRenderEvent {
+    type: 'willRender'
+}
+export interface LifeCycleWillUnmountEvent {
+    type: 'willUnmount'
+}
 
 export interface LifeCycleEventListener<TEvent> {
     (event: TEvent): void
 }
 
-export interface ComponentVNode<TProps extends {}> extends VNodeBase {
-    readonly _: 3
+export interface ComponentProps {
     children: VNode[]
+    forceUpdate?: boolean
+}
+
+export interface ComponentVNode<TProps> extends VNodeBase {
+    readonly _: 3
     props: TProps
     view: ComponentFactoryWithContext<TProps>
     rendition?: VNode
     dispatchLevel: number
     state?: any[]
     events?: Array<LifeCycleEventListener<LifeCycleEvents>>
-    // link: { vNode: ComponentVNode<TProps> }
+    link: { vNode: ComponentVNode<TProps> }
 }
 
 /**

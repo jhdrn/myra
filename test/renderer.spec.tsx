@@ -57,8 +57,8 @@ describe('render', () => {
 
         spyOn(mocks, 'willRender')
 
-        const TestComponent = myra.withContext((_p: { forceUpdate?: true }, _c, ctx) => {
-            ctx.useEvent(ev => ev === 'willRender' && mocks.willRender())
+        const TestComponent = myra.withContext((_p, ctx) => {
+            ctx.useEvent(ev => ev.type === 'willRender' && mocks.willRender())
 
             return <div id="testComponent"></div>
         })
@@ -86,8 +86,8 @@ describe('render', () => {
 
         spyOn(mocks, 'unmount').and.callThrough()
 
-        const TestComponent = myra.withContext((_p, _c, ctx) => {
-            ctx.useEvent(ev => ev === 'willUnmount' && mocks.unmount())
+        const TestComponent = myra.withContext((_p, ctx) => {
+            ctx.useEvent(ev => ev.type === 'willUnmount' && mocks.unmount())
 
             return <div />
         })
@@ -413,14 +413,14 @@ describe('render', () => {
         }
 
         const mocks = {
-            assertProps: (props: ChildComponentProps) =>
-                expect(props).toEqual({ test: 'test' })
+            assertProps: (props: ChildComponentProps & myra.ComponentProps) =>
+                expect(props).toEqual({ test: 'test', children: [] })
         }
 
         spyOn(mocks, 'assertProps').and.callThrough()
 
         const ChildComponent = (props: ChildComponentProps) => {
-            mocks.assertProps(props)
+            mocks.assertProps(props as ChildComponentProps & myra.ComponentProps)
             return <nothing />
         }
 
@@ -448,7 +448,7 @@ describe('render', () => {
         type State = { clicked: boolean; itemId: number }
         type Props = { item: Item; forceUpdate: boolean }
 
-        const ItemComponent = myra.withContext<Props>((props, _c, ctx) => {
+        const ItemComponent = myra.withContext<Props>((props, ctx) => {
             const [state, evolve] = ctx.useState<State>({ clicked: false, itemId: props.item.id })
 
             const setClicked = () => evolve({ clicked: true })
@@ -513,7 +513,7 @@ describe('render', () => {
         type State = { clicked: boolean }
         type Props = { item: Item; forceUpdate: boolean }
 
-        const ItemComponent = myra.withContext<Props>((props, _c, ctx) => {
+        const ItemComponent = myra.withContext<Props>((props, ctx) => {
             const [state, evolve] = ctx.useState<State>({ clicked: false })
 
             const setClicked = () => evolve({ clicked: true })
@@ -576,7 +576,7 @@ describe('render', () => {
         type State = { clicked: boolean }
         type Props = { key: string; item: Item }
 
-        const ItemComponent = myra.withContext<Props>((props, _c, ctx) => {
+        const ItemComponent = myra.withContext<Props>((props, ctx) => {
             const [state, evolve] = ctx.useState<State>({ clicked: false })
 
             const setClicked = () => evolve({ clicked: true })
@@ -639,7 +639,7 @@ describe('render', () => {
         type State = { clicked: boolean }
         type Props = { item: Item }
 
-        const ItemComponent = myra.withContext<Props>((props, _c, ctx) => {
+        const ItemComponent = myra.withContext<Props>((props, ctx) => {
             const [state, evolve] = ctx.useState<State>({ clicked: false })
 
             const setClicked = () => evolve({ clicked: true })
@@ -703,7 +703,7 @@ describe('render', () => {
 
         let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
 
-        const ItemComponent = myra.withContext<Props>((props, _c, ctx) => {
+        const ItemComponent = myra.withContext<Props>((props, ctx) => {
             const [state, evolve] = ctx.useState<State>({ clicked: false })
 
             const setClicked = () => evolve({ clicked: true })
@@ -777,7 +777,7 @@ describe('render', () => {
 
         let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
 
-        const ItemComponent = myra.withContext<Props>((props, _c, ctx) => {
+        const ItemComponent = myra.withContext<Props>((props, ctx) => {
             const [state, evolve] = ctx.useState<State>({ clicked: false })
 
             const setClicked = () => evolve({ clicked: true })
@@ -845,8 +845,8 @@ describe('render', () => {
 
         spyOn(mountMock, 'unmount').and.callThrough()
 
-        const ChildComponent = myra.withContext((_props, _c, ctx) => {
-            ctx.useEvent(ev => ev === 'willUnmount' && mountMock.unmount())
+        const ChildComponent = myra.withContext((_props, ctx) => {
+            ctx.useEvent(ev => ev.type === 'willUnmount' && mountMock.unmount())
             return <div />
         })
 

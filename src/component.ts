@@ -8,13 +8,14 @@ import {
     ComponentFactoryWithContext,
     Context,
     LifeCycleEvents as LifeCycleEvent,
-    LifeCycleEventListener
+    LifeCycleEventListener,
+    ComponentProps
 } from './contract'
 import { equal } from './helpers'
 import { VNODE_ELEMENT, VNODE_COMPONENT, VNODE_TEXT, VNODE_NOTHING } from './constants'
 
 interface IRenderingContext {
-    vNode: ComponentVNode<object>
+    vNode: ComponentVNode<ComponentProps>
     isSvg: boolean
     parentElement: Element
     stateIndex: number
@@ -23,8 +24,8 @@ interface IRenderingContext {
 
 let renderingContext: IRenderingContext | undefined
 
-export function withContext<TProps>(componentFactory: ComponentFactoryWithContext<TProps>): ComponentFactoryWithContext<TProps> {
-    return componentFactory
+export function withContext<TProps>(componentFactory: ComponentFactoryWithContext<TProps & ComponentProps>): ComponentFactoryWithContext<TProps & { forceUpdate?: boolean }> {
+    return componentFactory as any
 }
 
 // function withAppContext<TProps>(componentFactory: ComponentFactoryWithContext<TProps>): ComponentFactoryWithContext<TProps> {
@@ -119,12 +120,12 @@ function findAndUnmountComponentsRec(vNode: VNode | undefined) {
         return
     }
     if (vNode._ === VNODE_COMPONENT) {
-        triggerLifeCycleEvent(vNode.events, 'willUnmount')
+        triggerLifeCycleEvent(vNode.events, { type: 'willUnmount' })
 
         findAndUnmountComponentsRec(vNode.rendition!)
     }
     else if (vNode._ === VNODE_ELEMENT) {
-        for (const c of vNode.children) {
+        for (const c of vNode.props.children) {
             findAndUnmountComponentsRec(c)
         }
     }
@@ -133,7 +134,7 @@ function findAndUnmountComponentsRec(vNode: VNode | undefined) {
 /**
  * Tries to render the view.
  */
-function tryRenderComponent<TProps extends {}>(parentElement: Element, vNode: ComponentVNode<TProps>, isSvg: boolean) {
+function tryRenderComponent<TProps extends ComponentProps>(parentElement: Element, vNode: ComponentVNode<TProps>, isSvg: boolean) {
     // vNode.dispatchLevel++
 
     // Render view if the component was already initialized and the 
@@ -166,27 +167,28 @@ function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
     }
 
     function evolve(update: UpdateState<any>) {
+        const currentVNode = vNode.link.vNode
         try {
             if (typeof update === 'function') {
-                update = update(vNode.state![stateIndex])
+                update = update(currentVNode.state![stateIndex])
             }
-            vNode.state![stateIndex] = { ...(vNode.state![stateIndex] as any), ...(update as object) }
-            if (vNode.dispatchLevel === 0) {
-                vNode.dispatchLevel++
+            currentVNode.state![stateIndex] = { ...(currentVNode.state![stateIndex] as any), ...(update as object) }
+            if (currentVNode.dispatchLevel === 0) {
+                currentVNode.dispatchLevel++
                 if (renderingContext === undefined) {
                     requestAnimationFrame(() => {
-                        tryRenderComponent(parentElement, vNode, isSvg)
-                        vNode.dispatchLevel--
+                        tryRenderComponent(parentElement, vNode.link.vNode, isSvg)
+                        vNode.link.vNode.dispatchLevel--
                     })
                 }
                 else {
-                    tryRenderComponent(parentElement, vNode, isSvg)
-                    vNode.dispatchLevel--
+                    tryRenderComponent(parentElement, currentVNode, isSvg)
+                    currentVNode.dispatchLevel--
                 }
             }
         } catch (err) {
             requestAnimationFrame(() => {
-                tryHandleComponentError(parentElement, vNode, isSvg, err)
+                tryHandleComponentError(parentElement, currentVNode, isSvg, err)
             })
         }
     }
@@ -258,21 +260,21 @@ function doRenderComponent(parentElement: Element, vNode: ComponentVNode<any>, i
         }
         // requestAnimationFrame(() => {
         try {
-            newView = vNode.view(vNode.props, vNode.children, context)
+            newView = vNode.view(vNode.props, context)
             renderingContext = undefined
 
             if (oldNode === undefined) {
-                triggerLifeCycleEvent(vNode.events, 'willMount')
+                triggerLifeCycleEvent(vNode.events, { type: 'willMount' })
             }
 
-            triggerLifeCycleEvent(vNode.events, 'willRender')
+            triggerLifeCycleEvent(vNode.events, { type: 'willRender' })
 
             render(parentElement, newView, vNode.rendition, oldNode, isSvg)
 
-            triggerLifeCycleEvent(vNode.events, 'didRender')
+            triggerLifeCycleEvent(vNode.events, { type: 'didRender' })
 
             if (oldNode === undefined) {
-                triggerLifeCycleEvent(vNode.events, 'didMount')
+                triggerLifeCycleEvent(vNode.events, { type: 'didMount' })
             }
         }
         catch (err) {
@@ -430,7 +432,7 @@ export function render(
                     }
                 }
 
-                for (const c of newVNode.children) {
+                for (const c of newVNode.props.children) {
                     if (c !== undefined) {
                         render(newNode as Element, c, c, undefined, isSvg, undefined)
                     }
@@ -451,11 +453,11 @@ export function render(
 
                     updateElementAttributes(newVNode, oldVNode!, existingDomNode!)
 
-                    const newChildVNodes = newVNode.children
-                    const oldChildVNodes = (oldVNode as ElementVNode<any>).children
+                    const newChildVNodes = newVNode.props.children
+                    const oldChildVNodes = (oldVNode as ElementVNode<any>).props.children
                     let diffNoOfChildNodes = oldChildVNodes.length - newChildVNodes.length
 
-                    if (newVNode.children.length > 0) {
+                    if (newVNode.props.children.length > 0) {
                         // Create a map holding references to all the old child 
                         // VNodes indexed by key
                         const keyMap: Record<string, [VNode, Node] | undefined> = {}
@@ -598,16 +600,15 @@ export function render(
                         && newVNode.props !== null
                         && (newVNode.props as any).forceUpdate
                         || !equal((oldVNode as ComponentVNode<any>).props, newVNode.props)
-                        || !equal((oldVNode as ComponentVNode<any>).children, newVNode.children)
+                        || !equal((oldVNode as ComponentVNode<any>).props.children, newVNode.props.children)
 
                     newVNode.rendition = (oldVNode as ComponentVNode<any>).rendition
 
                     // newVNode.view = (oldVNode as StatelessComponentVNode<any>).view;
                     newVNode.state = (oldVNode as ComponentVNode<any>).state
-                    // if ((oldVNode as ComponentVNode<any>).link !== undefined) {
-                    //     newVNode.link = (oldVNode as ComponentVNode<any>).link
-                    //     newVNode.link.vNode = newVNode
-                    // }
+                    newVNode.events = (oldVNode as ComponentVNode<any>).events
+                    newVNode.link = (oldVNode as ComponentVNode<any>).link
+                    newVNode.link.vNode = newVNode
                     // (newVNode as ComponentVNode<any>).dispatchLevel = 0;
                     // (newVNode as ComponentVNode<any>).ctx = (oldVNode as ComponentVNode<any>).ctx
 

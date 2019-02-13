@@ -4,21 +4,20 @@ import * as todos from '../models/todos'
 
 type Todo = todos.Todo
 
-
 interface AppContext<TProps> extends myra.DefaultContext<TProps> {
     foobar: string
 }
 
 function withAppContext<TProps>(componentFactory: myra.ComponentFactory<TProps, AppContext<TProps>>) {
-    return myra.withContext<TProps>((props, children, ctx) => {
-        return componentFactory(props, children, {
+    return myra.withContext<TProps>((props, ctx) => {
+        return componentFactory(props, {
             ...ctx,
             foobar: 'foobar'
         })
     })
 }
 
-export const MainComponent = withAppContext((_p, _c, ctx) => {
+export const MainComponent = withAppContext((_p, ctx) => {
 
     const [, evolve] = ctx.useState({})
 

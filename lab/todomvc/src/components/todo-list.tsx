@@ -44,7 +44,7 @@ const filterLink = (href: string, txt: string, routeCtx: router.RouteContext) =>
 /**
  * Component
  */
-export default myra.withContext<{ forceUpdate: boolean }>((_props, _children, ctx) => {
+export default myra.withContext((_props, ctx) => {
     const [state, evolve] = ctx.useState(init)
 
     const todosLoaded = (todos: Todo[]) =>
@@ -91,13 +91,16 @@ export default myra.withContext<{ forceUpdate: boolean }>((_props, _children, ct
         loadTodos()
     }
 
-    ctx.useEvent('didMount', () => {
-        evolve({ filter: loadFilter() })
-        router.addListener(applyFilterFromLocation)
-        loadTodos()
+    ctx.useEvent(ev => {
+        if (ev.type === 'didMount') {
+            evolve({ filter: loadFilter() })
+            router.addListener(applyFilterFromLocation)
+            loadTodos()
+        }
+        else if (ev.type === 'willRender') {
+            loadTodos()
+        }
     })
-
-    ctx.useEvent('willRender', loadTodos)
 
     return (
         state.todos.length ?

@@ -42,11 +42,11 @@ const todoClass = (m: State) => {
 /**
  * Component
  */
-export default myra.withContext<Props>((props, _c, ctx) => {
+export default myra.withContext<Props>((props, ctx) => {
 
     const [state, evolve] = ctx.useState(init)
     console.log(props)
-    ctx.useEvent('didMount', () => evolve({ todo: props.todo }))
+    ctx.useEvent(ev => ev.type === 'didMount' && evolve({ todo: props.todo }))
 
     const editTodo = () => evolve({ editing: true })
 
