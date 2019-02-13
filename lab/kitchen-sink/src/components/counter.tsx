@@ -3,7 +3,7 @@ import * as myra from '../../../../src/myra'
 /**
  * Component
  */
-export default myra.withContext((_p, _c, ctx) => {
+export default myra.withContext((_p, ctx) => {
 
     const [state, evolve] = ctx.useState({ val: 0 })
 

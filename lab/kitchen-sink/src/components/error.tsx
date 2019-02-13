@@ -4,7 +4,7 @@ function throwError(from: string) {
     throw Error(from)
 }
 
-export const ErrorComponent = myra.define({}, ctx => {
+export const ErrorComponent = myra.withContext((_p, ctx) => {
 
     ctx.onError = err =>
         <div>
@@ -21,6 +21,7 @@ export const ErrorComponent = myra.define({}, ctx => {
     //ctx.willMount = () => throwError('willMount')
     //ctx.willRender = () => throwError('willRender')
 
-    return () =>
+    return (
         <div>This will never be displayed because {throwError('view')}</div>
+    )
 })
