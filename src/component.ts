@@ -6,7 +6,6 @@ import {
     ComponentVNode,
     Evolve,
     ComponentFactoryWithContext,
-    Context,
     LifeCycleEvents as LifeCycleEvent,
     LifeCycleEventListener,
     ComponentProps,
@@ -189,6 +188,7 @@ function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
                 tryHandleComponentError(parentElement, currentVNode, isSvg, err)
             })
         }
+        return currentVNode.state![stateIndex]
     }
 
     const state = vNode.state[stateIndex]
@@ -207,7 +207,7 @@ function useDefaultProps<TProps extends object>(defaultProps: TProps): TProps {
     return { ...(defaultProps as object), ...renderingContext!.vNode.props } as TProps
 }
 
-function useEvent(callback: LifeCycleEventListener<LifeCycleEvent>) {
+function useEvent<TProps>(callback: LifeCycleEventListener<LifeCycleEvent<TProps>>) {
 
     const vNode = renderingContext!.vNode as ComponentVNode<any>
 
@@ -222,7 +222,7 @@ function useEvent(callback: LifeCycleEventListener<LifeCycleEvent>) {
     renderingContext!.eventIndex++
 }
 
-const context: Context<any, LifeCycleEvent> = {
+const context = {
     getDomRef,
     useEvent,
     useState,
@@ -249,14 +249,14 @@ function doRenderComponent(parentElement: Element, vNode: ComponentVNode<any>, i
         }
         // requestAnimationFrame(() => {
         try {
-            newView = vNode.view(vNode.props, context)
+            newView = vNode.view(vNode.props, { ...context, oldProps: vNode.rendition !== undefined ? (vNode.rendition as ComponentVNode<any>).props : {} })
             renderingContext = undefined
 
             if (oldNode === undefined) {
                 triggerLifeCycleEvent(vNode.events, { type: 'willMount' })
             }
 
-            triggerLifeCycleEvent(vNode.events, { type: 'willRender' })
+            triggerLifeCycleEvent(vNode.events, { type: 'willRender', oldProps: {} })
 
             render(parentElement, newView, vNode.rendition, oldNode, isSvg)
 
@@ -297,7 +297,7 @@ function doRenderComponent(parentElement: Element, vNode: ComponentVNode<any>, i
     }
 }
 
-function triggerLifeCycleEvent(events: Array<LifeCycleEventListener<LifeCycleEvent>> | undefined, event: LifeCycleEvent) {
+function triggerLifeCycleEvent(events: Array<LifeCycleEventListener<LifeCycleEvent<any>>> | undefined, event: LifeCycleEvent<any>) {
     if (events !== undefined) {
         for (let i = 0; i < events.length; i++) {
             events[i](event)
