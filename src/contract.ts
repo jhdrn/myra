@@ -264,15 +264,14 @@ export interface ErrorHandler {
 
 export interface Context<TProps> {
     readonly getDomRef: () => Node | undefined
-    readonly useState: <TState>(init: TState) => [TState, Evolve<TState>]
     readonly useDefaultProps: (defaultProps: Partial<Exclude<TProps & ComponentProps, 'children' | 'forceUpdate'>>) => TProps
+    readonly useErrorHandler: (handler: ErrorHandler) => void
     readonly useLifeCycle: (callback: LifeCycleEventListener<TProps>) => void
+    readonly useMemo: <TMemoized>(fn: () => TMemoized, inputs: any[]) => TMemoized
+    readonly useState: <TState>(init: TState) => [TState, Evolve<TState>]
     // readonly error?: Error
     // readonly oldProps: TProps
     readonly shouldRender: (shouldRender: boolean) => void
-    readonly useErrorHandler: (handler: ErrorHandler) => void
-    // shouldRender: (preventRender: boolean) => void
-    // readonly useLifecycle: (lifecycle: {}) => void
 }
 
 export type LifeCycleEvent<TProps> =
@@ -297,10 +296,6 @@ export interface LifeCycleWillRenderEvent<TProps> {
 }
 export interface LifeCycleWillUnmountEvent {
     type: 'willUnmount'
-}
-export interface LifeCycleErrorEvent {
-    type: 'error'
-    error: any
 }
 
 export interface LifeCycleEventListener<TProps> {
@@ -370,9 +365,9 @@ export interface ComponentVNode<TProps> extends VNodeBase {
     events?: Array<LifeCycleEventListener<LifeCycleEvent<TProps>>>
     errorHandler?: ErrorHandler
     link: { vNode: ComponentVNode<TProps> }
+    data?: any[]
     props: TProps
     rendition?: VNode
-    state?: any[]
     view: ComponentFactoryWithContext<TProps>
 }
 
