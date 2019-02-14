@@ -91,7 +91,7 @@ export default myra.withContext((_props, ctx) => {
         loadTodos()
     }
 
-    ctx.useEvent(ev => {
+    ctx.useLifeCycle(ev => {
         if (ev.type === 'didMount') {
             evolve({ filter: loadFilter() })
             router.addListener(applyFilterFromLocation)

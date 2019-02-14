@@ -46,7 +46,7 @@ export default myra.withContext<Props>((props, ctx) => {
 
     const [state, evolve] = ctx.useState(init)
     console.log(props)
-    ctx.useEvent(ev => ev.type === 'didMount' && evolve({ todo: props.todo }))
+    ctx.useLifeCycle(ev => ev.type === 'didMount' && evolve({ todo: props.todo }))
 
     const editTodo = () => evolve({ editing: true })
 
