@@ -5,7 +5,6 @@ import {
     VNode,
     ComponentVNode,
     Evolve,
-    ComponentFactoryWithContext,
     LifeCycleEvent,
     LifeCycleEventListener,
     ComponentProps,
@@ -25,93 +24,6 @@ interface IRenderingContext {
 }
 
 let renderingContext: IRenderingContext | undefined
-
-export function withContext<TProps>(componentFactory: ComponentFactoryWithContext<TProps & ComponentProps>): ComponentFactoryWithContext<TProps & { forceUpdate?: boolean }> {
-    return componentFactory as any
-}
-
-// function withAppContext<TProps>(componentFactory: ComponentFactoryWithContext<TProps>): ComponentFactoryWithContext<TProps> {
-//     return withContext((props, children, ctx) => {
-//         ctx.customProp = 'foobar'
-//         return componentFactory(props, children, ctx)
-//     })
-// }
-
-
-// export function useContext<TState, TProps>(options: {}): Context<TState, TProps> {
-//     if (renderingContext === undefined) {
-//         throw 'Internal error, currentComponent undefined'
-//     }
-//     const vNode = renderingContext.vNode as ComponentVNode<TProps>
-//     const parentElement = renderingContext.parentElement
-//     const isSvg = renderingContext.isSvg
-//     if (vNode.ctx === undefined) {
-
-//         vNode.state = options.state || {}
-//         const link = {
-//             vNode
-//         }
-//         vNode.link = link
-
-//         const ctx: Context<any, any> = {
-//             get state() {
-//                 return link.vNode.state
-//             },
-//             get props() {
-//                 return link.vNode.props
-//             },
-//             get domRef() {
-//                 return link.vNode.domRef as Element | undefined
-//             },
-//             evolve: function evolve(update: UpdateState<any>) {
-//                 try {
-//                     if (typeof update !== 'object') {
-//                         update = update(link.vNode.state)
-//                     }
-//                     link.vNode.state = { ...(link.vNode.state as any), ...(update as object) }
-//                     tryRenderComponent(parentElement, link.vNode, isSvg)
-//                 } catch (err) {
-//                     tryHandleComponentError(parentElement, link.vNode, isSvg, err)
-//                 }
-
-//             },
-//             options
-//         }
-
-//         vNode.ctx = ctx
-
-//         try {
-//             // Merge any defaultProps with received props
-//             if (options.defaultProps !== undefined) {
-//                 vNode.props = { ...options.defaultProps, ...vNode.props }
-//             }
-
-//             if (options.willMount !== undefined) {
-//                 // Setting dispatchLevel to 1 will make any dispatch call just update
-//                 // the state without rendering the view
-//                 vNode.dispatchLevel = 1
-//                 options.willMount(ctx)
-//             }
-//             vNode.dispatchLevel = 0
-
-//             if (options.shouldRender === undefined
-//                 || options.shouldRender(options.defaultProps === undefined ? {} as TProps : options.defaultProps as TProps, vNode.props)) {
-
-//                 // Render the view. 
-//                 tryRenderComponent(parentElement, vNode, isSvg)
-//             }
-
-//             if (options.didMount !== undefined) {
-//                 options.didMount(ctx as RenderedContext<any, any>)
-//             }
-//         }
-//         catch (err) {
-//             tryHandleComponentError(parentElement, link.vNode, isSvg, err)
-//         }
-//     }
-//     return vNode.ctx
-// }
-
 
 /** 
  * Traverses the virtual node hierarchy and unmounts any components in the 
@@ -421,6 +333,9 @@ export function render(
             if (newVNode._ === VNODE_ELEMENT) {
 
                 for (const name in newVNode.props) {
+                    if (name === 'children') {
+                        continue
+                    }
                     const attributeValue = (newVNode.props as any)[name]
 
                     if (attributeValue !== undefined) {
@@ -725,6 +640,9 @@ function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, e
     // remove any attributes that was added with the old virtual node but does 
     // not exist in the new virtual node or should be removed anyways (event listeners).
     for (const attributeName in (oldVNode as ElementVNode<any>).props) {
+        if (attributeName === 'children') {
+            continue
+        }
         if ((newVNode.props as any)[attributeName] === undefined || attributeName.indexOf('on') === 0) {
             removeAttr(attributeName, existingDomNode as Element)
         }
@@ -736,7 +654,9 @@ function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, e
 
     // update any attribute where the attribute value has changed
     for (const name in newVNode.props) {
-
+        if (name === 'children') {
+            continue
+        }
         attributeValue = (newVNode.props as any)[name]
         oldAttributeValue = ((oldVNode as ElementVNode<any>).props as any)[name]
         hasAttr = (existingDomNode as Element).hasAttribute(name)
