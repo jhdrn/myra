@@ -61,7 +61,7 @@ describe('mount', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((_p, ctx) => {
-            ctx.useEvent(ev => ev.type === 'willMount' && mock.callback())
+            ctx.useLifeCycle(ev => ev.type === 'willMount' && mock.callback())
             return <div />
         })
 
@@ -80,7 +80,7 @@ describe('mount', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((_p, ctx) => {
-            ctx.useEvent(ev => ev.type === 'didMount' && mock.callback())
+            ctx.useLifeCycle(ev => ev.type === 'didMount' && mock.callback())
             return <div />
         })
 
@@ -99,7 +99,7 @@ describe('mount', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((_p, ctx) => {
-            ctx.useEvent(ev => ev.type === 'willRender' && mock.callback())
+            ctx.useLifeCycle(ev => ev.type === 'willRender' && mock.callback())
             return <div />
         })
 
@@ -118,7 +118,7 @@ describe('mount', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((_p, ctx) => {
-            ctx.useEvent(ev => ev.type === 'didRender' && mock.callback())
+            ctx.useLifeCycle(ev => ev.type === 'didRender' && mock.callback())
             return <div />
         })
 
@@ -129,133 +129,138 @@ describe('mount', () => {
         done()
     })
 
-    // it('calls the onError listener on view rendering error', done => {
-    //     const mock = {
-    //         callback: () => <nothing />
-    //     }
+    it('calls the onError listener on view rendering error', done => {
+        const mock = {
+            callback: () => <nothing />
+        }
 
-    //     spyOn(mock, 'callback').and.callThrough()
+        spyOn(mock, 'callback').and.callThrough()
 
-    //     const Component = () => {
-    //         myra.useContext({
-    //             didMount: mock.callback
-    //         })
-    //         return <div>{(undefined as any).property}</div>
-    //     }
+        const Component = myra.withContext((_p, ctx) => {
+            ctx.useErrorHandler(mock.callback)
+            return <div>{(undefined as any).property}</div>
+        })
 
-    //     const node = render(document.body, <Component />, undefined, undefined)
+        const node = render(document.body, <Component />, undefined, undefined)
 
-    //     expect(node.nodeType).toBe(Node.COMMENT_NODE)
-    //     expect(node.textContent).toBe('Nothing')
-    //     expect(mock.callback).toHaveBeenCalled()
+        expect(node.nodeType).toBe(Node.COMMENT_NODE)
+        expect(node.textContent).toBe('Nothing')
+        expect(mock.callback).toHaveBeenCalled()
 
-    //     done()
-    // })
+        done()
+    })
 
-    // it('calls the onError listener on didMount error', done => {
-    //     const mock = {
-    //         callback: () => <nothing />
-    //     }
+    it('calls the onError listener on didMount error', done => {
+        const mock = {
+            callback: () => <nothing />
+        }
 
-    //     spyOn(mock, 'callback').and.callThrough()
+        spyOn(mock, 'callback').and.callThrough()
 
-    //     const Component = () => {
-    //         myra.useContext({
-    //             didMount: () => {
-    //                 throw Error()
-    //             },
-    //             onError: mock.callback
-    //         })
-    //         return <div></div>
-    //     }
+        const Component = myra.withContext((_p, ctx) => {
 
-    //     const node = render(document.body, <Component />, undefined, undefined)
+            ctx.useLifeCycle(ev => {
+                if (ev.type === 'didMount') {
+                    throw Error()
+                }
+            })
+            ctx.useErrorHandler(mock.callback)
 
-    //     expect(node.nodeType).toBe(Node.COMMENT_NODE)
-    //     expect(node.textContent).toBe('Nothing')
-    //     expect(mock.callback).toHaveBeenCalled()
+            return <div></div>
+        })
 
-    //     done()
-    // })
+        const node = render(document.body, <Component />, undefined, undefined)
+
+        expect(node.nodeType).toBe(Node.COMMENT_NODE)
+        expect(node.textContent).toBe('Nothing')
+        expect(mock.callback).toHaveBeenCalled()
+
+        done()
+    })
 
 
-    // it('calls the onError listener on didRender error', done => {
-    //     const mock = {
-    //         callback: () => <nothing />
-    //     }
+    it('calls the onError listener on didRender error', done => {
+        const mock = {
+            callback: () => <nothing />
+        }
 
-    //     spyOn(mock, 'callback').and.callThrough()
+        spyOn(mock, 'callback').and.callThrough()
 
-    //     const Component = () => {
-    //         myra.useContext({
-    //             didRender: () => {
-    //                 throw Error()
-    //             },
-    //             onError: mock.callback
-    //         })
-    //         return <div></div>
-    //     }
+        const Component = myra.withContext((_p, ctx) => {
 
-    //     const node = render(document.body, <Component />, undefined, undefined)
+            ctx.useLifeCycle(ev => {
+                if (ev.type === 'didRender') {
+                    throw Error()
+                }
+            })
+            ctx.useErrorHandler(mock.callback)
 
-    //     expect(node.nodeType).toBe(Node.COMMENT_NODE)
-    //     expect(node.textContent).toBe('Nothing')
-    //     expect(mock.callback).toHaveBeenCalled()
+            return <div></div>
+        })
 
-    //     done()
-    // })
+        const node = render(document.body, <Component />, undefined, undefined)
 
-    // it('calls the onError listener on initialization error', done => {
-    //     const mock = {
-    //         callback: () => <nothing />
-    //     }
+        expect(node.nodeType).toBe(Node.COMMENT_NODE)
+        expect(node.textContent).toBe('Nothing')
+        expect(mock.callback).toHaveBeenCalled()
 
-    //     spyOn(mock, 'callback').and.callThrough()
+        done()
+    })
 
-    //     const Component = () => {
-    //         myra.useContext({
-    //             onError: mock.callback
-    //         })
-    //         throw Error()
+    it('calls the onError listener on initialization error', done => {
+        const mock = {
+            callback: () => <nothing />
+        }
 
-    //         return <div></div>
-    //     }
+        spyOn(mock, 'callback').and.callThrough()
 
-    //     const node = render(document.body, <Component />, undefined, undefined)
+        const Component = myra.withContext((_p, ctx) => {
 
-    //     expect(node.nodeType).toBe(Node.COMMENT_NODE)
-    //     expect(node.textContent).toBe('Nothing')
-    //     expect(mock.callback).toHaveBeenCalled()
+            ctx.useErrorHandler(mock.callback)
 
-    //     done()
-    // })
+            throw Error()
 
-    // it('calls the onError listener on evolve error', done => {
-    //     const mock = {
-    //         callback: () => <nothing />
-    //     }
+            return <div></div>
+        })
 
-    //     spyOn(mock, 'callback').and.callThrough()
+        const node = render(document.body, <Component />, undefined, undefined)
 
-    //     const Component = () => {
-    //         const ctx = myra.useContext({
-    //             onError: mock.callback
-    //         })
-    //         function doEvolve() {
-    //             ctx.evolve(() => {
-    //                 throw Error()
-    //             })
-    //         }
-    //         return <div onclick={doEvolve}></div>
-    //     }
+        expect(node.nodeType).toBe(Node.COMMENT_NODE)
+        expect(node.textContent).toBe('Nothing')
+        expect(mock.callback).toHaveBeenCalled()
 
-    //     const node = render(document.body, <Component />, undefined, undefined) as HTMLDivElement
-    //     node.click()
+        done()
+    })
 
-    //     expect(mock.callback).toHaveBeenCalled()
+    it('calls the onError listener on evolve error', done => {
+        const mock = {
+            callback: () => <nothing />
+        }
 
-    //     done()
-    // })
+        spyOn(mock, 'callback').and.callThrough()
+
+        const Component = myra.withContext((_p, ctx) => {
+
+            ctx.useErrorHandler(mock.callback)
+
+            const [, evolve] = ctx.useState({})
+
+            function doEvolve() {
+                evolve(() => {
+                    throw Error()
+                })
+            }
+            return <div onclick={doEvolve}></div>
+        })
+
+        const node = render(document.body, <Component />, undefined, undefined) as HTMLDivElement
+        node.click()
+        requestAnimationFrame(() => {
+            expect(mock.callback).toHaveBeenCalled()
+
+            done()
+        })
+    })
 
     // it('calls the onError listener on shouldRender error', done => {
     //     const mock = {
@@ -283,107 +288,112 @@ describe('mount', () => {
     //     done()
     // })
 
-    // it('calls the onError listener on willMount error', done => {
-    //     const mock = {
-    //         callback: () => <nothing />
-    //     }
+    it('calls the onError listener on willMount error', done => {
+        const mock = {
+            callback: () => <nothing />
+        }
 
-    //     spyOn(mock, 'callback').and.callThrough()
+        spyOn(mock, 'callback').and.callThrough()
 
-    //     const Component = () => {
-    //         myra.useContext({
-    //             onError: mock.callback,
-    //             willMount: () => {
-    //                 throw Error()
-    //             }
-    //         })
-    //         return <div></div>
-    //     }
+        const Component = myra.withContext((_p, ctx) => {
 
-    //     const node = render(document.body, <Component />, undefined, undefined)
+            ctx.useLifeCycle(ev => {
+                if (ev.type === 'willMount') {
+                    throw Error()
+                }
+            })
+            ctx.useErrorHandler(mock.callback)
 
-    //     expect(node.nodeType).toBe(Node.COMMENT_NODE)
-    //     expect(node.textContent).toBe('Nothing')
-    //     expect(mock.callback).toHaveBeenCalled()
+            return <div></div>
+        })
 
-    //     done()
-    // })
+        const node = render(document.body, <Component />, undefined, undefined)
 
-    // it('calls the onError listener on willRender error', done => {
-    //     const mock = {
-    //         callback: () => <nothing />
-    //     }
+        expect(node.nodeType).toBe(Node.COMMENT_NODE)
+        expect(node.textContent).toBe('Nothing')
+        expect(mock.callback).toHaveBeenCalled()
 
-    //     spyOn(mock, 'callback').and.callThrough()
+        done()
+    })
 
-    //     const Component = () => {
-    //         myra.useContext({
-    //             onError: mock.callback,
-    //             willRender: () => {
-    //                 throw Error()
-    //             }
-    //         })
-    //         return <div></div>
-    //     }
+    it('calls the onError listener on willRender error', done => {
+        const mock = {
+            callback: () => <nothing />
+        }
 
-    //     const node = render(document.body, <Component />, undefined, undefined)
+        spyOn(mock, 'callback').and.callThrough()
 
-    //     expect(node.nodeType).toBe(Node.COMMENT_NODE)
-    //     expect(node.textContent).toBe('Nothing')
-    //     expect(mock.callback).toHaveBeenCalled()
+        const Component = myra.withContext((_p, ctx) => {
 
-    //     done()
-    // })
+            ctx.useLifeCycle(ev => {
+                if (ev.type === 'willRender') {
+                    throw Error()
+                }
+            })
+            ctx.useErrorHandler(mock.callback)
 
-    // it('does not call the onError listener on willUnmount error', done => {
-    //     const mock = {
-    //         callback: () => <nothing />
-    //     }
+            return <div></div>
+        })
 
-    //     spyOn(mock, 'callback').and.callThrough()
+        const node = render(document.body, <Component />, undefined, undefined)
 
-    //     const Component = () => {
-    //         myra.useContext({
-    //             onError: mock.callback,
-    //             willUnmount: () => {
-    //                 throw Error()
-    //             }
-    //         })
-    //         return <div></div>
-    //     }
+        expect(node.nodeType).toBe(Node.COMMENT_NODE)
+        expect(node.textContent).toBe('Nothing')
+        expect(mock.callback).toHaveBeenCalled()
 
-    //     const node = render(document.body, <Component />, undefined, undefined)
+        done()
+    })
 
-    //     expect(node.nodeType).toBe(Node.ELEMENT_NODE)
-    //     expect(node.textContent).toBe('')
-    //     expect(mock.callback).not.toHaveBeenCalled()
+    it('does not call the onError listener on willUnmount error', done => {
+        const mock = {
+            callback: () => <nothing />
+        }
 
-    //     done()
-    // })
+        spyOn(mock, 'callback').and.callThrough()
 
-    // it('passes on an exception up the component tree', done => {
-    //     const mock = {
-    //         callback: () => <nothing />
-    //     }
+        const Component = myra.withContext((_p, ctx) => {
 
-    //     spyOn(mock, 'callback').and.callThrough()
+            ctx.useLifeCycle(ev => {
+                if (ev.type === 'willUnmount') {
+                    throw Error()
+                }
+            })
+            ctx.useErrorHandler(mock.callback)
 
-    //     const SubComponent = () => <div>{(undefined as any).property}</div>
+            return <div></div>
+        })
 
+        const node = render(document.body, <Component />, undefined, undefined)
 
-    //     const Component = () => {
-    //         myra.useContext({
-    //             onError: mock.callback
-    //         })
-    //         return <SubComponent />
-    //     }
+        expect(node.nodeType).toBe(Node.ELEMENT_NODE)
+        expect(node.textContent).toBe('')
+        expect(mock.callback).not.toHaveBeenCalled()
 
-    //     myra.mount(<Component />, document.body)
+        done()
+    })
 
-    //     expect(mock.callback).toHaveBeenCalled()
+    it('passes on an exception up the component tree', done => {
+        const mock = {
+            callback: () => <nothing />
+        }
 
-    //     done()
-    // })
+        spyOn(mock, 'callback').and.callThrough()
+
+        const SubComponent = () => <div>{(undefined as any).property}</div>
+
+        const Component = myra.withContext((_p, ctx) => {
+
+            ctx.useErrorHandler(mock.callback)
+
+            return <SubComponent />
+        })
+
+        render(document.body, <Component />, undefined, undefined)
+
+        expect(mock.callback).toHaveBeenCalled()
+
+        done()
+    })
 
     it(`passes the children of a component to it view`, done => {
         const viewMock = {
@@ -444,7 +454,7 @@ describe('unmountComponent', () => {
         spyOn(mock, 'unmount').and.callThrough()
 
         const Component = myra.withContext((_p, ctx) => {
-            ctx.useEvent(ev => ev.type === 'willUnmount' && mock.unmount())
+            ctx.useLifeCycle(ev => ev.type === 'willUnmount' && mock.unmount())
             return <div />
         })
 
@@ -464,12 +474,12 @@ describe('unmountComponent', () => {
         spyOn(mock, 'unmount').and.callThrough()
 
         const ChildChildComponent = myra.withContext((_p, ctx) => {
-            ctx.useEvent(ev => ev.type === 'willUnmount' && mock.unmount())
+            ctx.useLifeCycle(ev => ev.type === 'willUnmount' && mock.unmount())
             return <div />
         })
 
         const ChildComponent = myra.withContext((_p, ctx) => {
-            ctx.useEvent(ev => ev.type === 'willUnmount' && mock.unmount())
+            ctx.useLifeCycle(ev => ev.type === 'willUnmount' && mock.unmount())
             return <ChildChildComponent />
         })
 
@@ -490,12 +500,12 @@ describe('unmountComponent', () => {
         spyOn(mock, 'unmount').and.callThrough()
 
         const ChildChildComponent = myra.withContext((_p, ctx) => {
-            ctx.useEvent(ev => ev.type === 'willUnmount' && mock.unmount())
+            ctx.useLifeCycle(ev => ev.type === 'willUnmount' && mock.unmount())
             return <div />
         })
 
         const ChildComponent = myra.withContext((_p, ctx) => {
-            ctx.useEvent(ev => ev.type === 'willUnmount' && mock.unmount())
+            ctx.useLifeCycle(ev => ev.type === 'willUnmount' && mock.unmount())
             return <ChildChildComponent />
         })
 
@@ -524,7 +534,7 @@ describe('updateComponent (stateful component)', () => {
         spyOn(mock, 'willRender').and.callThrough()
 
         const Component = myra.withContext((_p: { val: number }, ctx) => {
-            ctx.useEvent(ev => ev.type === 'willRender' && mock.willRender())
+            ctx.useLifeCycle(ev => ev.type === 'willRender' && mock.willRender())
             return <div />
         })
 
@@ -543,7 +553,7 @@ describe('updateComponent (stateful component)', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((_p: { forceUpdate?: boolean }, ctx) => {
-            ctx.useEvent(ev => ev.type === 'willRender' && mock.callback())
+            ctx.useLifeCycle(ev => ev.type === 'willRender' && mock.callback())
             return <div />
         })
 
@@ -563,7 +573,7 @@ describe('updateComponent (stateful component)', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((_p: { prop: string }, ctx) => {
-            ctx.useEvent(ev => ev.type === 'willRender' && mock.callback())
+            ctx.useLifeCycle(ev => ev.type === 'willRender' && mock.callback())
             return <div />
         })
 
@@ -674,7 +684,7 @@ describe('updateComponent (stateful component)', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((props, ctx) => {
-            ctx.useEvent(ev => ev.type === 'willRender' && mock.callback())
+            ctx.useLifeCycle(ev => ev.type === 'willRender' && mock.callback())
             return <div>{...props.children}</div>
         })
 
@@ -695,7 +705,7 @@ describe('updateComponent (stateful component)', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((props, ctx) => {
-            ctx.useEvent(ev => ev.type === 'willRender' && mock.callback())
+            ctx.useLifeCycle(ev => ev.type === 'willRender' && mock.callback())
             return <div>{...props.children}</div>
         })
 

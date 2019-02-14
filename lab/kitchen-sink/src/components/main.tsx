@@ -4,7 +4,7 @@ import StatelessComponent from './stateless-component'
 import CounterComponent from './counter'
 import HttpComponent from './http'
 import TimeComponent from './time'
-// import { ErrorComponent } from './error'
+import { ErrorComponent } from './error'
 
 
 /**
@@ -20,7 +20,7 @@ export const MainComponent = () =>
         <hr />
         <HttpComponent />
         <hr />
-        {/* <ErrorComponent />
-        <hr /> */}
+        <ErrorComponent />
+        <hr />
         <TimeComponent />
     </div>

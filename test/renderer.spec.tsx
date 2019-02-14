@@ -58,7 +58,7 @@ describe('render', () => {
         spyOn(mocks, 'willRender')
 
         const TestComponent = myra.withContext((_p, ctx) => {
-            ctx.useEvent(ev => ev.type === 'willRender' && mocks.willRender())
+            ctx.useLifeCycle(ev => ev.type === 'willRender' && mocks.willRender())
 
             return <div id="testComponent"></div>
         })
@@ -87,7 +87,7 @@ describe('render', () => {
         spyOn(mocks, 'unmount').and.callThrough()
 
         const TestComponent = myra.withContext((_p, ctx) => {
-            ctx.useEvent(ev => ev.type === 'willUnmount' && mocks.unmount())
+            ctx.useLifeCycle(ev => ev.type === 'willUnmount' && mocks.unmount())
 
             return <div />
         })
@@ -846,7 +846,7 @@ describe('render', () => {
         spyOn(mountMock, 'unmount').and.callThrough()
 
         const ChildComponent = myra.withContext((_props, ctx) => {
-            ctx.useEvent(ev => ev.type === 'willUnmount' && mountMock.unmount())
+            ctx.useLifeCycle(ev => ev.type === 'willUnmount' && mountMock.unmount())
             return <div />
         })
 
