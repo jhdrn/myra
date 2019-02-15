@@ -1,4 +1,4 @@
-import { ComponentFactory, VNode, TextVNode, ComponentVNode, DefaultContext, ComponentProps } from './contract'
+import { ComponentFactory, VNode, TextVNode, ComponentVNode, ComponentProps, Context } from './contract'
 import { VNODE_NOTHING, VNODE_TEXT, VNODE_ELEMENT, VNODE_COMPONENT } from './constants'
 
 function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
@@ -32,7 +32,7 @@ function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
  * Creates a JSX.Element/VNode from a JSX tag.
  */
 export function h<TProps>(
-    tagNameOrComponent: string | ComponentFactory<object, DefaultContext<object>> | undefined | null,
+    tagNameOrComponent: string | ComponentFactory<object, Context<object>> | undefined | null,
     props: TProps,
     ...children: (string | VNode)[]): JSX.Element {
 

@@ -4,7 +4,7 @@ import * as todos from '../models/todos'
 
 type Todo = todos.Todo
 
-interface AppContext<TProps> extends myra.DefaultContext<TProps> {
+interface AppContext<TProps> extends myra.Context<TProps> {
     foobar: string
 }
 

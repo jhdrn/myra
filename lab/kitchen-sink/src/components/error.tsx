@@ -6,12 +6,12 @@ function throwError(from: string) {
 
 export const ErrorComponent = myra.withContext((_p, ctx) => {
 
-    ctx.onError = err =>
+    ctx.useErrorHandler(err =>
         <div>
             <h2>Oops! An error occured</h2>
             <p>{err}</p>
         </div>
-
+    )
     // Uncomment any of the following lines to test error handling in different
     // contexts
     //throwError('initialization')
