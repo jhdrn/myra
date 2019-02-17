@@ -129,7 +129,7 @@ function useLifeCycle<TProps>(callback: LifeCycleEventListener<LifeCycleEvent<TP
     renderingContext!.hookIndex++
 }
 
-function useMemo<TMemoization>(fn: () => TMemoization, ...inputs: any[]) {
+function useMemo<TMemoization, TArgs>(fn: (args: TArgs) => TMemoization, inputs: TArgs) {
 
     const vNode = renderingContext!.vNode
 
@@ -139,8 +139,8 @@ function useMemo<TMemoization>(fn: () => TMemoization, ...inputs: any[]) {
 
     let res: TMemoization
     if (vNode.data[renderingContext!.hookIndex] === undefined) {
-        res = fn()
-        vNode.data[renderingContext!.hookIndex] = [res, ...inputs]
+        res = fn(inputs)
+        vNode.data[renderingContext!.hookIndex] = [res, inputs]
     }
     else {
         let [prevRes, ...prevInputs] = vNode.data[renderingContext!.hookIndex]
@@ -148,8 +148,8 @@ function useMemo<TMemoization>(fn: () => TMemoization, ...inputs: any[]) {
             res = prevRes
         }
         else {
-            res = fn()
-            vNode.data[renderingContext!.hookIndex] = [res, ...inputs]
+            res = fn(inputs)
+            vNode.data[renderingContext!.hookIndex] = [res, inputs]
         }
     }
 

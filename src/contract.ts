@@ -267,7 +267,7 @@ export interface Context<TProps> {
     readonly useDefaultProps: (defaultProps: Partial<Exclude<TProps & ComponentProps, 'children' | 'forceUpdate'>>) => TProps
     readonly useErrorHandler: (handler: ErrorHandler) => void
     readonly useLifeCycle: (callback: LifeCycleEventListener<TProps>) => void
-    readonly useMemo: <TMemoized>(fn: () => TMemoized, inputs: any[]) => TMemoized
+    readonly useMemo: <TMemoized, TArgs>(fn: (args: TArgs) => TMemoized, inputs: TArgs) => TMemoized
     readonly useState: <TState>(init: TState) => [TState, Evolve<TState>]
     // readonly error?: Error
     // readonly oldProps: TProps
