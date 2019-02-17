@@ -62,9 +62,6 @@ export default myra.withContext<Props>((props, ctx) => {
             })
             todos.save(updatedTodo)
         }
-        else {
-            todos.remove(state.todo.id)
-        }
     }
 
     const toggleTodoCompleted = () => {
