@@ -247,20 +247,13 @@ export type Evolve<TState> = (update: UpdateState<TState>) => TState // | Error 
 
 // export interface WithContextOptions<TState, TProps> {
 //     shouldRender?: (oldProps: TProps, newProps: TProps) => boolean
-//     onError?: (error: Error) => VNode
 // }
 
-export interface ComponentFactory<TProps, TContext> {
-    (props: TProps, context: TContext): VNode
-}
+export type ComponentFactory<TProps, TContext> = (props: TProps, context: TContext) => VNode
 
-export interface ComponentFactoryWithContext<TProps> {
-    (props: TProps, context: Context<TProps>): VNode
-}
+export type ComponentFactoryWithContext<TProps> = (props: TProps, context: Context<TProps>) => VNode
 
-export interface ErrorHandler {
-    (error: any): VNode
-}
+export type ErrorHandler = (error: any) => VNode
 
 export interface Context<TProps> {
     readonly getDomRef: () => Node | undefined
@@ -269,7 +262,6 @@ export interface Context<TProps> {
     readonly useLifeCycle: (callback: LifeCycleEventListener<TProps>) => void
     readonly useMemo: <TMemoized, TArgs>(fn: (args: TArgs) => TMemoized, inputs: TArgs) => TMemoized
     readonly useState: <TState>(init: TState) => [TState, Evolve<TState>]
-    // readonly error?: Error
     // readonly oldProps: TProps
     readonly shouldRender: (shouldRender: boolean) => void
 }

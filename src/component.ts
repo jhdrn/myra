@@ -250,7 +250,9 @@ function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, 
 function triggerLifeCycleEvent(events: Array<LifeCycleEventListener<LifeCycleEvent<any>>> | undefined, event: LifeCycleEvent<any>) {
     if (events !== undefined) {
         for (let i = 0; i < events.length; i++) {
-            events[i](event)
+            if (events[i] !== undefined) {
+                events[i](event)
+            }
         }
     }
 }
@@ -279,7 +281,6 @@ enum RenderingAction {
     REPLACE = 3,
     UPDATE = 4
 }
-
 
 /** 
  * Renders the view by traversing the virtual node tree recursively 

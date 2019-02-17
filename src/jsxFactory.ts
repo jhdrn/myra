@@ -1,8 +1,8 @@
-import { ComponentFactory, VNode, TextVNode, ComponentVNode, ComponentProps, Context } from './contract'
-import { VNODE_NOTHING, VNODE_TEXT, VNODE_ELEMENT, VNODE_COMPONENT } from './constants'
+import { VNODE_COMPONENT, VNODE_ELEMENT, VNODE_NOTHING, VNODE_TEXT } from './constants'
+import { ComponentFactory, ComponentProps, ComponentVNode, Context, TextVNode, VNode } from './contract'
 
-function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
-    const flattenedChildren = [] as (VNode | string)[]
+function flattenChildren(children: Array<Array<VNode | string> | VNode | string>) {
+    const flattenedChildren = [] as Array<VNode | string>
 
     for (const child of children) {
         if (child === null || child === undefined || typeof child === 'boolean') {
@@ -34,7 +34,7 @@ function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
 export function h<TProps>(
     tagNameOrComponent: string | ComponentFactory<object, Context<object>> | undefined | null,
     props: TProps,
-    ...children: (string | VNode)[]): JSX.Element {
+    ...children: Array<string | VNode>): JSX.Element {
 
     if (tagNameOrComponent === 'nothing' ||
         tagNameOrComponent === undefined ||
