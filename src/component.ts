@@ -11,7 +11,7 @@ import {
     TextVNode,
     ErrorHandler
 } from './contract'
-import { equal } from './helpers'
+import { equal, typeOf } from './helpers'
 import { VNODE_ELEMENT, VNODE_COMPONENT, VNODE_TEXT, VNODE_NOTHING } from './constants'
 
 interface IRenderingContext {
@@ -19,7 +19,6 @@ interface IRenderingContext {
     isSvg: boolean
     parentElement: Element
     hookIndex: number
-    shouldRender: boolean
 }
 
 let renderingContext: IRenderingContext | undefined
@@ -33,7 +32,7 @@ function findAndUnmountComponentsRec(vNode: VNode | undefined) {
         return
     }
     if (vNode._ === VNODE_COMPONENT) {
-        triggerLifeCycleEvent(vNode.events, { type: 'willUnmount' })
+        triggerLifeCycleEvent(vNode.events, 'willUnmount')
 
         findAndUnmountComponentsRec(vNode.rendition!)
     }
@@ -66,9 +65,15 @@ function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
                 update = update(currentVNode.data![stateIndex])
             }
 
-            currentVNode.data![stateIndex] = {
-                ...(currentVNode.data![stateIndex] as any),
-                ...(update as object)
+            const updateType = typeOf(update)
+            if (updateType === 'object') {
+                currentVNode.data![stateIndex] = {
+                    ...(currentVNode.data![stateIndex] as any),
+                    ...(update as object)
+                }
+            }
+            else {
+                currentVNode.data![stateIndex] = update
             }
 
             if (currentVNode.dispatchLevel === 0) {
@@ -98,14 +103,9 @@ function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
     return [state, evolve]
 }
 
-function getDomRef(): Node | undefined {
+function useDomRef(): Node | undefined {
     const vNode = renderingContext!.vNode as ComponentVNode<any>
     return vNode.domRef
-}
-
-function useDefaultProps<TProps extends object>(defaultProps: TProps): TProps {
-    // Merge any defaultProps with received props
-    return { ...(defaultProps as object), ...renderingContext!.vNode.props } as TProps
 }
 
 function useErrorHandler(handler: ErrorHandler) {
@@ -114,7 +114,7 @@ function useErrorHandler(handler: ErrorHandler) {
     vNode.errorHandler = handler
 }
 
-function useLifeCycle<TProps>(callback: LifeCycleEventListener<LifeCycleEvent<TProps>>) {
+function useLifeCycle(callback: LifeCycleEventListener) {
 
     const vNode = renderingContext!.vNode as ComponentVNode<any>
 
@@ -157,18 +157,17 @@ function useMemo<TMemoization, TArgs>(fn: (args: TArgs) => TMemoization, inputs:
     return res
 }
 
-function shouldRender(shouldRender: boolean) {
-    renderingContext!.shouldRender = shouldRender
+function useRenderDecision(shouldRender: (oldProps: any, newProps: any) => boolean) {
+    renderingContext!.vNode.shouldRender = shouldRender
 }
 
 const context = {
-    getDomRef,
-    useDefaultProps,
+    useDomRef,
     useErrorHandler,
     useLifeCycle,
     useMemo,
     useState,
-    shouldRender
+    useRenderDecision
 }
 
 function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, isSvg: boolean, oldVNode: ComponentVNode<any> | undefined) {
@@ -183,71 +182,58 @@ function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, 
     if (renderingContext === undefined) {
 
         try {
-            let shouldRender =
-                oldVNode === undefined ||
-                (newVNode.props as any).forceUpdate ||
-                !equalProps(oldVNode.props, newVNode.props)
-
             renderingContext = {
                 vNode: newVNode,
                 isSvg,
                 parentElement,
-                hookIndex: 0,
-                shouldRender: shouldRender
+                hookIndex: 0
             }
 
             newView = newVNode.view(newVNode.props, context)
 
-            shouldRender = renderingContext.shouldRender
+            let shouldRender: boolean
+            if (newVNode.shouldRender !== undefined) {
+                shouldRender = newVNode.shouldRender(oldVNode === undefined ? {} : oldVNode.props, newVNode.props)
+            }
+            else {
+                shouldRender =
+                    oldVNode === undefined ||
+                    (newVNode.props as any).forceUpdate ||
+                    !equalProps(oldVNode.props, newVNode.props)
+            }
+
             renderingContext = undefined
 
             if (shouldRender) {
                 if (oldNode === undefined) {
-                    triggerLifeCycleEvent(newVNode.events, { type: 'willMount' })
+                    triggerLifeCycleEvent(newVNode.events, 'willMount')
                 }
 
-                triggerLifeCycleEvent(newVNode.events, { type: 'willRender', oldProps: {} })
+                triggerLifeCycleEvent(newVNode.events, 'willRender')
 
                 render(parentElement, newView, newVNode.rendition, oldNode, isSvg)
 
-                triggerLifeCycleEvent(newVNode.events, { type: 'didRender' })
+                triggerLifeCycleEvent(newVNode.events, 'didRender')
 
                 if (oldNode === undefined) {
-                    triggerLifeCycleEvent(newVNode.events, { type: 'didMount' })
+                    triggerLifeCycleEvent(newVNode.events, 'didMount')
                 }
+
+                newVNode.rendition = newView
+                newVNode.domRef = newView.domRef
+            }
+            else if (oldVNode !== undefined) {
+                newVNode.domRef = oldVNode.domRef
             }
         }
         catch (err) {
-            if (newVNode.errorHandler !== undefined) {
-
-                // Cleanup any nodes that already was rendered
-                let topNode: Node | undefined
-                if (newView !== undefined && newView.domRef !== undefined) {
-                    topNode = newView.domRef
-                }
-                if (topNode === undefined) {
-                    topNode = oldNode
-                }
-
-                if (topNode !== undefined) {
-                    parentElement.removeChild(topNode)
-                }
-
-                tryHandleComponentError(parentElement, newVNode, isSvg, err)
-
-                return
-            } else {
-                // Propagate the error upwards in the hierarchy
-                throw err
-            }
+            return tryHandleComponentError(parentElement, newVNode, isSvg, err)
         }
 
-        newVNode.rendition = newView
-        newVNode.domRef = newView.domRef
     }
 }
 
-function triggerLifeCycleEvent(events: Array<LifeCycleEventListener<LifeCycleEvent<any>>> | undefined, event: LifeCycleEvent<any>) {
+function triggerLifeCycleEvent(events: Array<LifeCycleEventListener> | undefined, event: LifeCycleEvent) {
     if (events !== undefined) {
         for (let i = 0; i < events.length; i++) {
             if (events[i] !== undefined) {
@@ -589,6 +575,7 @@ function renderUpdate(
         case VNODE_COMPONENT: // stateless component node
 
             newVNode.rendition = (oldVNode as ComponentVNode<any>).rendition
+            newVNode.shouldRender = (oldVNode as ComponentVNode<any>).shouldRender
             newVNode.data = (oldVNode as ComponentVNode<any>).data
             newVNode.events = (oldVNode as ComponentVNode<any>).events
             newVNode.link = (oldVNode as ComponentVNode<any>).link

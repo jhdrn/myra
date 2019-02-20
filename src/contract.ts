@@ -255,43 +255,26 @@ export type ComponentFactoryWithContext<TProps> = (props: TProps, context: Conte
 
 export type ErrorHandler = (error: any) => VNode
 
+export type RenderDecision<TProps> = (oldProps: TProps, newProps: TProps) => boolean
+
 export interface Context<TProps> {
-    readonly getDomRef: () => Node | undefined
-    readonly useDefaultProps: (defaultProps: Partial<Exclude<TProps & ComponentProps, 'children' | 'forceUpdate'>>) => TProps
+    readonly useDomRef: () => Node | undefined
     readonly useErrorHandler: (handler: ErrorHandler) => void
-    readonly useLifeCycle: (callback: LifeCycleEventListener<TProps>) => void
+    readonly useLifeCycle: (callback: LifeCycleEventListener) => void
     readonly useMemo: <TMemoized, TArgs>(fn: (args: TArgs) => TMemoized, inputs: TArgs) => TMemoized
     readonly useState: <TState>(init: TState) => [TState, Evolve<TState>]
-    // readonly oldProps: TProps
-    readonly shouldRender: (shouldRender: boolean) => void
+    readonly useRenderDecision: (desicion: RenderDecision<TProps>) => void
 }
 
-export type LifeCycleEvent<TProps> =
-    LifeCycleDidMountEvent |
-    LifeCycleDidRenderEvent |
-    LifeCycleWillMountEvent |
-    LifeCycleWillRenderEvent<TProps> |
-    LifeCycleWillUnmountEvent
+export type LifeCycleEvent =
+    'didMount' |
+    'didRender' |
+    'willMount' |
+    'willRender' |
+    'willUnmount'
 
-export interface LifeCycleDidMountEvent {
-    type: 'didMount'
-}
-export interface LifeCycleDidRenderEvent {
-    type: 'didRender'
-}
-export interface LifeCycleWillMountEvent {
-    type: 'willMount'
-}
-export interface LifeCycleWillRenderEvent<TProps> {
-    type: 'willRender'
-    oldProps: TProps
-}
-export interface LifeCycleWillUnmountEvent {
-    type: 'willUnmount'
-}
-
-export interface LifeCycleEventListener<TProps> {
-    (event: LifeCycleEvent<TProps>): void
+export interface LifeCycleEventListener {
+    (event: LifeCycleEvent): void
 }
 
 export interface ComponentProps {
@@ -354,11 +337,12 @@ export interface ElementVNode<TElement extends Element> extends VNodeBase {
 export interface ComponentVNode<TProps> extends VNodeBase {
     readonly _: 3
     dispatchLevel: number
-    events?: Array<LifeCycleEventListener<LifeCycleEvent<TProps>>>
+    events?: Array<LifeCycleEventListener>
     errorHandler?: ErrorHandler
     link: { vNode: ComponentVNode<TProps> }
     data?: any[]
     props: TProps
+    shouldRender?: RenderDecision<TProps>
     rendition?: VNode
     view: ComponentFactoryWithContext<TProps>
 }
