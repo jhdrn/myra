@@ -569,95 +569,95 @@ describe('updateComponent (stateful component)', () => {
         expect(mock.callback).toHaveBeenCalledTimes(2)
     })
 
-    // it('passes old and new props to shouldRender', done => {
-    //     const mock = {
-    //         shouldRender: (oldProps: { a?: number }, newProps: { a?: number }) => {
-    //             if (oldProps.a === 0) {
-    //                 expect(newProps.a).toBe(1)
-    //             }
-    //             else {
-    //                 expect(oldProps.a).toBe(1)
-    //                 expect(newProps.a).toBe(2)
-    //                 done()
-    //             }
-    //             return true
-    //         }
-    //     }
+    it('passes old and new props to useRenderDecision', done => {
+        const mock = {
+            useRenderDecision: (oldProps: { a?: number }, newProps: { a?: number }) => {
+                if (oldProps.a === undefined) {
+                    expect(newProps.a).toBe(1)
+                }
+                else {
+                    expect(oldProps.a).toBe(1)
+                    expect(newProps.a).toBe(2)
+                    done()
+                }
+                return true
+            }
+        }
 
-    //     spyOn(mock, 'shouldRender').and.callThrough()
-    //     interface Props {
+        spyOn(mock, 'useRenderDecision').and.callThrough()
+        interface Props { a?: number }
 
-    //     }
-    //     myra.withContext<Props>((_props, _children, context) => {
-    //         const [uiState, evolveUi] = context.useState(['string'])
-    //         context.useDefaultProps({ foo: 'foo' })
-    //         evolveUi([])
-    //         return (
-    //             <div>
-    //                 {uiState.map(s => s)}
-    //             </div>
-    //         )
-    //     })
+        myra.withContext<Props>((_props, context) => {
+            const [uiState, evolveUi] = context.useState(['string'])
+            // context.useDefaultProps({ foo: 'foo' })
+            context.useRenderDecision(mock.useRenderDecision)
+            evolveUi([])
+            return (
+                <div>
+                    {uiState.map(s => s)}
+                </div>
+            )
+        })
 
-    //     const Component = myra.withContext((_p: { a?: number }, ctx) => {
-    //         ctx.useDefaultProps({
-    //             a: 0
-    //         })
-    //         ctx.shouldRender: mock.shouldRender
-    //         return <div />
-    //     })
+        const Component = myra.withContext((_p: { a?: number }, ctx) => {
+            // ctx.useDefaultProps({
+            //     a: 0
+            // })
+            ctx.useRenderDecision(mock.useRenderDecision)
+            return <div />
+        })
 
-    //     const vNode = <Component a={1} />
-    //     const domNode = render(document.body, vNode, undefined, undefined)
+        const vNode = <Component a={1} />
+        const domNode = render(document.body, vNode, undefined, undefined)
 
-    //     const newVNode = <Component a={2} />
-    //     render(document.body, newVNode, vNode, domNode)
+        const newVNode = <Component a={2} />
+        render(document.body, newVNode, vNode, domNode)
 
-    // })
+    })
 
-    // it('calls the willRender listener if shouldRender returns true', () => {
-    //     const mock = {
-    //         willRender: () => { }
-    //     }
+    it('calls the willRender listener if shouldRender returns true', () => {
+        const mock = {
+            willRender: () => { }
+        }
 
-    //     spyOn(mock, 'willRender').and.callThrough()
+        spyOn(mock, 'willRender').and.callThrough()
 
-    //     const Component = myra.withContext((_p: { forceUpdate?: boolean }, ctx) => {
-    //         ctx.shouldRender: mock.shouldRender
-    //         ctx.useEvent('willRender', mock.willRender)
-    //         return <div />
-    //     })
+        const Component = myra.withContext((_p: { forceUpdate?: boolean }, ctx) => {
+            ctx.useRenderDecision(() => true)
+            ctx.useLifecycle(ev => ev === 'willRender' && mock.willRender())
+            return <div />
+        })
 
-    //     const vNode = <Component />
-    //     const domNode = render(document.body, vNode, undefined, undefined)
+        const vNode = <Component />
+        const domNode = render(document.body, vNode, undefined, undefined)
 
-    //     const newVNode = <Component forceUpdate />
-    //     render(document.body, newVNode, vNode, domNode)
+        const newVNode = <Component forceUpdate />
+        render(document.body, newVNode, vNode, domNode)
 
-    //     expect(mock.willRender).toHaveBeenCalledTimes(2)
-    // })
+        expect(mock.willRender).toHaveBeenCalledTimes(2)
+    })
 
-    // it('does not call the willRender listener if shouldRender returns false', () => {
-    //     const mock = {
-    //         willRender: () => { }
-    //     }
+    it('does not call the willRender listener if shouldRender returns false', () => {
+        const mock = {
+            willRender: () => { }
+        }
 
-    //     spyOn(mock, 'willRender').and.callThrough()
+        spyOn(mock, 'willRender').and.callThrough()
 
-    //     const Component = myra.withContext((_p: { forceUpdate?: boolean }, ctx) => {
-    //         ctx.shouldRender: mock.shouldRender
-    //         ctx.useEvent('willRender', mock.willRender)
-    //         return <div />
-    //     })
+        const Component = myra.withContext((_p: { forceUpdate?: boolean }, ctx) => {
+            ctx.useRenderDecision(() => false)
+            ctx.useLifecycle(ev => ev === 'willRender' && mock.willRender)
+            return <div />
+        })
 
-    //     const vNode = <Component />
-    //     const domNode = render(document.body, vNode, undefined, undefined)
+        const vNode = <Component />
+        const domNode = render(document.body, vNode, undefined, undefined)
 
-    //     const newVNode = <Component forceUpdate />
-    //     render(document.body, newVNode, vNode, domNode)
+        const newVNode = <Component forceUpdate />
+        render(document.body, newVNode, vNode, domNode)
 
-    //     expect(mock.willRender).not.toHaveBeenCalled()
-    // })
+        expect(mock.willRender).not.toHaveBeenCalled()
+    })
 
     it('does not call the willRender listener if the children has not changed', () => {
         const mock = {
