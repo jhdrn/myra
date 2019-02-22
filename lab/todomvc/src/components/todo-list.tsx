@@ -91,13 +91,13 @@ export default myra.withContext((_props, ctx) => {
         loadTodos()
     }
 
-    ctx.useLifeCycle(ev => {
-        if (ev.type === 'didMount') {
+    ctx.useLifecycle(ev => {
+        if (ev === 'didMount') {
             evolve({ filter: loadFilter() })
             router.addListener(applyFilterFromLocation)
             loadTodos()
         }
-        else if (ev.type === 'willRender') {
+        else if (ev === 'willRender') {
             loadTodos()
         }
     })

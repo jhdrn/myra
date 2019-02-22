@@ -61,7 +61,7 @@ describe('mount', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((_p, ctx) => {
-            ctx.useLifeCycle(ev => ev === 'willMount' && mock.callback())
+            ctx.useLifecycle(ev => ev === 'willMount' && mock.callback())
             return <div />
         })
 
@@ -80,7 +80,7 @@ describe('mount', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((_p, ctx) => {
-            ctx.useLifeCycle(ev => ev === 'didMount' && mock.callback())
+            ctx.useLifecycle(ev => ev === 'didMount' && mock.callback())
             return <div />
         })
 
@@ -99,7 +99,7 @@ describe('mount', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((_p, ctx) => {
-            ctx.useLifeCycle(ev => ev === 'willRender' && mock.callback())
+            ctx.useLifecycle(ev => ev === 'willRender' && mock.callback())
             return <div />
         })
 
@@ -118,7 +118,7 @@ describe('mount', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((_p, ctx) => {
-            ctx.useLifeCycle(ev => ev === 'didRender' && mock.callback())
+            ctx.useLifecycle(ev => ev === 'didRender' && mock.callback())
             return <div />
         })
 
@@ -159,7 +159,7 @@ describe('mount', () => {
 
         const Component = myra.withContext((_p, ctx) => {
 
-            ctx.useLifeCycle(ev => {
+            ctx.useLifecycle(ev => {
                 if (ev === 'didMount') {
                     throw Error()
                 }
@@ -188,7 +188,7 @@ describe('mount', () => {
 
         const Component = myra.withContext((_p, ctx) => {
 
-            ctx.useLifeCycle(ev => {
+            ctx.useLifecycle(ev => {
                 if (ev === 'didRender') {
                     throw Error()
                 }
@@ -297,7 +297,7 @@ describe('mount', () => {
 
         const Component = myra.withContext((_p, ctx) => {
 
-            ctx.useLifeCycle(ev => {
+            ctx.useLifecycle(ev => {
                 if (ev === 'willMount') {
                     throw Error()
                 }
@@ -325,7 +325,7 @@ describe('mount', () => {
 
         const Component = myra.withContext((_p, ctx) => {
 
-            ctx.useLifeCycle(ev => {
+            ctx.useLifecycle(ev => {
                 if (ev === 'willRender') {
                     throw Error()
                 }
@@ -353,7 +353,7 @@ describe('mount', () => {
 
         const Component = myra.withContext((_p, ctx) => {
 
-            ctx.useLifeCycle(ev => {
+            ctx.useLifecycle(ev => {
                 if (ev === 'willUnmount') {
                     throw Error()
                 }
@@ -437,7 +437,7 @@ describe('unmountComponent', () => {
         spyOn(mock, 'unmount').and.callThrough()
 
         const Component = myra.withContext((_p, ctx) => {
-            ctx.useLifeCycle(ev => ev === 'willUnmount' && mock.unmount())
+            ctx.useLifecycle(ev => ev === 'willUnmount' && mock.unmount())
             return <div />
         })
 
@@ -457,12 +457,12 @@ describe('unmountComponent', () => {
         spyOn(mock, 'unmount').and.callThrough()
 
         const ChildChildComponent = myra.withContext((_p, ctx) => {
-            ctx.useLifeCycle(ev => ev === 'willUnmount' && mock.unmount())
+            ctx.useLifecycle(ev => ev === 'willUnmount' && mock.unmount())
             return <div />
         })
 
         const ChildComponent = myra.withContext((_p, ctx) => {
-            ctx.useLifeCycle(ev => ev === 'willUnmount' && mock.unmount())
+            ctx.useLifecycle(ev => ev === 'willUnmount' && mock.unmount())
             return <ChildChildComponent />
         })
 
@@ -483,12 +483,12 @@ describe('unmountComponent', () => {
         spyOn(mock, 'unmount').and.callThrough()
 
         const ChildChildComponent = myra.withContext((_p, ctx) => {
-            ctx.useLifeCycle(ev => ev === 'willUnmount' && mock.unmount())
+            ctx.useLifecycle(ev => ev === 'willUnmount' && mock.unmount())
             return <div />
         })
 
         const ChildComponent = myra.withContext((_p, ctx) => {
-            ctx.useLifeCycle(ev => ev === 'willUnmount' && mock.unmount())
+            ctx.useLifecycle(ev => ev === 'willUnmount' && mock.unmount())
             return <ChildChildComponent />
         })
 
@@ -517,7 +517,7 @@ describe('updateComponent (stateful component)', () => {
         spyOn(mock, 'willRender').and.callThrough()
 
         const Component = myra.withContext((_p: { val: number }, ctx) => {
-            ctx.useLifeCycle(ev => ev === 'willRender' && mock.willRender())
+            ctx.useLifecycle(ev => ev === 'willRender' && mock.willRender())
             return <div />
         })
 
@@ -536,7 +536,7 @@ describe('updateComponent (stateful component)', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((_p: { forceUpdate?: boolean }, ctx) => {
-            ctx.useLifeCycle(ev => ev === 'willRender' && mock.callback())
+            ctx.useLifecycle(ev => ev === 'willRender' && mock.callback())
             return <div />
         })
 
@@ -556,7 +556,7 @@ describe('updateComponent (stateful component)', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((_p: { prop: string }, ctx) => {
-            ctx.useLifeCycle(ev => ev === 'willRender' && mock.callback())
+            ctx.useLifecycle(ev => ev === 'willRender' && mock.callback())
             return <div />
         })
 
@@ -667,7 +667,7 @@ describe('updateComponent (stateful component)', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((props, ctx) => {
-            ctx.useLifeCycle(ev => ev === 'willRender' && mock.callback())
+            ctx.useLifecycle(ev => ev === 'willRender' && mock.callback())
             return <div>{...props.children}</div>
         })
 
@@ -688,7 +688,7 @@ describe('updateComponent (stateful component)', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.withContext((props, ctx) => {
-            ctx.useLifeCycle(ev => ev === 'willRender' && mock.callback())
+            ctx.useLifecycle(ev => ev === 'willRender' && mock.callback())
             return <div>{...props.children}</div>
         })
 

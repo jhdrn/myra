@@ -19,10 +19,10 @@ const AppComponent = myra.withContext((_props, ctx) => {
     const [state, evolve] = ctx.useState({ hello: 'Hello world' })
     const [state2, evolve2] = ctx.useState({ hello: 'Hello world 2' })
 
-    ctx.shouldRender(false)
+    ctx.useRenderDecision(() => false)
 
-    ctx.useLifeCycle(ev => {
-        if (ev.type === 'didRender') {
+    ctx.useLifecycle(ev => {
+        if (ev === 'didRender') {
             evolve({ hello: 'Hello world 3' })
         }
     })

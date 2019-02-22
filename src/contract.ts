@@ -260,21 +260,21 @@ export type RenderDecision<TProps> = (oldProps: TProps, newProps: TProps) => boo
 export interface Context<TProps> {
     readonly useDomRef: () => Node | undefined
     readonly useErrorHandler: (handler: ErrorHandler) => void
-    readonly useLifeCycle: (callback: LifeCycleEventListener) => void
+    readonly useLifecycle: (callback: LifecycleEventListener) => void
     readonly useMemo: <TMemoized, TArgs>(fn: (args: TArgs) => TMemoized, inputs: TArgs) => TMemoized
     readonly useState: <TState>(init: TState) => [TState, Evolve<TState>]
     readonly useRenderDecision: (desicion: RenderDecision<TProps>) => void
 }
 
-export type LifeCycleEvent =
+export type LifecycleEvent =
     'didMount' |
     'didRender' |
     'willMount' |
     'willRender' |
     'willUnmount'
 
-export interface LifeCycleEventListener {
-    (event: LifeCycleEvent): void
+export interface LifecycleEventListener {
+    (event: LifecycleEvent): void
 }
 
 export interface ComponentProps {
@@ -337,7 +337,7 @@ export interface ElementVNode<TElement extends Element> extends VNodeBase {
 export interface ComponentVNode<TProps> extends VNodeBase {
     readonly _: 3
     dispatchLevel: number
-    events?: Array<LifeCycleEventListener>
+    events?: Array<LifecycleEventListener>
     errorHandler?: ErrorHandler
     link: { vNode: ComponentVNode<TProps> }
     data?: any[]

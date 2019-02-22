@@ -5,8 +5,8 @@ import {
     VNode,
     ComponentVNode,
     Evolve,
-    LifeCycleEvent,
-    LifeCycleEventListener,
+    LifecycleEvent,
+    LifecycleEventListener,
     ComponentProps,
     TextVNode,
     ErrorHandler
@@ -22,26 +22,6 @@ interface IRenderingContext {
 }
 
 let renderingContext: IRenderingContext | undefined
-
-/** 
- * Traverses the virtual node hierarchy and unmounts any components in the 
- * hierarchy.
- */
-function findAndUnmountComponentsRec(vNode: VNode | undefined) {
-    if (vNode === undefined) {
-        return
-    }
-    if (vNode._ === VNODE_COMPONENT) {
-        triggerLifeCycleEvent(vNode.events, 'willUnmount')
-
-        findAndUnmountComponentsRec(vNode.rendition!)
-    }
-    else if (vNode._ === VNODE_ELEMENT) {
-        for (const c of vNode.props.children) {
-            findAndUnmountComponentsRec(c)
-        }
-    }
-}
 
 function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
 
@@ -114,7 +94,7 @@ function useErrorHandler(handler: ErrorHandler) {
     vNode.errorHandler = handler
 }
 
-function useLifeCycle(callback: LifeCycleEventListener) {
+function useLifecycle(callback: LifecycleEventListener) {
 
     const vNode = renderingContext!.vNode as ComponentVNode<any>
 
@@ -164,7 +144,7 @@ function useRenderDecision(shouldRender: (oldProps: any, newProps: any) => boole
 const context = {
     useDomRef,
     useErrorHandler,
-    useLifeCycle,
+    useLifecycle,
     useMemo,
     useState,
     useRenderDecision
@@ -233,7 +213,7 @@ function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, 
     }
 }
 
-function triggerLifeCycleEvent(events: Array<LifeCycleEventListener> | undefined, event: LifeCycleEvent) {
+function triggerLifeCycleEvent(events: Array<LifecycleEventListener> | undefined, event: LifecycleEvent) {
     if (events !== undefined) {
         for (let i = 0; i < events.length; i++) {
             if (events[i] !== undefined) {
@@ -258,6 +238,26 @@ function tryHandleComponentError(parentElement: Element, vNode: ComponentVNode<a
         vNode.domRef = errorView.domRef
     } else {
         throw err
+    }
+}
+
+/** 
+ * Traverses the virtual node hierarchy and unmounts any components in the 
+ * hierarchy.
+ */
+function findAndUnmountComponentsRec(vNode: VNode | undefined) {
+    if (vNode === undefined) {
+        return
+    }
+    if (vNode._ === VNODE_COMPONENT) {
+        triggerLifeCycleEvent(vNode.events, 'willUnmount')
+
+        findAndUnmountComponentsRec(vNode.rendition!)
+    }
+    else if (vNode._ === VNODE_ELEMENT) {
+        for (const c of vNode.props.children) {
+            findAndUnmountComponentsRec(c)
+        }
     }
 }
 
