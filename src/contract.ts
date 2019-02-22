@@ -258,7 +258,7 @@ export type ErrorHandler = (error: any) => VNode
 export type RenderDecision<TProps> = (oldProps: TProps, newProps: TProps) => boolean
 
 export interface Context<TProps> {
-    readonly useDomRef: () => Node | undefined
+    readonly useDomRef: () => { domRef: Node | undefined }
     readonly useErrorHandler: (handler: ErrorHandler) => void
     readonly useLifecycle: (callback: LifecycleEventListener) => void
     readonly useMemo: <TMemoized, TArgs>(fn: (args: TArgs) => TMemoized, inputs: TArgs) => TMemoized

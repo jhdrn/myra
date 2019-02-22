@@ -262,31 +262,29 @@ describe('mount', () => {
         })
     })
 
-    // it('calls the onError listener on shouldRender error', done => {
-    //     const mock = {
-    //         callback: () => <nothing />
-    //     }
+    it('calls the onError listener on useRenderDecision error', done => {
+        const mock = {
+            callback: () => <nothing />
+        }
 
-    //     spyOn(mock, 'callback').and.callThrough()
+        spyOn(mock, 'callback').and.callThrough()
 
-    //     const Component = () => {
-    //         myra.useContext({
-    //             onError: mock.callback,
-    //             shouldRender: () => {
-    //                 throw Error()
-    //             }
-    //         })
-    //         return <div></div>
-    //     }
+        const Component = myra.withContext((_p, ctx) => {
+            ctx.useErrorHandler(mock.callback)
+            ctx.useRenderDecision(() => {
+                throw Error()
+            })
+            return <div></div>
+        })
 
-    //     const node = render(document.body, <Component />, undefined, undefined)
+        const node = render(document.body, <Component />, undefined, undefined)
 
-    //     expect(node.nodeType).toBe(Node.COMMENT_NODE)
-    //     expect(node.textContent).toBe('Nothing')
-    //     expect(mock.callback).toHaveBeenCalled()
+        expect(node.nodeType).toBe(Node.COMMENT_NODE)
+        expect(node.textContent).toBe('Nothing')
+        expect(mock.callback).toHaveBeenCalled()
 
-    //     done()
-    // })
+        done()
+    })
 
     it('calls the onError listener on willMount error', done => {
         const mock = {

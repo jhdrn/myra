@@ -32,28 +32,28 @@ function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
 
     const parentElement = renderingContext!.parentElement
     const isSvg = renderingContext!.isSvg
-    const stateIndex = renderingContext!.hookIndex
+    const hookIndex = renderingContext!.hookIndex
 
-    if (vNode.data[stateIndex] === undefined) {
-        vNode.data[stateIndex] = initialState
+    if (vNode.data[hookIndex] === undefined) {
+        vNode.data[hookIndex] = initialState
     }
 
     function evolve(update: UpdateState<any>) {
         const currentVNode = vNode.link.vNode
         try {
             if (typeof update === 'function') {
-                update = update(currentVNode.data![stateIndex])
+                update = update(currentVNode.data![hookIndex])
             }
 
             const updateType = typeOf(update)
             if (updateType === 'object') {
-                currentVNode.data![stateIndex] = {
-                    ...(currentVNode.data![stateIndex] as any),
+                currentVNode.data![hookIndex] = {
+                    ...(currentVNode.data![hookIndex] as any),
                     ...(update as object)
                 }
             }
             else {
-                currentVNode.data![stateIndex] = update
+                currentVNode.data![hookIndex] = update
             }
 
             if (currentVNode.dispatchLevel === 0) {
@@ -74,18 +74,30 @@ function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
                 tryHandleComponentError(parentElement, currentVNode, isSvg, err)
             })
         }
-        return currentVNode.data![stateIndex]
+        return currentVNode.data![hookIndex]
     }
 
-    const state = vNode.data[stateIndex]
+    const state = vNode.data[hookIndex]
     renderingContext!.hookIndex++
 
     return [state, evolve]
 }
 
-function useDomRef(): Node | undefined {
+function useDomRef(): { domRef: Node | undefined } {
     const vNode = renderingContext!.vNode as ComponentVNode<any>
-    return vNode.domRef
+    if (vNode.data === undefined) {
+        vNode.data = []
+    }
+
+    const hookIndex = renderingContext!.hookIndex
+    if (vNode.data[hookIndex] === undefined) {
+        vNode.data[hookIndex] = {
+            get domRef() {
+                return vNode.domRef
+            }
+        }
+    }
+    return vNode.data[hookIndex]
 }
 
 function useErrorHandler(handler: ErrorHandler) {
