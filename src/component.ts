@@ -37,9 +37,10 @@ function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
     if (vNode.data[stateIndex] === undefined) {
         vNode.data[stateIndex] = initialState
     }
+    const link = vNode.link
 
     function evolve(update: UpdateState<any>) {
-        const currentVNode = vNode.link.vNode
+        const currentVNode = link.vNode
         try {
             if (typeof update === 'function') {
                 update = update(currentVNode.data![stateIndex])
@@ -60,8 +61,8 @@ function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
                 currentVNode.dispatchLevel++
                 if (renderingContext === undefined) {
                     requestAnimationFrame(() => {
-                        renderComponent(parentElement, vNode.link.vNode, isSvg, undefined)
-                        vNode.link.vNode.dispatchLevel--
+                        renderComponent(parentElement, link.vNode, isSvg, undefined)
+                        link.vNode.dispatchLevel--
                     })
                 }
                 else {
