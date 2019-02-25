@@ -52,7 +52,9 @@ describe('mount', () => {
             done()
         })
     })
+})
 
+describe('useLifecycle', () => {
     it('calls the willMount listener', done => {
         const mock = {
             callback: () => { }
@@ -129,7 +131,107 @@ describe('mount', () => {
         done()
     })
 
-    it('calls the onError listener on view rendering error', done => {
+    it('calls the willUnmount listener', () => {
+        const mock = {
+            unmount: () => { }
+        }
+
+        spyOn(mock, 'unmount').and.callThrough()
+
+        const Component = myra.withContext((_p, ctx) => {
+            ctx.useLifecycle(ev => ev === 'willUnmount' && mock.unmount())
+            return <div />
+        })
+
+        const instance = <Component />
+
+        const domNode = render(document.body, instance, undefined, undefined)
+        render(document.body, <div></div>, instance, domNode)
+
+        expect(mock.unmount).toHaveBeenCalledTimes(1)
+    })
+
+    it('calls the willUnmount listener on child components', () => {
+        const mock = {
+            unmount: () => { }
+        }
+
+        spyOn(mock, 'unmount').and.callThrough()
+
+        const ChildChildComponent = myra.withContext((_p, ctx) => {
+            ctx.useLifecycle(ev => ev === 'willUnmount' && mock.unmount())
+            return <div />
+        })
+
+        const ChildComponent = myra.withContext((_p, ctx) => {
+            ctx.useLifecycle(ev => ev === 'willUnmount' && mock.unmount())
+            return <ChildChildComponent />
+        })
+
+        const component = () => <div><ChildComponent /></div>
+
+        const instance = component()
+        const domNode = render(document.body, instance, undefined, undefined)
+        render(document.body, <div></div>, instance, domNode)
+
+        expect(mock.unmount).toHaveBeenCalledTimes(2)
+    })
+
+    it('calls the willUnmount listener on child components of a component', () => {
+        const mock = {
+            unmount: () => { }
+        }
+
+        spyOn(mock, 'unmount').and.callThrough()
+
+        const ChildChildComponent = myra.withContext((_p, ctx) => {
+            ctx.useLifecycle(ev => ev === 'willUnmount' && mock.unmount())
+            return <div />
+        })
+
+        const ChildComponent = myra.withContext((_p, ctx) => {
+            ctx.useLifecycle(ev => ev === 'willUnmount' && mock.unmount())
+            return <ChildChildComponent />
+        })
+
+        const StateLessComponent = () => <ChildComponent />
+
+        const component = () => <div><StateLessComponent /></div>
+
+        const instance = component()
+        const domNode = render(document.body, instance, undefined, undefined)
+        render(document.body, <div></div>, instance, domNode)
+
+        expect(mock.unmount).toHaveBeenCalledTimes(2)
+    })
+
+    it('calls a function that captures a new variable', done => {
+        const mock = {
+            callback: () => { }
+        }
+
+        spyOn(mock, 'callback').and.callThrough()
+
+        type Props = {
+            test: boolean
+        }
+
+        const Component = myra.withContext<Props>(({ test }, ctx) => {
+            ctx.useLifecycle(ev => ev === 'willRender' && test && mock.callback())
+            return <div />
+        })
+
+        render(document.body, <Component test={true} />, undefined, undefined)
+        render(document.body, <Component test={false} />, undefined, undefined)
+
+        expect(mock.callback).toHaveBeenCalledTimes(1)
+
+        done()
+    })
+})
+
+describe('useErrorHandling', () => {
+    it('calls the useErrorHandling listener on view rendering error', done => {
         const mock = {
             callback: () => <nothing />
         }
@@ -150,7 +252,7 @@ describe('mount', () => {
         done()
     })
 
-    it('calls the onError listener on didMount error', done => {
+    it('calls the useErrorHandling listener on didMount error', done => {
         const mock = {
             callback: () => <nothing />
         }
@@ -179,7 +281,7 @@ describe('mount', () => {
     })
 
 
-    it('calls the onError listener on didRender error', done => {
+    it('calls the useErrorHandling listener on didRender error', done => {
         const mock = {
             callback: () => <nothing />
         }
@@ -207,7 +309,7 @@ describe('mount', () => {
         done()
     })
 
-    it('calls the onError listener on initialization error', done => {
+    it('calls the useErrorHandling listener on initialization error', done => {
         const mock = {
             callback: () => <nothing />
         }
@@ -232,7 +334,7 @@ describe('mount', () => {
         done()
     })
 
-    it('calls the onError listener on evolve error', done => {
+    it('calls the useErrorHandling listener on evolve error', done => {
         const mock = {
             callback: () => <nothing />
         }
@@ -262,7 +364,7 @@ describe('mount', () => {
         })
     })
 
-    it('calls the onError listener on useRenderDecision error', done => {
+    it('calls the useErrorHandling listener on useRenderDecision error', done => {
         const mock = {
             callback: () => <nothing />
         }
@@ -286,7 +388,7 @@ describe('mount', () => {
         done()
     })
 
-    it('calls the onError listener on willMount error', done => {
+    it('calls the useErrorHandling listener on willMount error', done => {
         const mock = {
             callback: () => <nothing />
         }
@@ -314,7 +416,7 @@ describe('mount', () => {
         done()
     })
 
-    it('calls the onError listener on willRender error', done => {
+    it('calls the useErrorHandling listener on willRender error', done => {
         const mock = {
             callback: () => <nothing />
         }
@@ -342,7 +444,7 @@ describe('mount', () => {
         done()
     })
 
-    it('does not call the onError listener on willUnmount error', done => {
+    it('does not call the useErrorHandling listener on willUnmount error', done => {
         const mock = {
             callback: () => <nothing />
         }
@@ -421,91 +523,10 @@ describe('mount', () => {
     })
 })
 
-
-/**
- * unmountComponent
- */
-describe('unmountComponent', () => {
-
-    it('calls the willUnmount listener', () => {
-        const mock = {
-            unmount: () => { }
-        }
-
-        spyOn(mock, 'unmount').and.callThrough()
-
-        const Component = myra.withContext((_p, ctx) => {
-            ctx.useLifecycle(ev => ev === 'willUnmount' && mock.unmount())
-            return <div />
-        })
-
-        const instance = <Component />
-
-        const domNode = render(document.body, instance, undefined, undefined)
-        render(document.body, <div></div>, instance, domNode)
-
-        expect(mock.unmount).toHaveBeenCalledTimes(1)
-    })
-
-    it('calls the willUnmount listener on child components', () => {
-        const mock = {
-            unmount: () => { }
-        }
-
-        spyOn(mock, 'unmount').and.callThrough()
-
-        const ChildChildComponent = myra.withContext((_p, ctx) => {
-            ctx.useLifecycle(ev => ev === 'willUnmount' && mock.unmount())
-            return <div />
-        })
-
-        const ChildComponent = myra.withContext((_p, ctx) => {
-            ctx.useLifecycle(ev => ev === 'willUnmount' && mock.unmount())
-            return <ChildChildComponent />
-        })
-
-        const component = () => <div><ChildComponent /></div>
-
-        const instance = component()
-        const domNode = render(document.body, instance, undefined, undefined)
-        render(document.body, <div></div>, instance, domNode)
-
-        expect(mock.unmount).toHaveBeenCalledTimes(2)
-    })
-
-    it('calls the willUnmount listener on child components of a component', () => {
-        const mock = {
-            unmount: () => { }
-        }
-
-        spyOn(mock, 'unmount').and.callThrough()
-
-        const ChildChildComponent = myra.withContext((_p, ctx) => {
-            ctx.useLifecycle(ev => ev === 'willUnmount' && mock.unmount())
-            return <div />
-        })
-
-        const ChildComponent = myra.withContext((_p, ctx) => {
-            ctx.useLifecycle(ev => ev === 'willUnmount' && mock.unmount())
-            return <ChildChildComponent />
-        })
-
-        const StateLessComponent = () => <ChildComponent />
-
-        const component = () => <div><StateLessComponent /></div>
-
-        const instance = component()
-        const domNode = render(document.body, instance, undefined, undefined)
-        render(document.body, <div></div>, instance, domNode)
-
-        expect(mock.unmount).toHaveBeenCalledTimes(2)
-    })
-})
-
 /**
  * updateComponent
  */
-describe('updateComponent (stateful component)', () => {
+describe('component render', () => {
 
     it('does not call the willRender listener if the props has not changed', () => {
         const mock = {
@@ -698,7 +719,6 @@ describe('updateComponent (stateful component)', () => {
 
         expect(mock.callback).toHaveBeenCalledTimes(2)
     })
-
 })
 
 describe('evolve', () => {

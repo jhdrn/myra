@@ -57,18 +57,10 @@ function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
                 currentVNode.data![hookIndex] = update
             }
 
-            if (currentVNode.dispatchLevel === 0) {
-                currentVNode.dispatchLevel++
-                if (renderingContext === undefined) {
-                    requestAnimationFrame(() => {
-                        renderComponent(parentElement, link.vNode, isSvg, undefined)
-                        link.vNode.dispatchLevel--
-                    })
-                }
-                else {
-                    //renderComponent(parentElement, currentVNode, isSvg, undefined)
-                    currentVNode.dispatchLevel--
-                }
+            if (renderingContext === undefined) {
+                requestAnimationFrame(() => {
+                    renderComponent(parentElement, link.vNode, isSvg, undefined)
+                })
             }
         } catch (err) {
             requestAnimationFrame(() => {
@@ -115,9 +107,7 @@ function useLifecycle(callback: LifecycleEventListener) {
         vNode.events = []
     }
 
-    if (vNode.events[renderingContext!.hookIndex] === undefined) {
-        vNode.events[renderingContext!.hookIndex] = callback
-    }
+    vNode.events[renderingContext!.hookIndex] = callback
 
     renderingContext!.hookIndex++
 }

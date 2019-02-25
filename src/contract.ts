@@ -245,10 +245,6 @@ declare global {
 export type UpdateState<TState> = Partial<TState> | ((s: Readonly<TState>) => Partial<TState>)
 export type Evolve<TState> = (update: UpdateState<TState>) => TState // | Error ???
 
-// export interface WithContextOptions<TState, TProps> {
-//     shouldRender?: (oldProps: TProps, newProps: TProps) => boolean
-// }
-
 export type ComponentFactory<TProps, TContext> = (props: TProps, context: TContext) => VNode
 
 export type ComponentFactoryWithContext<TProps> = (props: TProps, context: Context<TProps>) => VNode
@@ -336,7 +332,6 @@ export interface ElementVNode<TElement extends Element> extends VNodeBase {
  */
 export interface ComponentVNode<TProps> extends VNodeBase {
     readonly _: 3
-    dispatchLevel: number
     events?: Array<LifecycleEventListener>
     errorHandler?: ErrorHandler
     link: { vNode: ComponentVNode<TProps> }
