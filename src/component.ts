@@ -84,9 +84,10 @@ function useDomRef(): { domRef: Node | undefined } {
 
     const hookIndex = renderingContext!.hookIndex
     if (vNode.data[hookIndex] === undefined) {
+        const link = vNode.link
         vNode.data[hookIndex] = {
             get domRef() {
-                return vNode.domRef
+                return link.vNode.domRef
             }
         }
     }
@@ -196,14 +197,15 @@ function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, 
 
                 render(parentElement, newView, newVNode.rendition, oldNode, isSvg)
 
+                newVNode.rendition = newView
+                newVNode.domRef = newView.domRef
+
                 triggerLifeCycleEvent(newVNode.events, 'didRender')
 
                 if (oldNode === undefined) {
                     triggerLifeCycleEvent(newVNode.events, 'didMount')
                 }
 
-                newVNode.rendition = newView
-                newVNode.domRef = newView.domRef
             }
             else if (oldVNode !== undefined) {
                 newVNode.domRef = oldVNode.domRef
