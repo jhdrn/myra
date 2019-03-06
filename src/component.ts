@@ -200,10 +200,10 @@ function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, 
                 newVNode.rendition = newView
                 newVNode.domRef = newView.domRef
 
-                triggerLifeCycleEvent(newVNode.events, 'didRender')
+                triggerAsyncLifecycleEvent(newVNode, 'didRender', parentElement, isSvg)
 
                 if (oldNode === undefined) {
-                    triggerLifeCycleEvent(newVNode.events, 'didMount')
+                    triggerAsyncLifecycleEvent(newVNode, 'didMount', parentElement, isSvg)
                 }
 
             }
@@ -212,10 +212,21 @@ function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, 
             }
         }
         catch (err) {
-            return tryHandleComponentError(parentElement, newVNode, isSvg, err)
+            tryHandleComponentError(parentElement, newVNode, isSvg, err)
         }
 
     }
+}
+
+function triggerAsyncLifecycleEvent(newVNode: ComponentVNode<any>, ev: LifecycleEvent, parentElement: Element, isSvg: boolean) {
+    new Promise(() => {
+        try {
+            triggerLifeCycleEvent(newVNode.events, ev)
+        }
+        catch (err) {
+            tryHandleComponentError(parentElement, newVNode, isSvg, err)
+        }
+    });
 }
 
 function triggerLifeCycleEvent(events: Array<LifecycleEventListener> | undefined, event: LifecycleEvent) {
@@ -229,6 +240,11 @@ function triggerLifeCycleEvent(events: Array<LifecycleEventListener> | undefined
 }
 
 function tryHandleComponentError(parentElement: Element, vNode: ComponentVNode<any>, isSvg: boolean, err: Error) {
+
+    // Do nothing if the parentElement is not longer connected to the DOM
+    if (parentElement.parentNode === null) {
+        return
+    }
 
     renderingContext = undefined
     if (vNode.errorHandler !== undefined) {
