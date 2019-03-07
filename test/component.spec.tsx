@@ -1,5 +1,6 @@
 import * as myra from '../src/myra'
 import { render } from '../src/component'
+import { ComponentVNode } from '../src/myra'
 
 const q = (x: string) => document.querySelector(x)
 
@@ -88,9 +89,11 @@ describe('useLifecycle', () => {
 
         render(document.body, <Component />, undefined, undefined)
 
-        expect(mock.callback).toHaveBeenCalled()
+        setTimeout(() => {
+            expect(mock.callback).toHaveBeenCalled()
 
-        done()
+            done()
+        }, 0)
     })
 
     it('calls the willRender listener', done => {
@@ -126,9 +129,11 @@ describe('useLifecycle', () => {
 
         render(document.body, <Component />, undefined, undefined)
 
-        expect(mock.callback).toHaveBeenCalled()
+        setTimeout(() => {
+            expect(mock.callback).toHaveBeenCalled()
 
-        done()
+            done()
+        }, 0)
     })
 
     it('calls the willUnmount listener', () => {
@@ -271,13 +276,19 @@ describe('useErrorHandling', () => {
             return <div></div>
         })
 
-        const node = render(document.body, <Component />, undefined, undefined)
+        const component = <Component />
 
-        expect(node.nodeType).toBe(Node.COMMENT_NODE)
-        expect(node.textContent).toBe('Nothing')
-        expect(mock.callback).toHaveBeenCalled()
+        render(document.body, component, undefined, undefined)
 
-        done()
+        setTimeout(() => {
+            const node = (component as ComponentVNode<any>).domRef!
+            expect(node.nodeType).toBe(Node.COMMENT_NODE)
+            expect(node.textContent).toBe('Nothing')
+            expect(mock.callback).toHaveBeenCalled()
+
+            done()
+
+        }, 0)
     })
 
 
@@ -300,13 +311,18 @@ describe('useErrorHandling', () => {
             return <div></div>
         })
 
-        const node = render(document.body, <Component />, undefined, undefined)
+        const component = <Component />
 
-        expect(node.nodeType).toBe(Node.COMMENT_NODE)
-        expect(node.textContent).toBe('Nothing')
-        expect(mock.callback).toHaveBeenCalled()
+        render(document.body, component, undefined, undefined)
 
-        done()
+        setTimeout(() => {
+            const node = (component as ComponentVNode<any>).domRef!
+            expect(node.nodeType).toBe(Node.COMMENT_NODE)
+            expect(node.textContent).toBe('Nothing')
+            expect(mock.callback).toHaveBeenCalled()
+
+            done()
+        }, 0)
     })
 
     it('calls the useErrorHandling listener on initialization error', done => {
