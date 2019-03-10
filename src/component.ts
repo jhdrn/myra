@@ -219,11 +219,13 @@ function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, 
 }
 
 function triggerAsyncLifecycleEvent(newVNode: ComponentVNode<any>, ev: LifecycleEvent, parentElement: Element, isSvg: boolean) {
-    Promise.resolve().then(() =>
-        triggerLifeCycleEvent(newVNode.events, ev)
-    ).catch(err =>
-        tryHandleComponentError(parentElement, newVNode, isSvg, err)
-    )
+    if (newVNode.events !== undefined) {
+        Promise.resolve().then(() =>
+            triggerLifeCycleEvent(newVNode.events, ev)
+        ).catch(err =>
+            tryHandleComponentError(parentElement, newVNode, isSvg, err)
+        )
+    }
 }
 
 function triggerLifeCycleEvent(events: Array<LifecycleEventListener> | undefined, event: LifecycleEvent) {

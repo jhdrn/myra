@@ -8,7 +8,7 @@ Myra is (another) JSX rendering library. It is small, simple and built with and 
 [![Travis](https://img.shields.io/travis/jhdrn/myra.svg?maxAge=36000)](https://travis-ci.org/jhdrn/myra)
 [![codecov](https://codecov.io/gh/jhdrn/myra/branch/master/graph/badge.svg)](https://codecov.io/gh/jhdrn/myra)
 [![Downloads](https://img.shields.io/npm/dm/myra.svg)](https://www.npmjs.com/package/myra)
-[![gzip size](http://img.badgesize.io/https://cdn.jsdelivr.net/npm/myra/myra.min.js?compression=gzip)](https://cdn.jsdelivr.net/npm/myra/dist/myra.min.js)
+[![gzip size](http://img.badgesize.io/https://cdn.jsdelivr.net/npm/myra/myra.min.js?compression=gzip)](https://cdn.jsdelivr.net/npm/myra/myra.min.js)
 [![install size](https://badgen.net/packagephobia/install/myra)](https://packagephobia.now.sh/result?p=myra)
 
 [![NPM](https://nodei.co/npm/myra.png)](https://nodei.co/npm/myra/)
@@ -26,7 +26,7 @@ Myra is (another) JSX rendering library. It is small, simple and built with and 
   Hello World example is < 3kb minified and gzipped
 
 ## Requirements
-Myra requires Typescript 2.2 to function properly. It is also highly advised 
+Myra requires Typescript 2.8 to function properly. It is also highly advised 
 that the compiler options `strictNullChecks`, `noImplicitReturns` and 
 `noImplicitAny` are set to true.
 
@@ -42,12 +42,36 @@ build and "watch" scripts using npm and Webpack.
 
 ## Components
 A Myra app is built from a hierarchy of components. The root component is 
-mounted to a DOM element and it may contain child components. Components can be
-either stateful or stateless. 
+mounted to a DOM element and it may contain child components. 
 
-### Stateful components
-To define a stateful component, use `myra.define` and then mount it to the DOM
-with `myra.mount`:
+A component is just a function that takes a `props` object and a `context` as arguments:
+
+```JSX
+    import * as myra from 'myra'
+
+    type Props = { test: string } & myra.ComponentProps
+    const StateLessComponent = (props: Props, context: myra.Context<Props>) =>
+        <div>
+            {props.test}
+            {...props.children}
+        </div>
+
+    const parentView = () => 
+        <StateLessComponent test="foo">
+            This is a child.
+        </StateLessComponent>
+```
+
+
+### Using the context
+The `context` object contains functions to enhance the component functionality:
+
+#### useDomRef: () => { domRef: Node | undefined }
+#### useErrorHandler: (handler: ErrorHandler) => void
+#### useLifecycle: (callback: LifecycleEventListener) => void
+#### useMemo: <TMemoized, TArgs>(fn: (args: TArgs) => TMemoized, inputs: TArgs) => TMemoized
+#### useState: <TState>(init: TState) => [TState, Evolve<TState>]
+#### useRenderDecision: (desicion: RenderDecision<TProps>) => void
     
 ```JSX
     import * as myra from 'myra'
@@ -59,41 +83,44 @@ with `myra.mount`:
 
     // Define the component passing the initial state and a "setup"
     // function
-    const MyComponent = myra.define<State, Props>(
-        init, 
-        // The "setup" function takes a `ComponentContext` argument
-        ctx => {
+    const MyComponent = (props: Props, context: myra.Context<Props>) => {
 
-            // Default prop values can be set via the defaultProps property
-            ctx.defaultProps = { myProp: 'default value' }
+        // Default prop values can be set via the defaultProps property
+        ctx.defaultProps = { myProp: 'default value' }
 
-            // The context can be used to attach event listeners
-            // for lifecycle events
-            ctx.didMount = () => console.log('didMount')
+        // The context can be used to attach event listeners
+        // for lifecycle events
+        ctx.didMount = () => console.log('didMount')
 
-            // The onError event listener will be called if a rendering error
-            // occurs. It is required to return a view to display in place of
-            // the component's (<nothing /> can be used).
-            ctx.onError = () => <p>An error occured!</p>
+        // The onError event listener will be called if a rendering error
+        // occurs. It is required to return a view to display in place of
+        // the component's (<nothing /> can be used).
+        ctx.onError = () => <p>An error occured!</p>
 
-            // The context also holds the important 'evolve' function
-            // which is used to update the state and re-render the component.
-            // This function will be triggered when the <p>-tag below is clicked
-            // and update the state with a new 'hello' text
-            const onClick = (ev: MouseEvent) => 
-                ctx.evolve({ hello: ev.target.tagName })
+        // The context also holds the important 'evolve' function
+        // which is used to update the state and re-render the component.
+        // This function will be triggered when the <p>-tag below is clicked
+        // and update the state with a new 'hello' text
+        const onClick = (ev: MouseEvent) => 
+            ctx.evolve({ hello: ev.target.tagName })
 
-            // The view must be returned as a function receiving the 
-            // current state, any props and any child nodes.
-            return (state, props, children) => 
-                <p onclick={onClick}>
-                    {state.hello}
-                    {props.myProp}
-                    {children}
-                </p>
-        }
-    )
+        // The view must be returned as a function receiving the 
+        // current state, any props and any child nodes.
+        return (
+            <p onclick={onClick}>
+                {state.hello}
+                {props.myProp}
+                {children}
+            </p>
+        )
+    }
+    
+```
 
+### Mounting a component
+Use `myra.mount` to mount a component to the DOM:
+
+```JSX
     // Mount the component to a DOM element
     myra.mount(<MyComponent />, document.body) 
 ```
@@ -102,31 +129,12 @@ with `myra.mount`:
 The following lifecycle events are fired:
 
 - willMount - called before the component will attach to the DOM
-- shouldRender - used to decide whether to render the component or not
 - willRender - called before the component will be rendered
 - didRender - called after the component was rendered
 - didMount - called after the component was attached to the DOM
 - willUnmount - called before the component will be detached from the DOM.
 
-### Stateless components
-A stateless component is just a function that takes a props object and 
-'children' as arguments:
-
-```JSX
-    import * as myra from 'myra'
-
-    type Props = { test: string }
-    const StateLessComponent = (props: Props, children: VNode[]) =>
-        <div>
-            {props.test}
-            {...children}
-        </div>
-
-    const parentView = () => 
-        <StateLessComponent test="foo">
-            This is a child.
-        </StateLessComponent>
-```
+### Customizing the `context`
 
 ## Special props
 Some props and events has special behavior associated with them.
@@ -140,14 +148,6 @@ _It's value must be unique amongst the items in the list._
 * The `class` prop value will be set to the `className` property of the element.
 * `blur`, `focus` and `click` props with a truthy value will result in a call to 
   `element.blur()`, `element.focus()` and `element.click()` respectively.
-
-## Routing
-Routing is supplied by the [myra-router](https://github.com/jhdrn/myra-router) 
-package (currently a work in progress).
-
-Take a look at the 
-[todomvc example](https://github.com/jhdrn/myra/blob/master/examples/todomvc/src/components/todo-list.tsx) 
-contains code examples for `myra-router`.
 
 ## License
 

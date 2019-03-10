@@ -19,11 +19,11 @@ const AppComponent = myra.withContext((_props, ctx) => {
     const [state, evolve] = ctx.useState({ hello: 'Hello world' })
     const [state2, evolve2] = ctx.useState({ hello: 'Hello world 2' })
 
-    ctx.useRenderDecision(() => false)
+    // ctx.useRenderDecision(() => false)
 
     ctx.useLifecycle(ev => {
         if (ev === 'didRender') {
-            evolve({ hello: 'Hello world 3' })
+            evolve2({ hello: state.hello })
         }
     })
 
@@ -31,7 +31,7 @@ const AppComponent = myra.withContext((_props, ctx) => {
         evolveTime({ start: Date.now() })
         // await sleep(40)
         evolve(state => ({ hello: `${state.hello} again` }))
-        evolve2({ hello: `${state.hello} 2 again` })
+        // evolve2({ hello: `${state.hello} 2 again` })
     }
 
     return <div onclick={onClick}>{state.hello} - {state2.hello} Time: {Date.now() - time.start} <SubComponent foo={state.hello} /></div>

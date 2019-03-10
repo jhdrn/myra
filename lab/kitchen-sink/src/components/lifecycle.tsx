@@ -1,9 +1,17 @@
 import * as myra from '../../../../src/myra'
+function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms))
+}
 
 export const Lifecycle = myra.withContext((_, ctx) => {
     const [, setState] = ctx.useState('')
 
-    ctx.useLifecycle(console.log)
+    ctx.useLifecycle(async ev => {
+        if (ev === 'didRender') {
+            await sleep(1000)
+        }
+        console.log(ev)
+    })
 
     return (
         <section>

@@ -4,6 +4,7 @@ import * as myra from '../../../../src/myra'
  * Component
  */
 export default myra.withContext((_p, ctx) => {
+    console.log(ctx.useDomRef())
 
     const [state, evolve] = ctx.useState({ val: 0 })
 
