@@ -127,7 +127,7 @@ function useMemo<TMemoization, TArgs>(fn: (args: TArgs) => TMemoization, inputs:
         vNode.data[renderingContext!.hookIndex] = [res, inputs]
     }
     else {
-        let [prevRes, ...prevInputs] = vNode.data[renderingContext!.hookIndex]
+        let [prevRes, prevInputs] = vNode.data[renderingContext!.hookIndex]
         if (equal(prevInputs, inputs)) {
             res = prevRes
         }

@@ -234,7 +234,67 @@ describe('useLifecycle', () => {
         done()
     })
 })
+describe('useMemo', () => {
+    it('returns the same value when the inputs does not change', done => {
+        const mock = {
+            callback: () => { }
+        }
 
+        spyOn(mock, 'callback').and.callThrough()
+
+        let fn: Function
+
+        const Component = myra.withContext((_p, ctx) => {
+            fn = ctx.useMemo(() => () => { }, 0)
+
+            return <div />
+        })
+        const vNode = <Component />
+        render(document.body, vNode, undefined, undefined)
+
+        setTimeout(() => {
+            const firstFn = fn!
+
+            setTimeout(() => {
+                render(document.body, <Component />, vNode, vNode.domRef)
+
+                expect(firstFn).toBe(fn!)
+
+                done()
+            })
+        })
+    })
+
+    it('returns a new value when the inputs does change', done => {
+        const mock = {
+            callback: () => { }
+        }
+
+        spyOn(mock, 'callback').and.callThrough()
+
+        let fn: Function
+
+        const Component = myra.withContext<{ input: number }>((p, ctx) => {
+            fn = ctx.useMemo(() => () => { }, p.input)
+
+            return <div />
+        })
+        const vNode1 = <Component input={1} />
+        render(document.body, vNode1, undefined, undefined)
+
+        setTimeout(() => {
+            const firstFn = fn!
+
+            setTimeout(() => {
+                render(document.body, <Component input={2} />, vNode1, vNode1.domRef)
+
+                expect(firstFn).not.toBe(fn!)
+
+                done()
+            })
+        })
+    })
+})
 describe('useErrorHandling', () => {
     it('calls the useErrorHandling listener on view rendering error', done => {
         const mock = {
