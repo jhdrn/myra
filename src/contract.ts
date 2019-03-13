@@ -252,9 +252,13 @@ export type ComponentFactoryWithContext<TProps> = (props: TProps, context: Conte
 export type ErrorHandler = (error: any) => VNode
 
 export type RenderDecision<TProps> = (oldProps: TProps, newProps: TProps) => boolean
+export type Ref<T> = {
+    current: T
+    node: Node | undefined
+}
 
 export interface Context<TProps> {
-    readonly useDomRef: () => { domRef: Node | undefined }
+    readonly useRef: <T>() => Ref<T>
     readonly useErrorHandler: (handler: ErrorHandler) => void
     readonly useLifecycle: (callback: LifecycleEventListener) => void
     readonly useMemo: <TMemoized, TArgs>(fn: (args: TArgs) => TMemoized, inputs: TArgs) => TMemoized

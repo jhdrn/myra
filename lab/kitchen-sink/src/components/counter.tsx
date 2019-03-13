@@ -4,10 +4,12 @@ import * as myra from '../../../../src/myra'
  * Component
  */
 export default myra.withContext((_p, ctx) => {
-    console.log(ctx.useDomRef())
+    const ref = ctx.useRef<string>()
 
+    console.log(ref)
     const [state, evolve] = ctx.useState({ val: 0 })
 
+    ref.current = 'bar ' + state.val
     const increase = () => evolve({ val: state.val + 1 })
     const decrease = () => evolve({ val: state.val - 1 })
 

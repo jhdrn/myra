@@ -9,7 +9,8 @@ import {
     LifecycleEventListener,
     ComponentProps,
     TextVNode,
-    ErrorHandler
+    ErrorHandler,
+    Ref
 } from './contract'
 import { equal, typeOf } from './helpers'
 import { VNODE_ELEMENT, VNODE_COMPONENT, VNODE_TEXT, VNODE_NOTHING } from './constants'
@@ -76,7 +77,7 @@ function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
     return [state, evolve]
 }
 
-function useDomRef(): { domRef: Node | undefined } {
+function useRef<T>(): Ref<T> {
     const vNode = renderingContext!.vNode as ComponentVNode<any>
     if (vNode.data === undefined) {
         vNode.data = []
@@ -86,11 +87,12 @@ function useDomRef(): { domRef: Node | undefined } {
     if (vNode.data[hookIndex] === undefined) {
         const link = vNode.link
         vNode.data[hookIndex] = {
-            get domRef() {
+            get node() {
                 return link.vNode.domRef
             }
         }
     }
+    renderingContext!.hookIndex++
     return vNode.data[hookIndex]
 }
 
@@ -146,7 +148,7 @@ function useRenderDecision(shouldRender: (oldProps: any, newProps: any) => boole
 }
 
 const context = {
-    useDomRef,
+    useRef,
     useErrorHandler,
     useLifecycle,
     useMemo,
@@ -173,32 +175,29 @@ function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, 
                 hookIndex: 0
             }
 
-            newView = newVNode.view(newVNode.props, context)
-
-            let shouldRender: boolean
-            if (newVNode.shouldRender !== undefined) {
-                shouldRender = newVNode.shouldRender(oldVNode === undefined ? {} : oldVNode.props, newVNode.props)
-            }
-            else {
-                shouldRender =
-                    oldVNode === undefined ||
-                    (newVNode.props as any).forceUpdate ||
-                    !equalProps(oldVNode.props, newVNode.props)
+            if (oldVNode === undefined) {
+                newView = newVNode.view(newVNode.props, context)
             }
 
-            renderingContext = undefined
+            const shouldRender = newVNode.shouldRender === undefined || newVNode.shouldRender(oldVNode === undefined ? {} : oldVNode.props, newVNode.props)
 
             if (shouldRender) {
+                if (oldVNode !== undefined) {
+                    newView = newVNode.view(newVNode.props, context)
+                }
+
+                renderingContext = undefined
+
                 if (oldNode === undefined) {
                     triggerLifeCycleEvent(newVNode.events, 'willMount')
                 }
 
                 triggerLifeCycleEvent(newVNode.events, 'willRender')
 
-                render(parentElement, newView, newVNode.rendition, oldNode, isSvg)
+                render(parentElement, newView!, newVNode.rendition, oldNode, isSvg)
 
                 newVNode.rendition = newView
-                newVNode.domRef = newView.domRef
+                newVNode.domRef = newView!.domRef
 
                 triggerAsyncLifecycleEvent(newVNode, 'didRender', parentElement, isSvg)
 
@@ -210,6 +209,7 @@ function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, 
             else if (oldVNode !== undefined) {
                 newVNode.domRef = oldVNode.domRef
             }
+            renderingContext = undefined
         }
         catch (err) {
             tryHandleComponentError(parentElement, newVNode, isSvg, err)
@@ -601,7 +601,12 @@ function renderUpdate(
             newVNode.link = (oldVNode as ComponentVNode<any>).link
             newVNode.link.vNode = newVNode
 
-            renderComponent(parentDomNode, newVNode, isSvg, oldVNode as ComponentVNode<any>)
+            if (oldVNode === undefined ||
+                (newVNode.props as any).forceUpdate ||
+                !equalProps((oldVNode as ComponentVNode<any>).props, newVNode.props)) {
+
+                renderComponent(parentDomNode, newVNode, isSvg, oldVNode as ComponentVNode<any>)
+            }
 
             break
     }
