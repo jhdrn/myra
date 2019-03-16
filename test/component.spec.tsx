@@ -295,6 +295,108 @@ describe('useMemo', () => {
         })
     })
 })
+
+describe('useRef', () => {
+    it('returns an object when called', done => {
+
+        let ref: myra.Ref<undefined>
+
+        const Component = myra.withContext((_p, ctx) => {
+            ref = ctx.useRef()
+
+            return <div />
+        })
+        const vNode = <Component />
+        render(document.body, vNode, undefined, undefined)
+
+        setTimeout(() => {
+            expect(typeof ref).toEqual('object')
+
+            done()
+        })
+    })
+
+    it('returns an object that holds a reference to the DOM node of the component', done => {
+
+        let ref: myra.Ref<undefined>
+
+        const Component = myra.withContext((_p, ctx) => {
+            ref = ctx.useRef()
+
+            return <div />
+        })
+        const vNode = <Component />
+        render(document.body, vNode, undefined, undefined)
+
+        setTimeout(() => {
+            expect(ref.node).toBe(vNode.domRef)
+
+            done()
+        })
+    })
+
+    it('takes the "current" value as an argument and sets it on the returned object', done => {
+
+        let ref: myra.Ref<string>
+
+        const Component = myra.withContext((_p, ctx) => {
+            ref = ctx.useRef('foo')
+            return <div />
+        })
+        const vNode = <Component />
+        render(document.body, vNode, undefined, undefined)
+
+        setTimeout(() => {
+            expect(ref.current).toEqual('foo')
+
+            done()
+        })
+    })
+
+    it('keeps the "current" value between renders', done => {
+
+        let ref: myra.Ref<string>
+
+        const Component = myra.withContext((_p, ctx) => {
+            ref = ctx.useRef('foo')
+            ctx.useLifecycle(ev => {
+                if (ev === 'didMount') {
+                    ref.current = 'bar'
+                }
+            })
+            return <div />
+        })
+        const vNode = <Component />
+        render(document.body, vNode, undefined, undefined)
+
+        setTimeout(() => {
+            render(document.body, <Component />, vNode, vNode.domRef)
+            expect(ref.current).toEqual('bar')
+
+            done()
+        })
+    })
+
+    it('returns an object that holds a mutable property named "current"', done => {
+
+        let ref: myra.Ref<string>
+
+        const Component = myra.withContext((_p, ctx) => {
+            ref = ctx.useRef('foo')
+            ref.current = 'bar'
+            return <div />
+        })
+        const vNode = <Component />
+        render(document.body, vNode, undefined, undefined)
+
+        setTimeout(() => {
+            expect(ref.current).toEqual('bar')
+
+            done()
+        })
+    })
+})
+
 describe('useErrorHandling', () => {
     it('calls the useErrorHandling listener on view rendering error', done => {
         const mock = {

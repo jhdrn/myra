@@ -77,7 +77,7 @@ function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
     return [state, evolve]
 }
 
-function useRef<T>(): Ref<T> {
+function useRef<T>(current?: T): Ref<T> {
     const vNode = renderingContext!.vNode as ComponentVNode<any>
     if (vNode.data === undefined) {
         vNode.data = []
@@ -87,6 +87,7 @@ function useRef<T>(): Ref<T> {
     if (vNode.data[hookIndex] === undefined) {
         const link = vNode.link
         vNode.data[hookIndex] = {
+            current,
             get node() {
                 return link.vNode.domRef
             }

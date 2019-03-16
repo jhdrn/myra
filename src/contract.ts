@@ -258,7 +258,7 @@ export type Ref<T> = {
 }
 
 export interface Context<TProps> {
-    readonly useRef: <T>() => Ref<T>
+    readonly useRef: <T>(current?: T) => Ref<T>
     readonly useErrorHandler: (handler: ErrorHandler) => void
     readonly useLifecycle: (callback: LifecycleEventListener) => void
     readonly useMemo: <TMemoized, TArgs>(fn: (args: TArgs) => TMemoized, inputs: TArgs) => TMemoized
