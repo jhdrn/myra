@@ -293,7 +293,7 @@ function findAndUnmountComponentsRec(vNode: VNode | undefined) {
     }
 }
 
-enum RenderingAction {
+const enum RenderingAction {
     APPEND = 1,
     INSERT = 2,
     REPLACE = 3,
