@@ -26,18 +26,15 @@ let renderingContext: IRenderingContext | undefined
 
 function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
 
-    const vNode = renderingContext!.vNode as ComponentVNode<any>
+    const { hookIndex, isSvg, parentElement, vNode } = renderingContext!
     if (vNode.data === undefined) {
         vNode.data = []
     }
 
-    const parentElement = renderingContext!.parentElement
-    const isSvg = renderingContext!.isSvg
-    const hookIndex = renderingContext!.hookIndex
-
     if (vNode.data[hookIndex] === undefined) {
         vNode.data[hookIndex] = initialState
     }
+
     const link = vNode.link
 
     function evolve(update: UpdateState<any>) {
@@ -78,12 +75,11 @@ function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
 }
 
 function useRef<T>(current?: T): Ref<T> {
-    const vNode = renderingContext!.vNode as ComponentVNode<any>
+    const { hookIndex, vNode } = renderingContext!
     if (vNode.data === undefined) {
         vNode.data = []
     }
 
-    const hookIndex = renderingContext!.hookIndex
     if (vNode.data[hookIndex] === undefined) {
         const link = vNode.link
         vNode.data[hookIndex] = {
@@ -105,38 +101,38 @@ function useErrorHandler(handler: ErrorHandler) {
 
 function useLifecycle(callback: LifecycleEventListener) {
 
-    const vNode = renderingContext!.vNode as ComponentVNode<any>
+    const { hookIndex, vNode } = renderingContext!
 
     if (vNode.events === undefined) {
         vNode.events = []
     }
 
-    vNode.events[renderingContext!.hookIndex] = callback
+    vNode.events[hookIndex] = callback
 
     renderingContext!.hookIndex++
 }
 
 function useMemo<TMemoization, TArgs>(fn: (args: TArgs) => TMemoization, inputs: TArgs) {
 
-    const vNode = renderingContext!.vNode
+    const { hookIndex, vNode } = renderingContext!
 
     if (vNode.data === undefined) {
         vNode.data = []
     }
 
     let res: TMemoization
-    if (vNode.data[renderingContext!.hookIndex] === undefined) {
+    if (vNode.data[hookIndex] === undefined) {
         res = fn(inputs)
-        vNode.data[renderingContext!.hookIndex] = [res, inputs]
+        vNode.data[hookIndex] = [res, inputs]
     }
     else {
-        let [prevRes, prevInputs] = vNode.data[renderingContext!.hookIndex]
+        let [prevRes, prevInputs] = vNode.data[hookIndex]
         if (equal(prevInputs, inputs)) {
             res = prevRes
         }
         else {
             res = fn(inputs)
-            vNode.data[renderingContext!.hookIndex] = [res, inputs]
+            vNode.data[hookIndex] = [res, inputs]
         }
     }
 
@@ -160,10 +156,15 @@ const context = {
 function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, isSvg: boolean, oldVNode: ComponentVNode<any> | undefined) {
 
     let newView: VNode | undefined
-
     let oldNode: Node | undefined
-    if (newVNode.rendition !== undefined) {
-        oldNode = newVNode.rendition.domRef
+
+    const {
+        props: newProps,
+        rendition
+    } = newVNode
+
+    if (rendition !== undefined) {
+        oldNode = rendition.domRef
     }
 
     if (renderingContext === undefined) {
@@ -176,24 +177,33 @@ function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, 
                 hookIndex: 0
             }
 
+            // If there´s no oldVNode (i.e. first render) we need to call the component function
+            // before the "shouldRender check" below
             if (oldVNode === undefined) {
-                newView = newVNode.view(newVNode.props, context)
+                newView = newVNode.view(newProps, context)
             }
 
-            const shouldRender = newVNode.shouldRender === undefined || newVNode.shouldRender(oldVNode === undefined ? {} : oldVNode.props, newVNode.props)
+            const {
+                events,
+                shouldRender
+            } = newVNode
 
-            if (shouldRender) {
+            const doRender = shouldRender === undefined || shouldRender(oldVNode === undefined ? {} : oldVNode.props, newProps)
+
+            if (doRender) {
+                // If the component has been rendered before, only call the component function
+                // if it should render
                 if (oldVNode !== undefined) {
-                    newView = newVNode.view(newVNode.props, context)
+                    newView = newVNode.view(newProps, context)
                 }
 
                 renderingContext = undefined
 
                 if (oldNode === undefined) {
-                    triggerLifeCycleEvent(newVNode.events, 'willMount')
+                    triggerLifeCycleEvent(events, 'willMount')
                 }
 
-                triggerLifeCycleEvent(newVNode.events, 'willRender')
+                triggerLifeCycleEvent(events, 'willRender')
 
                 render(parentElement, newView!, newVNode.rendition, oldNode, isSvg)
 
@@ -220,9 +230,10 @@ function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, 
 }
 
 function triggerAsyncLifecycleEvent(newVNode: ComponentVNode<any>, ev: LifecycleEvent, parentElement: Element, isSvg: boolean) {
-    if (newVNode.events !== undefined) {
+    const events = newVNode.events
+    if (events !== undefined) {
         Promise.resolve().then(() =>
-            triggerLifeCycleEvent(newVNode.events, ev)
+            triggerLifeCycleEvent(events, ev)
         ).catch(err =>
             tryHandleComponentError(parentElement, newVNode, isSvg, err)
         )
@@ -395,12 +406,12 @@ function renderCreate(
 
     // If it's an element node set attributes and event listeners
     if (newVNode._ === VNODE_ELEMENT) {
-
-        for (const name in newVNode.props) {
+        const props = newVNode.props
+        for (const name in props) {
             if (name === 'children') {
                 continue
             }
-            const attributeValue = (newVNode.props as any)[name]
+            const attributeValue = (props as any)[name]
 
             if (attributeValue !== undefined) {
                 setAttr(
@@ -411,7 +422,7 @@ function renderCreate(
             }
         }
 
-        for (const c of newVNode.props.children) {
+        for (const c of props.children) {
             if (c !== undefined) {
                 render(newNode as Element, c, c, undefined, isSvg, undefined)
             }
@@ -443,8 +454,9 @@ function updateElementVNode(
         // Prepare the map with the keys from the new nodes
         for (let i = 0; i < newChildVNodes.length; i++) {
             const newChildVNode = newChildVNodes[i] as ElementVNode<any>
-            if (newChildVNode.props !== undefined && newChildVNode.props !== null && newChildVNode.props.key !== undefined) {
-                keyMap[newChildVNode.props.key] = undefined
+            const props = newChildVNode.props
+            if (props !== undefined && props !== null && props.key !== undefined) {
+                keyMap[props.key] = undefined
             }
         }
 
@@ -452,10 +464,11 @@ function updateElementVNode(
         let matchingKeyedNodes = false
         for (let i = 0; i < oldChildVNodes.length; i++) {
             const oldChildVNode = oldChildVNodes[i] as ElementVNode<HTMLElement>
-            if (oldChildVNode.props !== undefined && oldChildVNode.props !== null && oldChildVNode.props.key !== undefined) {
+            const props = oldChildVNode.props
+            if (props !== undefined && props !== null && props.key !== undefined) {
                 // If the key has been added (from a new VNode), update it's value
-                if (oldChildVNode.props.key in keyMap) {
-                    keyMap[oldChildVNode.props.key] = [oldChildVNode, oldChildVNode.domRef!]
+                if (props.key in keyMap) {
+                    keyMap[props.key] = [oldChildVNode, oldChildVNode.domRef!]
                     matchingKeyedNodes = true
                 }
                 // else save the DOM node for reuse or removal
@@ -500,11 +513,12 @@ function updateElementVNode(
                 matchingChildDomNode = oldChildVNode.domRef
             }
 
+            const newProps = (newChildVNode as ElementVNode<any>).props
             // Check if the new VNode is "keyed"
-            if ((newChildVNode as ElementVNode<any>).props !== undefined
+            if (newProps !== undefined
                 && oldChildVNodes.length > 0) {
 
-                const newChildVNodeKey: string | undefined = (newChildVNode as ElementVNode<any>).props.key
+                const newChildVNodeKey: string | undefined = newProps.key
 
                 if (newChildVNodeKey !== undefined) {
 
@@ -727,13 +741,15 @@ function removeAttr(a: string, node: Element) {
  * Sets/removes attributes on an element node
  */
 function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, existingDomNode: Node) {
+    const newProps = newVNode.props
+    const oldProps = (oldVNode as ElementVNode<any>).props
     // remove any attributes that was added with the old virtual node but does 
     // not exist in the new virtual node or should be removed anyways (event listeners).
-    for (const attributeName in (oldVNode as ElementVNode<any>).props) {
+    for (const attributeName in oldProps) {
         if (attributeName === 'children') {
             continue
         }
-        if ((newVNode.props as any)[attributeName] === undefined || attributeName.indexOf('on') === 0) {
+        if ((newProps as any)[attributeName] === undefined || attributeName.indexOf('on') === 0) {
             removeAttr(attributeName, existingDomNode as Element)
         }
     }
@@ -743,12 +759,12 @@ function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, e
     let hasAttr: boolean
 
     // update any attribute where the attribute value has changed
-    for (const name in newVNode.props) {
+    for (const name in newProps) {
         if (name === 'children') {
             continue
         }
-        attributeValue = (newVNode.props as any)[name]
-        oldAttributeValue = ((oldVNode as ElementVNode<any>).props as any)[name]
+        attributeValue = (newProps as any)[name]
+        oldAttributeValue = (oldProps as any)[name]
         hasAttr = (existingDomNode as Element).hasAttribute(name)
 
         if ((name.indexOf('on') === 0 || attributeValue !== oldAttributeValue ||
