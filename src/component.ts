@@ -605,7 +605,9 @@ function renderUpdate(
             )
             break
         case VNODE_TEXT: // text node
-            existingDomNode!.textContent = newVNode.value
+            if (existingDomNode!.textContent !== newVNode.value) {
+                existingDomNode!.textContent = newVNode.value
+            }
             break
         case VNODE_COMPONENT: // stateless component node
 
