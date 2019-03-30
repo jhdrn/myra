@@ -16,6 +16,7 @@ declare global {
             nothing: {}
 
             a: AAttributes
+            abbr: GlobalHtmlAttributes<HTMLElement>
             attr: GlobalHtmlAttributes<HTMLElement>
             address: GlobalHtmlAttributes<HTMLElement>
             area: AreaAttributes
