@@ -257,8 +257,9 @@ function tryHandleComponentError(parentElement: Element, vNode: ComponentVNode<a
         return
     }
 
-    renderingContext = undefined
     if (vNode.errorHandler !== undefined) {
+
+        renderingContext = undefined
 
         let oldNode: Node | undefined
         if (vNode.rendition !== undefined) {
