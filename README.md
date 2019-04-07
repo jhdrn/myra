@@ -7,23 +7,12 @@ Myra is (another) JSX rendering library. It is small, simple and built with and 
 [![npm](https://img.shields.io/npm/v/myra.svg?maxAge=24000)](https://www.npmjs.com/package/myra)
 [![Travis](https://img.shields.io/travis/jhdrn/myra.svg?maxAge=36000)](https://travis-ci.org/jhdrn/myra)
 [![codecov](https://codecov.io/gh/jhdrn/myra/branch/master/graph/badge.svg)](https://codecov.io/gh/jhdrn/myra)
+[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/jhdrn/myra.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/jhdrn/myra/context:javascript)
 [![Downloads](https://img.shields.io/npm/dm/myra.svg)](https://www.npmjs.com/package/myra)
 [![gzip size](http://img.badgesize.io/https://cdn.jsdelivr.net/npm/myra/myra.min.js?compression=gzip)](https://cdn.jsdelivr.net/npm/myra/myra.min.js)
 [![install size](https://badgen.net/packagephobia/install/myra)](https://packagephobia.now.sh/result?p=myra)
 
 [![NPM](https://nodei.co/npm/myra.png)](https://nodei.co/npm/myra/)
-
-## Features
-* **Small API:** 
-  Myra should be easy to learn as it's API and concepts are limited.
-* **Statically typed views:** 
-  Myra does not use HTML templates but uses 
-  [JSX](https://facebook.github.io/react/docs/jsx-in-depth.html) to build up 
-  view hierarchies. Together with Typescript's type checking, this reduces run time errors.
-* **No dependencies:** 
-  Myra does not depend on any external libraries.
-* **Small code base/size:** 
-  Hello World example is < 3kb minified and gzipped
 
 ## Requirements
 Myra requires Typescript 2.8 to function properly. It is also highly advised 
@@ -62,61 +51,6 @@ A component is just a function that takes a `props` object and a `context` as ar
         </StateLessComponent>
 ```
 
-
-### Using the context
-The `context` object contains functions to enhance the component functionality:
-
-#### useDomRef: () => { domRef: Node | undefined }
-#### useErrorHandler: (handler: ErrorHandler) => void
-#### useLifecycle: (callback: LifecycleEventListener) => void
-#### useMemo: <TMemoized, TArgs>(fn: (args: TArgs) => TMemoized, inputs: TArgs) => TMemoized
-#### useState: <TState>(init: TState) => [TState, Evolve<TState>]
-#### useRenderDecision: (desicion: RenderDecision<TProps>) => void
-    
-```JSX
-    import * as myra from 'myra'
-    
-    type Props = { myProp: string }
-    type State = { hello: string }
-
-    const init = { hello: 'Hello!' }
-
-    // Define the component passing the initial state and a "setup"
-    // function
-    const MyComponent = (props: Props, context: myra.Context<Props>) => {
-
-        // Default prop values can be set via the defaultProps property
-        ctx.defaultProps = { myProp: 'default value' }
-
-        // The context can be used to attach event listeners
-        // for lifecycle events
-        ctx.didMount = () => console.log('didMount')
-
-        // The onError event listener will be called if a rendering error
-        // occurs. It is required to return a view to display in place of
-        // the component's (<nothing /> can be used).
-        ctx.onError = () => <p>An error occured!</p>
-
-        // The context also holds the important 'evolve' function
-        // which is used to update the state and re-render the component.
-        // This function will be triggered when the <p>-tag below is clicked
-        // and update the state with a new 'hello' text
-        const onClick = (ev: MouseEvent) => 
-            ctx.evolve({ hello: ev.target.tagName })
-
-        // The view must be returned as a function receiving the 
-        // current state, any props and any child nodes.
-        return (
-            <p onclick={onClick}>
-                {state.hello}
-                {props.myProp}
-                {children}
-            </p>
-        )
-    }
-    
-```
-
 ### Mounting a component
 Use `myra.mount` to mount a component to the DOM:
 
@@ -125,16 +59,121 @@ Use `myra.mount` to mount a component to the DOM:
     myra.mount(<MyComponent />, document.body) 
 ```
 
-#### Lifecycle events
-The following lifecycle events are fired:
+### Using the context
+The `context` object contains functions to enhance the component functionality
+(this is similar to React hooks):
 
-- willMount - called before the component will attach to the DOM
-- willRender - called before the component will be rendered
-- didRender - called after the component was rendered
-- didMount - called after the component was attached to the DOM
-- willUnmount - called before the component will be detached from the DOM.
+#### useRef: <T>(current?: T)  => { current: T; node: Node | undefined }
+Creates a "ref" object which holds a reference to the component DOM node (when
+it has been rendered) and a "current" property which is a mutable property that
+will persist between renders.
 
-### Customizing the `context`
+```JSX
+    const MyComponent = myra.useContext((_, ctx) => {
+        const ref = ctx.useRef('the initial mutable value')
+        ref.node // holds the DOM node of the component (when it has been rendered)
+        ref.current // the current value
+        return <div>...</div>
+    })
+```
+
+#### useErrorHandler: (handler: (error: any) => VNode) => void
+Makes the component "catch" errors. If no error handler is used, thrown errors
+will we propagated upwards in the component tree. The error handler function
+must return a VNode which will be rendered in case of an error.
+
+```JSX
+    const MyComponent = myra.useContext((_, ctx) => {
+        // An error handler that will render the error
+        ctx.useErrorHandler(err => <div>{err}</div>)
+        return <div>...</div>
+    })
+```
+
+#### useLifecycle: (callback: (event: LifecycleEvent): void) => void
+Attach a "life cycle event listener" that will be called whenever one of the
+following events occur:
+
+- willMount
+- willRender
+- didMount
+- didRender
+- willUnmount
+
+```JSX
+    const MyComponent = myra.useContext((_, ctx) => {
+        
+        ctx.useLifecycle(ev => {
+            switch (ev) {
+                case 'didMount':
+                    // after the component was attached to the DOM
+                case 'didRender':
+                    // after the component was rendered
+                case 'willMount':
+                    // before the component will attach to the DOM
+                case 'willRender':
+                    // before the component will be rendered
+                case 'willUnmount':
+                    // before the component will be detached from the DOM.
+            }
+        })
+        return <div>...</div>
+    })
+```
+
+#### useMemo: <TMemoized, TArgs>(fn: (args: TArgs) => TMemoized, inputs: TArgs) => TMemoized
+Memoizes a value that will not change until the input arguments changes. Use
+cases includes memoizing callback functions that will be used as props and 
+caching computational heavy tasks.
+
+```JSX
+    const MyComponent = myra.useContext((_, ctx) => {
+        const memoizedValue = ctx.useMemo(arg => { 
+            // arg === 'an argument'
+            // computational expensive operation goes here
+         }, 'an argument')
+        return <div>...</div>
+    })
+```
+
+#### useState: <TState>(init: TState) => [TState, Evolve<TState>]
+Returns a tuple consisting of the current state and a function to update the 
+state ("Evolve"). The "Evolve" function has two overloads, one that sets the new 
+state and one that takes a function receiving the current state that should 
+return the new state. If the new state is an object, it will be shallowly merged
+with the old state. The "Evolve" function will also return the new state. 
+
+When a state is updated, the component will be re-rendered.
+
+Multiple states may be used for the same component.
+
+```JSX
+    const MyComponent = myra.useContext((_, ctx) => {
+        const [state1, updateState1] = ctx.useState('initial state')
+        // state1 = 'initial state'
+        const newState1 = updateState1('new state')
+        // newState1 = 'new state'
+
+        const [state2, updateState2] = ctx.useState({ foo: 'bar', baz: 0 })
+        // state2 = { foo: 'bar', baz: 0 }
+        const newState2 = updateState2({ foo: 'baz' })
+        // newState2 = { foo: 'baz', baz: 0 }
+        return <div>...</div>
+    })
+```
+
+#### useRenderDecision: (desicion: (oldProps: TProps, newProps: TProps) => boolean) => void
+Takes a function that will be called prior to rendering. If the function returns
+false, the component will not render.
+
+```JSX
+    const MyComponent = myra.useContext((_, ctx) => {
+        ctx.useRenderDecision((oldProps, newProps) => { 
+            return false // prevent render
+         })
+        return <div>...</div>
+    })
+```
 
 ## Special props
 Some props and events has special behavior associated with them.
@@ -153,4 +192,4 @@ _It's value must be unique amongst the items in the list._
 
 [MIT](http://opensource.org/licenses/MIT)
 
-Copyright (c) 2016-2018 Jonathan Hedrén
+Copyright (c) 2016-2019 Jonathan Hedrén
