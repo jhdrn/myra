@@ -63,29 +63,28 @@ Use `myra.mount` to mount a component to the DOM:
 The `context` object contains functions to enhance the component functionality
 (this is similar to React hooks):
 
-#### useRef: <T>(current?: T)  => { current: T; node: Node | undefined }
-Creates a "ref" object which holds a reference to the component DOM node (when
-it has been rendered) and a "current" property which is a mutable property that
-will persist between renders.
+#### useState: <TState>(init: TState) => [TState, Evolve<TState>]
+Returns a tuple consisting of the current state and a function to update the 
+state ("Evolve"). The "Evolve" function has two overloads, one that sets the new 
+state and one that takes a function receiving the current state that should 
+return the new state. If the new state is an object, it will be shallowly merged
+with the old state. The "Evolve" function will also return the new state. 
+
+When a state is updated, the component will be re-rendered.
+
+Multiple states may be used for the same component.
 
 ```JSX
     const MyComponent = myra.useContext((_, ctx) => {
-        const ref = ctx.useRef('the initial mutable value')
-        ref.node // holds the DOM node of the component (when it has been rendered)
-        ref.current // the current value
-        return <div>...</div>
-    })
-```
+        const [state1, updateState1] = ctx.useState('initial state')
+        // state1 = 'initial state'
+        const newState1 = updateState1('new state')
+        // newState1 = 'new state'
 
-#### useErrorHandler: (handler: (error: any) => VNode) => void
-Makes the component "catch" errors. If no error handler is used, thrown errors
-will we propagated upwards in the component tree. The error handler function
-must return a VNode which will be rendered in case of an error.
-
-```JSX
-    const MyComponent = myra.useContext((_, ctx) => {
-        // An error handler that will render the error
-        ctx.useErrorHandler(err => <div>{err}</div>)
+        const [state2, updateState2] = ctx.useState({ foo: 'bar', baz: 0 })
+        // state2 = { foo: 'bar', baz: 0 }
+        const newState2 = updateState2({ foo: 'baz' })
+        // newState2 = { foo: 'baz', baz: 0 }
         return <div>...</div>
     })
 ```
@@ -136,28 +135,29 @@ caching computational heavy tasks.
     })
 ```
 
-#### useState: <TState>(init: TState) => [TState, Evolve<TState>]
-Returns a tuple consisting of the current state and a function to update the 
-state ("Evolve"). The "Evolve" function has two overloads, one that sets the new 
-state and one that takes a function receiving the current state that should 
-return the new state. If the new state is an object, it will be shallowly merged
-with the old state. The "Evolve" function will also return the new state. 
-
-When a state is updated, the component will be re-rendered.
-
-Multiple states may be used for the same component.
+#### useRef: <T>(current?: T)  => { current: T; node: Node | undefined }
+Creates a "ref" object which holds a reference to the component DOM node (when
+it has been rendered) and a "current" property which is a mutable property that
+will persist between renders.
 
 ```JSX
     const MyComponent = myra.useContext((_, ctx) => {
-        const [state1, updateState1] = ctx.useState('initial state')
-        // state1 = 'initial state'
-        const newState1 = updateState1('new state')
-        // newState1 = 'new state'
+        const ref = ctx.useRef('the initial mutable value')
+        ref.node // holds the DOM node of the component (when it has been rendered)
+        ref.current // the current value
+        return <div>...</div>
+    })
+```
 
-        const [state2, updateState2] = ctx.useState({ foo: 'bar', baz: 0 })
-        // state2 = { foo: 'bar', baz: 0 }
-        const newState2 = updateState2({ foo: 'baz' })
-        // newState2 = { foo: 'baz', baz: 0 }
+#### useErrorHandler: (handler: (error: any) => VNode) => void
+Makes the component "catch" errors. If no error handler is used, thrown errors
+will we propagated upwards in the component tree. The error handler function
+must return a VNode which will be rendered in case of an error.
+
+```JSX
+    const MyComponent = myra.useContext((_, ctx) => {
+        // An error handler that will render the error
+        ctx.useErrorHandler(err => <div>{err}</div>)
         return <div>...</div>
     })
 ```
