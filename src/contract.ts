@@ -17,7 +17,6 @@ declare global {
 
             a: AAttributes
             abbr: GlobalHtmlAttributes<HTMLElement>
-            attr: GlobalHtmlAttributes<HTMLElement>
             address: GlobalHtmlAttributes<HTMLElement>
             area: AreaAttributes
             article: GlobalHtmlAttributes<HTMLElement>
@@ -93,13 +92,16 @@ declare global {
 
             p: GlobalHtmlAttributes<HTMLParagraphElement>
             param: ParamAttributes
+            picture: GlobalHtmlAttributes<HTMLPictureElement>
             pre: GlobalHtmlAttributes<HTMLPreElement>
             progress: ProgressAttributes
 
             q: QAttributes
 
+            rb: GlobalHtmlAttributes<HTMLElement>
             rp: GlobalHtmlAttributes<HTMLElement>
             rt: GlobalHtmlAttributes<HTMLElement>
+            rtc: GlobalHtmlAttributes<HTMLElement>
             ruby: GlobalHtmlAttributes<HTMLElement>
 
             s: GlobalHtmlAttributes<HTMLElement>
