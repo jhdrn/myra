@@ -12,7 +12,7 @@ import { Props } from './props'
 /**
  * View
  */
-export const MainComponent = myra.withContext((_, ctx) => {
+export const MainComponent = myra.useContext((_, ctx) => {
     const [, evolve] = ctx.useState(0)
     return (
         <div class="container">

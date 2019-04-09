@@ -4,7 +4,7 @@ import * as myra from '../../../src/myra'
 // }
 
 
-const SubComponent = myra.withContext<{ foo: string }>(function subComponent(_props, ctx) {
+const SubComponent = myra.useContext<{ foo: string }>(function subComponent(_props, ctx) {
     const [state, evolve] = ctx.useState({ name: 'SubComponent' })
     evolve({ name: state.name + ' ' + _props.foo })
     return <div>{state.name}</div>
@@ -13,7 +13,7 @@ const SubComponent = myra.withContext<{ foo: string }>(function subComponent(_pr
 /**
  * Define a component with it's initial state { hello: 'Hello world' }
  */
-const AppComponent = myra.withContext((_props, ctx) => {
+const AppComponent = myra.useContext((_props, ctx) => {
 
     const [time, evolveTime] = ctx.useState({ start: 0, end: 0 })
     const [state, evolve] = ctx.useState({ hello: 'Hello world' })

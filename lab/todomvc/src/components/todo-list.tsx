@@ -44,7 +44,7 @@ const filterLink = (href: string, txt: string, routeCtx: router.RouteContext) =>
 /**
  * Component
  */
-export default myra.withContext((_props, ctx) => {
+export default myra.useContext((_props, ctx) => {
     const [state, evolve] = ctx.useState(init)
 
     const todosLoaded = (todos: Todo[]) =>

@@ -12,7 +12,7 @@ const init = {
     intervalTickValue: 0
 } as State
 
-export default myra.withContext((_p, ctx) => {
+export default myra.useContext((_p, ctx) => {
 
     const [state, evolve] = ctx.useState(init)
 

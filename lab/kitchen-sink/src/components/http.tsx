@@ -13,7 +13,7 @@ type State = {
 /**
  * Component
  */
-export default myra.withContext((_p, ctx) => {
+export default myra.useContext((_p, ctx) => {
 
     const [state, evolve] = ctx.useState<State>({
         responseStatus: 'init'

@@ -4,7 +4,7 @@ function throwError(from: string) {
     throw Error(from)
 }
 
-export const ErrorComponent = myra.withContext((_p, ctx) => {
+export const ErrorComponent = myra.useContext((_p, ctx) => {
 
     ctx.useErrorHandler(err =>
         <div>

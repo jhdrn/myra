@@ -42,7 +42,7 @@ const todoClass = (m: State) => {
 /**
  * Component
  */
-export default myra.withContext<Props>((props, ctx) => {
+export default myra.useContext<Props>((props, ctx) => {
 
     const [state, evolve] = ctx.useState(init)
 

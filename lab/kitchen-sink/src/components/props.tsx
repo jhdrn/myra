@@ -10,7 +10,7 @@ const defaultProps = {
     propC: true
 }
 
-export const Props = myra.withContext<IProps>((props, ctx) => {
+export const Props = myra.useContext<IProps>((props, ctx) => {
     const {
         propA,
         propB,

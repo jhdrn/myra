@@ -8,8 +8,8 @@ interface AppContext<TProps> extends myra.Context<TProps> {
     foobar: string
 }
 
-function withAppContext<TProps>(componentFactory: myra.ComponentFactory<TProps, AppContext<TProps>>) {
-    return myra.withContext<TProps>((props, ctx) => {
+function useAppContext<TProps>(componentFactory: myra.ComponentFactory<TProps, AppContext<TProps>>) {
+    return myra.useContext<TProps>((props, ctx) => {
         return componentFactory(props, {
             ...ctx,
             foobar: 'foobar'
@@ -17,7 +17,7 @@ function withAppContext<TProps>(componentFactory: myra.ComponentFactory<TProps, 
     })
 }
 
-export const MainComponent = withAppContext((_p, ctx) => {
+export const MainComponent = useAppContext((_p, ctx) => {
 
     const [, evolve] = ctx.useState({})
 

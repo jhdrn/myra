@@ -3,7 +3,7 @@ import * as myra from '../../../../src/myra'
 /**
  * Component
  */
-export default myra.withContext((_p, ctx) => {
+export default myra.useContext((_p, ctx) => {
     const ref = ctx.useRef<string>()
 
     console.log(ref)

@@ -3,7 +3,7 @@ function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-export const Lifecycle = myra.withContext((_, ctx) => {
+export const Lifecycle = myra.useContext((_, ctx) => {
     const [, setState] = ctx.useState('')
 
     ctx.useLifecycle(async ev => {
