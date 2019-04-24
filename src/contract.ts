@@ -257,27 +257,34 @@ export type ErrorHandler = (error: any) => VNode
 export type RenderDecision<TProps> = (oldProps: TProps, newProps: TProps) => boolean
 export type Ref<T> = {
     current: T
-    node: Node | undefined
+    node?: Node
 }
 
 export interface Context<TProps> {
     readonly useRef: <T>(current?: T) => Ref<T>
     readonly useErrorHandler: (handler: ErrorHandler) => void
-    readonly useLifecycle: (callback: LifecycleEventListener) => void
+    readonly useLifecycle: (callback: LifecycleEventListener<TProps>) => void
     readonly useMemo: <TMemoized, TArgs>(fn: (args: TArgs) => TMemoized, inputs: TArgs) => TMemoized
     readonly useState: <TState>(init: TState) => [TState, Evolve<TState>]
-    readonly useRenderDecision: (desicion: RenderDecision<TProps>) => void
 }
 
-export type LifecycleEvent =
-    'didMount' |
-    'didRender' |
-    'willMount' |
-    'willRender' |
-    'willUnmount'
+export const enum LifecyclePhase {
+    BeforeMount,
+    BeforeRender,
+    AfterRender,
+    AfterMount,
+    BeforeUnmount
+}
 
-export interface LifecycleEventListener {
-    (event: LifecycleEvent): void
+export type LifecycleEvent<TProps> =
+    { phase: LifecyclePhase.BeforeMount } |
+    { phase: LifecyclePhase.BeforeRender, oldProps?: TProps, preventRender: () => void } |
+    { phase: LifecyclePhase.AfterMount, domRef: Node } |
+    { phase: LifecyclePhase.AfterRender, domRef: Node } |
+    { phase: LifecyclePhase.BeforeUnmount, domRef: Node }
+
+export interface LifecycleEventListener<TProps> {
+    (event: LifecycleEvent<TProps>): void
 }
 
 export interface ComponentProps {
@@ -339,12 +346,11 @@ export interface ElementVNode<TElement extends Element> extends VNodeBase {
  */
 export interface ComponentVNode<TProps> extends VNodeBase {
     readonly _: 3
-    events?: Array<LifecycleEventListener>
+    events?: Array<LifecycleEventListener<TProps>>
     errorHandler?: ErrorHandler
     link: { vNode: ComponentVNode<TProps> }
     data?: any[]
     props: TProps
-    shouldRender?: RenderDecision<TProps>
     rendition?: VNode
     view: ComponentFactoryWithContext<TProps>
 }

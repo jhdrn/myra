@@ -1,4 +1,4 @@
-import { ElementVNode } from '../src/myra'
+import { ElementVNode, LifecyclePhase } from '../src/myra'
 import { render } from '../src/component'
 // tslint:disable-next-line
 import * as myra from '../src/myra'
@@ -52,13 +52,13 @@ describe('render', () => {
 
     it('remounts a component if forceUpdate is set to true', (done) => {
         const mocks = {
-            willRender: () => { /* dummy */ }
+            preRender: () => { /* dummy */ }
         }
 
-        spyOn(mocks, 'willRender')
+        spyOn(mocks, 'preRender')
 
         const TestComponent = myra.useContext((_p, ctx) => {
-            ctx.useLifecycle(ev => ev === 'willRender' && mocks.willRender())
+            ctx.useLifecycle(ev => ev.phase === LifecyclePhase.BeforeRender && mocks.preRender())
 
             return <div id="testComponent"></div>
         })
@@ -71,7 +71,7 @@ describe('render', () => {
 
         render(document.body, view2, view1, node)
 
-        expect(mocks.willRender).toHaveBeenCalledTimes(2)
+        expect(mocks.preRender).toHaveBeenCalledTimes(2)
 
         done()
     })
@@ -87,7 +87,7 @@ describe('render', () => {
         spyOn(mocks, 'unmount').and.callThrough()
 
         const TestComponent = myra.useContext((_p, ctx) => {
-            ctx.useLifecycle(ev => ev === 'willUnmount' && mocks.unmount())
+            ctx.useLifecycle(ev => ev.phase === LifecyclePhase.BeforeUnmount && mocks.unmount())
 
             return <div />
         })
@@ -846,7 +846,7 @@ describe('render', () => {
         spyOn(mountMock, 'unmount').and.callThrough()
 
         const ChildComponent = myra.useContext((_props, ctx) => {
-            ctx.useLifecycle(ev => ev === 'willUnmount' && mountMock.unmount())
+            ctx.useLifecycle(ev => ev.phase === LifecyclePhase.BeforeUnmount && mountMock.unmount())
             return <div />
         })
 

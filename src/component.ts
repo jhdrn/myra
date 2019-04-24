@@ -10,7 +10,8 @@ import {
     ComponentProps,
     TextVNode,
     ErrorHandler,
-    Ref
+    Ref,
+    LifecyclePhase
 } from './contract'
 import { equal, typeOf } from './helpers'
 import { VNODE_ELEMENT, VNODE_COMPONENT, VNODE_TEXT, VNODE_NOTHING } from './constants'
@@ -99,7 +100,7 @@ function useErrorHandler(handler: ErrorHandler) {
     vNode.errorHandler = handler
 }
 
-function useLifecycle(callback: LifecycleEventListener) {
+function useLifecycle(callback: LifecycleEventListener<any>) {
 
     const { hookIndex, vNode } = renderingContext!
 
@@ -140,22 +141,16 @@ function useMemo<TMemoization, TArgs>(fn: (args: TArgs) => TMemoization, inputs:
     return res
 }
 
-function useRenderDecision(shouldRender: (oldProps: any, newProps: any) => boolean) {
-    renderingContext!.vNode.shouldRender = shouldRender
-}
-
 const context = {
     useRef,
     useErrorHandler,
     useLifecycle,
     useMemo,
-    useState,
-    useRenderDecision
+    useState
 }
 
 function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, isSvg: boolean, oldVNode: ComponentVNode<any> | undefined) {
 
-    let newView: VNode | undefined
     let oldNode: Node | undefined
 
     const {
@@ -177,43 +172,42 @@ function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, 
                 hookIndex: 0
             }
 
-            // If there´s no oldVNode (i.e. first render) we need to call the component function
-            // before the "shouldRender check" below
-            if (oldVNode === undefined) {
-                newView = newVNode.view(newProps, context)
+            const newView = newVNode.view(newProps, context)
+
+            const { events } = newVNode
+
+            renderingContext = undefined
+
+            let oldProps = undefined
+            if (oldVNode !== undefined) {
+                oldProps = oldVNode.props
             }
 
-            const {
-                events,
-                shouldRender
-            } = newVNode
+            if (oldNode === undefined) {
+                triggerLifeCycleEvent(events, { phase: LifecyclePhase.BeforeMount })
+            }
 
-            const doRender = shouldRender === undefined || shouldRender(oldVNode === undefined ? {} : oldVNode.props, newProps)
+            let doPreventRender = false
 
-            if (doRender) {
-                // If the component has been rendered before, only call the component function
-                // if it should render
-                if (oldVNode !== undefined) {
-                    newView = newVNode.view(newProps, context)
+            triggerLifeCycleEvent(events, {
+                phase: LifecyclePhase.BeforeRender,
+                oldProps,
+                preventRender: () => {
+                    doPreventRender = true
                 }
+            })
 
-                renderingContext = undefined
+            if (!doPreventRender) {
 
-                if (oldNode === undefined) {
-                    triggerLifeCycleEvent(events, 'willMount')
-                }
-
-                triggerLifeCycleEvent(events, 'willRender')
-
-                render(parentElement, newView!, newVNode.rendition, oldNode, isSvg)
+                render(parentElement, newView, newVNode.rendition, oldNode, isSvg)
 
                 newVNode.rendition = newView
-                newVNode.domRef = newView!.domRef
+                newVNode.domRef = newView.domRef
 
-                triggerAsyncLifecycleEvent(newVNode, 'didRender', parentElement, isSvg)
+                triggerAsyncLifecycleEvent(newVNode, { phase: LifecyclePhase.AfterRender, domRef: newView.domRef }, parentElement, isSvg)
 
                 if (oldNode === undefined) {
-                    triggerAsyncLifecycleEvent(newVNode, 'didMount', parentElement, isSvg)
+                    triggerAsyncLifecycleEvent(newVNode, { phase: LifecyclePhase.AfterMount, domRef: newView.domRef }, parentElement, isSvg)
                 }
 
             }
@@ -229,7 +223,7 @@ function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, 
     }
 }
 
-function triggerAsyncLifecycleEvent(newVNode: ComponentVNode<any>, ev: LifecycleEvent, parentElement: Element, isSvg: boolean) {
+function triggerAsyncLifecycleEvent(newVNode: ComponentVNode<any>, ev: LifecycleEvent<any>, parentElement: Element, isSvg: boolean) {
     const events = newVNode.events
     if (events !== undefined) {
         Promise.resolve().then(() =>
@@ -240,7 +234,7 @@ function triggerAsyncLifecycleEvent(newVNode: ComponentVNode<any>, ev: Lifecycle
     }
 }
 
-function triggerLifeCycleEvent(events: Array<LifecycleEventListener> | undefined, event: LifecycleEvent) {
+function triggerLifeCycleEvent(events: Array<LifecycleEventListener<any>> | undefined, event: LifecycleEvent<any>) {
     if (events !== undefined) {
         for (let i = 0; i < events.length; i++) {
             if (events[i] !== undefined) {
@@ -283,7 +277,7 @@ function findAndUnmountComponentsRec(vNode: VNode | undefined) {
         return
     }
     if (vNode._ === VNODE_COMPONENT) {
-        triggerLifeCycleEvent(vNode.events, 'willUnmount')
+        triggerLifeCycleEvent(vNode.events, { phase: LifecyclePhase.BeforeUnmount, domRef: vNode.domRef! })
 
         findAndUnmountComponentsRec(vNode.rendition!)
     }
@@ -613,7 +607,6 @@ function renderUpdate(
         case VNODE_COMPONENT: // stateless component node
 
             newVNode.rendition = (oldVNode as ComponentVNode<any>).rendition
-            newVNode.shouldRender = (oldVNode as ComponentVNode<any>).shouldRender
             newVNode.data = (oldVNode as ComponentVNode<any>).data
             newVNode.events = (oldVNode as ComponentVNode<any>).events
             newVNode.link = (oldVNode as ComponentVNode<any>).link

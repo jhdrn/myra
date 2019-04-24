@@ -18,9 +18,6 @@ export const Props = myra.useContext<IProps>((props, ctx) => {
         children
     } = { ...defaultProps, ...props }
 
-    // Always render this component
-    ctx.useRenderDecision((_oldProps, _newProps) => true)
-
     // Use state to keep track of number of renders
     const [state, setState] = ctx.useState(0)
     setState(state + 1)

@@ -1,6 +1,6 @@
 import * as myra from '../src/myra'
 import { render } from '../src/component'
-import { ComponentVNode } from '../src/myra'
+import { ComponentVNode, LifecyclePhase } from '../src/myra'
 
 const q = (x: string) => document.querySelector(x)
 
@@ -56,7 +56,7 @@ describe('mount', () => {
 })
 
 describe('useLifecycle', () => {
-    it('calls the willMount listener', done => {
+    it('calls the preMount listener', done => {
         const mock = {
             callback: () => { }
         }
@@ -64,7 +64,7 @@ describe('useLifecycle', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.useContext((_p, ctx) => {
-            ctx.useLifecycle(ev => ev === 'willMount' && mock.callback())
+            ctx.useLifecycle(ev => { console.log(ev); ev.phase === LifecyclePhase.BeforeMount && mock.callback() })
             return <div />
         })
 
@@ -83,7 +83,7 @@ describe('useLifecycle', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.useContext((_p, ctx) => {
-            ctx.useLifecycle(ev => ev === 'didMount' && mock.callback())
+            ctx.useLifecycle(ev => ev.phase === LifecyclePhase.AfterMount && mock.callback())
             return <div />
         })
 
@@ -96,7 +96,7 @@ describe('useLifecycle', () => {
         }, 0)
     })
 
-    it('calls the willRender listener', done => {
+    it('calls the preRender listener', done => {
         const mock = {
             callback: () => { }
         }
@@ -104,7 +104,7 @@ describe('useLifecycle', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.useContext((_p, ctx) => {
-            ctx.useLifecycle(ev => ev === 'willRender' && mock.callback())
+            ctx.useLifecycle(ev => ev.phase === LifecyclePhase.BeforeRender && mock.callback())
             return <div />
         })
 
@@ -123,7 +123,7 @@ describe('useLifecycle', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.useContext((_p, ctx) => {
-            ctx.useLifecycle(ev => ev === 'didRender' && mock.callback())
+            ctx.useLifecycle(ev => ev.phase === LifecyclePhase.AfterRender && mock.callback())
             return <div />
         })
 
@@ -136,7 +136,7 @@ describe('useLifecycle', () => {
         }, 0)
     })
 
-    it('calls the willUnmount listener', () => {
+    it('calls the preUnmount listener', () => {
         const mock = {
             unmount: () => { }
         }
@@ -144,7 +144,7 @@ describe('useLifecycle', () => {
         spyOn(mock, 'unmount').and.callThrough()
 
         const Component = myra.useContext((_p, ctx) => {
-            ctx.useLifecycle(ev => ev === 'willUnmount' && mock.unmount())
+            ctx.useLifecycle(ev => ev.phase === LifecyclePhase.BeforeUnmount && mock.unmount())
             return <div />
         })
 
@@ -156,7 +156,7 @@ describe('useLifecycle', () => {
         expect(mock.unmount).toHaveBeenCalledTimes(1)
     })
 
-    it('calls the willUnmount listener on child components', () => {
+    it('calls the preUnmount listener on child components', () => {
         const mock = {
             unmount: () => { }
         }
@@ -164,12 +164,12 @@ describe('useLifecycle', () => {
         spyOn(mock, 'unmount').and.callThrough()
 
         const ChildChildComponent = myra.useContext((_p, ctx) => {
-            ctx.useLifecycle(ev => ev === 'willUnmount' && mock.unmount())
+            ctx.useLifecycle(ev => ev.phase === LifecyclePhase.BeforeUnmount && mock.unmount())
             return <div />
         })
 
         const ChildComponent = myra.useContext((_p, ctx) => {
-            ctx.useLifecycle(ev => ev === 'willUnmount' && mock.unmount())
+            ctx.useLifecycle(ev => ev.phase === LifecyclePhase.BeforeUnmount && mock.unmount())
             return <ChildChildComponent />
         })
 
@@ -182,7 +182,7 @@ describe('useLifecycle', () => {
         expect(mock.unmount).toHaveBeenCalledTimes(2)
     })
 
-    it('calls the willUnmount listener on child components of a component', () => {
+    it('calls the preUnmount listener on child components of a component', () => {
         const mock = {
             unmount: () => { }
         }
@@ -190,12 +190,12 @@ describe('useLifecycle', () => {
         spyOn(mock, 'unmount').and.callThrough()
 
         const ChildChildComponent = myra.useContext((_p, ctx) => {
-            ctx.useLifecycle(ev => ev === 'willUnmount' && mock.unmount())
+            ctx.useLifecycle(ev => ev.phase === LifecyclePhase.BeforeUnmount && mock.unmount())
             return <div />
         })
 
         const ChildComponent = myra.useContext((_p, ctx) => {
-            ctx.useLifecycle(ev => ev === 'willUnmount' && mock.unmount())
+            ctx.useLifecycle(ev => ev.phase === LifecyclePhase.BeforeUnmount && mock.unmount())
             return <ChildChildComponent />
         })
 
@@ -222,7 +222,7 @@ describe('useLifecycle', () => {
         }
 
         const Component = myra.useContext<Props>(({ test }, ctx) => {
-            ctx.useLifecycle(ev => ev === 'willRender' && test && mock.callback())
+            ctx.useLifecycle(ev => ev.phase === LifecyclePhase.BeforeRender && test && mock.callback())
             return <div />
         })
 
@@ -360,7 +360,7 @@ describe('useRef', () => {
         const Component = myra.useContext((_p, ctx) => {
             ref = ctx.useRef('foo')
             ctx.useLifecycle(ev => {
-                if (ev === 'didMount') {
+                if (ev.phase === LifecyclePhase.AfterMount) {
                     ref.current = 'bar'
                 }
             })
@@ -429,7 +429,7 @@ describe('useErrorHandling', () => {
         const Component = myra.useContext((_p, ctx) => {
 
             ctx.useLifecycle(ev => {
-                if (ev === 'didMount') {
+                if (ev.phase === LifecyclePhase.AfterMount) {
                     throw Error()
                 }
             })
@@ -464,7 +464,7 @@ describe('useErrorHandling', () => {
         const Component = myra.useContext((_p, ctx) => {
 
             ctx.useLifecycle(ev => {
-                if (ev === 'didRender') {
+                if (ev.phase === LifecyclePhase.AfterRender) {
                     throw Error()
                 }
             })
@@ -542,31 +542,7 @@ describe('useErrorHandling', () => {
         })
     })
 
-    it('calls the useErrorHandling listener on useRenderDecision error', done => {
-        const mock = {
-            callback: () => <nothing />
-        }
-
-        spyOn(mock, 'callback').and.callThrough()
-
-        const Component = myra.useContext((_p, ctx) => {
-            ctx.useErrorHandler(mock.callback)
-            ctx.useRenderDecision(() => {
-                throw Error()
-            })
-            return <div></div>
-        })
-
-        const node = render(document.body, <Component />, undefined, undefined)
-
-        expect(node.nodeType).toBe(Node.COMMENT_NODE)
-        expect(node.textContent).toBe('Nothing')
-        expect(mock.callback).toHaveBeenCalled()
-
-        done()
-    })
-
-    it('calls the useErrorHandling listener on willMount error', done => {
+    it('calls the useErrorHandling listener on preMount error', done => {
         const mock = {
             callback: () => <nothing />
         }
@@ -576,7 +552,7 @@ describe('useErrorHandling', () => {
         const Component = myra.useContext((_p, ctx) => {
 
             ctx.useLifecycle(ev => {
-                if (ev === 'willMount') {
+                if (ev.phase === LifecyclePhase.BeforeMount) {
                     throw Error()
                 }
             })
@@ -594,7 +570,7 @@ describe('useErrorHandling', () => {
         done()
     })
 
-    it('calls the useErrorHandling listener on willRender error', done => {
+    it('calls the useErrorHandling listener on preRender error', done => {
         const mock = {
             callback: () => <nothing />
         }
@@ -604,7 +580,7 @@ describe('useErrorHandling', () => {
         const Component = myra.useContext((_p, ctx) => {
 
             ctx.useLifecycle(ev => {
-                if (ev === 'willRender') {
+                if (ev.phase === LifecyclePhase.BeforeRender) {
                     throw Error()
                 }
             })
@@ -622,7 +598,7 @@ describe('useErrorHandling', () => {
         done()
     })
 
-    it('does not call the useErrorHandling listener on willUnmount error', done => {
+    it('does not call the useErrorHandling listener on preUnmount error', done => {
         const mock = {
             callback: () => <nothing />
         }
@@ -632,7 +608,7 @@ describe('useErrorHandling', () => {
         const Component = myra.useContext((_p, ctx) => {
 
             ctx.useLifecycle(ev => {
-                if (ev === 'willUnmount') {
+                if (ev.phase === LifecyclePhase.BeforeUnmount) {
                     throw Error()
                 }
             })
@@ -706,15 +682,15 @@ describe('useErrorHandling', () => {
  */
 describe('component render', () => {
 
-    it('does not call the willRender listener if the props has not changed', () => {
+    it('does not call the preRender listener if the props has not changed', () => {
         const mock = {
-            willRender: () => { }
+            preRender: () => { }
         }
 
-        spyOn(mock, 'willRender').and.callThrough()
+        spyOn(mock, 'preRender').and.callThrough()
 
         const Component = myra.useContext((_p: { val: number }, ctx) => {
-            ctx.useLifecycle(ev => ev === 'willRender' && mock.willRender())
+            ctx.useLifecycle(ev => ev.phase === LifecyclePhase.BeforeRender && mock.preRender())
             return <div />
         })
 
@@ -722,10 +698,10 @@ describe('component render', () => {
         const domNode = render(document.body, vNode, undefined, undefined)
         render(document.body, <Component val={45} />, vNode, domNode)
 
-        expect(mock.willRender).toHaveBeenCalledTimes(1)
+        expect(mock.preRender).toHaveBeenCalledTimes(1)
     })
 
-    it('calls the willRender listener if forceUpdate is true', () => {
+    it('calls the preRender listener if forceUpdate is true', () => {
         const mock = {
             callback: () => { }
         }
@@ -733,7 +709,7 @@ describe('component render', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.useContext((_p: { forceUpdate?: boolean }, ctx) => {
-            ctx.useLifecycle(ev => ev === 'willRender' && mock.callback())
+            ctx.useLifecycle(ev => ev.phase === LifecyclePhase.BeforeRender && mock.callback())
             return <div />
         })
 
@@ -745,7 +721,7 @@ describe('component render', () => {
         expect(mock.callback).toHaveBeenCalledTimes(2)
     })
 
-    it('calls the willRender listener if the supplied props are not equal to the previous props', () => {
+    it('calls the preRender listener if the supplied props are not equal to the previous props', () => {
         const mock = {
             callback: () => { }
         }
@@ -753,7 +729,7 @@ describe('component render', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.useContext((_p: { prop: string }, ctx) => {
-            ctx.useLifecycle(ev => ev === 'willRender' && mock.callback())
+            ctx.useLifecycle(ev => ev.phase === LifecyclePhase.BeforeRender && mock.callback())
             return <div />
         })
 
@@ -766,97 +742,97 @@ describe('component render', () => {
         expect(mock.callback).toHaveBeenCalledTimes(2)
     })
 
-    it('passes old and new props to useRenderDecision', done => {
-        const mock = {
-            useRenderDecision: (oldProps: { a?: number }, newProps: { a?: number }) => {
-                if (oldProps.a === undefined) {
-                    expect(newProps.a).toBe(1)
-                }
-                else {
-                    expect(oldProps.a).toBe(1)
-                    expect(newProps.a).toBe(2)
-                    done()
-                }
-                return true
-            }
-        }
+    // it('passes old and new props to useRenderDecision', done => {
+    //     const mock = {
+    //         useRenderDecision: (oldProps: { a?: number }, newProps: { a?: number }) => {
+    //             if (oldProps.a === undefined) {
+    //                 expect(newProps.a).toBe(1)
+    //             }
+    //             else {
+    //                 expect(oldProps.a).toBe(1)
+    //                 expect(newProps.a).toBe(2)
+    //                 done()
+    //             }
+    //             return true
+    //         }
+    //     }
 
-        spyOn(mock, 'useRenderDecision').and.callThrough()
-        interface Props { a?: number }
+    //     spyOn(mock, 'useRenderDecision').and.callThrough()
+    //     interface Props { a?: number }
 
-        myra.useContext<Props>((_props, context) => {
-            const [uiState, evolveUi] = context.useState(['string'])
-            // context.useDefaultProps({ foo: 'foo' })
-            context.useRenderDecision(mock.useRenderDecision)
-            evolveUi([])
-            return (
-                <div>
-                    {uiState.map(s => s)}
-                </div>
-            )
-        })
+    //     myra.useContext<Props>((_props, context) => {
+    //         const [uiState, evolveUi] = context.useState(['string'])
+    //         // context.useDefaultProps({ foo: 'foo' })
+    //         context.useRenderDecision(mock.useRenderDecision)
+    //         evolveUi([])
+    //         return (
+    //             <div>
+    //                 {uiState.map(s => s)}
+    //             </div>
+    //         )
+    //     })
 
-        const Component = myra.useContext((_p: { a?: number }, ctx) => {
-            // ctx.useDefaultProps({
-            //     a: 0
-            // })
-            ctx.useRenderDecision(mock.useRenderDecision)
-            return <div />
-        })
+    //     const Component = myra.useContext((_p: { a?: number }, ctx) => {
+    //         // ctx.useDefaultProps({
+    //         //     a: 0
+    //         // })
+    //         ctx.useRenderDecision(mock.useRenderDecision)
+    //         return <div />
+    //     })
 
-        const vNode = <Component a={1} />
-        const domNode = render(document.body, vNode, undefined, undefined)
+    //     const vNode = <Component a={1} />
+    //     const domNode = render(document.body, vNode, undefined, undefined)
 
-        const newVNode = <Component a={2} />
-        render(document.body, newVNode, vNode, domNode)
+    //     const newVNode = <Component a={2} />
+    //     render(document.body, newVNode, vNode, domNode)
 
-    })
+    // })
 
-    it('calls the willRender listener if shouldRender returns true', () => {
-        const mock = {
-            willRender: () => { }
-        }
+    // it('calls the preRender listener if shouldRender returns true', () => {
+    //     const mock = {
+    //         preRender: () => { }
+    //     }
 
-        spyOn(mock, 'willRender').and.callThrough()
+    //     spyOn(mock, 'preRender').and.callThrough()
 
-        const Component = myra.useContext((_p: { forceUpdate?: boolean }, ctx) => {
-            ctx.useRenderDecision(() => true)
-            ctx.useLifecycle(ev => ev === 'willRender' && mock.willRender())
-            return <div />
-        })
+    //     const Component = myra.useContext((_p: { forceUpdate?: boolean }, ctx) => {
+    //         ctx.useRenderDecision(() => true)
+    //         ctx.useLifecycle(ev => ev.phase === LifecyclePhase.PreRender && mock.preRender())
+    //         return <div />
+    //     })
 
-        const vNode = <Component />
-        const domNode = render(document.body, vNode, undefined, undefined)
+    //     const vNode = <Component />
+    //     const domNode = render(document.body, vNode, undefined, undefined)
 
-        const newVNode = <Component forceUpdate />
-        render(document.body, newVNode, vNode, domNode)
+    //     const newVNode = <Component forceUpdate />
+    //     render(document.body, newVNode, vNode, domNode)
 
-        expect(mock.willRender).toHaveBeenCalledTimes(2)
-    })
+    //     expect(mock.preRender).toHaveBeenCalledTimes(2)
+    // })
 
-    it('does not call the willRender listener if shouldRender returns false', () => {
-        const mock = {
-            willRender: () => { }
-        }
+    // it('does not call the preRender listener if shouldRender returns false', () => {
+    //     const mock = {
+    //         preRender: () => { }
+    //     }
 
-        spyOn(mock, 'willRender').and.callThrough()
+    //     spyOn(mock, 'preRender').and.callThrough()
 
-        const Component = myra.useContext((_p: { forceUpdate?: boolean }, ctx) => {
-            ctx.useRenderDecision(() => false)
-            ctx.useLifecycle(ev => ev === 'willRender' && mock.willRender)
-            return <div />
-        })
+    //     const Component = myra.useContext((_p: { forceUpdate?: boolean }, ctx) => {
+    //         ctx.useRenderDecision(() => false)
+    //         ctx.useLifecycle(ev => ev.phase === LifecyclePhase.PreRender && mock.preRender)
+    //         return <div />
+    //     })
 
-        const vNode = <Component />
-        const domNode = render(document.body, vNode, undefined, undefined)
+    //     const vNode = <Component />
+    //     const domNode = render(document.body, vNode, undefined, undefined)
 
-        const newVNode = <Component forceUpdate />
-        render(document.body, newVNode, vNode, domNode)
+    //     const newVNode = <Component forceUpdate />
+    //     render(document.body, newVNode, vNode, domNode)
 
-        expect(mock.willRender).not.toHaveBeenCalled()
-    })
+    //     expect(mock.preRender).not.toHaveBeenCalled()
+    // })
 
-    it('does not call the willRender listener if the children has not changed', () => {
+    it('does not call the preRender listener if the children has not changed', () => {
         const mock = {
             callback: () => { }
         }
@@ -864,7 +840,7 @@ describe('component render', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.useContext((props, ctx) => {
-            ctx.useLifecycle(ev => ev === 'willRender' && mock.callback())
+            ctx.useLifecycle(ev => ev.phase === LifecyclePhase.BeforeRender && mock.callback())
             return <div>{...props.children}</div>
         })
 
@@ -877,7 +853,7 @@ describe('component render', () => {
         expect(mock.callback).toHaveBeenCalledTimes(1)
     })
 
-    it('calls the willRender event if the supplied children are not equal to the previous children', () => {
+    it('calls the preRender event if the supplied children are not equal to the previous children', () => {
         const mock = {
             callback: () => { }
         }
@@ -885,7 +861,7 @@ describe('component render', () => {
         spyOn(mock, 'callback').and.callThrough()
 
         const Component = myra.useContext((props, ctx) => {
-            ctx.useLifecycle(ev => ev === 'willRender' && mock.callback())
+            ctx.useLifecycle(ev => ev.phase === LifecyclePhase.BeforeRender && mock.callback())
             return <div>{...props.children}</div>
         })
 
