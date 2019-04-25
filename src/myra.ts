@@ -1,12 +1,12 @@
 import { render } from './component'
-import { ComponentFactoryWithContext, VNode } from './contract'
+import { ComponentFactory, VNode } from './contract'
 
 export * from './jsxFactory'
 export * from './contract'
 
 export function useContext<TProps>(
-    componentFactory: ComponentFactoryWithContext<TProps & { children: VNode[] }>
-): ComponentFactoryWithContext<TProps & { forceUpdate?: boolean }> {
+    componentFactory: ComponentFactory<TProps & { children: VNode[] }>
+): ComponentFactory<TProps & { forceUpdate?: boolean }> {
     return componentFactory as any
 }
 

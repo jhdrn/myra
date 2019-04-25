@@ -1,5 +1,5 @@
 import * as myra from '../src/myra'
-import { ComponentVNode } from '../src/myra';
+import { ComponentVNode } from '../src/myra'
 
 describe('jsxFactory', () => {
 

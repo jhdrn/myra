@@ -1,20 +1,21 @@
 /** @internal */
 import {
-    ElementVNode,
-    UpdateState,
-    VNode,
+    ComponentProps,
     ComponentVNode,
+    ElementVNode,
+    ErrorHandler,
     Evolve,
+    Key,
     LifecycleEvent,
     LifecycleEventListener,
-    ComponentProps,
-    TextVNode,
-    ErrorHandler,
+    LifecyclePhase,
     Ref,
-    LifecyclePhase
+    TextVNode,
+    UpdateState,
+    VNode,
+    VNodeType
 } from './contract'
 import { equal, typeOf } from './helpers'
-import { VNODE_ELEMENT, VNODE_COMPONENT, VNODE_TEXT, VNODE_NOTHING } from './constants'
 
 interface IRenderingContext {
     vNode: ComponentVNode<ComponentProps>
@@ -276,12 +277,12 @@ function findAndUnmountComponentsRec(vNode: VNode | undefined) {
     if (vNode === undefined) {
         return
     }
-    if (vNode._ === VNODE_COMPONENT) {
+    if (vNode._ === VNodeType.Component) {
         triggerLifeCycleEvent(vNode.events, { phase: LifecyclePhase.BeforeUnmount, domRef: vNode.domRef! })
 
         findAndUnmountComponentsRec(vNode.rendition!)
     }
-    else if (vNode._ === VNODE_ELEMENT) {
+    else if (vNode._ === VNodeType.Element) {
         for (const c of vNode.props.children) {
             findAndUnmountComponentsRec(c)
         }
@@ -317,11 +318,11 @@ export function render(
         else if (newVNode._ !== oldVNode._) {
             action = RenderingAction.REPLACE
         }
-        else if (newVNode._ === VNODE_ELEMENT && oldVNode._ === VNODE_ELEMENT &&
+        else if (newVNode._ === VNodeType.Element && oldVNode._ === VNodeType.Element &&
             newVNode.tagName !== oldVNode.tagName) {
             action = RenderingAction.REPLACE
         }
-        else if (newVNode._ === VNODE_COMPONENT && oldVNode._ === VNODE_COMPONENT &&
+        else if (newVNode._ === VNodeType.Component && oldVNode._ === VNodeType.Component &&
             newVNode.view !== oldVNode.view) {
             action = RenderingAction.REPLACE
         } else {
@@ -382,13 +383,13 @@ function renderCreate(
 
         // If it's a component node or an element node and it should be 
         // replaced, unmount any components in the tree.
-        if (oldVNode!._ === VNODE_COMPONENT || oldVNode!._ === VNODE_ELEMENT) {
+        if (oldVNode!._ === VNodeType.Component || oldVNode!._ === VNodeType.Element) {
             findAndUnmountComponentsRec(oldVNode!)
         }
 
         // If it's an element node remove old event listeners before 
         // replacing the node. 
-        if (oldVNode!._ === VNODE_ELEMENT) {
+        if (oldVNode!._ === VNodeType.Element) {
             for (const attr in (oldVNode as ElementVNode<any>).props) {
                 if (attr.indexOf('on') === 0) {
                     removeAttr(attr, existingDomNode as Element)
@@ -400,7 +401,7 @@ function renderCreate(
     }
 
     // If it's an element node set attributes and event listeners
-    if (newVNode._ === VNODE_ELEMENT) {
+    if (newVNode._ === VNodeType.Element) {
         const props = newVNode.props
         for (const name in props) {
             if (name === 'children') {
@@ -513,7 +514,7 @@ function updateElementVNode(
             if (newProps !== undefined
                 && oldChildVNodes.length > 0) {
 
-                const newChildVNodeKey: string | undefined = newProps.key
+                const newChildVNodeKey: Key | undefined = newProps.key
 
                 if (newChildVNodeKey !== undefined) {
 
@@ -589,7 +590,7 @@ function renderUpdate(
 
     // update existing node
     switch (newVNode._) {
-        case VNODE_ELEMENT: // element node
+        case VNodeType.Element: // element node
 
             updateElementAttributes(newVNode, oldVNode!, existingDomNode!)
             updateElementVNode(
@@ -599,12 +600,12 @@ function renderUpdate(
                 isSvg
             )
             break
-        case VNODE_TEXT: // text node
+        case VNodeType.Text: // text node
             if (existingDomNode!.textContent !== newVNode.value) {
                 existingDomNode!.textContent = newVNode.value
             }
             break
-        case VNODE_COMPONENT: // stateless component node
+        case VNodeType.Component: // stateless component node
 
             newVNode.rendition = (oldVNode as ComponentVNode<any>).rendition
             newVNode.data = (oldVNode as ComponentVNode<any>).data
@@ -634,7 +635,7 @@ function renderUpdate(
     return newVNode.domRef
 }
 
-function equalProps(a: ComponentProps, b: ComponentProps) {
+function equalProps(a: { children: VNode[] }, b: { children: Array<VNode> }) {
     if (Object.keys(a).length !== Object.keys(b).length) {
         return false
     }
@@ -652,12 +653,12 @@ function equalProps(a: ComponentProps, b: ComponentProps) {
                     if (aChild._ !== bChild._) {
                         return false
                     }
-                    if (aChild._ === VNODE_COMPONENT || aChild._ === VNODE_ELEMENT) {
+                    if (aChild._ === VNodeType.Component || aChild._ === VNodeType.Element) {
                         if (!equalProps(aChild.props, (bChild as ElementVNode<any>).props)) {
                             return false
                         }
                     }
-                    else if (aChild._ === VNODE_TEXT && !equal(aChild.value, (bChild as TextVNode).value)) {
+                    else if (aChild._ === VNodeType.Text && !equal(aChild.value, (bChild as TextVNode).value)) {
                         return false
                     }
                 }
@@ -675,14 +676,14 @@ function equalProps(a: ComponentProps, b: ComponentProps) {
  */
 function createNode(vNode: VNode, parentElement: Element, isSvg: boolean): Node {
     switch (vNode._) {
-        case VNODE_ELEMENT:
+        case VNodeType.Element:
             if (isSvg) {
                 return document.createElementNS('http://www.w3.org/2000/svg', vNode.tagName)
             }
             return document.createElement(vNode.tagName)
-        case VNODE_TEXT:
+        case VNodeType.Text:
             return document.createTextNode(vNode.value)
-        case VNODE_COMPONENT:
+        case VNodeType.Component:
 
             renderComponent(parentElement, vNode, isSvg, undefined)
 
@@ -691,7 +692,7 @@ function createNode(vNode: VNode, parentElement: Element, isSvg: boolean): Node 
             }
 
             return vNode.domRef
-        case VNODE_NOTHING:
+        case VNodeType.Nothing:
             return document.createComment('Nothing')
     }
 }

@@ -246,11 +246,9 @@ declare global {
 }
 
 export type UpdateState<TState> = Partial<TState> | ((s: Readonly<TState>) => Partial<TState>)
-export type Evolve<TState> = (update: UpdateState<TState>) => TState // | Error ???
+export type Evolve<TState> = (update: UpdateState<TState>) => TState
 
-export type ComponentFactory<TProps, TContext> = (props: TProps, context: TContext) => VNode
-
-export type ComponentFactoryWithContext<TProps> = (props: TProps, context: Context<TProps>) => VNode
+export type ComponentFactory<TProps> = (props: TProps, context: Context<TProps>) => VNode
 
 export type ErrorHandler = (error: any) => VNode
 
@@ -287,10 +285,82 @@ export interface LifecycleEventListener<TProps> {
     (event: LifecycleEvent<TProps>): void
 }
 
+export type TextNode = string | number
+
+export type Key = string | number
+
 export interface ComponentProps {
-    children: VNode[]
+    children?: Array<VNode | TextNode>
     forceUpdate?: boolean
+    key?: Key
 }
+export interface ComponentProps2 {
+    children?: Array<VNode | TextNode>
+    forceUpdate?: boolean
+    key?: Key
+}
+
+export const enum VNodeType {
+    Nothing,
+    Text,
+    Element,
+    Component
+}
+
+/**
+ * Base interface for a virtual node.
+ */
+export interface VNodeBase {
+    /**
+     * A reference to a DOM node.
+     */
+    domRef?: Node
+}
+
+/**
+ * A virtual node representing nothing. Will be rendered as a comment DOM 
+ * node.
+ */
+export interface NothingVNode extends VNodeBase {
+    readonly _: VNodeType.Nothing
+}
+
+/**
+ * A virtual node that represents a text DOM node. 
+ */
+export interface TextVNode extends VNodeBase {
+    readonly _: VNodeType.Text
+    readonly value: string
+}
+
+/**
+ * A virtual node representing a DOM Element. 
+ */
+export interface ElementVNode<TElement extends Element> extends VNodeBase {
+    readonly _: VNodeType.Element
+    readonly tagName: string
+    readonly props: GlobalAttributes<TElement> & { children: VNode[] }
+    domRef?: TElement
+}
+
+/**
+ * A virtual node representing a component.
+ */
+export interface ComponentVNode<TProps> extends VNodeBase {
+    readonly _: VNodeType.Component
+    events?: Array<LifecycleEventListener<TProps>>
+    errorHandler?: ErrorHandler
+    link: { vNode: ComponentVNode<TProps> }
+    data?: any[]
+    props: TProps
+    rendition?: VNode
+    view: ComponentFactory<TProps>
+}
+
+/**
+ * Union type of the different types of virtual nodes.
+ */
+export type VNode = TextVNode | ElementVNode<any> | ComponentVNode<any> | NothingVNode
 
 export interface GenericEvent<T extends EventTarget> extends Event {
     currentTarget: T
@@ -313,63 +383,8 @@ export interface GenericDragEvent<T extends EventTarget> extends DragEvent {
  */
 export type EventListener<TEvent extends Event> = (event: TEvent) => void
 
-/**
- * Base interface for a virtual node.
- */
-export interface VNodeBase {
-    /**
-     * A reference to a DOM node.
-     */
-    domRef?: Node
-}
-
-/**
- * A virtual node that represents a text DOM node. 
- */
-export interface TextVNode extends VNodeBase {
-    readonly _: 1
-    readonly value: string
-}
-
-/**
- * A virtual node representing a DOM Element. 
- */
-export interface ElementVNode<TElement extends Element> extends VNodeBase {
-    readonly _: 2
-    readonly tagName: string
-    readonly props: GlobalAttributes<TElement> & { children: VNode[] }
-    domRef?: TElement
-}
-
-/**
- * A virtual node representing a component.
- */
-export interface ComponentVNode<TProps> extends VNodeBase {
-    readonly _: 3
-    events?: Array<LifecycleEventListener<TProps>>
-    errorHandler?: ErrorHandler
-    link: { vNode: ComponentVNode<TProps> }
-    data?: any[]
-    props: TProps
-    rendition?: VNode
-    view: ComponentFactoryWithContext<TProps>
-}
-
-/**
- * A virtual node representing nothing. Will be rendered as a comment DOM 
- * node.
- */
-export interface NothingVNode extends VNodeBase {
-    readonly _: 0
-}
-
-/**
- * Union type of the different types of virtual nodes.
- */
-export type VNode = TextVNode | ElementVNode<any> | ComponentVNode<any> | NothingVNode
-
 export interface GlobalAttributes<TElement extends Element> {
-    key?: any
+    key?: Key
     accesskey?: string
     'class'?: string
     contenteditable?: boolean | '' | 'true' | 'false'
