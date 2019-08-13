@@ -1,6 +1,6 @@
 import * as myra from '../../../../src/myra'
-import TodoListComponent from './todo-list'
 import * as todos from '../models/todos'
+import TodoListComponent from './todo-list'
 
 type Todo = todos.Todo
 
@@ -8,7 +8,7 @@ interface AppContext<TProps> extends myra.Context<TProps> {
     foobar: string
 }
 
-function useAppContext<TProps>(componentFactory: myra.ComponentFactory<TProps, AppContext<TProps>>) {
+function useAppContext<TProps>(componentFactory: (props: TProps, context: AppContext<TProps>) => myra.VNode) {
     return myra.useContext<TProps>((props, ctx) => {
         return componentFactory(props, {
             ...ctx,

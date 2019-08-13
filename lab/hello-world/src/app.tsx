@@ -3,7 +3,6 @@ import * as myra from '../../../src/myra'
 //     return new Promise(resolve => setTimeout(resolve, milliseconds))
 // }
 
-
 const SubComponent = myra.useContext<{ foo: string }>(function subComponent(_props, ctx) {
     const [state, evolve] = ctx.useState({ name: 'SubComponent' })
     evolve({ name: state.name + ' ' + _props.foo })
@@ -22,7 +21,7 @@ const AppComponent = myra.useContext((_props, ctx) => {
     // ctx.useRenderDecision(() => false)
 
     ctx.useLifecycle(ev => {
-        if (ev === 'didRender') {
+        if (ev.phase === myra.LifecyclePhase.AfterRender) {
             evolve2({ hello: state.hello })
         }
     })

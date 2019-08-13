@@ -1,12 +1,12 @@
 import * as myra from '../../../../src/myra'
 
-import StatelessComponent from './stateless-component'
 import CounterComponent from './counter'
-import HttpComponent from './http'
-import TimeComponent from './time'
 import { ErrorComponent } from './error'
+import HttpComponent from './http'
 import { Lifecycle } from './lifecycle'
 import { Props } from './props'
+import StatelessComponent from './stateless-component'
+import TimeComponent from './time'
 
 
 /**

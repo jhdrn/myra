@@ -294,11 +294,6 @@ export interface ComponentProps {
     forceUpdate?: boolean
     key?: Key
 }
-export interface ComponentProps2 {
-    children?: Array<VNode | TextNode>
-    forceUpdate?: boolean
-    key?: Key
-}
 
 export const enum VNodeType {
     Nothing,

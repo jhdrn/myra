@@ -7,7 +7,7 @@ export const Lifecycle = myra.useContext((_, ctx) => {
     const [, setState] = ctx.useState('')
 
     ctx.useLifecycle(async ev => {
-        if (ev === 'didRender') {
+        if (ev.phase === myra.LifecyclePhase.AfterRender) {
             await sleep(1000)
         }
         console.log(ev)
