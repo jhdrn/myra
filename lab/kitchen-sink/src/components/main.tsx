@@ -1,12 +1,12 @@
 import * as myra from '../../../../src/myra'
 
-import StatelessComponent from './stateless-component'
 import CounterComponent from './counter'
-import HttpComponent from './http'
-import TimeComponent from './time'
 import { ErrorComponent } from './error'
+import HttpComponent from './http'
 import { Lifecycle } from './lifecycle'
 import { Props } from './props'
+import StatelessComponent from './stateless-component'
+import TimeComponent from './time'
 
 
 /**
@@ -19,21 +19,21 @@ export const MainComponent = myra.useContext((_, ctx) => {
             <h1>Kitchen sink demo</h1>
             <button onclick={() => evolve(0)}>Rerender component tree</button>
             <hr />
-            <StatelessComponent test="a value" />
+            <StatelessComponent forceUpdate test="a value">
+                {['asd', <p>Fpoo</p>, ['bar']]}
+            </StatelessComponent>
             <hr />
-            <CounterComponent />
+            <CounterComponent forceUpdate />
             <hr />
-            <HttpComponent />
+            <HttpComponent forceUpdate />
             <hr />
-            <ErrorComponent />
+            <ErrorComponent forceUpdate />
             <hr />
-            <TimeComponent />
+            <TimeComponent forceUpdate />
             <hr />
-            <Lifecycle />
+            <Lifecycle forceUpdate />
             <hr />
-            <Props propA={123} propB="ABC">
-                Child content
-            </Props>
+            <Props forceUpdate propA={123} propB="ABC" />
         </div>
     )
 })

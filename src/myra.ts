@@ -4,6 +4,11 @@ import { ComponentFactory, VNode } from './contract'
 export * from './jsxFactory'
 export * from './contract'
 
+/**
+ * Convenience function for type hinting
+ * 
+ * @param componentFactory 
+ */
 export function useContext<TProps>(
     componentFactory: ComponentFactory<TProps & { children: VNode[] }>
 ): ComponentFactory<TProps & { forceUpdate?: boolean }> {

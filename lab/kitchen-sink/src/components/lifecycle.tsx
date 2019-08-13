@@ -1,15 +1,30 @@
 import * as myra from '../../../../src/myra'
-function sleep(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms))
-}
+// function sleep(ms: number) {
+//     return new Promise(resolve => setTimeout(resolve, ms))
+// }
 
 export const Lifecycle = myra.useContext((_, ctx) => {
     const [, setState] = ctx.useState('')
 
-    ctx.useLifecycle(async ev => {
-        if (ev === 'didRender') {
-            await sleep(1000)
+    ctx.useLifecycle(ev => {
+        switch (ev.phase) {
+            case myra.LifecyclePhase.BeforeMount:
+                break
+            case myra.LifecyclePhase.BeforeRender:
+                // ev.oldProps
+                // ev.preventRender()
+                break
+            case myra.LifecyclePhase.AfterRender:
+                // ev.domRef
+                break
+            case myra.LifecyclePhase.AfterMount:
+                // ev.domRef
+                break
+            case myra.LifecyclePhase.BeforeUnmount:
+                // ev.domRef
+                break
         }
+
         console.log(ev)
     })
 
@@ -18,7 +33,7 @@ export const Lifecycle = myra.useContext((_, ctx) => {
             <h2>Life cycle events</h2>
             <p>Demo of <code>useLifecycle</code>. Life cycle events are logged to the console.</p>
             <p>
-                <button onclick={() => setState('')}>Click me</button> to see the <code>willRender</code> and <code>didRender</code> events fire.
+                <button onclick={() => setState('')}>Click me</button> to see the <code>beforeRender</code> and <code>afterRender</code> events fire.
             </p>
         </section>
     )

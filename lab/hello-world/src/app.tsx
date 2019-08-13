@@ -6,6 +6,33 @@ import * as myra from '../../../src/myra'
 
 const SubComponent = myra.useContext<{ foo: string }>(function subComponent(_props, ctx) {
     const [state, evolve] = ctx.useState({ name: 'SubComponent' })
+    const [noOfRenders, setNoOfRenders] = ctx.useState(0)
+    const [refState,] = ctx.useState({ foo: 'bar' })
+
+    ctx.useLifecycle(ev => {
+        switch (ev.phase) {
+            case myra.LifecyclePhase.BeforeMount:
+                break
+            case myra.LifecyclePhase.BeforeRender:
+                refState.foo += noOfRenders
+                break
+            case myra.LifecyclePhase.AfterRender:
+                console.log(refState.foo)
+                break
+            case myra.LifecyclePhase.AfterMount:
+                break
+            case myra.LifecyclePhase.BeforeUnmount:
+                break
+        }
+
+        if (noOfRenders > 2 && ev.phase === myra.LifecyclePhase.BeforeRender) {
+
+            ev.preventRender()
+        }
+    })
+
+    setNoOfRenders(noOfRenders + 1)
+
     evolve({ name: state.name + ' ' + _props.foo })
     return <div>{state.name}</div>
 })
@@ -21,15 +48,14 @@ const AppComponent = myra.useContext((_props, ctx) => {
 
     // ctx.useRenderDecision(() => false)
 
-    ctx.useLifecycle(ev => {
-        if (ev === 'didRender') {
-            evolve2({ hello: state.hello })
-        }
-    })
+    // ctx.useLifecycle(ev => {
+    //     if (ev.phase === 'postRender') {
+    //         evolve2({ hello: state.hello })
+    //     }
+    // })
 
-    function onClick() {
-        evolveTime({ start: Date.now() })
-        // await sleep(40)
+    async function onClick() {
+        // await sleep(4000)
         evolve(state => ({ hello: `${state.hello} again` }))
         // evolve2({ hello: `${state.hello} 2 again` })
     }
