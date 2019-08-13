@@ -1,6 +1,6 @@
-import * as myra from '../../../../src/myra'
 import * as router from 'myra-router'
-import { TodosFilter, saveFilter, loadFilter } from '../models/filter'
+import * as myra from '../../../../src/myra'
+import { loadFilter, saveFilter, TodosFilter } from '../models/filter'
 import * as todos from '../models/todos'
 import TodoItemComponent from './todo-item'
 
@@ -92,12 +92,12 @@ export default myra.useContext((_props, ctx) => {
     }
 
     ctx.useLifecycle(ev => {
-        if (ev === 'didMount') {
+        if (ev.phase === myra.LifecyclePhase.AfterMount) {
             evolve({ filter: loadFilter() })
             router.addListener(applyFilterFromLocation)
             loadTodos()
         }
-        else if (ev === 'willRender') {
+        else if (ev.phase === myra.LifecyclePhase.BeforeRender) {
             loadTodos()
         }
     })

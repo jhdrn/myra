@@ -3,7 +3,6 @@ import * as myra from '../../../src/myra'
 //     return new Promise(resolve => setTimeout(resolve, milliseconds))
 // }
 
-
 const SubComponent = myra.useContext<{ foo: string }>(function subComponent(_props, ctx) {
     const [state, evolve] = ctx.useState({ name: 'SubComponent' })
     const [noOfRenders, setNoOfRenders] = ctx.useState(0)
