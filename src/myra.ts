@@ -1,18 +1,28 @@
 import { render } from './component'
-import { ComponentFactory, VNode } from './contract'
+import { ComponentFactory, ComponentProps, VNode } from './contract'
 
 export * from './jsxFactory'
-export * from './contract'
+export {
+    ErrorHandler,
+    Evolve,
+    Ref,
+} from './contract'
+export {
+    useEffect,
+    useErrorHandler,
+    useMemo,
+    useRef,
+    useState,
+    useLayoutEffect,
+} from './component'
 
 /**
  * Convenience function for type hinting
  * 
- * @param componentFactory 
+ * @param fn 
  */
-export function useContext<TProps>(
-    componentFactory: ComponentFactory<TProps & { children: VNode[] }>
-): ComponentFactory<TProps & { forceUpdate?: boolean }> {
-    return componentFactory as any
+export function define<TProps>(fn: ComponentFactory<TProps & ComponentProps>) {
+    return fn
 }
 
 /** 

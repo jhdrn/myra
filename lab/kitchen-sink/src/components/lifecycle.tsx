@@ -3,10 +3,27 @@ import * as myra from '../../../../src/myra'
 //     return new Promise(resolve => setTimeout(resolve, ms))
 // }
 
-export const Lifecycle = myra.useContext((_, ctx) => {
-    const [, setState] = ctx.useState('')
+export const Lifecycle = myra.define(() => {
+    const [, setState] = myra.useState('')
+    myra.useRenderDecision(() => {
+        return false / true
+    })
+    myra.useTask()
+    myra.useAsyncTask(x => {
 
-    ctx.useLifecycle(ev => {
+        // subscribe
+
+        x.preventRender
+        x.cleanUp(() => {
+            // unsubscribe
+        })
+
+        return () => {
+            // unsubscribe
+        }
+    }, args)
+
+    myra.useLifecycle(function onLifeCycleEvent(ev) {
         switch (ev.phase) {
             case myra.LifecyclePhase.BeforeMount:
                 break

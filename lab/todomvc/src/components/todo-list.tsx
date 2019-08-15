@@ -44,8 +44,8 @@ const filterLink = (href: string, txt: string, routeCtx: router.RouteContext) =>
 /**
  * Component
  */
-export default myra.useContext((_props, ctx) => {
-    const [state, evolve] = ctx.useState(init)
+export default myra.define(_ => {
+    const [state, evolve] = myra.useState(init)
 
     const todosLoaded = (todos: Todo[]) =>
         evolve({
@@ -91,7 +91,7 @@ export default myra.useContext((_props, ctx) => {
         loadTodos()
     }
 
-    ctx.useLifecycle(ev => {
+    myra.useLifecycle(ev => {
         if (ev.phase === myra.LifecyclePhase.AfterMount) {
             evolve({ filter: loadFilter() })
             router.addListener(applyFilterFromLocation)

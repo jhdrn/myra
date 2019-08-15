@@ -4,13 +4,14 @@ interface IProps {
     propA: number
     propB: string
     propC?: boolean
+    forceUpdate: number
 }
 
 const defaultProps = {
     propC: true
 }
 
-export const Props = myra.useContext<IProps>((props, ctx) => {
+export const Props = myra.define<IProps>((props) => {
     const {
         propA,
         propB,
@@ -19,7 +20,8 @@ export const Props = myra.useContext<IProps>((props, ctx) => {
     } = { ...defaultProps, ...props }
 
     // Use state to keep track of number of renders
-    const [state, setState] = ctx.useState(0)
+    const [state, setState] = myra.useState(0)
+
     setState(state + 1)
 
     return (
@@ -34,7 +36,7 @@ export const Props = myra.useContext<IProps>((props, ctx) => {
                 <dt>propC</dt>
                 <dd>{propC ? 'true' : 'false'}</dd>
                 <dt>children</dt>
-                <dd>{...children}</dd>
+                <dd>{children}</dd>
             </dl>
             <p>Rendered {state + 1} times</p>
         </section>

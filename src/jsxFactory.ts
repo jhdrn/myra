@@ -1,16 +1,15 @@
 import {
     ComponentFactory,
     ComponentVNode,
+    MyraNode,
     TextNode,
     TextVNode,
     VNode,
     VNodeType
 } from './contract'
 
-interface ChildNodeArray extends Array<ChildNode> { }
-export type ChildNode = VNode | TextNode | ChildNodeArray | boolean | null | undefined
 
-function flattenChildren(children: ChildNode[]) {
+function flattenChildren(children: MyraNode[]) {
     const flattenedChildren = [] as Array<VNode | TextNode>
 
     for (const child of children) {
@@ -43,7 +42,7 @@ function flattenChildren(children: ChildNode[]) {
 export function h<TProps>(
     tagNameOrComponent: string | ComponentFactory<object> | undefined | null,
     props: TProps,
-    ...children: Array<ChildNode>): JSX.Element {
+    ...children: Array<MyraNode>): JSX.Element {
 
     if (tagNameOrComponent === 'nothing' ||
         tagNameOrComponent === undefined ||

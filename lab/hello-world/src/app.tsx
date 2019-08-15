@@ -4,11 +4,11 @@ import * as myra from '../../../src/myra'
 // }
 
 const SubComponent = myra.useContext<{ foo: string }>(function subComponent(_props, ctx) {
-    const [state, evolve] = ctx.useState({ name: 'SubComponent' })
-    const [noOfRenders, setNoOfRenders] = ctx.useState(0)
-    const [refState,] = ctx.useState({ foo: 'bar' })
+    const [state, evolve] = myra.useState({ name: 'SubComponent' })
+    const [noOfRenders, setNoOfRenders] = myra.useState(0)
+    const [refState,] = myra.useState({ foo: 'bar' })
 
-    ctx.useLifecycle(ev => {
+    myra.useLifecycle(ev => {
         switch (ev.phase) {
             case myra.LifecyclePhase.BeforeMount:
                 break
@@ -39,15 +39,15 @@ const SubComponent = myra.useContext<{ foo: string }>(function subComponent(_pro
 /**
  * Define a component with it's initial state { hello: 'Hello world' }
  */
-const AppComponent = myra.useContext((_props, ctx) => {
+const AppComponent = myra.define(_ => {
 
-    const [time, evolveTime] = ctx.useState({ start: 0, end: 0 })
-    const [state, evolve] = ctx.useState({ hello: 'Hello world' })
-    const [state2, evolve2] = ctx.useState({ hello: 'Hello world 2' })
+    const [time, _evolveTime] = myra.useState({ start: 0, end: 0 })
+    const [state, evolve] = myra.useState({ hello: 'Hello world' })
+    const [state2, _evolve2] = myra.useState({ hello: 'Hello world 2' })
 
-    // ctx.useRenderDecision(() => false)
+    // myra.useRenderDecision(() => false)
 
-    // ctx.useLifecycle(ev => {
+    // myra.useLifecycle(ev => {
     //     if (ev.phase === 'postRender') {
     //         evolve2({ hello: state.hello })
     //     }
