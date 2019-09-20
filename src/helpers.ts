@@ -15,7 +15,7 @@ export function typeOf(obj: any): Type {
     if (obj === null) {
         return 'null'
     }
-    return ({}).toString.call(obj).slice(8, -1).toLowerCase()
+    return ({}).toString.call(obj).slice(8, -1).toLowerCase() as Type
 }
 
 const basicEqualityTypes = ['string', 'number', 'boolean', 'undefined', 'null', 'function']
@@ -34,7 +34,7 @@ export function equal<T>(a: T, b: T): boolean {
             return false
         }
         for (const k in a) {
-            if (a.hasOwnProperty(k)) {
+            if ((a as Object).hasOwnProperty(k)) {
                 if (!equal((a as any)[k], (b as any)[k])) {
                     return false
                 }

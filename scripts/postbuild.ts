@@ -6,20 +6,20 @@ const definitionsFile = 'dist/myra.d.ts'
 
 // dts-bundle is removing 'declare' so this is an ugly way to bring it back
 // again
-fs.readFile(definitionsFile, 'utf8', (err, data) => {
+fs.readFile(definitionsFile, 'utf8', (err: Error, data: string) => {
     if (err) {
         throw err
     }
 
-    const result = data.replace('global  {', 'declare global {')
+    const result = data.replace('global {', 'declare global {')
 
-    fs.writeFile(definitionsFile, result, 'utf8', err => {
+    fs.writeFile(definitionsFile, result, 'utf8', (err: Error) => {
         if (err) {
             throw err
         }
 
         // Add 'export as namespace myra' to declaration file.
-        fs.appendFile(definitionsFile, 'export as namespace myra', (err) => {
+        fs.appendFile(definitionsFile, 'export as namespace myra', (err: Error) => {
             if (err) {
                 throw err
             }
