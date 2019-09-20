@@ -1,9 +1,6 @@
 import {
     minify
 } from 'uglify-es'
-// import resolve from 'rollup-plugin-node-resolve'
-// import commonjs from 'rollup-plugin-commonjs'
-import sourceMaps from 'rollup-plugin-sourcemaps'
 import {
     uglify
 } from 'rollup-plugin-uglify'
@@ -13,7 +10,7 @@ import dts from 'dts-bundle'
 function dtsBundle(libraryName) {
     return {
         name: 'dtsBundle',
-        onwrite: () =>
+        writeBundle: () =>
             dts.bundle({
                 name: libraryName,
                 main: `build/src/${libraryName}.d.ts`,
