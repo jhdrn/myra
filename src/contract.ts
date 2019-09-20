@@ -692,6 +692,7 @@ export interface TextareaAttributes extends GlobalAttributes<HTMLTextAreaElement
     selectionDirection?: string
     selectionEnd?: number | string
     selectionStart?: number | string
+    value?: string
     wrap?: 'soft' | 'hard'
 
     onchange?: EventListener<GenericEvent<HTMLTextAreaElement>>
