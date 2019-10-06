@@ -75,13 +75,13 @@ When a state is updated, the component will be re-rendered.
 Multiple states may be used for the same component.
 
 ```JSX
-    const MyComponent = myra.useContext((_, ctx) => {
-        const [state1, updateState1] = ctx.useState('initial state')
+    const MyComponent = () => {
+        const [state1, updateState1] = myra.useState('initial state')
         // state1 = 'initial state'
         const newState1 = updateState1('new state')
         // newState1 = 'new state'
 
-        const [state2, updateState2] = ctx.useState({ foo: 'bar', baz: 0 })
+        const [state2, updateState2] = myra.useState({ foo: 'bar', baz: 0 })
         // state2 = { foo: 'bar', baz: 0 }
         const newState2 = updateState2({ foo: 'baz' })
         // newState2 = { foo: 'baz', baz: 0 }
@@ -100,9 +100,9 @@ following events occur:
 - willUnmount
 
 ```JSX
-    const MyComponent = myra.useContext((_, ctx) => {
+    const MyComponent = () => {
         
-        ctx.useLifecycle(ev => {
+        myra.useLifecycle(ev => {
             switch (ev) {
                 case 'didMount':
                     // after the component was attached to the DOM
@@ -126,8 +126,8 @@ cases includes memoizing callback functions that will be used as props and
 caching computational heavy tasks.
 
 ```JSX
-    const MyComponent = myra.useContext((_, ctx) => {
-        const memoizedValue = ctx.useMemo(arg => { 
+    const MyComponent = () => {
+        const memoizedValue = myra.useMemo(arg => { 
             // arg === 'an argument'
             // computational expensive operation goes here
          }, 'an argument')
@@ -141,8 +141,8 @@ it has been rendered) and a "current" property which is a mutable property that
 will persist between renders.
 
 ```JSX
-    const MyComponent = myra.useContext((_, ctx) => {
-        const ref = ctx.useRef('the initial mutable value')
+    const MyComponent = () => {
+        const ref = myra.useRef('the initial mutable value')
         ref.node // holds the DOM node of the component (when it has been rendered)
         ref.current // the current value
         return <div>...</div>
@@ -155,9 +155,9 @@ will we propagated upwards in the component tree. The error handler function
 must return a VNode which will be rendered in case of an error.
 
 ```JSX
-    const MyComponent = myra.useContext((_, ctx) => {
+    const MyComponent = () => {
         // An error handler that will render the error
-        ctx.useErrorHandler(err => <div>{err}</div>)
+        myra.useErrorHandler(err => <div>{err}</div>)
         return <div>...</div>
     })
 ```
@@ -167,8 +167,8 @@ Takes a function that will be called prior to rendering. If the function returns
 false, the component will not render.
 
 ```JSX
-    const MyComponent = myra.useContext((_, ctx) => {
-        ctx.useRenderDecision((oldProps, newProps) => { 
+    const MyComponent = () => {
+        myra.useRenderDecision((oldProps, newProps) => { 
             return false // prevent render
          })
         return <div>...</div>

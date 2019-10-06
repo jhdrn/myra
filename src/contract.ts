@@ -12,6 +12,12 @@ declare global {
         export interface ElementAttributesProperty<TProps> {
             props: TProps
         }
+        export interface ElementChildrenAttribute { children: {} }
+
+        interface IntrinsicAttributes {
+            key?: string | number
+        }
+
         export interface IntrinsicElements {
             nothing: {}
 
@@ -245,53 +251,34 @@ declare global {
 
 }
 
-export type UpdateState<TState> = Partial<TState> | ((s: Readonly<TState>) => Partial<TState>)
-export type Evolve<TState> = (update: UpdateState<TState>) => TState
 
-export type ComponentFactory<TProps> = (props: TProps, context: Context<TProps>) => VNode
-
-export type ErrorHandler = (error: any) => VNode
-
-export type RenderDecision<TProps> = (oldProps: TProps, newProps: TProps) => boolean
-export type Ref<T> = {
-    current: T
-    node?: Node
-}
-
-export interface Context<TProps> {
-    readonly useRef: <T>(current?: T) => Ref<T>
-    readonly useErrorHandler: (handler: ErrorHandler) => void
-    readonly useLifecycle: (callback: LifecycleEventListener<TProps>) => void
-    readonly useMemo: <TMemoized, TArgs>(fn: (args: TArgs) => TMemoized, inputs: TArgs) => TMemoized
-    readonly useState: <TState>(init: TState) => [TState, Evolve<TState>]
-}
-
-export const enum LifecyclePhase {
-    BeforeMount,
-    BeforeRender,
-    AfterRender,
-    AfterMount,
-    BeforeUnmount
-}
-
-export type LifecycleEvent<TProps> =
-    { phase: LifecyclePhase.BeforeMount } |
-    { phase: LifecyclePhase.BeforeRender, oldProps?: TProps, preventRender: () => void } |
-    { phase: LifecyclePhase.AfterMount, domRef: Node } |
-    { phase: LifecyclePhase.AfterRender, domRef: Node } |
-    { phase: LifecyclePhase.BeforeUnmount, domRef: Node }
-
-export interface LifecycleEventListener<TProps> {
-    (event: LifecycleEvent<TProps>): void
-}
 
 export type TextNode = string | number
 
 export type Key = string | number
 
+type MyraChild = VNode | TextNode
+
+interface MyraNodeArray extends Array<MyraNode> { }
+export type MyraNode = MyraChild | MyraNodeArray | boolean | null | undefined
+
+export type UpdateState<TState> = Partial<TState> | ((s: Readonly<TState>) => Partial<TState>)
+export type Evolve<TState> = (update: UpdateState<TState>) => TState
+
+export type ComponentFactory<TProps> = (props: TProps) => VNode
+
+export type ErrorHandler = (error: any) => VNode
+
+export type Ref<T> = {
+    current: T
+    node?: Node
+}
+
+export type Effect<T> = (arg: T) => EffectCleanupCallback
+export type EffectCleanupCallback = (() => void) | void
+
 export interface ComponentProps {
-    children?: Array<VNode | TextNode>
-    forceUpdate?: boolean
+    children?: MyraNode
     key?: Key
 }
 
@@ -302,10 +289,19 @@ export const enum VNodeType {
     Component
 }
 
+export const VNODE = Symbol();
+
+type VNODE = typeof VNODE;
+
 /**
  * Base interface for a virtual node.
  */
 export interface VNodeBase {
+    /**
+     * Symbol to identify virtual nodes amongst other objects.
+     */
+    $: VNODE
+
     /**
      * A reference to a DOM node.
      */
@@ -343,12 +339,13 @@ export interface ElementVNode<TElement extends Element> extends VNodeBase {
  */
 export interface ComponentVNode<TProps> extends VNodeBase {
     readonly _: VNodeType.Component
-    events?: Array<LifecycleEventListener<TProps>>
+    effects?: Array<{ arg: any; sync: boolean; cleanup?: EffectCleanupCallback; invoke: boolean; effect: Effect<any>; }>
     errorHandler?: ErrorHandler
     link: { vNode: ComponentVNode<TProps> }
     data?: any[]
     props: TProps
     rendition?: VNode
+    rendering?: boolean
     view: ComponentFactory<TProps>
 }
 
@@ -379,7 +376,10 @@ export interface GenericDragEvent<T extends EventTarget> extends DragEvent {
 export type EventListener<TEvent extends Event> = (event: TEvent) => void
 
 export interface GlobalAttributes<TElement extends Element> {
+
+    children?: MyraNode
     key?: Key
+
     accesskey?: string
     'class'?: string
     contenteditable?: boolean | '' | 'true' | 'false'
@@ -711,6 +711,7 @@ export interface TextareaAttributes extends GlobalAttributes<HTMLTextAreaElement
     selectionDirection?: string
     selectionEnd?: number | string
     selectionStart?: number | string
+    value?: string
     wrap?: 'soft' | 'hard'
 
     onchange?: EventListener<GenericEvent<HTMLTextAreaElement>>

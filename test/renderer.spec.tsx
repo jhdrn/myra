@@ -1,6 +1,6 @@
-import { ElementVNode, LifecyclePhase } from '../src/myra'
 import { render } from '../src/component'
-// tslint:disable-next-line
+import { ComponentProps, ElementVNode } from '../src/contract'
+import { useState } from '../src/hooks'
 import * as myra from '../src/myra'
 
 // const keyPressEvent = (keyCode: number) => {
@@ -50,55 +50,29 @@ describe('render', () => {
         done()
     })
 
-    it('remounts a component if forceUpdate is set to true', (done) => {
-        const mocks = {
-            preRender: () => { /* dummy */ }
-        }
+    // it(`render unmounts a component when it's replaced`, (done) => {
+    //     const mocks = {
+    //         unmount: () => {
+    //             done()
+    //             return {}
+    //         }
+    //     }
 
-        spyOn(mocks, 'preRender')
+    //     spyOn(mocks, 'unmount').and.callThrough()
 
-        const TestComponent = myra.useContext((_p, ctx) => {
-            ctx.useLifecycle(ev => ev.phase === LifecyclePhase.BeforeRender && mocks.preRender())
+    //     const TestComponent = () => {
+    //         myra.useEffect(() => () => mocks.unmount())
 
-            return <div id="testComponent"></div>
-        })
+    //         return <div />
+    //     }
 
-        const view1 = <TestComponent />
-        const view2 = <TestComponent forceUpdate={true} />
+    //     const instance = <TestComponent />
+    //     render(document.body, instance, undefined, undefined)
 
-        render(document.body, view1, view1, undefined)
-        const node = view1.domRef! as HTMLDivElement
+    //     render(document.body, <nothing />, instance, instance.domRef)
 
-        render(document.body, view2, view1, node)
-
-        expect(mocks.preRender).toHaveBeenCalledTimes(2)
-
-        done()
-    })
-
-    it(`render unmounts a component when it's replaced`, (done) => {
-        const mocks = {
-            unmount: () => {
-                done()
-                return {}
-            }
-        }
-
-        spyOn(mocks, 'unmount').and.callThrough()
-
-        const TestComponent = myra.useContext((_p, ctx) => {
-            ctx.useLifecycle(ev => ev.phase === LifecyclePhase.BeforeUnmount && mocks.unmount())
-
-            return <div />
-        })
-
-        const instance = <TestComponent />
-        render(document.body, instance, undefined, undefined)
-
-        render(document.body, <nothing />, instance, instance.domRef)
-
-        expect(mocks.unmount).toHaveBeenCalledTimes(1)
-    })
+    //     expect(mocks.unmount).toHaveBeenCalledTimes(1)
+    // })
 
     it('removes excessive child nodes', (done) => {
         const viewItems1 = ['a', 'b', 'c', 'd']
@@ -413,14 +387,14 @@ describe('render', () => {
         }
 
         const mocks = {
-            assertProps: (props: ChildComponentProps & myra.ComponentProps) =>
+            assertProps: (props: ChildComponentProps & ComponentProps) =>
                 expect(props).toEqual({ test: 'test', children: [] })
         }
 
         spyOn(mocks, 'assertProps').and.callThrough()
 
         const ChildComponent = (props: ChildComponentProps) => {
-            mocks.assertProps(props as ChildComponentProps & myra.ComponentProps)
+            mocks.assertProps(props as ChildComponentProps & ComponentProps)
             return <nothing />
         }
 
@@ -448,8 +422,8 @@ describe('render', () => {
         type State = { clicked: boolean; itemId: number }
         type Props = { item: Item; forceUpdate: boolean }
 
-        const ItemComponent = myra.useContext<Props>((props, ctx) => {
-            const [state, evolve] = ctx.useState<State>({ clicked: false, itemId: props.item.id })
+        const ItemComponent = (props: Props) => {
+            const [state, evolve] = useState<State>({ clicked: false, itemId: props.item.id })
 
             const setClicked = () => evolve({ clicked: true })
 
@@ -459,7 +433,7 @@ describe('render', () => {
                     onclick={setClicked}>
                 </button>
             )
-        })
+        }
 
         const view1 =
             <div>
@@ -513,8 +487,8 @@ describe('render', () => {
         type State = { clicked: boolean }
         type Props = { item: Item; forceUpdate: boolean }
 
-        const ItemComponent = myra.useContext<Props>((props, ctx) => {
-            const [state, evolve] = ctx.useState<State>({ clicked: false })
+        const ItemComponent = (props: Props) => {
+            const [state, evolve] = useState<State>({ clicked: false })
 
             const setClicked = () => evolve({ clicked: true })
 
@@ -524,7 +498,7 @@ describe('render', () => {
                     onclick={setClicked}>
                 </button>
             )
-        })
+        }
 
         const view1 =
             <div>
@@ -576,8 +550,8 @@ describe('render', () => {
         type State = { clicked: boolean }
         type Props = { key: string; item: Item }
 
-        const ItemComponent = myra.useContext<Props>((props, ctx) => {
-            const [state, evolve] = ctx.useState<State>({ clicked: false })
+        const ItemComponent = (props: Props) => {
+            const [state, evolve] = useState<State>({ clicked: false })
 
             const setClicked = () => evolve({ clicked: true })
 
@@ -587,7 +561,7 @@ describe('render', () => {
                     onclick={setClicked}>
                 </button>
             )
-        })
+        }
 
         const view1 =
             <div>
@@ -639,8 +613,8 @@ describe('render', () => {
         type State = { clicked: boolean }
         type Props = { item: Item }
 
-        const ItemComponent = myra.useContext<Props>((props, ctx) => {
-            const [state, evolve] = ctx.useState<State>({ clicked: false })
+        const ItemComponent = (props: Props) => {
+            const [state, evolve] = useState<State>({ clicked: false })
 
             const setClicked = () => evolve({ clicked: true })
 
@@ -650,7 +624,7 @@ describe('render', () => {
                     onclick={setClicked}>
                 </button>
             )
-        })
+        }
 
         const view1 =
             <div>
@@ -698,29 +672,27 @@ describe('render', () => {
             { id: 5 },
         ] as Item[]
 
-        type State = { clicked: boolean }
-        type Props = { key: string; item: Item; forceUpdate: boolean }
+        type Props = { key: string; item: Item; forceUpdate: number }
 
         let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
 
-        const ItemComponent = myra.useContext<Props>((props, ctx) => {
-            const [state, evolve] = ctx.useState<State>({ clicked: false })
+        const ItemComponent = (props: Props) => {
+            const [clicked, evolve] = useState(false)
 
-            const setClicked = () => evolve({ clicked: true })
+            const setClicked = () => evolve(true)
 
-            const v = <button id={`item-${props.item.id}`} class={state.clicked ? "clicked" : ""}
+            const v = <button id={`item-${props.item.id}`} class={clicked ? "clicked" : ""}
                 onclick={setClicked}>
             </button>
             if (props.item.id === 1) {
                 btnVNode = v as ElementVNode<HTMLButtonElement>
             }
             return v
-
-        })
+        }
 
         const view1 =
             <div>
-                {items.map(x => <ItemComponent key={x.id.toString()} item={x} forceUpdate={true} />)}
+                {items.map(x => <ItemComponent key={x.id.toString()} item={x} forceUpdate={0} />)}
             </div> as ElementVNode<HTMLDivElement>
 
         render(document.body, view1, view1, undefined)
@@ -742,7 +714,7 @@ describe('render', () => {
             const reversedItems = items.reverse()
             const view2 =
                 <div>
-                    {reversedItems.map(x => <ItemComponent key={x.id.toString()} item={x} forceUpdate={true} />)}
+                    {reversedItems.map(x => <ItemComponent key={x.id.toString()} item={x} forceUpdate={1} />)}
                 </div> as ElementVNode<HTMLDivElement>
 
             render(document.body, view2, view1, view1.domRef)
@@ -777,8 +749,8 @@ describe('render', () => {
 
         let btnVNode: ElementVNode<HTMLButtonElement> | undefined = undefined
 
-        const ItemComponent = myra.useContext<Props>((props, ctx) => {
-            const [state, evolve] = ctx.useState<State>({ clicked: false })
+        const ItemComponent = (props: Props) => {
+            const [state, evolve] = useState<State>({ clicked: false })
 
             const setClicked = () => evolve({ clicked: true })
 
@@ -792,7 +764,7 @@ describe('render', () => {
                 btnVNode = v as ElementVNode<HTMLButtonElement>
             }
             return v
-        })
+        }
 
         const view1 =
             <div>
@@ -838,26 +810,26 @@ describe('render', () => {
     })
 
 
-    it('unmounts a component which is a child of removed virtual node', () => {
-        const mountMock = {
-            unmount: () => { }
-        }
+    // it('unmounts a component which is a child of removed virtual node', () => {
+    //     const mountMock = {
+    //         unmount: () => { }
+    //     }
 
-        spyOn(mountMock, 'unmount').and.callThrough()
+    //     spyOn(mountMock, 'unmount').and.callThrough()
 
-        const ChildComponent = myra.useContext((_props, ctx) => {
-            ctx.useLifecycle(ev => ev.phase === LifecyclePhase.BeforeUnmount && mountMock.unmount())
-            return <div />
-        })
+    //     const ChildComponent = () => {
+    //         useLifecycle(ev => ev.phase === LifecyclePhase.BeforeUnmount && mountMock.unmount())
+    //         return <div />
+    //     }
 
-        const view1 = <div><div><ChildComponent /></div></div>
-        render(document.body, view1, view1, undefined)
+    //     const view1 = <div><div><ChildComponent /></div></div>
+    //     render(document.body, view1, view1, undefined)
 
-        const view2 = <div></div>
-        render(document.body, view2, view1, view1.domRef)
+    //     const view2 = <div></div>
+    //     render(document.body, view2, view1, view1.domRef)
 
-        expect(mountMock.unmount).toHaveBeenCalledTimes(1)
-    })
+    //     expect(mountMock.unmount).toHaveBeenCalledTimes(1)
+    // })
 
     it('renders svg nodes with correct namespace', () => {
         const view = <svg id="svg-test1"></svg>

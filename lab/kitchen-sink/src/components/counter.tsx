@@ -1,17 +1,18 @@
 import * as myra from '../../../../src/myra'
 
+interface Props {
+    forceUpdate: number
+}
+
 /**
  * Component
  */
-export default myra.useContext((_p, ctx) => {
-    const ref = ctx.useRef<string>()
+export default (_: Props) => {
 
-    console.log(ref)
-    const [state, evolve] = ctx.useState({ val: 0 })
+    const [value, setValue] = myra.useState(0)
 
-    ref.current = 'bar ' + state.val
-    const increase = () => evolve({ val: state.val + 1 })
-    const decrease = () => evolve({ val: state.val - 1 })
+    const increase = () => setValue(value + 1)
+    const decrease = () => setValue(value - 1)
 
     return (
         <section>
@@ -20,11 +21,11 @@ export default myra.useContext((_p, ctx) => {
                 class="btn btn-sm btn-default"
                 onclick={increase}>+</button>
 
-            <span> {state.val} </span>
+            <span> {value} </span>
 
             <button type="button"
                 class="btn btn-sm btn-default"
                 onclick={decrease}>-</button>
         </section>
     )
-})
+}

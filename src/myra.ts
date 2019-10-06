@@ -1,23 +1,41 @@
 import { render } from './component'
-import { ComponentFactory, VNode } from './contract'
+import { ComponentFactory, ComponentProps, VNode } from './contract'
+import { equal } from './helpers'
 
+export {
+    ErrorHandler,
+    Evolve,
+    Ref
+} from './contract'
 export * from './jsxFactory'
-export * from './contract'
+export * from './hooks'
 
 /**
  * Convenience function for type hinting
  * 
- * @param componentFactory 
+ * @param fn 
  */
-export function useContext<TProps>(
-    componentFactory: ComponentFactory<TProps & { children: VNode[] }>
-): ComponentFactory<TProps & { forceUpdate?: boolean }> {
-    return componentFactory as any
+export function define<TProps>(fn: ComponentFactory<TProps & ComponentProps>) {
+    return fn
+}
+
+const memoized: [any, VNode][] = []
+let memoizedIndex = 0
+
+export function memo<TProps>(fn: ComponentFactory<TProps & ComponentProps>): ComponentFactory<TProps & ComponentProps> {
+    const n = memoizedIndex++
+    return (props: TProps) => {
+        if (memoized[n] === undefined || !equal(memoized[n][0], props)) {
+            const result = fn(props)
+            memoized[n] = [props, result]
+            return result
+        }
+        return memoized[n][1]
+    }
 }
 
 /** 
- * Mounts the component onto the supplied element by calling the supplied 
- * component factory. 
+ * Mounts a virtual DOM node onto the supplied element.
  */
 export function mount(vNode: VNode, element: Element) {
     requestAnimationFrame(() => {

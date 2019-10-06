@@ -3,37 +3,38 @@ import * as myra from '../../../../src/myra'
 import CounterComponent from './counter'
 import { ErrorComponent } from './error'
 import HttpComponent from './http'
-import { Lifecycle } from './lifecycle'
 import { Props } from './props'
-import StatelessComponent from './stateless-component'
+import { Effects } from './effects'
 import TimeComponent from './time'
-
 
 /**
  * View
  */
-export const MainComponent = myra.useContext((_, ctx) => {
-    const [, evolve] = ctx.useState(0)
+export const MainComponent = () => {
+    const [state, evolve] = myra.useState(0)
+    const [unmount, setUnmount] = myra.useState(false)
     return (
         <div class="container">
             <h1>Kitchen sink demo</h1>
-            <button onclick={() => evolve(0)}>Rerender component tree</button>
+            <button onclick={() => evolve(s => s + 1)}>Rerender component tree</button>
+            <button onclick={() => setUnmount(true)}>Unmount tasks</button>
             <hr />
-            <StatelessComponent forceUpdate test="a value">
-                {['asd', <p>Fpoo</p>, ['bar']]}
-            </StatelessComponent>
             <hr />
-            <CounterComponent forceUpdate />
+            <CounterComponent forceUpdate={state} />
             <hr />
-            <HttpComponent forceUpdate />
+            <HttpComponent forceUpdate={state} />
             <hr />
-            <ErrorComponent forceUpdate />
+            <ErrorComponent forceUpdate={state} />
             <hr />
-            <TimeComponent forceUpdate />
+            <TimeComponent forceUpdate={state} />
             <hr />
-            <Lifecycle forceUpdate />
+            {!unmount &&
+                <Effects forceUpdate={state} />
+            }
             <hr />
-            <Props forceUpdate propA={123} propB="ABC" />
+            <Props forceUpdate={state} propA={123} propB="ABC">
+                Some <strong>child</strong> nodes
+            </Props>
         </div>
     )
-})
+}

@@ -1,5 +1,9 @@
 import * as myra from '../../../../src/myra'
 
+interface Props {
+    forceUpdate: number
+}
+
 /**
  * State
  */
@@ -12,24 +16,24 @@ const init = {
     intervalTickValue: 0
 } as State
 
-export default myra.useContext((_p, ctx) => {
+export default (_: Props) => {
 
-    const [state, evolve] = ctx.useState(init)
+    const [state, updateState] = myra.useState(init)
 
     const setTimeoutHandle = (handle: number) =>
-        evolve({ timeoutHandle: handle })
+        updateState({ timeoutHandle: handle })
     const clearTimeoutHandle = () =>
-        evolve({ timeoutHandle: undefined })
+        updateState({ timeoutHandle: undefined })
     const setIntervalHandle = (handle: number) =>
-        evolve({ intervalHandle: handle })
-    const intervalTick = () => evolve(state =>
+        updateState({ intervalHandle: handle })
+    const intervalTick = () => updateState(state =>
         ({ intervalTickValue: state.intervalTickValue + 100 }))
 
     const startTimeout = () => {
         const handle = window.setTimeout(clearTimeoutHandle, 5000)
         setTimeoutHandle(handle)
     }
-    const cancelTimeout = () => evolve(state => {
+    const cancelTimeout = () => updateState(state => {
         clearTimeout(state.timeoutHandle!)
         return { timeoutHandle: undefined }
     })
@@ -38,7 +42,7 @@ export default myra.useContext((_p, ctx) => {
         const handle = window.setInterval(intervalTick, 100)
         setIntervalHandle(handle)
     }
-    const cancelInterval = () => evolve(state => {
+    const cancelInterval = () => updateState(state => {
         clearInterval(state.intervalHandle!)
         return {
             intervalHandle: undefined,
@@ -80,4 +84,4 @@ export default myra.useContext((_p, ctx) => {
             <p>Milliseconds since interval started: {state.intervalTickValue}</p>
         </section>
     )
-})
+}

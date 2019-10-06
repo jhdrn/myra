@@ -1,16 +1,17 @@
 import * as myra from '../src/myra'
-import { ComponentVNode } from '../src/myra'
+import { ElementVNode, TextVNode, NothingVNode, ComponentVNode, VNode, ComponentProps, VNODE } from '../src/contract'
 
 describe('jsxFactory', () => {
 
     it('creates a TextVNode from an expression inside an element', () => {
 
-        const view = <div>{'some text'}</div> as myra.ElementVNode<any>
+        const view = <div>{'some text'}</div> as ElementVNode<any>
 
         expect(view.props.children[0]).toEqual({
+            $: VNODE,
             _: 1,
             value: 'some text'
-        } as myra.TextVNode)
+        } as TextVNode)
     })
 
     it('creates a NothingVNode from a <nothing /> tag', () => {
@@ -18,8 +19,9 @@ describe('jsxFactory', () => {
         const view = <nothing />
 
         expect(view).toEqual({
+            $: VNODE,
             _: 0
-        } as myra.NothingVNode)
+        } as NothingVNode)
     })
 
     it('creates a NothingVNode from null', () => {
@@ -27,16 +29,18 @@ describe('jsxFactory', () => {
         const view = myra.h(null, {})
 
         expect(view).toEqual({
+            $: VNODE,
             _: 0
-        } as myra.NothingVNode)
+        } as NothingVNode)
     })
 
     it('creates a NothingVNode from undefined', () => {
 
         const view = myra.h(undefined, {})
         expect(view).toEqual({
+            $: VNODE,
             _: 0
-        } as myra.NothingVNode)
+        } as NothingVNode)
     })
 
     it('creates a NothingVNode from booleans', () => {
@@ -44,46 +48,52 @@ describe('jsxFactory', () => {
         const view1 = myra.h(false as any, {})
 
         expect(view1).toEqual({
+            $: VNODE,
             _: 0
-        } as myra.NothingVNode)
+        } as NothingVNode)
 
         const view2 = myra.h(true as any, {})
 
         expect(view2).toEqual({
+            $: VNODE,
             _: 0
-        } as myra.NothingVNode)
+        } as NothingVNode)
     })
 
     it('creates a NothingVNode from null children', () => {
 
-        const view = <div>{null}</div> as myra.ElementVNode<any>
+        const view = <div>{null}</div> as ElementVNode<any>
 
         expect(view.props.children[0]).toEqual({
+            $: VNODE,
             _: 0
-        } as myra.NothingVNode)
+        } as NothingVNode)
     })
 
     it('creates a NothingVNode from undefined children', () => {
 
-        const view = <div>{undefined}</div> as myra.ElementVNode<any>
+        const view = <div>{undefined}</div> as ElementVNode<any>
         expect(view.props.children[0]).toEqual({
+            $: VNODE,
             _: 0
-        } as myra.NothingVNode)
+        } as NothingVNode)
     })
 
     it('creates a NothingVNode from boolean children', () => {
 
-        const view1 = <div>{false}</div> as myra.ElementVNode<any>
+        const view1 = <div>{false}</div> as ElementVNode<any>
 
         expect(view1.props.children[0]).toEqual({
+            $: VNODE,
             _: 0
-        } as myra.NothingVNode)
+        } as NothingVNode)
 
-        const view2 = <div>{true}</div> as myra.ElementVNode<any>
+        const view2 = <div>{true}</div> as ElementVNode<any>
 
         expect(view2.props.children[0]).toEqual({
+            $: VNODE,
             _: 0
-        } as myra.NothingVNode)
+        } as NothingVNode)
     })
 
     it('creates an ElementVNode with the supplied tagName', () => {
@@ -91,12 +101,13 @@ describe('jsxFactory', () => {
         const view = <div></div>
 
         expect(view).toEqual({
+            $: VNODE,
             _: 2,
             tagName: 'div',
             props: {
                 children: []
             },
-        } as myra.ElementVNode<any>)
+        } as ElementVNode<any>)
     })
 
     it('creates an ElementVNode and sets props', () => {
@@ -105,6 +116,7 @@ describe('jsxFactory', () => {
         const view = <div class="test" id="test" onclick={fn}></div>
 
         expect(view).toEqual({
+            $: VNODE,
             _: 2,
             tagName: 'div',
             props: {
@@ -113,22 +125,24 @@ describe('jsxFactory', () => {
                 onclick: fn,
                 children: []
             }
-        } as myra.ElementVNode<any>)
+        } as ElementVNode<any>)
     })
 
     const childVNode = {
+        $: VNODE,
         _: 2,
         tagName: 'div',
         props: {
             children: []
         }
-    } as myra.ElementVNode<any>
+    } as ElementVNode<any>
 
     it('creates an ElementVNode and appends a single child', () => {
 
         const view = <div><div></div></div>
 
         expect(view).toEqual({
+            $: VNODE,
             _: 2,
             tagName: 'div',
             props: {
@@ -136,7 +150,7 @@ describe('jsxFactory', () => {
                     childVNode
                 ]
             },
-        } as myra.ElementVNode<any>)
+        } as ElementVNode<any>)
     })
 
     it('creates an ElementVNode and appends multiple children with a single argument', () => {
@@ -144,6 +158,7 @@ describe('jsxFactory', () => {
         const view = <div><div></div><div></div>abc</div>
 
         expect(view).toEqual({
+            $: VNODE,
             _: 2,
             tagName: 'div',
             props: {
@@ -151,12 +166,13 @@ describe('jsxFactory', () => {
                     childVNode,
                     childVNode,
                     {
+                        $: VNODE,
                         _: 1,
                         value: 'abc'
-                    } as myra.TextVNode
+                    } as TextVNode
                 ]
             }
-        } as myra.ElementVNode<any>)
+        } as ElementVNode<any>)
     })
 
     it('Object element creates a ComponentVNode', () => {
@@ -166,9 +182,9 @@ describe('jsxFactory', () => {
 
         const TestComponent = (_p: TestProps) => <div></div>
 
-        const view = <TestComponent test="test" /> as ComponentVNode<TestProps & myra.ComponentProps>
+        const view = <TestComponent test="test" /> as ComponentVNode<TestProps & ComponentProps>
 
         expect(view._).toBe(3)
-        expect(view.props).toEqual({ test: 'test', children: [] as myra.VNode[] })
+        expect(view.props).toEqual({ test: 'test', children: [] as VNode[] })
     })
 })

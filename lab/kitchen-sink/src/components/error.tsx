@@ -1,12 +1,16 @@
 import * as myra from '../../../../src/myra'
 
-function throwError(from: string) {
+interface Props {
+    forceUpdate: number
+}
+
+function throwError(from: string): undefined {
     throw Error(from)
 }
 
-export const ErrorComponent = myra.useContext((_p, ctx) => {
+export const ErrorComponent = (_: Props) => {
 
-    ctx.useErrorHandler(err =>
+    myra.useErrorHandler(err =>
         <div>
             <h2>Oops! An error occured</h2>
             <p>{err}</p>
@@ -24,4 +28,4 @@ export const ErrorComponent = myra.useContext((_p, ctx) => {
     return (
         <div>This will never be displayed because {throwError('view')}</div>
     )
-})
+}

@@ -4,22 +4,9 @@ import TodoListComponent from './todo-list'
 
 type Todo = todos.Todo
 
-interface AppContext<TProps> extends myra.Context<TProps> {
-    foobar: string
-}
+export const MainComponent = () => {
 
-function useAppContext<TProps>(componentFactory: (props: TProps, context: AppContext<TProps>) => myra.VNode) {
-    return myra.useContext<TProps>((props, ctx) => {
-        return componentFactory(props, {
-            ...ctx,
-            foobar: 'foobar'
-        })
-    })
-}
-
-export const MainComponent = useAppContext((_p, ctx) => {
-
-    const [, evolve] = ctx.useState({})
+    const [, evolve] = myra.useState({})
 
     // Adds a new todo with a title of the value of the "new todo" input field
     const addNewTodo = (ev: KeyboardEvent) => {
@@ -40,7 +27,6 @@ export const MainComponent = useAppContext((_p, ctx) => {
             }
         }
     }
-    console.log(ctx.foobar)
 
     return (
         <div>
@@ -63,4 +49,4 @@ export const MainComponent = useAppContext((_p, ctx) => {
             </footer>
         </div>
     )
-})
+}

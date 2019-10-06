@@ -1,5 +1,8 @@
 import * as myra from '../../../../src/myra'
 
+interface Props {
+    forceUpdate: number
+}
 
 /**
  * State
@@ -13,9 +16,9 @@ type State = {
 /**
  * Component
  */
-export default myra.useContext((_p, ctx) => {
+export default (_: Props) => {
 
-    const [state, evolve] = ctx.useState<State>({
+    const [state, evolve] = myra.useState<State>({
         responseStatus: 'init'
     })
 
@@ -48,4 +51,4 @@ export default myra.useContext((_p, ctx) => {
 
         </section>
     )
-})
+}
