@@ -5,8 +5,8 @@ import {
     TextNode,
     TextVNode,
     VNode,
-    VNodeType,
-    VNODE
+    VNODE,
+    VNodeType
 } from './contract'
 
 function flattenChildren(children: MyraNode[]) {

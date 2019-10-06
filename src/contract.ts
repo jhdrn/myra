@@ -289,9 +289,9 @@ export const enum VNodeType {
     Component
 }
 
-export const VNODE = Symbol();
+export const VNODE = Symbol()
 
-type VNODE = typeof VNODE;
+type VNODE = typeof VNODE
 
 /**
  * Base interface for a virtual node.

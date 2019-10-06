@@ -14,20 +14,27 @@ describe('useEffect', () => {
 
         spyOn(mock, 'callback').and.callThrough()
 
+        // Create a fake function that will be replaced by the real Evolve impl.
+        let updateState: myra.Evolve<number> = function () { return 0 }
         const Component = () => {
             useEffect(mock.callback)
+            updateState = useState(0)[1]
+
             return <div />
         }
-        const componentInstance = <Component />
-        render(document.body, componentInstance, undefined, undefined)
+        myra.mount(<Component />, document.body)
 
-        render(document.body, <Component />, componentInstance, undefined)
+        // Trigger re-renders
+        updateState(1)
 
-        setTimeout(() => {
-            expect(mock.callback).toHaveBeenCalledTimes(2)
+        requestAnimationFrame(() => {
+            updateState(2)
+            requestAnimationFrame(() => {
+                expect(mock.callback).toHaveBeenCalledTimes(2)
 
-            done()
-        }, 100)
+                done()
+            })
+        })
     })
 
     it('is cleaned up before every render if supplied with no argument', done => {
@@ -38,24 +45,27 @@ describe('useEffect', () => {
         }
 
         spyOn(mock, 'callback').and.callThrough()
-
+        // Create a fake function that will be replaced by the real Evolve impl.
+        let updateState: myra.Evolve<number> = function () { return 0 }
         const Component = () => {
             useEffect(() => mock.callback)
+            updateState = useState(0)[1]
+
             return <div />
         }
-        const componentInstance = <Component />
-        render(document.body, componentInstance, undefined, undefined)
+        myra.mount(<Component />, document.body)
 
-        const componentInstance2 = <Component />
-        render(document.body, componentInstance2, componentInstance, componentInstance.domRef)
+        // Trigger re-renders
+        updateState(1)
 
-        render(document.body, <Component />, componentInstance2, componentInstance2.domRef)
+        requestAnimationFrame(() => {
+            updateState(2)
+            requestAnimationFrame(() => {
+                expect(mock.callback).toHaveBeenCalledTimes(2)
 
-        setTimeout(() => {
-            expect(mock.callback).toHaveBeenCalledTimes(2)
-
-            done()
-        }, 100)
+                done()
+            })
+        })
     })
 
     it('is cleaned up before unmount if supplied with no argument', done => {
@@ -88,20 +98,27 @@ describe('useEffect', () => {
 
         spyOn(mock, 'callback').and.callThrough()
 
+        // Create a fake function that will be replaced by the real Evolve impl.
+        let updateState: myra.Evolve<number> = function () { return 0 }
         const Component = () => {
             useEffect(mock.callback, [])
+            updateState = useState(0)[1]
+
             return <div />
         }
-        const componentInstance = <Component />
-        render(document.body, componentInstance, undefined, undefined)
+        myra.mount(<Component />, document.body)
 
-        render(document.body, <Component />, componentInstance, undefined)
+        // Trigger re-renders
+        updateState(1)
 
-        setTimeout(() => {
-            expect(mock.callback).toHaveBeenCalledTimes(1)
+        requestAnimationFrame(() => {
+            updateState(2)
+            requestAnimationFrame(() => {
+                expect(mock.callback).toHaveBeenCalledTimes(1)
 
-            done()
-        }, 100)
+                done()
+            })
+        })
     })
 })
 
@@ -114,20 +131,27 @@ describe('useLayoutEffect', () => {
 
         spyOn(mock, 'callback').and.callThrough()
 
+        // Create a fake function that will be replaced by the real Evolve impl.
+        let updateState: myra.Evolve<number> = function () { return 0 }
         const Component = () => {
             useLayoutEffect(mock.callback)
+            updateState = useState(0)[1]
+
             return <div />
         }
-        const componentInstance = <Component />
-        render(document.body, componentInstance, undefined, undefined)
+        myra.mount(<Component />, document.body)
 
-        render(document.body, <Component />, componentInstance, undefined)
+        // Trigger re-renders
+        updateState(1)
 
-        setTimeout(() => {
-            expect(mock.callback).toHaveBeenCalledTimes(2)
+        requestAnimationFrame(() => {
+            updateState(2)
+            requestAnimationFrame(() => {
+                expect(mock.callback).toHaveBeenCalledTimes(2)
 
-            done()
-        }, 0)
+                done()
+            })
+        })
     })
 
     it('is cleaned up before every render if supplied with no argument', done => {
@@ -137,23 +161,27 @@ describe('useLayoutEffect', () => {
 
         spyOn(mock, 'callback').and.callThrough()
 
+        // Create a fake function that will be replaced by the real Evolve impl.
+        let updateState: myra.Evolve<number> = function () { return 0 }
         const Component = () => {
             useLayoutEffect(() => mock.callback)
+            updateState = useState(0)[1]
+
             return <div />
         }
-        const componentInstance = <Component />
-        render(document.body, componentInstance, undefined, undefined)
+        myra.mount(<Component />, document.body)
 
-        const componentInstance2 = <Component />
-        render(document.body, componentInstance2, componentInstance, undefined)
+        // Trigger re-renders
+        updateState(1)
 
-        render(document.body, <Component />, componentInstance2, undefined)
+        requestAnimationFrame(() => {
+            updateState(2)
+            requestAnimationFrame(() => {
+                expect(mock.callback).toHaveBeenCalledTimes(2)
 
-        setTimeout(() => {
-            expect(mock.callback).toHaveBeenCalledTimes(2)
-
-            done()
-        }, 0)
+                done()
+            })
+        })
     })
 
     it('is cleaned up before unmount if supplied with no argument', done => {
@@ -186,20 +214,27 @@ describe('useLayoutEffect', () => {
 
         spyOn(mock, 'callback').and.callThrough()
 
+
+        // Create a fake function that will be replaced by the real Evolve impl.
+        let updateState: myra.Evolve<number> = function () { return 0 }
         const Component = () => {
             useLayoutEffect(mock.callback, [])
+            updateState = useState(0)[1]
+
             return <div />
         }
-        const componentInstance = <Component />
-        render(document.body, componentInstance, undefined, undefined)
+        myra.mount(<Component />, document.body)
 
-        render(document.body, <Component />, componentInstance, undefined)
+        // Trigger re-renders
 
-        setTimeout(() => {
-            expect(mock.callback).toHaveBeenCalledTimes(1)
+        requestAnimationFrame(() => {
+            updateState(2)
+            requestAnimationFrame(() => {
+                expect(mock.callback).toHaveBeenCalledTimes(1)
 
-            done()
-        }, 0)
+                done()
+            })
+        })
     })
 })
 
