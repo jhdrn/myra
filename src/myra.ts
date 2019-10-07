@@ -1,6 +1,6 @@
 import { render } from './component'
 import { ComponentFactory, ComponentProps, VNode } from './contract'
-import { equal } from './helpers'
+import { equalProps } from './helpers'
 
 export {
     ErrorHandler,
@@ -19,13 +19,14 @@ export function define<TProps>(fn: ComponentFactory<TProps & ComponentProps>) {
     return fn
 }
 
+
 const memoized: [any, VNode][] = []
 let memoizedIndex = 0
 
 export function memo<TProps>(fn: ComponentFactory<TProps & ComponentProps>): ComponentFactory<TProps & ComponentProps> {
     const n = memoizedIndex++
     return (props: TProps) => {
-        if (memoized[n] === undefined || !equal(memoized[n][0], props)) {
+        if (memoized[n] === undefined || !equalProps(memoized[n][0], props)) {
             const result = fn(props)
             memoized[n] = [props, result]
             return result

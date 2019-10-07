@@ -1,3 +1,5 @@
+import { VNODE, VNodeType } from "./contract"
+
 export type Type = 'array' | 'object' | 'string' | 'date' | 'regexp' | 'function' | 'boolean' | 'number' | 'null' | 'undefined'
 
 /**
@@ -65,4 +67,50 @@ export function equal<T>(a: T, b: T): boolean {
         return (a as any).toString() === (b as any).toString()
     }
     return false
+}
+
+export function equalProps(a: Record<string, any>, b: Record<string, any>): boolean {
+    if (Object.keys(a).length !== Object.keys(b).length) {
+        return false
+    }
+    for (const k in a) {
+        if (a.hasOwnProperty(k)) {
+            const aProp = a[k]
+            const bProp = b[k]
+            if (k === 'children') {
+                const children = a[k]
+                if (children.length !== b[k].length) {
+                    return false
+                }
+
+                for (let i = 0; i < children.length; i++) {
+                    const aChild = children[i]
+                    const bChild = b[k][i]
+                    if (aChild.$ === VNODE && bChild.$ === VNODE && aChild._ === bChild._) {
+                        if (aChild._ === VNodeType.Component || aChild._ === VNodeType.Element) {
+                            return equalProps(aChild.props, bChild.props)
+                        }
+                        else if (aChild._ === VNodeType.Text) {
+                            return aChild.value === bChild.value
+                        }
+                    }
+                    return false
+                }
+            }
+            else if (aProp !== undefined && bProp !== undefined && aProp.$ === VNODE && bProp.$ === VNODE) {
+                if (aProp._ === bProp._) {
+                    if (aProp._ === VNodeType.Component || aProp._ === VNodeType.Element) {
+                        return equalProps(aProp.props, bProp.props)
+                    }
+                    else if (aProp._ === VNodeType.Text) {
+                        return aProp.value === bProp.value
+                    }
+                }
+                return false
+            } else if (!equal(aProp, bProp)) {
+                return false
+            }
+        }
+    }
+    return true
 }

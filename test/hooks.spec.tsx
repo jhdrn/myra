@@ -24,15 +24,18 @@ describe('useEffect', () => {
         }
         myra.mount(<Component />, document.body)
 
-        // Trigger re-renders
-        updateState(1)
-
         requestAnimationFrame(() => {
-            updateState(2)
-            requestAnimationFrame(() => {
-                expect(mock.callback).toHaveBeenCalledTimes(2)
+            // Trigger re-render
+            updateState(1)
 
-                done()
+            requestAnimationFrame(() => {
+                // Trigger re-render
+                updateState(2)
+                requestAnimationFrame(() => {
+                    expect(mock.callback).toHaveBeenCalledTimes(2)
+
+                    done()
+                })
             })
         })
     })
@@ -55,15 +58,17 @@ describe('useEffect', () => {
         }
         myra.mount(<Component />, document.body)
 
-        // Trigger re-renders
-        updateState(1)
-
         requestAnimationFrame(() => {
-            updateState(2)
+            // Trigger re-render
+            updateState(1)
             requestAnimationFrame(() => {
-                expect(mock.callback).toHaveBeenCalledTimes(2)
+                // Trigger re-render
+                updateState(2)
+                requestAnimationFrame(() => {
+                    expect(mock.callback).toHaveBeenCalledTimes(2)
 
-                done()
+                    done()
+                })
             })
         })
     })
@@ -82,13 +87,38 @@ describe('useEffect', () => {
         const componentInstance = <Component />
         render(document.body, componentInstance, undefined, undefined)
 
-        render(document.body, <nothing />, componentInstance, undefined)
+        requestAnimationFrame(() => {
+            render(document.body, <nothing />, componentInstance, componentInstance.domRef)
+            requestAnimationFrame(() => {
+                expect(mock.callback).toHaveBeenCalledTimes(1)
 
-        setTimeout(() => {
-            expect(mock.callback).toHaveBeenCalledTimes(1)
+                done()
+            })
+        })
+    })
 
-            done()
-        }, 100)
+    it('is cleaned up before unmount if supplied with argument', done => {
+        const mock = {
+            callback: () => { }
+        }
+
+        spyOn(mock, 'callback').and.callThrough()
+
+        const Component = () => {
+            useEffect(() => mock.callback, [])
+            return <div />
+        }
+        const componentInstance = <Component />
+        render(document.body, componentInstance, undefined, undefined)
+
+        requestAnimationFrame(() => {
+            render(document.body, <nothing />, componentInstance, componentInstance.domRef)
+            requestAnimationFrame(() => {
+                expect(mock.callback).toHaveBeenCalledTimes(1)
+
+                done()
+            })
+        })
     })
 
     it('is invoked only once if supplied with the same argument', done => {
@@ -108,15 +138,17 @@ describe('useEffect', () => {
         }
         myra.mount(<Component />, document.body)
 
-        // Trigger re-renders
-        updateState(1)
-
         requestAnimationFrame(() => {
-            updateState(2)
+            // Trigger re-render
+            updateState(1)
             requestAnimationFrame(() => {
-                expect(mock.callback).toHaveBeenCalledTimes(1)
+                // Trigger re-render
+                updateState(2)
+                requestAnimationFrame(() => {
+                    expect(mock.callback).toHaveBeenCalledTimes(1)
 
-                done()
+                    done()
+                })
             })
         })
     })
@@ -141,12 +173,13 @@ describe('useLayoutEffect', () => {
         }
         myra.mount(<Component />, document.body)
 
-        // Trigger re-renders
-        updateState(1)
-
         requestAnimationFrame(() => {
-            updateState(2)
+            // Trigger re-render
+            updateState(1)
+
             requestAnimationFrame(() => {
+                // Trigger re-render
+                updateState(2)
                 expect(mock.callback).toHaveBeenCalledTimes(2)
 
                 done()
@@ -171,15 +204,18 @@ describe('useLayoutEffect', () => {
         }
         myra.mount(<Component />, document.body)
 
-        // Trigger re-renders
-        updateState(1)
-
         requestAnimationFrame(() => {
-            updateState(2)
-            requestAnimationFrame(() => {
-                expect(mock.callback).toHaveBeenCalledTimes(2)
+            // Trigger re-render
+            updateState(1)
 
-                done()
+            requestAnimationFrame(() => {
+                // Trigger re-render
+                updateState(2)
+                requestAnimationFrame(() => {
+                    expect(mock.callback).toHaveBeenCalledTimes(2)
+
+                    done()
+                })
             })
         })
     })
@@ -198,7 +234,30 @@ describe('useLayoutEffect', () => {
         const componentInstance = <Component />
         render(document.body, componentInstance, undefined, undefined)
 
-        render(document.body, <nothing />, componentInstance, undefined)
+        render(document.body, <nothing />, componentInstance, componentInstance.domRef)
+
+        setTimeout(() => {
+            expect(mock.callback).toHaveBeenCalledTimes(1)
+
+            done()
+        }, 0)
+    })
+
+    it('is cleaned up before unmount if supplied with argument', done => {
+        const mock = {
+            callback: () => { }
+        }
+
+        spyOn(mock, 'callback').and.callThrough()
+
+        const Component = () => {
+            useLayoutEffect(() => mock.callback, [])
+            return <div />
+        }
+        const componentInstance = <Component />
+        render(document.body, componentInstance, undefined, undefined)
+
+        render(document.body, <nothing />, componentInstance, componentInstance.domRef)
 
         setTimeout(() => {
             expect(mock.callback).toHaveBeenCalledTimes(1)
@@ -214,7 +273,6 @@ describe('useLayoutEffect', () => {
 
         spyOn(mock, 'callback').and.callThrough()
 
-
         // Create a fake function that will be replaced by the real Evolve impl.
         let updateState: myra.Evolve<number> = function () { return 0 }
         const Component = () => {
@@ -225,10 +283,8 @@ describe('useLayoutEffect', () => {
         }
         myra.mount(<Component />, document.body)
 
-        // Trigger re-renders
-
         requestAnimationFrame(() => {
-            updateState(2)
+            updateState(1)
             requestAnimationFrame(() => {
                 expect(mock.callback).toHaveBeenCalledTimes(1)
 
