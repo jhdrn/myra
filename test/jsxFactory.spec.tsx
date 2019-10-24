@@ -1,5 +1,5 @@
 import * as myra from '../src/myra'
-import { ElementVNode, TextVNode, NothingVNode, ComponentVNode, VNode, ComponentProps, VNODE } from '../src/contract'
+import { ElementVNode, TextVNode, NothingVNode, ComponentVNode, VNode, ComponentProps } from '../src/contract'
 
 describe('jsxFactory', () => {
 
@@ -8,7 +8,6 @@ describe('jsxFactory', () => {
         const view = <div>{'some text'}</div> as ElementVNode<any>
 
         expect(view.props.children[0]).toEqual({
-            $: VNODE,
             _: 1,
             value: 'some text'
         } as TextVNode)
@@ -19,7 +18,6 @@ describe('jsxFactory', () => {
         const view = <nothing />
 
         expect(view).toEqual({
-            $: VNODE,
             _: 0
         } as NothingVNode)
     })
@@ -29,7 +27,6 @@ describe('jsxFactory', () => {
         const view = myra.h(null, {})
 
         expect(view).toEqual({
-            $: VNODE,
             _: 0
         } as NothingVNode)
     })
@@ -38,7 +35,6 @@ describe('jsxFactory', () => {
 
         const view = myra.h(undefined, {})
         expect(view).toEqual({
-            $: VNODE,
             _: 0
         } as NothingVNode)
     })
@@ -48,14 +44,12 @@ describe('jsxFactory', () => {
         const view1 = myra.h(false as any, {})
 
         expect(view1).toEqual({
-            $: VNODE,
             _: 0
         } as NothingVNode)
 
         const view2 = myra.h(true as any, {})
 
         expect(view2).toEqual({
-            $: VNODE,
             _: 0
         } as NothingVNode)
     })
@@ -65,7 +59,6 @@ describe('jsxFactory', () => {
         const view = <div>{null}</div> as ElementVNode<any>
 
         expect(view.props.children[0]).toEqual({
-            $: VNODE,
             _: 0
         } as NothingVNode)
     })
@@ -74,7 +67,6 @@ describe('jsxFactory', () => {
 
         const view = <div>{undefined}</div> as ElementVNode<any>
         expect(view.props.children[0]).toEqual({
-            $: VNODE,
             _: 0
         } as NothingVNode)
     })
@@ -84,14 +76,12 @@ describe('jsxFactory', () => {
         const view1 = <div>{false}</div> as ElementVNode<any>
 
         expect(view1.props.children[0]).toEqual({
-            $: VNODE,
             _: 0
         } as NothingVNode)
 
         const view2 = <div>{true}</div> as ElementVNode<any>
 
         expect(view2.props.children[0]).toEqual({
-            $: VNODE,
             _: 0
         } as NothingVNode)
     })
@@ -101,7 +91,6 @@ describe('jsxFactory', () => {
         const view = <div></div>
 
         expect(view).toEqual({
-            $: VNODE,
             _: 2,
             tagName: 'div',
             props: {
@@ -116,7 +105,6 @@ describe('jsxFactory', () => {
         const view = <div class="test" id="test" onclick={fn}></div>
 
         expect(view).toEqual({
-            $: VNODE,
             _: 2,
             tagName: 'div',
             props: {
@@ -129,7 +117,6 @@ describe('jsxFactory', () => {
     })
 
     const childVNode = {
-        $: VNODE,
         _: 2,
         tagName: 'div',
         props: {
@@ -142,7 +129,6 @@ describe('jsxFactory', () => {
         const view = <div><div></div></div>
 
         expect(view).toEqual({
-            $: VNODE,
             _: 2,
             tagName: 'div',
             props: {
@@ -158,7 +144,6 @@ describe('jsxFactory', () => {
         const view = <div><div></div><div></div>abc</div>
 
         expect(view).toEqual({
-            $: VNODE,
             _: 2,
             tagName: 'div',
             props: {
@@ -166,7 +151,6 @@ describe('jsxFactory', () => {
                     childVNode,
                     childVNode,
                     {
-                        $: VNODE,
                         _: 1,
                         value: 'abc'
                     } as TextVNode

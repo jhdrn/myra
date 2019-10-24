@@ -5,7 +5,6 @@ import {
     TextNode,
     TextVNode,
     VNode,
-    VNODE,
     VNodeType
 } from './contract'
 
@@ -14,7 +13,7 @@ function flattenChildren(children: MyraNode[]) {
 
     for (const child of children) {
         if (child === null || child === undefined || typeof child === 'boolean') {
-            flattenedChildren.push({ $: VNODE, _: VNodeType.Nothing })
+            flattenedChildren.push({ _: VNodeType.Nothing })
         }
         else if (Array.isArray(child)) {
             for (const c of flattenChildren(child)) {
@@ -24,7 +23,6 @@ function flattenChildren(children: MyraNode[]) {
         else if ((child as VNode)._ === undefined) {
             // Any node which is not a vNode will be converted to a TextVNode
             flattenedChildren.push({
-                $: VNODE,
                 _: VNodeType.Text,
                 value: child as any as string
             } as TextVNode)
@@ -41,7 +39,7 @@ function flattenChildren(children: MyraNode[]) {
  * Creates a JSX.Element/VNode from a JSX tag.
  */
 export function h<TProps>(
-    tagNameOrComponent: string | ComponentFactory<object> | undefined | null,
+    tagNameOrComponent: string | ComponentFactory<object> /*| MemoVNode<TProps>*/ | undefined | null,
     props: TProps,
     ...children: Array<MyraNode>): JSX.Element {
 
@@ -50,7 +48,7 @@ export function h<TProps>(
         tagNameOrComponent === null ||
         typeof tagNameOrComponent === 'boolean') {
 
-        return { $: VNODE, _: VNodeType.Nothing }
+        return { _: VNodeType.Nothing }
     }
 
     if (props === null) {
@@ -62,14 +60,13 @@ export function h<TProps>(
     if (typeof tagNameOrComponent === 'string') {
 
         return {
-            $: VNODE,
             _: VNodeType.Element,
             tagName: tagNameOrComponent,
             props: props as any as { children: Array<VNode> }
         }
     }
+
     const vNode = {
-        $: VNODE,
         _: VNodeType.Component,
         props,
         dispatchLevel: 0,

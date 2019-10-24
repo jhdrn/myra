@@ -277,7 +277,7 @@ export type Ref<T> = {
 export type Effect<T> = (arg: T) => EffectCleanupCallback
 export type EffectCleanupCallback = (() => void) | void
 
-export interface ComponentProps {
+export interface ComponentProps extends Record<string, any> {
     children?: MyraNode
     key?: Key
 }
@@ -286,22 +286,14 @@ export const enum VNodeType {
     Nothing,
     Text,
     Element,
-    Component
+    Component,
+    Memo
 }
-
-export const VNODE = Symbol()
-
-type VNODE = typeof VNODE
 
 /**
  * Base interface for a virtual node.
  */
 export interface VNodeBase {
-    /**
-     * Symbol to identify virtual nodes amongst other objects.
-     */
-    $: VNODE
-
     /**
      * A reference to a DOM node.
      */
@@ -349,10 +341,16 @@ export interface ComponentVNode<TProps> extends VNodeBase {
     view: ComponentFactory<TProps>
 }
 
+export interface MemoVNode<TProps> extends VNodeBase {
+    readonly _: VNodeType.Memo
+    readonly compare: (newProps: TProps, oldProps: TProps) => boolean
+    readonly view: ComponentFactory<TProps>
+}
+
 /**
  * Union type of the different types of virtual nodes.
  */
-export type VNode = TextVNode | ElementVNode<any> | ComponentVNode<any> | NothingVNode
+export type VNode = TextVNode | ElementVNode<any> | ComponentVNode<any> | NothingVNode | MemoVNode<any>
 
 export interface GenericEvent<T extends EventTarget> extends Event {
     currentTarget: T

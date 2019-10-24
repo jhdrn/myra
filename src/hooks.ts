@@ -40,7 +40,7 @@ export function useState<TState>(initialState: TState): [TState, Evolve<TState>]
 
                 if (!currentVNode.rendering) {
                     requestAnimationFrame(() => {
-                        renderComponent(parentElement, link.vNode, isSvg)
+                        renderComponent(parentElement, link.vNode, undefined, isSvg)
                     })
                 }
             } catch (err) {

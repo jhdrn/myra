@@ -5,9 +5,7 @@ import {
     Key,
     VNode,
     VNodeType,
-    // VNODE
 } from './contract'
-// import { equal } from './helpers'
 
 interface IRenderingContext {
     vNode: ComponentVNode<ComponentProps>
@@ -25,7 +23,7 @@ export function getRenderingContext() {
     return renderingContext
 }
 
-export function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, isSvg: boolean) {
+export function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, oldVNode: ComponentVNode<any> | undefined, isSvg: boolean) {
 
     let oldNode: Node | undefined
 
@@ -50,14 +48,23 @@ export function renderComponent(parentElement: Element, newVNode: ComponentVNode
 
             newVNode.rendering = true
 
-            const newView = newVNode.view(newProps)
+            let newView = newVNode.view(newProps)
 
+            if (newView._ === VNodeType.Memo) {
+                if (oldVNode !== undefined && newView.compare(newVNode.props, oldVNode.props)) {
+                    newVNode.rendering = false
+                    newVNode.domRef = oldNode
+                    renderingContext = undefined
+                    return
+                }
+                newView = newView.view(newProps)
+            }
             renderingContext = undefined
 
-            render(parentElement, newView, newVNode.rendition, oldNode, isSvg)
+            render(parentElement, newView as VNode, newVNode.rendition, oldNode, isSvg)
 
-            newVNode.rendition = newView
-            newVNode.domRef = newView.domRef
+            newVNode.rendition = (newView as VNode)
+            newVNode.domRef = (newView as VNode).domRef
 
             // Trigger synchronous effects (useLayoutEffect)
             triggerEffects(newVNode, parentElement, isSvg, true)
@@ -66,7 +73,6 @@ export function renderComponent(parentElement: Element, newVNode: ComponentVNode
 
             // Trigger asynchronous effects (useEffect)
             triggerEffects(newVNode, parentElement, isSvg, false)
-
         }
         catch (err) {
             tryHandleComponentError(parentElement, newVNode, isSvg, err)
@@ -236,9 +242,6 @@ function renderCreate(
     action: RenderingAction | undefined = undefined
 ) {
     let newNode = createNode(newVNode, parentDomNode, isSvg)
-    if (newNode === undefined) {
-        // FIXME?
-    }
     newVNode.domRef = newNode
 
     if (action === RenderingAction.APPEND) {
@@ -473,19 +476,16 @@ function renderUpdate(
                 existingDomNode!.textContent = newVNode.value
             }
             break
-        case VNodeType.Component: // stateless component node
+        case VNodeType.Component: // component node
 
             newVNode.rendition = (oldVNode as ComponentVNode<any>).rendition
             newVNode.data = (oldVNode as ComponentVNode<any>).data
             newVNode.effects = (oldVNode as ComponentVNode<any>).effects
+            newVNode.errorHandler = (oldVNode as ComponentVNode<any>).errorHandler
             newVNode.link = (oldVNode as ComponentVNode<any>).link
             newVNode.link.vNode = newVNode
 
-            // if (oldVNode === undefined ||
-            //     !equalProps((oldVNode as ComponentVNode<any>).props, newVNode.props)) {
-
-            renderComponent(parentDomNode, newVNode, isSvg)
-            // }
+            renderComponent(parentDomNode, newVNode, oldVNode as ComponentVNode<any>, isSvg)
 
             break
     }
@@ -516,7 +516,7 @@ function createNode(vNode: VNode, parentElement: Element, isSvg: boolean): Node 
             return document.createTextNode(vNode.value)
         case VNodeType.Component:
 
-            renderComponent(parentElement, vNode, isSvg)
+            renderComponent(parentElement, vNode, undefined, isSvg)
 
             if (vNode.domRef === undefined) {
                 vNode.domRef = document.createComment('Nothing')
@@ -524,6 +524,7 @@ function createNode(vNode: VNode, parentElement: Element, isSvg: boolean): Node 
 
             return vNode.domRef
         case VNodeType.Nothing:
+        case VNodeType.Memo:
             return document.createComment('Nothing')
     }
 }
