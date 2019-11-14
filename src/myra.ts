@@ -1,20 +1,18 @@
 import { render } from './component'
-import { ComponentFactory, ComponentProps, VNode } from './contract'
+import {
+    ComponentFactory,
+    ComponentProps,
+    VNode
+} from './contract'
 
-export * from './jsxFactory'
 export {
     ErrorHandler,
     Evolve,
-    Ref,
+    Ref
 } from './contract'
-export {
-    useEffect,
-    useErrorHandler,
-    useMemo,
-    useRef,
-    useState,
-    useLayoutEffect,
-} from './component'
+export * from './jsxFactory'
+export * from './hooks'
+export * from './memo'
 
 /**
  * Convenience function for type hinting
@@ -26,8 +24,7 @@ export function define<TProps>(fn: ComponentFactory<TProps & ComponentProps>) {
 }
 
 /** 
- * Mounts the component onto the supplied element by calling the supplied 
- * component factory. 
+ * Mounts a virtual DOM node onto the supplied element.
  */
 export function mount(vNode: VNode, element: Element) {
     requestAnimationFrame(() => {

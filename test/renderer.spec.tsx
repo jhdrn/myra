@@ -1,5 +1,6 @@
-import { render, useState } from '../src/component'
+import { render } from '../src/component'
 import { ComponentProps, ElementVNode } from '../src/contract'
+import { useState } from '../src/hooks'
 import * as myra from '../src/myra'
 
 // const keyPressEvent = (keyCode: number) => {

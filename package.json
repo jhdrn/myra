@@ -47,13 +47,13 @@
     "rollup-plugin-uglify": "^4.0.0",
     "systemjs": "^0.19.47",
     "ts-node": "^4.1.0",
-    "typescript": "^3.4.5",
+    "typescript": "^3.5.3",
     "uglify-es": "^3.3.9"
   },
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "npm run build:es && npm run build:umd:dev && npm run build:umd:prod",
-    "build:es": "tsc && rollup -c --output.file=dist/myra.es.js --output.format=es --optimize=false",
+    "build:es": "tsc && rollup -c --output.file=dist/myra.es.js --output.format=es",
     "build:umd:dev": "tsc && rollup -c rollup.config.js --output.file=dist/myra.js",
     "build:umd:prod": "tsc && rollup -c --environment=BUILD:production --output.file=dist/myra.min.js",
     "postbuild": "rimraf build && ts-node scripts/postbuild.ts && copyfiles LICENSE README.md package.json dist",

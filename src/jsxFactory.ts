@@ -8,7 +8,6 @@ import {
     VNodeType
 } from './contract'
 
-
 function flattenChildren(children: MyraNode[]) {
     const flattenedChildren = [] as Array<VNode | TextNode>
 
@@ -66,6 +65,7 @@ export function h<TProps>(
             props: props as any as { children: Array<VNode> }
         }
     }
+
     const vNode = {
         _: VNodeType.Component,
         props,

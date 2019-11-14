@@ -59,7 +59,7 @@ export const Effects = (_: Props) => {
             <p>
                 {s}
                 <button onclick={() => setState(s + 1)}>Click me</button> to see the layout effect/cleanup.
-                <textarea oninput={ev => setValue((ev.target as HTMLTextAreaElement).value)} cols="50" rows="3">{value}</textarea>
+                <textarea oninput={ev => setValue((ev.target as HTMLTextAreaElement).value)} cols="50" rows="3" value={value}></textarea>
             </p>
         </section>
     )

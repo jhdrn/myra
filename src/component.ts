@@ -1,19 +1,11 @@
-/** @internal */
 import {
     ComponentProps,
     ComponentVNode,
-    Effect,
     ElementVNode,
-    ErrorHandler,
-    Evolve,
     Key,
-    Ref,
-    TextVNode,
-    UpdateState,
     VNode,
     VNodeType,
 } from './contract'
-import { equal, typeOf } from './helpers'
 
 interface IRenderingContext {
     vNode: ComponentVNode<ComponentProps>
@@ -27,149 +19,11 @@ interface IRenderingContext {
  */
 let renderingContext: IRenderingContext | undefined
 
-export function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
-
-    const { hookIndex, isSvg, parentElement, vNode } = renderingContext!
-    if (vNode.data === undefined) {
-        vNode.data = []
-    }
-
-    if (vNode.data[hookIndex] === undefined) {
-        vNode.data[hookIndex] = initialState
-    }
-
-    const link = vNode.link
-
-    function evolve(update: UpdateState<any>) {
-        const currentVNode = link.vNode
-        try {
-            if (typeof update === 'function') {
-                update = update(currentVNode.data![hookIndex])
-            }
-
-            const updateType = typeOf(update)
-            // Shallow merge the old state with the updated state if it is an
-            // object, else just replace it.
-            if (updateType === 'object') {
-                currentVNode.data![hookIndex] = {
-                    ...(currentVNode.data![hookIndex] as any),
-                    ...(update as object)
-                }
-            }
-            else {
-                currentVNode.data![hookIndex] = update
-            }
-
-            if (!currentVNode.rendering) {
-                requestAnimationFrame(() => {
-                    renderComponent(parentElement, link.vNode, isSvg)
-                })
-            }
-        } catch (err) {
-            requestAnimationFrame(() => {
-                tryHandleComponentError(parentElement, currentVNode, isSvg, err)
-            })
-        }
-        return currentVNode.data![hookIndex]
-    }
-
-    const state = vNode.data[hookIndex]
-    renderingContext!.hookIndex++
-
-    return [state, evolve]
+export function getRenderingContext() {
+    return renderingContext
 }
 
-export function useRef<T>(current?: T): Ref<T> {
-    const { hookIndex, vNode } = renderingContext!
-    if (vNode.data === undefined) {
-        vNode.data = []
-    }
-
-    if (vNode.data[hookIndex] === undefined) {
-        const link = vNode.link
-        vNode.data[hookIndex] = {
-            current,
-            get node() {
-                return link.vNode.domRef
-            }
-        }
-    }
-    renderingContext!.hookIndex++
-    return vNode.data[hookIndex]
-}
-
-export function useErrorHandler(handler: ErrorHandler) {
-    const vNode = renderingContext!.vNode as ComponentVNode<any>
-    vNode.errorHandler = handler
-}
-
-export function useLayoutEffect<TArg>(effect: Effect<TArg>, arg?: TArg) {
-    useEffectInternal(true, effect, arg)
-}
-
-export function useEffect<TArg>(effect: Effect<TArg>, arg?: TArg) {
-    useEffectInternal(false, effect, arg)
-}
-
-function useEffectInternal<TArg>(sync: boolean, effect: Effect<TArg>, arg?: TArg) {
-
-    const { hookIndex, vNode } = renderingContext!
-
-    if (vNode.effects === undefined) {
-        vNode.effects = []
-    }
-
-    const t = vNode.effects[hookIndex]
-
-    if (t === undefined) {
-        vNode.effects[hookIndex] = {
-            arg,
-            sync,
-            invoke: true,
-            effect,
-        }
-    } else if (arg === undefined || !equal(t.arg, arg)) {
-        if (t.cleanup !== undefined) {
-            t.cleanup()
-            t.cleanup = undefined
-        }
-        t.arg = arg
-        t.effect = effect
-        t.invoke = true
-    }
-
-    renderingContext!.hookIndex++
-}
-
-export function useMemo<TMemoization, TArgs>(fn: (args: TArgs) => TMemoization, inputs: TArgs) {
-
-    const { hookIndex, vNode } = renderingContext!
-
-    if (vNode.data === undefined) {
-        vNode.data = []
-    }
-
-    let res: TMemoization
-    if (vNode.data[hookIndex] === undefined) {
-        res = fn(inputs)
-        vNode.data[hookIndex] = [res, inputs]
-    }
-    else {
-        let [prevRes, prevInputs] = vNode.data[hookIndex]
-        if (equal(prevInputs, inputs)) {
-            res = prevRes
-        }
-        else {
-            res = fn(inputs)
-            vNode.data[hookIndex] = [res, inputs]
-        }
-    }
-
-    renderingContext!.hookIndex++
-    return res
-}
-
-function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, isSvg: boolean) {
+export function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, oldVNode: ComponentVNode<any> | undefined, isSvg: boolean) {
 
     let oldNode: Node | undefined
 
@@ -194,14 +48,23 @@ function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, 
 
             newVNode.rendering = true
 
-            const newView = newVNode.view(newProps)
+            let newView = newVNode.view(newProps)
 
+            if (newView._ === VNodeType.Memo) {
+                if (oldVNode !== undefined && newView.compare(newVNode.props, oldVNode.props)) {
+                    newVNode.rendering = false
+                    newVNode.domRef = oldNode
+                    renderingContext = undefined
+                    return
+                }
+                newView = newView.view(newProps)
+            }
             renderingContext = undefined
 
-            render(parentElement, newView, newVNode.rendition, oldNode, isSvg)
+            render(parentElement, newView as VNode, newVNode.rendition, oldNode, isSvg)
 
-            newVNode.rendition = newView
-            newVNode.domRef = newView.domRef
+            newVNode.rendition = (newView as VNode)
+            newVNode.domRef = (newView as VNode).domRef
 
             // Trigger synchronous effects (useLayoutEffect)
             triggerEffects(newVNode, parentElement, isSvg, true)
@@ -210,7 +73,6 @@ function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, 
 
             // Trigger asynchronous effects (useEffect)
             triggerEffects(newVNode, parentElement, isSvg, false)
-
         }
         catch (err) {
             tryHandleComponentError(parentElement, newVNode, isSvg, err)
@@ -257,7 +119,7 @@ function cleanupEffects(vNode: ComponentVNode<any>) {
 }
 
 
-function tryHandleComponentError(parentElement: Element, vNode: ComponentVNode<any>, isSvg: boolean, err: Error) {
+export function tryHandleComponentError(parentElement: Element, vNode: ComponentVNode<any>, isSvg: boolean, err: Error) {
 
     // Do nothing if the parentElement is not longer connected to the DOM
     if (parentElement.parentNode === null) {
@@ -289,6 +151,7 @@ function findAndUnmountComponentsRec(vNode: VNode | undefined) {
     if (vNode === undefined) {
         return
     }
+
     if (vNode._ === VNodeType.Component) {
         cleanupEffects(vNode)
         findAndUnmountComponentsRec(vNode.rendition!)
@@ -379,9 +242,6 @@ function renderCreate(
     action: RenderingAction | undefined = undefined
 ) {
     let newNode = createNode(newVNode, parentDomNode, isSvg)
-    if (newNode === undefined) {
-        // FIXME?
-    }
     newVNode.domRef = newNode
 
     if (action === RenderingAction.APPEND) {
@@ -616,19 +476,16 @@ function renderUpdate(
                 existingDomNode!.textContent = newVNode.value
             }
             break
-        case VNodeType.Component: // stateless component node
+        case VNodeType.Component: // component node
 
             newVNode.rendition = (oldVNode as ComponentVNode<any>).rendition
             newVNode.data = (oldVNode as ComponentVNode<any>).data
             newVNode.effects = (oldVNode as ComponentVNode<any>).effects
+            newVNode.errorHandler = (oldVNode as ComponentVNode<any>).errorHandler
             newVNode.link = (oldVNode as ComponentVNode<any>).link
             newVNode.link.vNode = newVNode
 
-            if (oldVNode === undefined ||
-                !equalProps((oldVNode as ComponentVNode<any>).props, newVNode.props)) {
-
-                renderComponent(parentDomNode, newVNode, isSvg)
-            }
+            renderComponent(parentDomNode, newVNode, oldVNode as ComponentVNode<any>, isSvg)
 
             break
     }
@@ -645,42 +502,6 @@ function renderUpdate(
     return newVNode.domRef
 }
 
-function equalProps(a: { children: VNode[] }, b: { children: Array<VNode> }) {
-    if (Object.keys(a).length !== Object.keys(b).length) {
-        return false
-    }
-    for (const k in a) {
-        if (a.hasOwnProperty(k)) {
-            if (k === 'children') {
-                const children = a[k]
-                if (children.length !== b[k].length) {
-                    return false
-                }
-
-                for (let i = 0; i < children.length; i++) {
-                    const aChild = children[i]
-                    const bChild = b[k][i]
-                    if (aChild._ !== bChild._) {
-                        return false
-                    }
-                    if (aChild._ === VNodeType.Component || aChild._ === VNodeType.Element) {
-                        if (!equalProps(aChild.props, (bChild as ElementVNode<any>).props)) {
-                            return false
-                        }
-                    }
-                    else if (aChild._ === VNodeType.Text && !equal(aChild.value, (bChild as TextVNode).value)) {
-                        return false
-                    }
-                }
-            }
-            else if (!equal((a as any)[k], (b as any)[k])) {
-                return false
-            }
-        }
-    }
-    return true
-}
-
 /** 
  * Creates a Node from a VNode. 
  */
@@ -695,7 +516,7 @@ function createNode(vNode: VNode, parentElement: Element, isSvg: boolean): Node 
             return document.createTextNode(vNode.value)
         case VNodeType.Component:
 
-            renderComponent(parentElement, vNode, isSvg)
+            renderComponent(parentElement, vNode, undefined, isSvg)
 
             if (vNode.domRef === undefined) {
                 vNode.domRef = document.createComment('Nothing')
@@ -703,6 +524,7 @@ function createNode(vNode: VNode, parentElement: Element, isSvg: boolean): Node 
 
             return vNode.domRef
         case VNodeType.Nothing:
+        case VNodeType.Memo:
             return document.createComment('Nothing')
     }
 }
