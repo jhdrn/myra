@@ -22,7 +22,10 @@ export const Props = myra.define<IProps>((props) => {
     // Use state to keep track of number of renders
     const [state, setState] = myra.useState(0)
 
-    setState(state + 1)
+    myra.useEffect(() => {
+        setState(state + 1)
+    })
+
 
     return (
         <section>

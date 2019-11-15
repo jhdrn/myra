@@ -10,7 +10,9 @@ interface Props {
 
 export const Effects = (_: Props) => {
     const [firstRender, setRendered] = myra.useState(true)
-    setRendered(false)
+    if (firstRender) {
+        setRendered(false)
+    }
     const ref = myra.useRef()
     console.debug('firstRender', firstRender)
 
