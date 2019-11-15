@@ -46,13 +46,10 @@ export function renderComponent(parentElement: Element, newVNode: ComponentVNode
                 hookIndex: 0
             }
 
-            newVNode.rendering = true
-
             let newView = newVNode.view(newProps)
 
             if (newView._ === VNodeType.Memo) {
                 if (oldVNode !== undefined && newView.compare(newVNode.props, oldVNode.props)) {
-                    newVNode.rendering = false
                     newVNode.domRef = oldNode
                     renderingContext = undefined
                     return
@@ -68,8 +65,6 @@ export function renderComponent(parentElement: Element, newVNode: ComponentVNode
 
             // Trigger synchronous effects (useLayoutEffect)
             triggerEffects(newVNode, parentElement, isSvg, true)
-
-            newVNode.rendering = false
 
             // Trigger asynchronous effects (useEffect)
             triggerEffects(newVNode, parentElement, isSvg, false)

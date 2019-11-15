@@ -337,7 +337,6 @@ export interface ComponentVNode<TProps> extends VNodeBase {
     data?: any[]
     props: TProps
     rendition?: VNode
-    rendering?: boolean
     view: ComponentFactory<TProps>
 }
 

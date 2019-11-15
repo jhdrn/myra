@@ -487,7 +487,7 @@ describe('useErrorHandling', () => {
         const Component = () => {
 
             myra.useEffect(() => {
-                throw Error()
+                throw Error('Error!')
             })
             useErrorHandler(mock.callback)
 
@@ -495,17 +495,20 @@ describe('useErrorHandling', () => {
         }
 
         const component = <Component />
-
-        render(document.body, component, undefined, undefined)
+        myra.mount(component, document.body)
 
         requestAnimationFrame(() => {
-            const node = (component as ComponentVNode<any>).domRef!
-            expect(node.nodeType).toBe(Node.COMMENT_NODE)
-            expect(node.textContent).toBe('Nothing')
-            expect(mock.callback).toHaveBeenCalled()
+            // Need to request another frame as the effect is triggered async 
+            // after the first render.
+            requestAnimationFrame(() => {
+                const node = (component as ComponentVNode<any>).domRef!
 
-            done()
+                expect(node.nodeType).toBe(Node.COMMENT_NODE)
+                expect(node.textContent).toBe('Nothing')
+                expect(mock.callback).toHaveBeenCalled()
 
+                done()
+            })
         })
     })
 
