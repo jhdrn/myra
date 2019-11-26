@@ -262,7 +262,7 @@ type MyraChild = VNode | TextNode
 interface MyraNodeArray extends Array<MyraNode> { }
 export type MyraNode = MyraChild | MyraNodeArray | boolean | null | undefined
 
-export type UpdateState<TState> = Partial<TState> | ((s: Readonly<TState>) => Partial<TState>)
+export type UpdateState<TState> = TState | ((s: Readonly<TState>) => TState)
 export type Evolve<TState> = (update: UpdateState<TState>) => TState
 
 export type ComponentFactory<TProps> = (props: TProps) => VNode

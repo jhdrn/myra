@@ -1,6 +1,6 @@
 import { getRenderingContext, renderComponent, tryHandleComponentError } from "./component"
 import { ComponentVNode, Effect, ErrorHandler, Evolve, Ref, UpdateState } from "./contract"
-import { equal, typeOf } from "./helpers"
+import { equal } from "./helpers"
 
 /**
  * 
@@ -25,18 +25,7 @@ export function useState<TState>(initialState: TState): [TState, Evolve<TState>]
                     update = update(currentVNode.data![hookIndex][0])
                 }
 
-                const updateType = typeOf(update)
-                // Shallow merge the old state with the updated state if it is an
-                // object, else just replace it.
-                if (updateType === 'object') {
-                    currentVNode.data![hookIndex] = [{
-                        ...(currentVNode.data![hookIndex][0] as any),
-                        ...(update as object)
-                    }, evolve]
-                }
-                else {
-                    currentVNode.data![hookIndex] = [update, evolve]
-                }
+                currentVNode.data![hookIndex] = [update, evolve]
 
                 requestAnimationFrame(() => {
                     renderComponent(parentElement, link.vNode, undefined, isSvg)

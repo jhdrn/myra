@@ -425,7 +425,7 @@ describe('render', () => {
         const ItemComponent = (props: Props) => {
             const [state, evolve] = useState<State>({ clicked: false, itemId: props.item.id })
 
-            const setClicked = () => evolve({ clicked: true })
+            const setClicked = () => evolve(s => ({ ...s, clicked: true }))
 
             return (
                 <button id={`item-${state.itemId}`}
