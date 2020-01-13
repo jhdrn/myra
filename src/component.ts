@@ -46,7 +46,7 @@ export function renderComponent(parentElement: Element, newVNode: ComponentVNode
                 hookIndex: 0
             }
 
-            let newView = newVNode.view(newProps)
+            let newView = newVNode.view(newProps) as VNode
 
             if (newView._ === VNodeType.Memo) {
                 if (oldVNode !== undefined && newView.compare(newVNode.props, oldVNode.props)) {
@@ -54,7 +54,7 @@ export function renderComponent(parentElement: Element, newVNode: ComponentVNode
                     renderingContext = undefined
                     return
                 }
-                newView = newView.view(newProps)
+                newView = newView.view(newProps) as VNode
             }
             renderingContext = undefined
 

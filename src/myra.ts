@@ -1,7 +1,7 @@
 import { render } from './component'
 import {
-    ComponentFactory,
     ComponentProps,
+    JSXElementFactory,
     VNode
 } from './contract'
 
@@ -19,7 +19,7 @@ export * from './memo'
  * 
  * @param fn 
  */
-export function define<TProps>(fn: ComponentFactory<TProps & ComponentProps>) {
+export function define<TProps>(fn: JSXElementFactory<TProps & ComponentProps>) {
     return fn
 }
 

@@ -4,7 +4,7 @@ declare global {
 
         type GlobalHtmlAttributes<TElement extends HTMLElement> = GlobalAttributes<TElement>
 
-        export type Element = MyraNode
+        export type Element = VNode
 
         export interface ElementClass<TProps> {
             props: TProps
@@ -251,8 +251,6 @@ declare global {
 
 }
 
-
-
 export type TextNode = string | number
 
 export type Key = string | number
@@ -266,6 +264,8 @@ export type UpdateState<TState> = TState | ((s: Readonly<TState>) => TState)
 export type Evolve<TState> = (update: UpdateState<TState>) => TState
 
 export type ComponentFactory<TProps> = (props: TProps) => MyraNode
+
+export type JSXElementFactory<TProps> = (props: TProps) => VNode
 
 export type ErrorHandler = (error: any) => VNode
 

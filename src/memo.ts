@@ -1,4 +1,4 @@
-import { ComponentFactory, ComponentProps, VNodeType } from "./contract"
+import { ComponentFactory, ComponentProps, JSXElementFactory, VNodeType } from "./contract"
 
 function shallowCompareProps<TProps extends ComponentProps>(newProps: TProps, oldProps: TProps): boolean {
     const newPropsKeys = Object.keys(newProps)
@@ -16,7 +16,7 @@ function shallowCompareProps<TProps extends ComponentProps>(newProps: TProps, ol
     return true
 }
 
-export function memo<TProps>(factory: ComponentFactory<TProps & ComponentProps>, compare?: (newProps: TProps, oldProps: TProps) => boolean): ComponentFactory<TProps> {
+export function memo<TProps>(factory: ComponentFactory<TProps & ComponentProps>, compare?: (newProps: TProps, oldProps: TProps) => boolean): JSXElementFactory<TProps> {
     return (props: TProps) => {
         return {
             _: VNodeType.Memo,
