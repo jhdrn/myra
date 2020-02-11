@@ -16,6 +16,17 @@ function shallowCompareProps<TProps extends ComponentProps>(newProps: TProps, ol
     return true
 }
 
+/**
+ * Memoizes a component view, preventing unnecessary renders.
+ * 
+ * If no custom compare function is supplied, a shallow comparison of the props' 
+ * properties will decide whether the component will be rerendered or not.
+ * 
+ * @param factory A component factory function
+ * @param compare An optional props equality comparer function. If true is 
+ *                returned the memoized view will be kept, otherwise the view 
+ *                will be rerendered.
+ */
 export function memo<TProps>(factory: ComponentFactory<TProps & ComponentProps>, compare?: (newProps: TProps, oldProps: TProps) => boolean): JSXElementFactory<TProps> {
     return (props: TProps) => {
         return {

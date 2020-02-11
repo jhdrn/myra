@@ -89,12 +89,11 @@ function triggerEffects(newVNode: ComponentVNode<any>, parentElement: Element, i
                     setTimeout(() => {
                         try {
                             t.cleanup = t.effect(t.arg)
-                            t.invoke = false
                         } catch (err) {
-                            t.invoke = false
                             tryHandleComponentError(parentElement, newVNode, isSvg, err)
                         }
                     }, 0)
+                    t.invoke = false
                 }
             }
         }
