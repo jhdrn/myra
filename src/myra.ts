@@ -13,6 +13,7 @@ export {
 export * from './jsxFactory'
 export * from './hooks'
 export * from './memo'
+export * from './helpers'
 
 /**
  * Convenience function for type hinting
