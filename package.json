@@ -24,7 +24,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/jasmine": "^2.8.8",
-    "codecov": "^1.0.1",
+    "codecov": "^3.6.5",
     "copyfiles": "^1.2.0",
     "dts-bundle": "^0.7.3",
     "jasmine-core": "^2.99.1",
