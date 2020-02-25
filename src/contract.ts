@@ -392,10 +392,6 @@ export interface GlobalAttributes<TElement extends Element> {
     title?: string
     translate?: '' | 'yes' | 'no'
 
-    blur?: boolean
-    click?: boolean
-    focus?: boolean
-
     onblur?: EventListener<GenericEvent<TElement>>
     onclick?: EventListener<GenericMouseEvent<TElement>>
     oncontextmenu?: EventListener<GenericEvent<TElement>>

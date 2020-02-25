@@ -257,20 +257,6 @@ describe('render', () => {
         done()
     })
 
-    it('calls element.focus() when focus attribute is set to true', (done) => {
-
-        const view = <input focus={true} />
-
-        render(document.body, view, view, undefined)
-
-        const node = view.domRef as HTMLTextAreaElement
-
-        expect(node as any).toEqual(document.activeElement)
-
-        done()
-    })
-
-
     it('updates attributes if they have changed', (done) => {
         const view1 =
             <div class="foo" id="bar"></div>
@@ -853,40 +839,4 @@ describe('render', () => {
         expect(el!.namespaceURI).toBe('http://www.w3.org/2000/svg')
     })
 
-    // FIXME: This test is very hard to get working cross browser...
-    // it('calls element.blur() when blur attribute is set to true', (done) => {
-
-    //     const mocks = {
-    //         onEventTriggered: () => { }
-    //     }
-
-    //     spyOn(mocks, 'onEventTriggered').and.callThrough()
-
-    //     // const el = document.createElement('input')
-    //     // document.body.appendChild(el)
-
-    //     // el.onblur = mocks.onEventTriggered
-
-    //     const view1 = <input onfocus={() => console.log('I was focused')} focus={true} />
-    //     render(document.body, view1, view1, undefined)
-    //     // view1.node = el
-    //     view1.domRef.click()
-    //     // expect(view2.props.onblur).toEqual(mocks.onEventTriggered)
-    //     setTimeout(() => {
-
-    //         const view2 = <input onblur={mocks.onEventTriggered} blur={true} />
-    //         render(document.body, view2, view1, view1.domRef)
-
-    //         // expect(view2.props.onblur).toEqual(mocks.onEventTriggered)
-
-    //         setTimeout(() => {
-
-    //             expect(mocks.onEventTriggered).toHaveBeenCalledTimes(1)
-
-    //             // node.focus()
-
-    //             done()
-    //         }, 1500)
-    //     }, 1500)
-    // })
 })
