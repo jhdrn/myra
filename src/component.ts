@@ -527,9 +527,12 @@ function createNode(vNode: VNode, parentElement: Element, isSvg: boolean): Node 
  * Sets an attribute or event listener on an HTMLElement. 
  */
 function setAttr(element: HTMLElement, attributeName: string, attributeValue: any) {
-    // The the "value" attribute shoud be set with setAttribute to prevent 
-    // jumping cursors in Safari
-    if (attributeName !== 'value' && attributeName in element) {
+    // The the "value" attribute shoud be set explicitly to prevent jumping 
+    // cursors in some browsers (Safari)
+    if (attributeName === 'value' && (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA' || element.tagName === 'SELECT')) {
+        (element as any).value = attributeValue
+    }
+    else if (attributeName in element) {
         try {
             (element as any)[attributeName] = attributeValue
             return
