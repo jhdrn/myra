@@ -295,9 +295,12 @@ function setAttr(element: HTMLElement, attributeName: string, attributeValue: an
         (element as any)[attributeName]()
         return
     }
-    // The the "value" attribute shoud be set with setAttribute to prevent 
-    // jumping cursors in Safari
-    else if (attributeName !== 'value' && attributeName in element) {
+    // The the "value" attribute shoud be set explicitly to prevent jumping 
+    // cursors in some browsers (Safari)
+    else if (attributeName === 'value' && (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA' || element.tagName === 'SELECT')) {
+        (element as any).value = attributeValue
+    }
+    else if (attributeName in element) {
         try {
             (element as any)[attributeName] = attributeValue
             return
