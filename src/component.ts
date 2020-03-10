@@ -590,8 +590,16 @@ function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, e
             continue
         }
         attributeValue = (newProps as any)[name]
-        oldAttributeValue = (oldProps as any)[name]
         hasAttr = (existingDomNode as Element).hasAttribute(name)
+
+        // We need to check the actual DOM value of the "value" property
+        // otherwise it may not be updated if the new prop value equals the old 
+        // prop value
+        if (name === 'value' && name in existingDomNode) {
+            oldAttributeValue = (existingDomNode as HTMLInputElement).value
+        } else {
+            oldAttributeValue = (oldProps as any)[name]
+        }
 
         if ((name.indexOf('on') === 0 || attributeValue !== oldAttributeValue ||
             !hasAttr) && attributeValue !== undefined
