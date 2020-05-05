@@ -326,12 +326,20 @@ export interface ElementVNode<TElement extends Element> extends VNodeBase {
     domRef?: TElement
 }
 
+export interface EffectWrapper {
+    arg: any
+    sync: boolean
+    cleanup?: EffectCleanupCallback
+    invoke: boolean
+    effect: Effect<any>
+}
+
 /**
  * A virtual node representing a component.
  */
 export interface ComponentVNode<TProps> extends VNodeBase {
     readonly _: VNodeType.Component
-    effects?: Array<{ arg: any; sync: boolean; cleanup?: EffectCleanupCallback; invoke: boolean; effect: Effect<any>; }>
+    effects?: Array<EffectWrapper>
     errorHandler?: ErrorHandler
     link: { vNode: ComponentVNode<TProps> }
     data?: any[]

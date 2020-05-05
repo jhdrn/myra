@@ -1,6 +1,7 @@
 import {
     ComponentProps,
     ComponentVNode,
+    EffectWrapper,
     ElementVNode,
     Key,
     VNode,
@@ -83,11 +84,14 @@ function triggerEffects(newVNode: ComponentVNode<any>, parentElement: Element, i
             const t = effects[i]
             if (t.invoke) {
                 if (t.sync && sync) {
+                    attemptEffectCleanup(t)
                     t.cleanup = t.effect(t.arg)
                     t.invoke = false
                 } else if (!sync) {
                     setTimeout(() => {
                         try {
+                            attemptEffectCleanup(t)
+
                             t.cleanup = t.effect(t.arg)
                         } catch (err) {
                             tryHandleComponentError(parentElement, newVNode, isSvg, err)
@@ -100,18 +104,24 @@ function triggerEffects(newVNode: ComponentVNode<any>, parentElement: Element, i
     }
 }
 
+/**
+ * Calls the cleanup function if it's set and then removes it from the wrapper
+ */
+function attemptEffectCleanup(t: EffectWrapper) {
+    if (t.cleanup !== undefined) {
+        t.cleanup()
+        t.cleanup = undefined
+    }
+}
+
 function cleanupEffects(vNode: ComponentVNode<any>) {
     const effects = vNode.effects
     if (effects !== undefined) {
         for (const i in effects) {
-            const t = effects[i]
-            if (t.cleanup !== undefined) {
-                t.cleanup()
-            }
+            attemptEffectCleanup(effects[i])
         }
     }
 }
-
 
 export function tryHandleComponentError(parentElement: Element, vNode: ComponentVNode<any>, isSvg: boolean, err: Error) {
 

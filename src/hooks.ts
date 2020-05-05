@@ -117,10 +117,6 @@ function useEffectInternal<TArg>(sync: boolean, effect: Effect<TArg>, arg?: TArg
             effect,
         }
     } else if (arg === undefined || !equal(t.arg, arg)) {
-        if (t.cleanup !== undefined) {
-            t.cleanup()
-            t.cleanup = undefined
-        }
         t.arg = arg
         t.effect = effect
         t.invoke = true

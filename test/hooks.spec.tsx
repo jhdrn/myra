@@ -65,9 +65,12 @@ describe('useEffect', () => {
                 // Trigger re-render
                 updateState(2)
                 requestAnimationFrame(() => {
-                    expect(mock.callback).toHaveBeenCalledTimes(2)
 
-                    done()
+                    // We need to use setTimeout as the effect is cleaned up asynchronously
+                    setTimeout(() => {
+                        expect(mock.callback).toHaveBeenCalledTimes(2)
+                        done()
+                    }, 0)
                 })
             })
         })
