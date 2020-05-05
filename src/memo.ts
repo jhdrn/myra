@@ -27,7 +27,7 @@ function shallowCompareProps<TProps extends ComponentProps>(newProps: TProps, ol
  *                returned the memoized view will be kept, otherwise the view 
  *                will be rerendered.
  */
-export function memo<TProps>(factory: ComponentFactory<TProps & ComponentProps>, compare?: (newProps: TProps, oldProps: TProps) => boolean): JSXElementFactory<TProps> {
+export function memo<TProps>(factory: ComponentFactory<TProps & ComponentProps>, compare?: (newProps: TProps, oldProps: TProps) => boolean): JSXElementFactory<TProps & ComponentProps> {
     return (props: TProps) => {
         return {
             _: VNodeType.Memo,

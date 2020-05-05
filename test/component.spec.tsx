@@ -1,5 +1,4 @@
 import { render } from '../src/component'
-import { ComponentProps } from '../src/contract'
 import * as myra from '../src/myra'
 
 const q = (x: string) => document.querySelector(x)
@@ -87,7 +86,7 @@ describe('component render', () => {
 
         spyOn(mock, 'callback').and.callThrough()
 
-        const Component = myra.memo((props: ComponentProps) => {
+        const Component = myra.memo(props => {
             myra.useLayoutEffect(() => mock.callback())
             return <div>{props.children}</div>
         })
