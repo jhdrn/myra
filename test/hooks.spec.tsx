@@ -765,4 +765,29 @@ describe('useState', () => {
 
         expect(mocks.onclickUpdate).toHaveBeenCalledTimes(2)
     })
+
+    it('debounces multiple state updates into a single render', (done) => {
+
+        let setStateOuter: myra.Evolve<number> = function () { return 0 }
+        const Component = () => {
+
+            let [s, setState] = useState(0)
+            setStateOuter = setState
+            return <span>{s.toString()}</span>
+        }
+
+        const instance = <Component />
+        const node = render(document.body, instance, undefined, undefined)
+
+        requestAnimationFrame(() => {
+
+            setStateOuter(1)
+            setStateOuter(2)
+            requestAnimationFrame(() => {
+                expect(node.textContent).toEqual('2')
+                done()
+            })
+        })
+
+    })
 })

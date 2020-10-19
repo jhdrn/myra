@@ -27,9 +27,13 @@ export function useState<TState>(initialState: TState): [TState, Evolve<TState>]
 
                 currentVNode.data![hookIndex] = [update, evolve]
 
-                requestAnimationFrame(() => {
-                    renderComponent(parentElement, link.vNode, undefined, isSvg)
-                })
+                if (!currentVNode.debounceRender) {
+                    requestAnimationFrame(() => {
+                        link.vNode.debounceRender = false
+                        renderComponent(parentElement, link.vNode, undefined, isSvg)
+                    })
+                }
+                currentVNode.debounceRender = true
             } catch (err) {
                 requestAnimationFrame(() => {
                     tryHandleComponentError(parentElement, currentVNode, isSvg, err)

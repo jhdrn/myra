@@ -68,8 +68,8 @@ export function h<TProps>(
 
     const vNode = {
         _: VNodeType.Component,
+        debounceRender: false,
         props,
-        dispatchLevel: 0,
         view: tagNameOrComponent
     } as any as ComponentVNode<any>
 

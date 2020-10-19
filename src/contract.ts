@@ -339,12 +339,16 @@ export interface EffectWrapper {
  */
 export interface ComponentVNode<TProps> extends VNodeBase {
     readonly _: VNodeType.Component
+    data?: any[]
+    /** A flag to indicate whether a new "renderComponent" call should be queued or not. */
+    debounceRender: boolean
     effects?: Array<EffectWrapper>
     errorHandler?: ErrorHandler
     link: { vNode: ComponentVNode<TProps> }
-    data?: any[]
     props: TProps
+    /** The most recent VNode tree of the component. */
     rendition?: VNode
+    /** The function that generates a VNode tree for the component. */
     view: ComponentFactory<TProps>
 }
 
