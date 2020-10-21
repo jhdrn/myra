@@ -24,6 +24,9 @@ export function getRenderingContext() {
     return renderingContext
 }
 
+/**
+ * Renders the component and handles it's "lifecycle" by triggering any effects.
+ */
 export function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, oldVNode: ComponentVNode<any> | undefined, isSvg: boolean) {
 
     let oldNode: Node | undefined
@@ -77,6 +80,9 @@ export function renderComponent(parentElement: Element, newVNode: ComponentVNode
     }
 }
 
+/**
+ * Triggers all invokeable effects.
+ */
 function triggerEffects(newVNode: ComponentVNode<any>, parentElement: Element, isSvg: boolean, sync: boolean) {
     const effects = newVNode.effects
     if (effects !== undefined) {
@@ -109,20 +115,18 @@ function triggerEffects(newVNode: ComponentVNode<any>, parentElement: Element, i
  */
 function attemptEffectCleanup(t: EffectWrapper) {
     if (t.cleanup !== undefined) {
-        t.cleanup()
+        try {
+            t.cleanup()
+        } catch (err) {
+            console.error('An error occured during effect cleanup: ' + err)
+        }
         t.cleanup = undefined
     }
 }
 
-function cleanupEffects(vNode: ComponentVNode<any>) {
-    const effects = vNode.effects
-    if (effects !== undefined) {
-        for (const i in effects) {
-            attemptEffectCleanup(effects[i])
-        }
-    }
-}
-
+/**
+ * Calls the error handler (if any) and renders the returned view.
+ */
 export function tryHandleComponentError(parentElement: Element, vNode: ComponentVNode<any>, isSvg: boolean, err: Error) {
 
     // Do nothing if the parentElement is not longer connected to the DOM
@@ -157,7 +161,13 @@ function findAndUnmountComponentsRec(vNode: VNode | undefined) {
     }
 
     if (vNode._ === VNodeType.Component) {
-        cleanupEffects(vNode)
+        // Attempt to call any "cleanup" function for all effects before unmount.
+        const effects = vNode.effects
+        if (effects !== undefined) {
+            for (const i in effects) {
+                attemptEffectCleanup(effects[i])
+            }
+        }
         findAndUnmountComponentsRec(vNode.rendition!)
     }
     else if (vNode._ === VNodeType.Element) {
@@ -237,6 +247,9 @@ export function render(
     }
 }
 
+/**
+ * Creates a new DOM node from a VNode and then renders all it's children.
+ */
 function renderCreate(
     parentDomNode: Element,
     newVNode: VNode,
@@ -303,6 +316,9 @@ function renderCreate(
     return newVNode.domRef
 }
 
+/**
+ * Updates an existing HTMLElement DOM node from a new VNode.
+ */
 function updateElementVNode(
     newVNode: ElementVNode<any>,
     oldVNode: ElementVNode<any>,
@@ -451,6 +467,9 @@ function updateElementVNode(
     }
 }
 
+/**
+ * Updates a DOM not from a new VNode.
+ */
 function renderUpdate(
     parentDomNode: Element,
     newVNode: VNode,
@@ -507,7 +526,7 @@ function renderUpdate(
 }
 
 /** 
- * Creates a Node from a VNode. 
+ * Creates a DOM Node from a VNode. 
  */
 function createNode(vNode: VNode, parentElement: Element, isSvg: boolean): Node {
     switch (vNode._) {
@@ -574,7 +593,7 @@ function removeAttr(a: string, node: Element) {
 
 
 /**
- * Sets/removes attributes on an element node
+ * Sets/removes attributes on an DOM element node
  */
 function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, existingDomNode: Node) {
     const newProps = newVNode.props

@@ -366,6 +366,9 @@ export type VNode = TextVNode | ElementVNode<any> | ComponentVNode<any> | Nothin
 export interface GenericEvent<T extends EventTarget> extends Event {
     currentTarget: T
 }
+export interface GenericInputEvent<T extends EventTarget> extends InputEvent {
+    currentTarget: T
+}
 export interface GenericMouseEvent<T extends EventTarget> extends MouseEvent {
     currentTarget: T
 }
@@ -409,6 +412,7 @@ export interface GlobalAttributes<TElement extends Element> {
     oncontextmenu?: EventListener<GenericEvent<TElement>>
     ondblclick?: EventListener<GenericMouseEvent<TElement>>
     onfocus?: EventListener<GenericFocusEvent<TElement>>
+    oninput?: EventListener<GenericInputEvent<HTMLInputElement>>
     onkeydown?: EventListener<GenericKeyboardEvent<TElement>>
     onkeypress?: EventListener<GenericKeyboardEvent<TElement>>
     onkeyup?: EventListener<GenericKeyboardEvent<TElement>>
@@ -591,7 +595,7 @@ export interface ImgAttributes extends GlobalAttributes<HTMLImageElement> {
     width?: number | string
     usemap?: string
 }
-export interface InputAttributes extends GlobalAttributes<HTMLInputElement> {
+export interface InputAttributes extends Omit<GlobalAttributes<HTMLInputElement>, 'oninput'> {
     type?: 'button' | 'checkbox' | 'color' | 'date' | 'datetime' | 'datetime-local' | 'email' | 'file' | 'hidden' | 'image' | 'month' | 'number' | 'password' | 'radio' | 'range' | 'reset' | 'search' | 'submit' | 'tel' | 'text' | 'time' | 'url' | 'week'
     accept?: string
     autocomplete?: string
@@ -701,7 +705,7 @@ export interface TdAttributes extends GlobalAttributes<HTMLTableCellElement> {
     headers?: string
     rowspan?: number | string
 }
-export interface TextareaAttributes extends GlobalAttributes<HTMLTextAreaElement> {
+export interface TextareaAttributes extends Omit<GlobalAttributes<HTMLTextAreaElement>, 'oninput'> {
     autocomplete?: 'on' | 'off'
     autofocus?: boolean | 'true' | 'false'
     cols?: number | string

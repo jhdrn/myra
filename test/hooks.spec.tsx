@@ -76,6 +76,32 @@ describe('useEffect', () => {
         })
     })
 
+    it('handles error during cleanup', done => {
+        const mock = {
+            callback: () => {
+                throw 'An error'
+            }
+        }
+
+        spyOn(mock, 'callback').and.callThrough()
+
+        const Component = () => {
+            useEffect(() => mock.callback)
+            return <div />
+        }
+        const componentInstance = <Component />
+        render(document.body, componentInstance, undefined, undefined)
+
+        requestAnimationFrame(() => {
+            render(document.body, <nothing />, componentInstance, componentInstance.domRef)
+            requestAnimationFrame(() => {
+                expect(mock.callback).toHaveBeenCalledTimes(1)
+
+                done()
+            })
+        })
+    })
+
     it('is cleaned up before unmount if supplied with no argument', done => {
         const mock = {
             callback: () => { }
