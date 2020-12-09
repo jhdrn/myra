@@ -393,6 +393,7 @@ export interface GlobalAttributes<TElement extends Element> {
     key?: Key
 
     accesskey?: string
+    autocapitalize?: string
     'class'?: string
     contenteditable?: boolean | '' | 'true' | 'false'
     contextmenu?: string
@@ -400,7 +401,16 @@ export interface GlobalAttributes<TElement extends Element> {
     draggable?: boolean | 'true' | 'false'
     hidden?: boolean | 'true' | 'false'
     id?: string
+    inputmode?: 'none' | 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url'
+    is?: string
+    itemid?: string
+    itemprop?: string
+    itemref?: string
+    itemscope?: boolean | 'true' | 'false'
+    itemtype?: string
     lang?: string
+    part?: string
+    slot?: string
     spellcheck?: boolean | 'default' | 'true' | 'false'
     style?: string
     tabindex?: number | string
@@ -575,9 +585,13 @@ export interface FormAttributes extends GlobalAttributes<HTMLFormElement> {
     onchange?: EventListener<GenericEvent<HTMLFormElement>> // FormElementEventAttributeArguments
 }
 export interface IframeAttributes extends GlobalAttributes<HTMLIFrameElement> {
+    allow?: string
     allowfullscreen?: boolean | 'true' | 'false'
+    allowpaymentrequest?: boolean | 'true' | 'false'
     height?: number | string
+    loading?: 'eager' | 'lazy'
     name?: string
+    referrerpolicy?: string
     sandbox?: string
     src?: string
     srcdoc?: string
@@ -596,7 +610,7 @@ export interface ImgAttributes extends GlobalAttributes<HTMLImageElement> {
     usemap?: string
 }
 export interface InputAttributes extends Omit<GlobalAttributes<HTMLInputElement>, 'oninput'> {
-    type?: 'button' | 'checkbox' | 'color' | 'date' | 'datetime' | 'datetime-local' | 'email' | 'file' | 'hidden' | 'image' | 'month' | 'number' | 'password' | 'radio' | 'range' | 'reset' | 'search' | 'submit' | 'tel' | 'text' | 'time' | 'url' | 'week'
+    type?: 'button' | 'checkbox' | 'color' | 'date' | 'datetime-local' | 'email' | 'file' | 'hidden' | 'image' | 'month' | 'number' | 'password' | 'radio' | 'range' | 'reset' | 'search' | 'submit' | 'tel' | 'text' | 'time' | 'url' | 'week'
     accept?: string
     autocomplete?: string
     autofocus?: boolean | 'true' | 'false'
@@ -610,7 +624,6 @@ export interface InputAttributes extends Omit<GlobalAttributes<HTMLInputElement>
     formnovalidate?: boolean | 'true' | 'false'
     formtarget?: string
     height?: number | string
-    inputmode?: string
     list?: string
     max?: number | string
     maxlength?: number | string
@@ -750,9 +763,9 @@ export interface VideoAttributes extends GlobalAttributes<HTMLVideoElement> {
     height?: number | string
     loop?: boolean | 'true' | 'false'
     muted?: boolean | 'true' | 'false'
-    played?: any
-    preload?: 'none' | 'metadata' | 'auto' | ''
+    playsinline?: boolean
     poster?: string
+    preload?: 'none' | 'metadata' | 'auto' | ''
     src?: string
     width?: number | string
 }
