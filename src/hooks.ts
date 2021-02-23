@@ -2,11 +2,14 @@ import { getRenderingContext, renderComponent, tryHandleComponentError } from ".
 import { ComponentVNode, Effect, ErrorHandler, Evolve, Ref, UpdateState } from "./contract"
 import { equal } from "./helpers"
 
+
+type LazyStateInitialization<TState> = () => TState
+
 /**
  * 
  * @param initialState the initial state 
  */
-export function useState<TState>(initialState: TState): [TState, Evolve<TState>] {
+export function useState<TState>(initialState: TState | LazyStateInitialization<TState>): [TState, Evolve<TState>] {
 
     const renderingContext = getRenderingContext()
     const { hookIndex, isSvg, parentElement, vNode } = renderingContext!
@@ -42,8 +45,12 @@ export function useState<TState>(initialState: TState): [TState, Evolve<TState>]
             return currentVNode.data![hookIndex][0]
         }
 
+        if (typeof initialState === 'function') {
+            initialState = (initialState as LazyStateInitialization<TState>)()
+        }
         vNode.data[hookIndex] = [initialState, evolve]
     }
+
     const state = vNode.data[hookIndex]
     renderingContext!.hookIndex++
 

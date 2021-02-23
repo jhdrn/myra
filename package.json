@@ -1,7 +1,7 @@
 {
   "name": "myra",
   "private": true,
-  "version": "4.1.2",
+  "version": "4.2.0",
   "description": "Myra is a simple and small Typescript JSX rendering library.",
   "readme": "README.md",
   "repository": {
@@ -27,8 +27,8 @@
   "devDependencies": {
     "@types/jasmine": "^2.8.17",
     "@types/node": "^13.13.25",
-    "codecov": "^3.8.0",
-    "copyfiles": "^2.4.0",
+    "codecov": "^3.8.1",
+    "copyfiles": "^2.4.1",
     "dts-bundle": "^0.7.3",
     "jasmine-core": "^2.99.1",
     "karma": "^5.2.3",
@@ -43,12 +43,12 @@
     "lodash.camelcase": "^4.3.0",
     "remap-istanbul": "^0.13.0",
     "rimraf": "^3.0.2",
-    "rollup": "^2.30.0",
+    "rollup": "^2.39.1",
     "rollup-plugin-sourcemaps": "^0.6.3",
     "rollup-plugin-uglify": "^6.0.4",
     "systemjs": "^0.19.47",
     "ts-node": "^8.10.2",
-    "typescript": "^4.0.3",
+    "typescript": "^4.1.5",
     "uglify-es": "^3.3.9"
   },
   "scripts": {

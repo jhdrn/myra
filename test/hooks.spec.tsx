@@ -726,6 +726,30 @@ describe('useState', () => {
         render(document.body, instance, undefined, undefined)
     })
 
+    it('lazily initializes the state if the initial state is a function', (done) => {
+        let callCount = 0
+        const Component = () => {
+
+            const [s, evolve] = useState(() => {
+                callCount++
+                return 0
+            })
+            const ref = useRef(evolve)
+
+            expect(ref.current).toBe(evolve)
+            if (s < 2) {
+                evolve(s + 1)
+            } else {
+                expect(callCount).toEqual(1)
+                done()
+            }
+            return <div></div>
+        }
+
+        const instance = <Component />
+        render(document.body, instance, undefined, undefined)
+    })
+
     it('updates the state when an Update function in supplied', () => {
         let firstUpdate = true
 
