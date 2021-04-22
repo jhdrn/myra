@@ -50,7 +50,7 @@ module.exports = function (config) {
 
         autoWatch: true,
 
-        browsers: ['Chrome', 'Firefox', 'IE', 'IE10', 'Edge'],
+        browsers: ['Chrome', 'Firefox', 'Safari', 'IE', 'IE10', 'Edge'],
 
         // For Travis CI
         customLaunchers: {
@@ -71,6 +71,7 @@ module.exports = function (config) {
             'karma-ie-launcher',
             'karma-edge-launcher',
             'karma-firefox-launcher',
+            'karma-safari-launcher',
             'karma-spec-reporter',
             'karma-coverage'
         ],
