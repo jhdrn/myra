@@ -14,165 +14,37 @@ Myra is (another) JSX rendering library. It is small, simple and built with and 
 
 [![NPM](https://nodei.co/npm/myra.png)](https://nodei.co/npm/myra/)
 
-## Requirements
-Myra requires Typescript 2.8 to function properly. It is also highly advised 
-that the compiler options `strictNullChecks`, `noImplicitReturns` and 
-`noImplicitAny` are set to true.
+Myra is a JSX rendering engine implementing a subset of React, but with some
+differences (one being Myra uses requestAnimationFrame for updates).
 
-## Getting started
-Clone the repository and check the 
-[examples](https://github.com/jhdrn/myra/tree/master/examples) 
-folder. Open any example's folder in your terminal and execute 
-`npm install && npm start`, then open your favorite browser and point it to 
-`localhost:8080`.
-
-The examples can be used as bootstrapping templates as they are set up with
-build and "watch" scripts using npm and Webpack.
-
-## Components
-A Myra app is built from a hierarchy of components. The root component is 
-mounted to a DOM element and it may contain child components. 
-
-A component is just a function that takes a `props` object and a `context` as arguments:
-
-```JSX
-    import * as myra from 'myra'
-
-    type Props = { test: string } & myra.ComponentProps
-    const StateLessComponent = (props: Props, context: myra.Context<Props>) =>
-        <div>
-            {props.test}
-            {...props.children}
-        </div>
-
-    const parentView = () => 
-        <StateLessComponent test="foo">
-            This is a child.
-        </StateLessComponent>
-```
-
-### Mounting a component
+## Implemented hooks
+* useState - same as https://reactjs.org/docs/hooks-state.html
+* useMemo - same as https://reactjs.org/docs/hooks-reference.html#usememo
+* useEffect - same as https://reactjs.org/docs/hooks-effect.html
+* useLayoutEffect - same as https://reactjs.org/docs/hooks-reference.html#uselayouteffect
+* useRef - works similarly to Reacts implementation, but with a `.node` property
+  which holds a reference to the component's DOM node (Myra does not support 
+  the `ref` attribute). 
+* useErrorHandler - Catches any errors and renders an "error view" instead of 
+  the regular component view:
+    ```JSX
+        myra.useErrorHandler(error => <p>An error occured: {error}</p>) 
+    ```
+## Mounting a component
 Use `myra.mount` to mount a component to the DOM:
 
 ```JSX
     // Mount the component to a DOM element
     myra.mount(<MyComponent />, document.body) 
 ```
-
-### Using the context
-The `context` object contains functions to enhance the component functionality
-(this is similar to React hooks):
-
-#### useState: <TState>(init: TState) => [TState, Evolve<TState>]
-Returns a tuple consisting of the current state and a function to update the 
-state ("Evolve"). The "Evolve" function has two overloads, one that sets the new 
-state and one that takes a function receiving the current state that should 
-return the new state. If the new state is an object, it will be shallowly merged
-with the old state. The "Evolve" function will also return the new state. 
-
-When a state is updated, the component will be re-rendered.
-
-Multiple states may be used for the same component.
+## Memoized components
+Use `myra.memo` to create a component that will only render if it's props have
+changed. The second argument is an optional comparison function to make a custom 
+rendering decision:
 
 ```JSX
-    const MyComponent = () => {
-        const [state1, updateState1] = myra.useState('initial state')
-        // state1 = 'initial state'
-        const newState1 = updateState1('new state')
-        // newState1 = 'new state'
-
-        const [state2, updateState2] = myra.useState({ foo: 'bar', baz: 0 })
-        // state2 = { foo: 'bar', baz: 0 }
-        const newState2 = updateState2({ foo: 'baz' })
-        // newState2 = { foo: 'baz', baz: 0 }
-        return <div>...</div>
-    })
-```
-
-#### useLifecycle: (callback: (event: LifecycleEvent): void) => void
-Attach a "life cycle event listener" that will be called whenever one of the
-following events occur:
-
-- willMount
-- willRender
-- didMount
-- didRender
-- willUnmount
-
-```JSX
-    const MyComponent = () => {
-        
-        myra.useLifecycle(ev => {
-            switch (ev) {
-                case 'didMount':
-                    // after the component was attached to the DOM
-                case 'didRender':
-                    // after the component was rendered
-                case 'willMount':
-                    // before the component will attach to the DOM
-                case 'willRender':
-                    // before the component will be rendered
-                case 'willUnmount':
-                    // before the component will be detached from the DOM.
-            }
-        })
-        return <div>...</div>
-    })
-```
-
-#### useMemo: <TMemoized, TArgs>(fn: (args: TArgs) => TMemoized, inputs: TArgs) => TMemoized
-Memoizes a value that will not change until the input arguments changes. Use
-cases includes memoizing callback functions that will be used as props and 
-caching computational heavy tasks.
-
-```JSX
-    const MyComponent = () => {
-        const memoizedValue = myra.useMemo(arg => { 
-            // arg === 'an argument'
-            // computational expensive operation goes here
-         }, 'an argument')
-        return <div>...</div>
-    })
-```
-
-#### useRef: <T>(current?: T)  => { current: T; node: Node | undefined }
-Creates a "ref" object which holds a reference to the component DOM node (when
-it has been rendered) and a "current" property which is a mutable property that
-will persist between renders.
-
-```JSX
-    const MyComponent = () => {
-        const ref = myra.useRef('the initial mutable value')
-        ref.node // holds the DOM node of the component (when it has been rendered)
-        ref.current // the current value
-        return <div>...</div>
-    })
-```
-
-#### useErrorHandler: (handler: (error: any) => VNode) => void
-Makes the component "catch" errors. If no error handler is used, thrown errors
-will we propagated upwards in the component tree. The error handler function
-must return a VNode which will be rendered in case of an error.
-
-```JSX
-    const MyComponent = () => {
-        // An error handler that will render the error
-        myra.useErrorHandler(err => <div>{err}</div>)
-        return <div>...</div>
-    })
-```
-
-#### useRenderDecision: (desicion: (oldProps: TProps, newProps: TProps) => boolean) => void
-Takes a function that will be called prior to rendering. If the function returns
-false, the component will not render.
-
-```JSX
-    const MyComponent = () => {
-        myra.useRenderDecision((oldProps, newProps) => { 
-            return false // prevent render
-         })
-        return <div>...</div>
-    })
+    // Mount the component to a DOM element
+    const MyMemoComponent = myra.memo<IProps>(props => <p></p>) 
 ```
 
 ## Special props
@@ -182,14 +54,10 @@ Some props and events has special behavior associated with them.
 components is retained when they are changing position in a list. When used with
 elements, it may also prevent unnecessary re-rendering and thus increase performance.
 _It's value must be unique amongst the items in the list._
-* The `forceUpdate` prop will force a child component to update if set to true 
-(even if it's props didn't change).
 * The `class` prop value will be set to the `className` property of the element.
-* `blur`, `focus` and `click` props with a truthy value will result in a call to 
-  `element.blur()`, `element.focus()` and `element.click()` respectively.
 
 ## License
 
 [MIT](http://opensource.org/licenses/MIT)
 
-Copyright (c) 2016-2019 Jonathan Hedrén
+Copyright (c) 2016-2021 Jonathan Hedrén
