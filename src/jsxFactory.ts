@@ -1,12 +1,19 @@
-import { ComponentFactory, VNode, TextVNode } from './contract'
-import { VNODE_NOTHING, VNODE_TEXT, VNODE_ELEMENT, STATEFUL, VNODE_FUNCTION } from './constants';
+import {
+    ComponentFactory,
+    ComponentVNode,
+    MyraNode,
+    TextNode,
+    TextVNode,
+    VNode,
+    VNodeType
+} from './contract'
 
-function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
-    const flattenedChildren = [] as (VNode | string)[]
+function flattenChildren(children: MyraNode[]) {
+    const flattenedChildren = [] as Array<VNode | TextNode>
 
     for (const child of children) {
         if (child === null || child === undefined || typeof child === 'boolean') {
-            flattenedChildren.push({ _: VNODE_NOTHING })
+            flattenedChildren.push({ _: VNodeType.Nothing })
         }
         else if (Array.isArray(child)) {
             for (const c of flattenChildren(child)) {
@@ -16,7 +23,7 @@ function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
         else if ((child as VNode)._ === undefined) {
             // Any node which is not a vNode will be converted to a TextVNode
             flattenedChildren.push({
-                _: VNODE_TEXT,
+                _: VNodeType.Text,
                 value: child as any as string
             } as TextVNode)
         }
@@ -32,38 +39,42 @@ function flattenChildren(children: ((VNode | string)[] | VNode | string)[]) {
  * Creates a JSX.Element/VNode from a JSX tag.
  */
 export function h<TProps>(
-    tagNameOrComponent: string | ComponentFactory<TProps> | undefined | null,
+    tagNameOrComponent: string | ComponentFactory<object> | undefined | null,
     props: TProps,
-    ...children: (string | VNode)[]): JSX.Element {
+    ...children: Array<MyraNode>): JSX.Element {
 
     if (tagNameOrComponent === 'nothing' ||
         tagNameOrComponent === undefined ||
         tagNameOrComponent === null ||
         typeof tagNameOrComponent === 'boolean') {
 
-        return { _: VNODE_NOTHING }
+        return { _: VNodeType.Nothing }
     }
 
     if (props === null) {
         props = {} as TProps
     }
 
+    (props as any as { children: VNode[] }).children = flattenChildren(children)
+
     if (typeof tagNameOrComponent === 'string') {
 
         return {
-            _: VNODE_ELEMENT,
+            _: VNodeType.Element,
             tagName: tagNameOrComponent,
-            props: props,
-            children: flattenChildren(children)
+            props: props as any as { children: Array<VNode> }
         }
     }
-    if ((tagNameOrComponent as any)._ === STATEFUL) {
-        return tagNameOrComponent(props, children as VNode[])
-    }
-    return {
-        _: VNODE_FUNCTION,
+
+    const vNode = {
+        _: VNodeType.Component,
+        debounceRender: false,
         props,
-        children: children as VNode[],
         view: tagNameOrComponent
+    } as any as ComponentVNode<any>
+
+    vNode.link = {
+        vNode
     }
+    return vNode
 }

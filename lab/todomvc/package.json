@@ -9,12 +9,17 @@
   "devDependencies": {
     "awesome-typescript-loader": "^5.2.0",
     "source-map-loader": "^0.2.4",
-    "typescript": "^3.0.1",
+    "typescript": "^3.3.3",
     "webpack": "^4.17.1",
     "webpack-cli": "^3.1.0",
-    "webpack-dev-server": "^3.1.14"
+    "webpack-dev-server": "^3.1.6"
   },
   "dependencies": {
-    "myra": "^3.0.1"
-  }
+    "myra": "^3.0.1",
+    "es6-promise": "^4.1.0",
+    "myra-router": "^1.0.0-alpha.1",
+    "todomvc-app-css": "^2.0.6",
+    "todomvc-common": "^1.0.2"
+  },
+  "false": {}
 }

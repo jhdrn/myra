@@ -12,11 +12,17 @@ declare global {
         export interface ElementAttributesProperty<TProps> {
             props: TProps
         }
+        export interface ElementChildrenAttribute { children: {} }
+
+        interface IntrinsicAttributes {
+            key?: string | number
+        }
+
         export interface IntrinsicElements {
             nothing: {}
 
             a: AAttributes
-            attr: GlobalHtmlAttributes<HTMLElement>
+            abbr: GlobalHtmlAttributes<HTMLElement>
             address: GlobalHtmlAttributes<HTMLElement>
             area: AreaAttributes
             article: GlobalHtmlAttributes<HTMLElement>
@@ -92,13 +98,16 @@ declare global {
 
             p: GlobalHtmlAttributes<HTMLParagraphElement>
             param: ParamAttributes
+            picture: GlobalHtmlAttributes<HTMLPictureElement>
             pre: GlobalHtmlAttributes<HTMLPreElement>
             progress: ProgressAttributes
 
             q: QAttributes
 
+            rb: GlobalHtmlAttributes<HTMLElement>
             rp: GlobalHtmlAttributes<HTMLElement>
             rt: GlobalHtmlAttributes<HTMLElement>
+            rtc: GlobalHtmlAttributes<HTMLElement>
             ruby: GlobalHtmlAttributes<HTMLElement>
 
             s: GlobalHtmlAttributes<HTMLElement>
@@ -242,41 +251,122 @@ declare global {
 
 }
 
-export type UpdateState<TState> = Partial<TState> | ((s: Readonly<TState>) => Partial<TState>)
-export type Evolve<TState> = (update: UpdateState<TState>) => void
+export type TextNode = string | number
 
-export interface View<TState, TProps> {
-    (state: TState, props: TProps, children: JSX.Element[]): JSX.Element
-}
-export interface Context<TState, TProps> {
-    readonly evolve: Evolve<TState>
-    readonly props: TProps
-    readonly state: TState
-    readonly domRef: Element | undefined
-}
-export interface RenderedContext<TState, TProps> extends Context<TState, TProps> {
-    readonly domRef: Element
-}
-export interface SetupContext<TState, TProps> extends Context<TState, TProps> {
-    defaultProps?: Partial<TProps>
-    willMount?: (ctx: Context<TState, TProps>) => void
-    didMount?: (ctx: RenderedContext<TState, TProps>) => void
-    shouldRender?: (oldProps: TProps, newProps: TProps) => boolean
-    willRender?: (ctx: Context<TState, TProps>) => void
-    didRender?: (ctx: RenderedContext<TState, TProps>) => void
-    willUnmount?: (ctx: RenderedContext<TState, TProps>) => void
-    onError?: (error: Error) => VNode
+export type Key = string | number
+
+type MyraChild = VNode | TextNode
+
+interface MyraNodeArray extends Array<MyraNode> { }
+export type MyraNode = MyraChild | MyraNodeArray | boolean | null | undefined
+
+export type UpdateState<TState> = TState | ((s: Readonly<TState>) => TState)
+export type Evolve<TState> = (update: UpdateState<TState>) => TState
+
+export type ComponentFactory<TProps> = (props: TProps) => MyraNode
+
+export type JSXElementFactory<TProps> = (props: TProps) => VNode
+
+export type ErrorHandler = (error: any) => VNode
+
+export type Ref<T> = {
+    current: T
+    node?: Node
 }
 
-export type ComponentSetup<TState, TProps> = (ctx: SetupContext<TState, TProps>) => View<TState, TProps>
+export type Effect<T> = (arg: T) => EffectCleanupCallback
+export type EffectCleanupCallback = (() => void) | void
 
-export interface ComponentFactory<TProps> {
-    (props: TProps, children: VNode[]): VNode
+export interface ComponentProps extends Record<string, any> {
+    children?: MyraNode
+    key?: Key
 }
 
-export interface AttributeMap { [name: string]: string }
+export const enum VNodeType {
+    Nothing,
+    Text,
+    Element,
+    Component,
+    Memo
+}
+
+/**
+ * Base interface for a virtual node.
+ */
+export interface VNodeBase {
+    /**
+     * A reference to a DOM node.
+     */
+    domRef?: Node
+}
+
+/**
+ * A virtual node representing nothing. Will be rendered as a comment DOM 
+ * node.
+ */
+export interface NothingVNode extends VNodeBase {
+    readonly _: VNodeType.Nothing
+}
+
+/**
+ * A virtual node that represents a text DOM node. 
+ */
+export interface TextVNode extends VNodeBase {
+    readonly _: VNodeType.Text
+    readonly value: string
+}
+
+/**
+ * A virtual node representing a DOM Element. 
+ */
+export interface ElementVNode<TElement extends Element> extends VNodeBase {
+    readonly _: VNodeType.Element
+    readonly tagName: string
+    readonly props: GlobalAttributes<TElement> & { children: VNode[] }
+    domRef?: TElement
+}
+
+export interface EffectWrapper {
+    arg: any
+    sync: boolean
+    cleanup?: EffectCleanupCallback
+    invoke: boolean
+    effect: Effect<any>
+}
+
+/**
+ * A virtual node representing a component.
+ */
+export interface ComponentVNode<TProps> extends VNodeBase {
+    readonly _: VNodeType.Component
+    data?: any[]
+    /** A flag to indicate whether a new "renderComponent" call should be queued or not. */
+    debounceRender: boolean
+    effects?: Array<EffectWrapper>
+    errorHandler?: ErrorHandler
+    link: { vNode: ComponentVNode<TProps> }
+    props: TProps
+    /** The most recent VNode tree of the component. */
+    rendition?: VNode
+    /** The function that generates a VNode tree for the component. */
+    view: ComponentFactory<TProps>
+}
+
+export interface MemoVNode<TProps> extends VNodeBase {
+    readonly _: VNodeType.Memo
+    readonly compare: (newProps: TProps, oldProps: TProps) => boolean
+    readonly view: ComponentFactory<TProps>
+}
+
+/**
+ * Union type of the different types of virtual nodes.
+ */
+export type VNode = TextVNode | ElementVNode<any> | ComponentVNode<any> | NothingVNode | MemoVNode<any>
 
 export interface GenericEvent<T extends EventTarget> extends Event {
+    currentTarget: T
+}
+export interface GenericInputEvent<T extends EventTarget> extends InputEvent {
     currentTarget: T
 }
 export interface GenericMouseEvent<T extends EventTarget> extends MouseEvent {
@@ -297,75 +387,13 @@ export interface GenericDragEvent<T extends EventTarget> extends DragEvent {
  */
 export type EventListener<TEvent extends Event> = (event: TEvent) => void
 
-/**
- * Base interface for a virtual node.
- */
-export interface VNodeBase {
-    /**
-     * A reference to a DOM node.
-     */
-    domRef?: Node
-}
-
-/**
- * A virtual node that represents a text DOM node. 
- */
-export interface TextVNode extends VNodeBase {
-    readonly _: 1
-    readonly value: string
-}
-
-/**
- * A virtual node representing a DOM Element. 
- */
-export interface ElementVNode<TElement extends Element> extends VNodeBase {
-    readonly _: 2
-    readonly tagName: string
-    readonly props: GlobalAttributes<TElement>
-    readonly children: VNode[]
-    domRef?: TElement
-}
-
-/**
- * A virtual node representing a component.
- */
-
-export interface ComponentVNode<TState extends {}, TProps extends {}> extends VNodeBase {
-    readonly _: 3
-    children: VNode[]
-    rendition?: VNode
-    props: TProps
-    state: Readonly<TState>
-    spec: ComponentSetup<TState, TProps>
-    ctx: SetupContext<TState, TProps>
-    view: View<TState, TProps>
-    dispatchLevel: number
-    link: { vNode: ComponentVNode<TState, TProps> }
-}
-
-export interface StatelessComponentVNode<TProps extends {}> extends VNodeBase {
-    readonly _: 4
-    children: VNode[]
-    props: TProps
-    view: (props: TProps, children: JSX.Element[]) => JSX.Element
-    rendition?: VNode
-}
-/**
- * A virtual node representing nothing. Will be rendered as a comment DOM 
- * node.
- */
-export interface NothingVNode extends VNodeBase {
-    readonly _: 0
-}
-
-/**
- * Union type of the different types of virtual nodes.
- */
-export type VNode = TextVNode | ElementVNode<any> | ComponentVNode<any, any> | StatelessComponentVNode<any> | NothingVNode
-
 export interface GlobalAttributes<TElement extends Element> {
-    key?: any
+
+    children?: MyraNode
+    key?: Key
+
     accesskey?: string
+    autocapitalize?: string
     'class'?: string
     contenteditable?: boolean | '' | 'true' | 'false'
     contextmenu?: string
@@ -373,22 +401,28 @@ export interface GlobalAttributes<TElement extends Element> {
     draggable?: boolean | 'true' | 'false'
     hidden?: boolean | 'true' | 'false'
     id?: string
+    inputmode?: 'none' | 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url'
+    is?: string
+    itemid?: string
+    itemprop?: string
+    itemref?: string
+    itemscope?: boolean | 'true' | 'false'
+    itemtype?: string
     lang?: string
+    part?: string
+    slot?: string
     spellcheck?: boolean | 'default' | 'true' | 'false'
     style?: string
     tabindex?: number | string
     title?: string
     translate?: '' | 'yes' | 'no'
 
-    blur?: boolean
-    click?: boolean
-    focus?: boolean
-
     onblur?: EventListener<GenericEvent<TElement>>
     onclick?: EventListener<GenericMouseEvent<TElement>>
     oncontextmenu?: EventListener<GenericEvent<TElement>>
     ondblclick?: EventListener<GenericMouseEvent<TElement>>
     onfocus?: EventListener<GenericFocusEvent<TElement>>
+    oninput?: EventListener<GenericInputEvent<HTMLInputElement>>
     onkeydown?: EventListener<GenericKeyboardEvent<TElement>>
     onkeypress?: EventListener<GenericKeyboardEvent<TElement>>
     onkeyup?: EventListener<GenericKeyboardEvent<TElement>>
@@ -551,9 +585,13 @@ export interface FormAttributes extends GlobalAttributes<HTMLFormElement> {
     onchange?: EventListener<GenericEvent<HTMLFormElement>> // FormElementEventAttributeArguments
 }
 export interface IframeAttributes extends GlobalAttributes<HTMLIFrameElement> {
+    allow?: string
     allowfullscreen?: boolean | 'true' | 'false'
+    allowpaymentrequest?: boolean | 'true' | 'false'
     height?: number | string
+    loading?: 'eager' | 'lazy'
     name?: string
+    referrerpolicy?: string
     sandbox?: string
     src?: string
     srcdoc?: string
@@ -571,8 +609,8 @@ export interface ImgAttributes extends GlobalAttributes<HTMLImageElement> {
     width?: number | string
     usemap?: string
 }
-export interface InputAttributes extends GlobalAttributes<HTMLInputElement> {
-    type?: 'button' | 'checkbox' | 'color' | 'date' | 'datetime' | 'datetime-local' | 'email' | 'file' | 'hidden' | 'image' | 'month' | 'number' | 'password' | 'radio' | 'range' | 'reset' | 'search' | 'submit' | 'tel' | 'text' | 'time' | 'url' | 'week'
+export interface InputAttributes extends Omit<GlobalAttributes<HTMLInputElement>, 'oninput'> {
+    type?: 'button' | 'checkbox' | 'color' | 'date' | 'datetime-local' | 'email' | 'file' | 'hidden' | 'image' | 'month' | 'number' | 'password' | 'radio' | 'range' | 'reset' | 'search' | 'submit' | 'tel' | 'text' | 'time' | 'url' | 'week'
     accept?: string
     autocomplete?: string
     autofocus?: boolean | 'true' | 'false'
@@ -586,7 +624,6 @@ export interface InputAttributes extends GlobalAttributes<HTMLInputElement> {
     formnovalidate?: boolean | 'true' | 'false'
     formtarget?: string
     height?: number | string
-    inputmode?: string
     list?: string
     max?: number | string
     maxlength?: number | string
@@ -681,7 +718,7 @@ export interface TdAttributes extends GlobalAttributes<HTMLTableCellElement> {
     headers?: string
     rowspan?: number | string
 }
-export interface TextareaAttributes extends GlobalAttributes<HTMLTextAreaElement> {
+export interface TextareaAttributes extends Omit<GlobalAttributes<HTMLTextAreaElement>, 'oninput'> {
     autocomplete?: 'on' | 'off'
     autofocus?: boolean | 'true' | 'false'
     cols?: number | string
@@ -696,6 +733,7 @@ export interface TextareaAttributes extends GlobalAttributes<HTMLTextAreaElement
     selectionDirection?: string
     selectionEnd?: number | string
     selectionStart?: number | string
+    value?: string
     wrap?: 'soft' | 'hard'
 
     onchange?: EventListener<GenericEvent<HTMLTextAreaElement>>
@@ -725,9 +763,9 @@ export interface VideoAttributes extends GlobalAttributes<HTMLVideoElement> {
     height?: number | string
     loop?: boolean | 'true' | 'false'
     muted?: boolean | 'true' | 'false'
-    played?: any
-    preload?: 'none' | 'metadata' | 'auto' | ''
+    playsinline?: boolean
     poster?: string
+    preload?: 'none' | 'metadata' | 'auto' | ''
     src?: string
     width?: number | string
 }

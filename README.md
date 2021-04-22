@@ -7,21 +7,15 @@ Myra is (another) JSX rendering library. It is small, simple and built with and 
 [![npm](https://img.shields.io/npm/v/myra.svg?maxAge=24000)](https://www.npmjs.com/package/myra)
 [![Travis](https://img.shields.io/travis/jhdrn/myra.svg?maxAge=36000)](https://travis-ci.org/jhdrn/myra)
 [![codecov](https://codecov.io/gh/jhdrn/myra/branch/master/graph/badge.svg)](https://codecov.io/gh/jhdrn/myra)
+[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/jhdrn/myra.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/jhdrn/myra/context:javascript)
+[![Downloads](https://img.shields.io/npm/dm/myra.svg)](https://www.npmjs.com/package/myra)
+[![gzip size](http://img.badgesize.io/https://cdn.jsdelivr.net/npm/myra/myra.min.js?compression=gzip)](https://cdn.jsdelivr.net/npm/myra/myra.min.js)
+[![install size](https://badgen.net/packagephobia/install/myra)](https://packagephobia.now.sh/result?p=myra)
 
-## Features
-* **Small API:** 
-  Myra should be easy to learn as it's API and concepts are limited.
-* **Statically typed views:** 
-  Myra does not use HTML templates but uses 
-  [JSX](https://facebook.github.io/react/docs/jsx-in-depth.html) to build up 
-  view hierarchies. Together with Typescript's type checking, this reduces run time errors.
-* **No dependencies:** 
-  Myra does not depend on any external libraries.
-* **Small code base/size:** 
-  Hello World example is < 3kb minified and gzipped
+[![NPM](https://nodei.co/npm/myra.png)](https://nodei.co/npm/myra/)
 
 ## Requirements
-Myra requires Typescript 2.2 to function properly. It is also highly advised 
+Myra requires Typescript 2.8 to function properly. It is also highly advised 
 that the compiler options `strictNullChecks`, `noImplicitReturns` and 
 `noImplicitAny` are set to true.
 
@@ -37,90 +31,148 @@ build and "watch" scripts using npm and Webpack.
 
 ## Components
 A Myra app is built from a hierarchy of components. The root component is 
-mounted to a DOM element and it may contain child components. Components can be
-either stateful or stateless. 
+mounted to a DOM element and it may contain child components. 
 
-### Stateful components
-To define a stateful component, use `myra.define` and then mount it to the DOM
-with `myra.mount`:
-    
-```JSX
-    import * as myra from 'myra'
-    
-    type Props = { myProp: string }
-    type State = { hello: string }
-
-    const init = { hello: 'Hello!' }
-
-    // Define the component passing the initial state and a "setup"
-    // function
-    const MyComponent = myra.define<State, Props>(
-        init, 
-        // The "setup" function takes a `ComponentContext` argument
-        ctx => {
-
-            // Default prop values can be set via the defaultProps property
-            ctx.defaultProps = { myProp: 'default value' }
-
-            // The context can be used to attach event listeners
-            // for lifecycle events
-            ctx.didMount = () => console.log('didMount')
-
-            // The onError event listener will be called if a rendering error
-            // occurs. It is required to return a view to display in place of
-            // the component's (<nothing /> can be used).
-            ctx.onError = () => <p>An error occured!</p>
-
-            // The context also holds the important 'evolve' function
-            // which is used to update the state and re-render the component.
-            // This function will be triggered when the <p>-tag below is clicked
-            // and update the state with a new 'hello' text
-            const onClick = (ev: MouseEvent) => 
-                ctx.evolve({ hello: ev.target.tagName })
-
-            // The view must be returned as a function receiving the 
-            // current state, any props and any child nodes.
-            return (state, props, children) => 
-                <p onclick={onClick}>
-                    {state.hello}
-                    {props.myProp}
-                    {children}
-                </p>
-        }
-    )
-
-    // Mount the component to a DOM element
-    myra.mount(<MyComponent />, document.body) 
-```
-
-#### Lifecycle events
-The following lifecycle events are fired:
-
-- willMount - called before the component will attach to the DOM
-- shouldRender - used to decide whether to render the component or not
-- willRender - called before the component will be rendered
-- didRender - called after the component was rendered
-- didMount - called after the component was attached to the DOM
-- willUnmount - called before the component will be detached from the DOM.
-
-### Stateless components
-A stateless component is just a function that takes a props object and 
-'children' as arguments:
+A component is just a function that takes a `props` object and a `context` as arguments:
 
 ```JSX
     import * as myra from 'myra'
 
-    type Props = { test: string }
-    const StateLessComponent = (props: Props, children: VNode[]) =>
+    type Props = { test: string } & myra.ComponentProps
+    const StateLessComponent = (props: Props, context: myra.Context<Props>) =>
         <div>
             {props.test}
-            {...children}
+            {...props.children}
         </div>
 
     const parentView = () => 
         <StateLessComponent test="foo">
             This is a child.
         </StateLessComponent>
+```
+
+### Mounting a component
+Use `myra.mount` to mount a component to the DOM:
+
+```JSX
+    // Mount the component to a DOM element
+    myra.mount(<MyComponent />, document.body) 
+```
+
+### Using the context
+The `context` object contains functions to enhance the component functionality
+(this is similar to React hooks):
+
+#### useState: <TState>(init: TState) => [TState, Evolve<TState>]
+Returns a tuple consisting of the current state and a function to update the 
+state ("Evolve"). The "Evolve" function has two overloads, one that sets the new 
+state and one that takes a function receiving the current state that should 
+return the new state. If the new state is an object, it will be shallowly merged
+with the old state. The "Evolve" function will also return the new state. 
+
+When a state is updated, the component will be re-rendered.
+
+Multiple states may be used for the same component.
+
+```JSX
+    const MyComponent = () => {
+        const [state1, updateState1] = myra.useState('initial state')
+        // state1 = 'initial state'
+        const newState1 = updateState1('new state')
+        // newState1 = 'new state'
+
+        const [state2, updateState2] = myra.useState({ foo: 'bar', baz: 0 })
+        // state2 = { foo: 'bar', baz: 0 }
+        const newState2 = updateState2({ foo: 'baz' })
+        // newState2 = { foo: 'baz', baz: 0 }
+        return <div>...</div>
+    })
+```
+
+#### useLifecycle: (callback: (event: LifecycleEvent): void) => void
+Attach a "life cycle event listener" that will be called whenever one of the
+following events occur:
+
+- willMount
+- willRender
+- didMount
+- didRender
+- willUnmount
+
+```JSX
+    const MyComponent = () => {
+        
+        myra.useLifecycle(ev => {
+            switch (ev) {
+                case 'didMount':
+                    // after the component was attached to the DOM
+                case 'didRender':
+                    // after the component was rendered
+                case 'willMount':
+                    // before the component will attach to the DOM
+                case 'willRender':
+                    // before the component will be rendered
+                case 'willUnmount':
+                    // before the component will be detached from the DOM.
+            }
+        })
+        return <div>...</div>
+    })
+```
+
+#### useMemo: <TMemoized, TArgs>(fn: (args: TArgs) => TMemoized, inputs: TArgs) => TMemoized
+Memoizes a value that will not change until the input arguments changes. Use
+cases includes memoizing callback functions that will be used as props and 
+caching computational heavy tasks.
+
+```JSX
+    const MyComponent = () => {
+        const memoizedValue = myra.useMemo(arg => { 
+            // arg === 'an argument'
+            // computational expensive operation goes here
+         }, 'an argument')
+        return <div>...</div>
+    })
+```
+
+#### useRef: <T>(current?: T)  => { current: T; node: Node | undefined }
+Creates a "ref" object which holds a reference to the component DOM node (when
+it has been rendered) and a "current" property which is a mutable property that
+will persist between renders.
+
+```JSX
+    const MyComponent = () => {
+        const ref = myra.useRef('the initial mutable value')
+        ref.node // holds the DOM node of the component (when it has been rendered)
+        ref.current // the current value
+        return <div>...</div>
+    })
+```
+
+#### useErrorHandler: (handler: (error: any) => VNode) => void
+Makes the component "catch" errors. If no error handler is used, thrown errors
+will we propagated upwards in the component tree. The error handler function
+must return a VNode which will be rendered in case of an error.
+
+```JSX
+    const MyComponent = () => {
+        // An error handler that will render the error
+        myra.useErrorHandler(err => <div>{err}</div>)
+        return <div>...</div>
+    })
+```
+
+#### useRenderDecision: (desicion: (oldProps: TProps, newProps: TProps) => boolean) => void
+Takes a function that will be called prior to rendering. If the function returns
+false, the component will not render.
+
+```JSX
+    const MyComponent = () => {
+        myra.useRenderDecision((oldProps, newProps) => { 
+            return false // prevent render
+         })
+        return <div>...</div>
+    })
 ```
 
 ## Special props
@@ -136,16 +188,8 @@ _It's value must be unique amongst the items in the list._
 * `blur`, `focus` and `click` props with a truthy value will result in a call to 
   `element.blur()`, `element.focus()` and `element.click()` respectively.
 
-## Routing
-Routing is supplied by the [myra-router](https://github.com/jhdrn/myra-router) 
-package (currently a work in progress).
-
-Take a look at the 
-[todomvc example](https://github.com/jhdrn/myra/blob/master/examples/todomvc/src/components/todo-list.tsx) 
-contains code examples for `myra-router`.
-
 ## License
 
 [MIT](http://opensource.org/licenses/MIT)
 
-Copyright (c) 2016-2018 Jonathan Hedrén
+Copyright (c) 2016-2019 Jonathan Hedrén

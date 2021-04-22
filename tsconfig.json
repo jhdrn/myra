@@ -1,6 +1,7 @@
 {
     "compileOnSave": true,
     "compilerOptions": {
+        "incremental": true,
         "sourceMap": true,
         "declaration": true,
         "target": "es5",

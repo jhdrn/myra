@@ -61,6 +61,12 @@ describe('core.helpers.equal', () => {
         expect(equal(r1, r2)).toBe(true)
     })
 
+    it('equals other type against itself', () => {
+        const x1 = document.createElement("div")
+
+        expect(equal(x1, x1)).toBe(true)
+    })
+
     it('equals anonymous function against itself', () => {
         const fn = () => { }
         expect(equal(fn, fn)).toBe(true)

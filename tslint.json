@@ -4,11 +4,13 @@
             "single"
         ],
         "curly": true,
+        "ordered-imports": true,
         "triple-equals": [
             true
         ],
         "semicolon": [
-            true, "never"
+            true,
+            "never"
         ]
     }
 }

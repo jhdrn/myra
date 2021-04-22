@@ -1,4 +1,3 @@
-/** @internal */
 export type Type = 'array' | 'object' | 'string' | 'date' | 'regexp' | 'function' | 'boolean' | 'number' | 'null' | 'undefined'
 
 /**
@@ -37,7 +36,7 @@ export function equal<T>(a: T, b: T): boolean {
             return false
         }
         for (const k in a) {
-            if (a.hasOwnProperty(k)) {
+            if ((a as Object).hasOwnProperty(k)) {
                 if (!equal((a as any)[k], (b as any)[k])) {
                     return false
                 }
@@ -64,6 +63,9 @@ export function equal<T>(a: T, b: T): boolean {
     }
     else if (typeOfA === 'regexp' && typeOfB === 'regexp') {
         return (a as any).toString() === (b as any).toString()
+    }
+    else if (typeOfA === typeOfB) {
+        return a === b
     }
     return false
 }
