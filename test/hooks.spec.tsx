@@ -405,20 +405,38 @@ describe('useRef', () => {
         })
     })
 
-    it('returns an object that holds a reference to the DOM node of the component', done => {
+    it('is populated with the root element DOM node when supplied as a ref attribute', done => {
 
-        let ref: Ref<undefined>
+        let ref: Ref<HTMLDivElement>
 
         const Component = () => {
             ref = useRef()
 
-            return <div />
+            return <div ref={ref} />
         }
         const vNode = <Component />
         render(document.body, vNode, undefined, undefined)
 
         setTimeout(() => {
-            expect(ref.node).toBe(vNode.domRef)
+            expect(ref.current).toBe(vNode.domRef)
+
+            done()
+        })
+    })
+    it('is populated with a child element DOM node when supplied as a ref attribute', done => {
+
+        let ref: Ref<HTMLDivElement>
+
+        const Component = () => {
+            ref = useRef()
+
+            return <div><div ref={ref} /></div>
+        }
+        const vNode = <Component />
+        render(document.body, vNode, undefined, undefined)
+
+        setTimeout(() => {
+            expect(ref.current).toBe(vNode.domRef.firstChild)
 
             done()
         })

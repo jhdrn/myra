@@ -292,8 +292,10 @@ function renderCreate(
     if (newVNode._ === VNodeType.Element) {
         const props = newVNode.props
         for (const name in props) {
-            if (name === 'children') {
+            if (name === 'children' || name === 'key') {
                 continue
+            } else if (name === 'ref') {
+                (props as any)[name].current = newNode
             }
             const attributeValue = (props as any)[name]
 
@@ -601,7 +603,7 @@ function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, e
     // remove any attributes that was added with the old virtual node but does 
     // not exist in the new virtual node or should be removed anyways (event listeners).
     for (const attributeName in oldProps) {
-        if (attributeName === 'children') {
+        if (attributeName === 'children' || attributeName === 'key' || attributeName === 'ref') {
             continue
         }
         if ((newProps as any)[attributeName] === undefined || attributeName.indexOf('on') === 0) {
@@ -615,7 +617,10 @@ function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, e
 
     // update any attribute where the attribute value has changed
     for (const name in newProps) {
-        if (name === 'children') {
+        if (name === 'children' || name === 'key') {
+            continue
+        } else if (name === 'ref') {
+            (newProps as any)[name].current = existingDomNode
             continue
         }
         attributeValue = (newProps as any)[name]

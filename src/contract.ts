@@ -269,9 +269,8 @@ export type JSXElementFactory<TProps> = (props: TProps) => VNode
 
 export type ErrorHandler = (error: any) => VNode
 
-export type Ref<T> = {
+export interface Ref<T> {
     current: T
-    node?: Node
 }
 
 export type Effect<T> = (arg: T) => EffectCleanupCallback
@@ -391,6 +390,7 @@ export interface GlobalAttributes<TElement extends Element> {
 
     children?: MyraNode
     key?: Key
+    ref?: Ref<TElement>
 
     accesskey?: string
     autocapitalize?: string
