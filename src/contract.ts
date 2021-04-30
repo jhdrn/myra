@@ -273,7 +273,7 @@ export interface Ref<T> {
     current: T
 }
 
-export type Effect<T> = (arg: T) => EffectCleanupCallback
+export type Effect = () => EffectCleanupCallback
 export type EffectCleanupCallback = (() => void) | void
 
 export interface ComponentProps extends Record<string, any> {
@@ -327,10 +327,10 @@ export interface ElementVNode<TElement extends Element> extends VNodeBase {
 
 export interface EffectWrapper {
     arg: any
-    sync: boolean
     cleanup?: EffectCleanupCallback
+    effect: Effect
     invoke: boolean
-    effect: Effect<any>
+    sync: boolean
 }
 
 /**

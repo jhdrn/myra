@@ -96,7 +96,7 @@ export function useErrorHandler(handler: ErrorHandler) {
  * @param effect 
  * @param arg 
  */
-export function useLayoutEffect<TArg>(effect: Effect<TArg>, arg?: TArg) {
+export function useLayoutEffect<TArg extends unknown[]>(effect: Effect, arg?: TArg) {
     useEffectInternal(true, effect, arg)
 }
 
@@ -105,11 +105,11 @@ export function useLayoutEffect<TArg>(effect: Effect<TArg>, arg?: TArg) {
  * @param effect 
  * @param arg 
  */
-export function useEffect<TArg>(effect: Effect<TArg>, arg?: TArg) {
+export function useEffect<TArg extends unknown[]>(effect: Effect, arg?: TArg) {
     useEffectInternal(false, effect, arg)
 }
 
-function useEffectInternal<TArg>(sync: boolean, effect: Effect<TArg>, arg?: TArg) {
+function useEffectInternal<TArg>(sync: boolean, effect: Effect, arg?: TArg) {
 
     const renderingContext = getRenderingContext()
     const { hookIndex, vNode } = renderingContext!
