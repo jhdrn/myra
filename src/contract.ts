@@ -273,7 +273,7 @@ export interface Ref<T> {
     current: T
 }
 
-export type Effect<T> = (arg: T) => EffectCleanupCallback
+export type Effect = () => EffectCleanupCallback
 export type EffectCleanupCallback = (() => void) | void
 
 export interface ComponentProps extends Record<string, any> {
@@ -334,10 +334,10 @@ export interface FragmentVNode extends VNodeBase {
 
 export interface EffectWrapper {
     arg: any
-    sync: boolean
     cleanup?: EffectCleanupCallback
+    effect: Effect
     invoke: boolean
-    effect: Effect<any>
+    sync: boolean
 }
 
 /**
@@ -372,19 +372,31 @@ export type VNode = TextVNode | ElementVNode<any> | FragmentVNode | ComponentVNo
 export interface GenericEvent<T extends EventTarget> extends Event {
     currentTarget: T
 }
-export interface GenericInputEvent<T extends EventTarget> extends InputEvent {
+export interface GenericClipboardEvent<T extends EventTarget> extends ClipboardEvent {
     currentTarget: T
 }
-export interface GenericMouseEvent<T extends EventTarget> extends MouseEvent {
+export interface GenericCompositionEvent<T extends EventTarget> extends CompositionEvent {
     currentTarget: T
 }
-export interface GenericKeyboardEvent<T extends EventTarget> extends KeyboardEvent {
+export interface GenericDragEvent<T extends EventTarget> extends DragEvent {
     currentTarget: T
 }
 export interface GenericFocusEvent<T extends EventTarget> extends FocusEvent {
     currentTarget: T
 }
-export interface GenericDragEvent<T extends EventTarget> extends DragEvent {
+export interface GenericInputEvent<T extends EventTarget> extends InputEvent {
+    currentTarget: T
+}
+export interface GenericKeyboardEvent<T extends EventTarget> extends KeyboardEvent {
+    currentTarget: T
+}
+export interface GenericMouseEvent<T extends EventTarget> extends MouseEvent {
+    currentTarget: T
+}
+export interface GenericTouchEvent<T extends EventTarget> extends TouchEvent {
+    currentTarget: T
+}
+export interface GenericWheelEvent<T extends EventTarget> extends WheelEvent {
     currentTarget: T
 }
 
@@ -424,11 +436,17 @@ export interface GlobalAttributes<TElement extends Element> {
     title?: string
     translate?: '' | 'yes' | 'no'
 
+    onauxclick?: EventListener<GenericMouseEvent<TElement>>
     onblur?: EventListener<GenericEvent<TElement>>
     onclick?: EventListener<GenericMouseEvent<TElement>>
     oncontextmenu?: EventListener<GenericEvent<TElement>>
     ondblclick?: EventListener<GenericMouseEvent<TElement>>
+    onerror?: EventListener<GenericEvent<TElement>>
     onfocus?: EventListener<GenericFocusEvent<TElement>>
+    onfocusin?: EventListener<GenericFocusEvent<TElement>>
+    onfocusout?: EventListener<GenericFocusEvent<TElement>>
+    onfullscreenchange?: EventListener<GenericEvent<TElement>>
+    onfullscreenerror?: EventListener<GenericEvent<TElement>>
     oninput?: EventListener<GenericInputEvent<HTMLInputElement>>
     onkeydown?: EventListener<GenericKeyboardEvent<TElement>>
     onkeypress?: EventListener<GenericKeyboardEvent<TElement>>
@@ -440,7 +458,16 @@ export interface GlobalAttributes<TElement extends Element> {
     onmouseout?: EventListener<GenericMouseEvent<TElement>>
     onmouseover?: EventListener<GenericMouseEvent<TElement>>
     onmouseup?: EventListener<GenericMouseEvent<TElement>>
-    onshow?: EventListener<GenericEvent<TElement>>
+    onselect?: EventListener<GenericEvent<TElement>>
+    onwheel?: EventListener<GenericWheelEvent<TElement>>
+
+    oncompositionend?: EventListener<GenericCompositionEvent<TElement>>
+    oncompositionstart?: EventListener<GenericCompositionEvent<TElement>>
+    oncompositionupdate?: EventListener<GenericCompositionEvent<TElement>>
+
+    oncopy?: EventListener<GenericClipboardEvent<TElement>>
+    oncut?: EventListener<GenericClipboardEvent<TElement>>
+    onpaste?: EventListener<GenericClipboardEvent<TElement>>
 
     ondrag?: EventListener<GenericDragEvent<TElement>>
     ondragend?: EventListener<GenericDragEvent<TElement>>
@@ -450,6 +477,11 @@ export interface GlobalAttributes<TElement extends Element> {
     ondragover?: EventListener<GenericDragEvent<TElement>>
     ondragstart?: EventListener<GenericDragEvent<TElement>>
     ondrop?: EventListener<GenericDragEvent<TElement>>
+
+    ontouchcancel?: EventListener<GenericTouchEvent<TElement>>
+    ontouchend?: EventListener<GenericTouchEvent<TElement>>
+    ontouchmove?: EventListener<GenericTouchEvent<TElement>>
+    ontouchstart?: EventListener<GenericTouchEvent<TElement>>
 
     role?: string
 

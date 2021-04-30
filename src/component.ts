@@ -92,14 +92,14 @@ function triggerEffects(newVNode: ComponentVNode<any>, parentElement: Element, i
             if (t.invoke) {
                 if (t.sync && sync) {
                     attemptEffectCleanup(t)
-                    t.cleanup = t.effect(t.arg)
+                    t.cleanup = t.effect()
                     t.invoke = false
                 } else if (!sync) {
                     setTimeout(() => {
                         try {
                             attemptEffectCleanup(t)
 
-                            t.cleanup = t.effect(t.arg)
+                            t.cleanup = t.effect()
                         } catch (err) {
                             tryHandleComponentError(parentElement, newVNode, isSvg, err)
                         }
