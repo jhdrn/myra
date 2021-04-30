@@ -285,6 +285,7 @@ export const enum VNodeType {
     Nothing,
     Text,
     Element,
+    Fragment,
     Component,
     Memo
 }
@@ -325,6 +326,12 @@ export interface ElementVNode<TElement extends Element> extends VNodeBase {
     domRef?: TElement
 }
 
+export interface FragmentVNode extends VNodeBase {
+    readonly _: VNodeType.Fragment
+    readonly props: { children: VNode[] }
+    domRef?: HTMLElement
+}
+
 export interface EffectWrapper {
     arg: any
     sync: boolean
@@ -360,7 +367,7 @@ export interface MemoVNode<TProps> extends VNodeBase {
 /**
  * Union type of the different types of virtual nodes.
  */
-export type VNode = TextVNode | ElementVNode<any> | ComponentVNode<any> | NothingVNode | MemoVNode<any>
+export type VNode = TextVNode | ElementVNode<any> | FragmentVNode | ComponentVNode<any> | NothingVNode | MemoVNode<any>
 
 export interface GenericEvent<T extends EventTarget> extends Event {
     currentTarget: T

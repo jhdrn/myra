@@ -1,5 +1,5 @@
 import * as myra from '../src/myra'
-import { ElementVNode, TextVNode, NothingVNode, ComponentVNode, VNode, ComponentProps } from '../src/contract'
+import { ElementVNode, TextVNode, NothingVNode, ComponentVNode, VNode, ComponentProps, VNodeType } from '../src/contract'
 
 describe('jsxFactory', () => {
 
@@ -168,7 +168,7 @@ describe('jsxFactory', () => {
 
         const view = <TestComponent test="test" /> as ComponentVNode<TestProps & ComponentProps>
 
-        expect(view._).toBe(3)
+        expect(view._).toBe(VNodeType.Component)
         expect(view.props).toEqual({ test: 'test', children: [] as VNode[] })
     })
 })

@@ -10,6 +10,7 @@ export {
     Evolve,
     Ref
 } from './contract'
+export * from './fragment'
 export * from './jsxFactory'
 export * from './hooks'
 export * from './memo'

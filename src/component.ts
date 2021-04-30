@@ -3,6 +3,7 @@ import {
     ComponentVNode,
     EffectWrapper,
     ElementVNode,
+    FragmentVNode,
     Key,
     VNode,
     VNodeType,
@@ -195,6 +196,7 @@ export function render(
     isSvg = false,
     action: RenderingAction | undefined = undefined
 ): Node {
+
     if (action === undefined) {
         // Decide what action to take
         if (oldVNode === undefined || oldVNode.domRef === undefined) {
@@ -261,6 +263,17 @@ function renderCreate(
     let newNode = createNode(newVNode, parentDomNode, isSvg)
     newVNode.domRef = newNode
 
+    if (newVNode._ === VNodeType.Fragment) {
+
+        for (const c of newVNode.props.children) {
+            if (c !== undefined) {
+                render(parentDomNode, c, c, undefined, isSvg, undefined)
+            }
+        }
+        return
+    }
+
+
     if (action === RenderingAction.APPEND) {
         parentDomNode.appendChild(newNode)
     }
@@ -322,8 +335,8 @@ function renderCreate(
  * Updates an existing HTMLElement DOM node from a new VNode.
  */
 function updateElementVNode(
-    newVNode: ElementVNode<any>,
-    oldVNode: ElementVNode<any>,
+    newVNode: ElementVNode<any> | FragmentVNode,
+    oldVNode: ElementVNode<any> | FragmentVNode,
     existingDomNode: Node | undefined,
     isSvg = false
 ) {
@@ -513,6 +526,14 @@ function renderUpdate(
             renderComponent(parentDomNode, newVNode, oldVNode as ComponentVNode<any>, isSvg)
 
             break
+        case VNodeType.Fragment: // fragment node
+            updateElementVNode(
+                newVNode,
+                oldVNode as FragmentVNode,
+                parentDomNode, // Don't render the fragment node
+                isSvg
+            )
+            break
     }
 
     if (newVNode.domRef === undefined) {
@@ -548,6 +569,8 @@ function createNode(vNode: VNode, parentElement: Element, isSvg: boolean): Node 
             }
 
             return vNode.domRef
+        case VNodeType.Fragment:
+            return document.createElement('div')
         case VNodeType.Nothing:
         case VNodeType.Memo:
             return document.createComment('Nothing')
