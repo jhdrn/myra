@@ -195,7 +195,7 @@ export function render(
     existingDomNode: Node | undefined,
     isSvg = false,
     action: RenderingAction | undefined = undefined
-): Node {
+) {
 
     if (action === undefined) {
         // Decide what action to take
@@ -229,7 +229,7 @@ export function render(
         case RenderingAction.INSERT:
         case RenderingAction.REPLACE:
 
-            return renderCreate(
+            renderCreate(
                 parentDomNode,
                 newVNode,
                 oldVNode,
@@ -237,15 +237,17 @@ export function render(
                 isSvg,
                 action
             )
+            break
 
         case RenderingAction.UPDATE:
-            return renderUpdate(
+            renderUpdate(
                 parentDomNode,
                 newVNode,
                 oldVNode,
                 existingDomNode,
                 isSvg
             )
+            break
     }
 }
 
@@ -545,7 +547,6 @@ function renderUpdate(
         // clean up
         oldVNode!.domRef = undefined
     }
-    return newVNode.domRef
 }
 
 /** 
