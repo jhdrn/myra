@@ -57,7 +57,6 @@ export function renderComponent(
                 parentElement,
                 hookIndex: 0
             }
-
             let newView = newVNode.view(newProps) as VNode
 
             if (newView._ === VNodeType.Memo) {
@@ -203,12 +202,12 @@ export function render(
     isSvg = false,
     action: RenderingAction | null = null
 ) {
-
     if (action === null) {
         // Decide what action to take
         if (newVNode._ === VNodeType.Fragment && oldVNode !== undefined && oldVNode._ === VNodeType.Fragment) {
             action = RenderingAction.UPDATE
-        } else if (oldVNode === undefined || oldVNode.domRef === undefined) {
+        }
+        else if (oldVNode === undefined || oldVNode.domRef === undefined && oldVNode._ !== VNodeType.Fragment && oldVNode._ !== VNodeType.Component) {
             action = RenderingAction.APPEND
         }
         else if (oldVNode.domRef !== undefined && existingDomNode === undefined) {
@@ -271,7 +270,12 @@ function renderCreate(
     action: RenderingAction | undefined = undefined
 ) {
 
-    if (newVNode._ === VNodeType.Fragment) {
+    if (newVNode._ === VNodeType.Component) {
+
+        renderComponent(parentDomNode, newVNode, undefined, isSvg)
+
+    }
+    else if (newVNode._ === VNodeType.Fragment) {
 
         // Skip creating a node for the fragment, instead render the children
         // directly to the parent DOM node
@@ -280,28 +284,17 @@ function renderCreate(
                 render(parentDomNode, c, c, undefined, isSvg)
             }
         }
-        newVNode.domRef = parentDomNode
 
     } else {
 
-        let newNode = createNode(newVNode, parentDomNode, isSvg)
+        let newNode = createNode(newVNode, isSvg)
         newVNode.domRef = newNode
 
         if (action === RenderingAction.APPEND) {
-            // When using fragments, we can have cases where several "steps" in
-            // the hierarchy is skipped and the fragment DOM node refences it's
-            // parent.
-            if (parentDomNode !== newNode) {
-                parentDomNode.appendChild(newNode)
-            }
+            parentDomNode.appendChild(newNode)
         }
         else if (action === RenderingAction.INSERT) {
-            // When using fragments, we can have cases where several "steps" in
-            // the hierarchy is skipped and the fragment DOM node refences it's
-            // parent.
-            if (parentDomNode !== newNode) {
-                parentDomNode.insertBefore(newNode, oldVNode!.domRef)
-            }
+            parentDomNode.insertBefore(newNode, oldVNode!.domRef)
         }
         else { // action === ACTION_REPLACE
 
@@ -312,11 +305,11 @@ function renderCreate(
             }
 
             // When using fragments, we can have cases where several "steps" in
-            // the hierarchy is skipped and the fragment DOM node refences it's
-            // parent.
-            if (parentDomNode === existingDomNode) {
+            // the hierarchy is skipped.
+            if (oldVNode!.domRef === undefined && (oldVNode!._ === VNodeType.Fragment || oldVNode!._ === VNodeType.Component)) {
                 parentDomNode.replaceChild(newNode, parentDomNode.firstChild!)
             } else {
+
                 // If it's an element node remove old event listeners before 
                 // replacing the node. 
                 if (oldVNode!._ === VNodeType.Element) {
@@ -521,13 +514,13 @@ function renderUpdate(
     isSvg = false
 ) {
     // if (!nodesEqual(oldVNode.node, existingDomNode)) {
-    //     // TODO: "debug mode" with warnings
-    //     // console.error('The view is not matching the DOM. Are outside forces tampering with it?')
+    //     TODO: "debug mode" with warnings?
+    //     console.error('The view is not matching the DOM. Are outside forces tampering with it?')
     // }
 
     // update existing node
     switch (newVNode._) {
-        case VNodeType.Element: // element node
+        case VNodeType.Element:
 
             updateElementAttributes(newVNode, oldVNode!, existingDomNode!)
             updateElementVNode(
@@ -537,12 +530,12 @@ function renderUpdate(
                 isSvg
             )
             break
-        case VNodeType.Text: // text node
+        case VNodeType.Text:
             if (existingDomNode!.textContent !== newVNode.value) {
                 existingDomNode!.textContent = newVNode.value
             }
             break
-        case VNodeType.Component: // component node
+        case VNodeType.Component:
 
             newVNode.rendition = (oldVNode as ComponentVNode<any>).rendition
             newVNode.data = (oldVNode as ComponentVNode<any>).data
@@ -554,11 +547,11 @@ function renderUpdate(
             renderComponent(parentDomNode, newVNode, oldVNode as ComponentVNode<any>, isSvg)
 
             break
-        case VNodeType.Fragment: // fragment node
+        case VNodeType.Fragment:
             updateElementVNode(
                 newVNode,
                 oldVNode as FragmentVNode,
-                parentDomNode, // Don't render the fragment node
+                parentDomNode, // Fragments doesn´t reference any DOM node, instead pass the parent
                 isSvg
             )
             break
@@ -573,16 +566,15 @@ function renderUpdate(
         // clean up
         oldVNode!.domRef = undefined
     }
-    return newVNode.domRef
 }
 
 
-type NonFragmentVNode = TextVNode | ElementVNode<any> | ComponentVNode<any> | NothingVNode | MemoVNode<any>
+type BasicVNode = TextVNode | ElementVNode<any> | NothingVNode | MemoVNode<any>
 
 /** 
- * Creates a DOM Node from a (non fragment) VNode. 
+ * Creates a DOM Node from a (non component or fragment) VNode. 
  */
-function createNode(vNode: NonFragmentVNode, parentElement: Element, isSvg: boolean): Node {
+function createNode(vNode: BasicVNode, isSvg: boolean): Node {
     switch (vNode._) {
         case VNodeType.Element:
             if (isSvg) {
@@ -591,15 +583,7 @@ function createNode(vNode: NonFragmentVNode, parentElement: Element, isSvg: bool
             return document.createElement(vNode.tagName)
         case VNodeType.Text:
             return document.createTextNode(vNode.value)
-        case VNodeType.Component:
 
-            renderComponent(parentElement, vNode, undefined, isSvg)
-
-            if (vNode.domRef === undefined) {
-                vNode.domRef = document.createComment('Nothing')
-            }
-
-            return vNode.domRef
         case VNodeType.Nothing:
         case VNodeType.Memo:
             return document.createComment('Nothing')

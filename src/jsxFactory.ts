@@ -7,6 +7,7 @@ import {
     VNode,
     VNodeType
 } from './contract'
+import { Fragment } from './fragment'
 
 function flattenChildren(children: MyraNode[]) {
     const flattenedChildren = [] as Array<VNode | TextNode>
@@ -64,6 +65,8 @@ export function h<TProps>(
             tagName: tagNameOrComponent,
             props: props as any as { children: Array<VNode> }
         }
+    } else if (tagNameOrComponent === Fragment) {
+        return tagNameOrComponent(props as any) as VNode
     }
 
     const vNode = {
