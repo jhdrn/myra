@@ -5,6 +5,8 @@ import {
     ElementVNode,
     FragmentVNode,
     Key,
+    NothingVNode,
+    TextVNode,
     VNode,
     VNodeType,
 } from './contract'
@@ -28,7 +30,12 @@ export function getRenderingContext() {
 /**
  * Renders the component and handles it's "lifecycle" by triggering any effects.
  */
-export function renderComponent(parentElement: Element, newVNode: ComponentVNode<any>, oldVNode: ComponentVNode<any> | undefined, isSvg: boolean) {
+export function renderComponent(
+    parentElement: Element,
+    newVNode: ComponentVNode<any>,
+    oldVNode: ComponentVNode<any> | undefined,
+    isSvg: boolean
+) {
 
     let oldNode: Node | undefined
 
@@ -42,7 +49,6 @@ export function renderComponent(parentElement: Element, newVNode: ComponentVNode
     }
 
     if (renderingContext === undefined) {
-
         try {
             renderingContext = {
                 vNode: newVNode,
@@ -50,7 +56,6 @@ export function renderComponent(parentElement: Element, newVNode: ComponentVNode
                 parentElement,
                 hookIndex: 0
             }
-
             let newView = newVNode.view(newProps) as VNode
 
             if (newView._ === VNodeType.Memo) {
@@ -61,6 +66,7 @@ export function renderComponent(parentElement: Element, newVNode: ComponentVNode
                 }
                 newView = newView.view(newProps) as VNode
             }
+
             renderingContext = undefined
 
             render(parentElement, newView as VNode, newVNode.rendition, oldNode, isSvg)
@@ -77,7 +83,6 @@ export function renderComponent(parentElement: Element, newVNode: ComponentVNode
         catch (err) {
             tryHandleComponentError(parentElement, newVNode, isSvg, err)
         }
-
     }
 }
 
@@ -92,14 +97,14 @@ function triggerEffects(newVNode: ComponentVNode<any>, parentElement: Element, i
             if (t.invoke) {
                 if (t.sync && sync) {
                     attemptEffectCleanup(t)
-                    t.cleanup = t.effect(t.arg)
+                    t.cleanup = t.effect()
                     t.invoke = false
                 } else if (!sync) {
                     setTimeout(() => {
                         try {
                             attemptEffectCleanup(t)
 
-                            t.cleanup = t.effect(t.arg)
+                            t.cleanup = t.effect()
                         } catch (err) {
                             tryHandleComponentError(parentElement, newVNode, isSvg, err)
                         }
@@ -171,7 +176,7 @@ function findAndUnmountComponentsRec(vNode: VNode | undefined) {
         }
         findAndUnmountComponentsRec(vNode.rendition!)
     }
-    else if (vNode._ === VNodeType.Element) {
+    else if (vNode._ === VNodeType.Element || vNode._ === VNodeType.Fragment) {
         for (const c of vNode.props.children) {
             findAndUnmountComponentsRec(c)
         }
@@ -194,12 +199,14 @@ export function render(
     oldVNode: VNode | undefined,
     existingDomNode: Node | undefined,
     isSvg = false,
-    action: RenderingAction | undefined = undefined
-): Node {
-
-    if (action === undefined) {
+    action: RenderingAction | null = null
+) {
+    if (action === null) {
         // Decide what action to take
-        if (oldVNode === undefined || oldVNode.domRef === undefined) {
+        if (newVNode._ === VNodeType.Fragment && oldVNode !== undefined && oldVNode._ === VNodeType.Fragment) {
+            action = RenderingAction.UPDATE
+        }
+        else if (oldVNode === undefined || oldVNode.domRef === undefined && oldVNode._ !== VNodeType.Fragment && oldVNode._ !== VNodeType.Component) {
             action = RenderingAction.APPEND
         }
         else if (oldVNode.domRef !== undefined && existingDomNode === undefined) {
@@ -228,8 +235,7 @@ export function render(
         case RenderingAction.APPEND:
         case RenderingAction.INSERT:
         case RenderingAction.REPLACE:
-
-            return renderCreate(
+            renderCreate(
                 parentDomNode,
                 newVNode,
                 oldVNode,
@@ -237,15 +243,17 @@ export function render(
                 isSvg,
                 action
             )
+            break
 
         case RenderingAction.UPDATE:
-            return renderUpdate(
+            renderUpdate(
                 parentDomNode,
                 newVNode,
                 oldVNode,
                 existingDomNode,
                 isSvg
             )
+            break
     }
 }
 
@@ -260,75 +268,88 @@ function renderCreate(
     isSvg = false,
     action: RenderingAction | undefined = undefined
 ) {
-    let newNode = createNode(newVNode, parentDomNode, isSvg)
-    newVNode.domRef = newNode
 
-    if (newVNode._ === VNodeType.Fragment) {
+    if (newVNode._ === VNodeType.Component) {
 
+        renderComponent(parentDomNode, newVNode, undefined, isSvg)
+
+    }
+    else if (newVNode._ === VNodeType.Fragment) {
+
+        // Skip creating a node for the fragment, instead render the children
+        // directly to the parent DOM node
         for (const c of newVNode.props.children) {
             if (c !== undefined) {
-                render(parentDomNode, c, c, undefined, isSvg, undefined)
+                render(parentDomNode, c, c, undefined, isSvg)
             }
         }
-        return
-    }
 
+    } else if (newVNode._ !== VNodeType.Memo) {
 
-    if (action === RenderingAction.APPEND) {
-        parentDomNode.appendChild(newNode)
-    }
-    else if (action === RenderingAction.INSERT) {
-        parentDomNode.insertBefore(newNode, oldVNode!.domRef)
-    }
-    else { // action === ACTION_REPLACE
+        let newNode = createNode(newVNode, isSvg)
+        newVNode.domRef = newNode
 
-        // If it's a component node or an element node and it should be 
-        // replaced, unmount any components in the tree.
-        if (oldVNode!._ === VNodeType.Component || oldVNode!._ === VNodeType.Element) {
-            findAndUnmountComponentsRec(oldVNode!)
+        if (action === RenderingAction.APPEND) {
+            parentDomNode.appendChild(newNode)
+        }
+        else if (action === RenderingAction.INSERT) {
+            parentDomNode.insertBefore(newNode, oldVNode!.domRef)
+        }
+        else { // action === ACTION_REPLACE
+
+            // If it's a component node or an element node and it should be 
+            // replaced, unmount any components in the tree.
+            if (oldVNode!._ === VNodeType.Component || oldVNode!._ === VNodeType.Element || oldVNode!._ === VNodeType.Fragment) {
+                findAndUnmountComponentsRec(oldVNode!)
+            }
+
+            // When using fragments, we can have cases where several "steps" in
+            // the hierarchy is skipped.
+            if (oldVNode!.domRef === undefined && (oldVNode!._ === VNodeType.Fragment || oldVNode!._ === VNodeType.Component)) {
+                parentDomNode.replaceChild(newNode, parentDomNode.firstChild!)
+            } else {
+
+                // If it's an element node remove old event listeners before 
+                // replacing the node. 
+                if (oldVNode!._ === VNodeType.Element) {
+                    for (const attr in (oldVNode as ElementVNode<any>).props) {
+                        if (attr.indexOf('on') === 0) {
+                            removeAttr(attr, existingDomNode as Element)
+                        }
+                    }
+                }
+
+                parentDomNode.replaceChild(newNode, existingDomNode!)
+            }
         }
 
-        // If it's an element node remove old event listeners before 
-        // replacing the node. 
-        if (oldVNode!._ === VNodeType.Element) {
-            for (const attr in (oldVNode as ElementVNode<any>).props) {
-                if (attr.indexOf('on') === 0) {
-                    removeAttr(attr, existingDomNode as Element)
+        // If it's an element node set attributes and event listeners
+        if (newVNode._ === VNodeType.Element) {
+            const props = newVNode.props
+            for (const name in props) {
+                if (name === 'children' || name === 'key') {
+                    continue
+                } else if (name === 'ref') {
+                    (props as any)[name].current = newNode
+                }
+                const attributeValue = (props as any)[name]
+
+                if (attributeValue !== undefined) {
+                    setAttr(
+                        newNode as HTMLElement,
+                        name,
+                        attributeValue
+                    )
+                }
+            }
+
+            for (const c of props.children) {
+                if (c !== undefined) {
+                    render(newNode as Element, c, c, undefined, isSvg)
                 }
             }
         }
-
-        parentDomNode.replaceChild(newNode, existingDomNode!)
     }
-
-    // If it's an element node set attributes and event listeners
-    if (newVNode._ === VNodeType.Element) {
-        const props = newVNode.props
-        for (const name in props) {
-            if (name === 'children' || name === 'key') {
-                continue
-            } else if (name === 'ref') {
-                (props as any)[name].current = newNode
-            }
-            const attributeValue = (props as any)[name]
-
-            if (attributeValue !== undefined) {
-                setAttr(
-                    newNode as HTMLElement,
-                    name,
-                    attributeValue
-                )
-            }
-        }
-
-        for (const c of props.children) {
-            if (c !== undefined) {
-                render(newNode as Element, c, c, undefined, isSvg, undefined)
-            }
-        }
-    }
-
-    return newVNode.domRef
 }
 
 /**
@@ -344,7 +365,6 @@ function updateElementVNode(
     const newChildVNodes = newVNode.props.children
     const oldChildVNodes = oldVNode.props.children
     let diffNoOfChildNodes = oldChildVNodes.length - newChildVNodes.length
-
     if (newChildVNodes.length > 0) {
         // Create a map holding references to all the old child 
         // VNodes indexed by key
@@ -493,13 +513,13 @@ function renderUpdate(
     isSvg = false
 ) {
     // if (!nodesEqual(oldVNode.node, existingDomNode)) {
-    //     // TODO: "debug mode" with warnings
-    //     // console.error('The view is not matching the DOM. Are outside forces tampering with it?')
+    //     TODO: "debug mode" with warnings?
+    //     console.error('The view is not matching the DOM. Are outside forces tampering with it?')
     // }
 
     // update existing node
     switch (newVNode._) {
-        case VNodeType.Element: // element node
+        case VNodeType.Element:
 
             updateElementAttributes(newVNode, oldVNode!, existingDomNode!)
             updateElementVNode(
@@ -509,12 +529,12 @@ function renderUpdate(
                 isSvg
             )
             break
-        case VNodeType.Text: // text node
+        case VNodeType.Text:
             if (existingDomNode!.textContent !== newVNode.value) {
                 existingDomNode!.textContent = newVNode.value
             }
             break
-        case VNodeType.Component: // component node
+        case VNodeType.Component:
 
             newVNode.rendition = (oldVNode as ComponentVNode<any>).rendition
             newVNode.data = (oldVNode as ComponentVNode<any>).data
@@ -526,11 +546,11 @@ function renderUpdate(
             renderComponent(parentDomNode, newVNode, oldVNode as ComponentVNode<any>, isSvg)
 
             break
-        case VNodeType.Fragment: // fragment node
+        case VNodeType.Fragment:
             updateElementVNode(
                 newVNode,
                 oldVNode as FragmentVNode,
-                parentDomNode, // Don't render the fragment node
+                parentDomNode, // Fragments doesn´t reference any DOM node, instead pass the parent
                 isSvg
             )
             break
@@ -545,13 +565,15 @@ function renderUpdate(
         // clean up
         oldVNode!.domRef = undefined
     }
-    return newVNode.domRef
 }
 
+
+type BasicVNode = TextVNode | ElementVNode<any> | NothingVNode
+
 /** 
- * Creates a DOM Node from a VNode. 
+ * Creates a DOM Node from a (non component or fragment) VNode. 
  */
-function createNode(vNode: VNode, parentElement: Element, isSvg: boolean): Node {
+function createNode(vNode: BasicVNode, isSvg: boolean): Node {
     switch (vNode._) {
         case VNodeType.Element:
             if (isSvg) {
@@ -560,19 +582,8 @@ function createNode(vNode: VNode, parentElement: Element, isSvg: boolean): Node 
             return document.createElement(vNode.tagName)
         case VNodeType.Text:
             return document.createTextNode(vNode.value)
-        case VNodeType.Component:
 
-            renderComponent(parentElement, vNode, undefined, isSvg)
-
-            if (vNode.domRef === undefined) {
-                vNode.domRef = document.createComment('Nothing')
-            }
-
-            return vNode.domRef
-        case VNodeType.Fragment:
-            return document.createElement('div')
         case VNodeType.Nothing:
-        case VNodeType.Memo:
             return document.createComment('Nothing')
     }
 }

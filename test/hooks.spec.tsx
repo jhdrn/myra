@@ -514,11 +514,11 @@ describe('useErrorHandling', () => {
             useErrorHandler(mock.callback)
             return <div>{(undefined as any).property}</div>
         }
+        const vNode = <Component />
+        render(document.body, vNode, undefined, undefined)
 
-        const node = render(document.body, <Component />, undefined, undefined)
-
-        expect(node.nodeType).toBe(Node.COMMENT_NODE)
-        expect(node.textContent).toBe('Nothing')
+        expect(vNode.domRef.nodeType).toBe(Node.COMMENT_NODE)
+        expect(vNode.domRef.textContent).toBe('Nothing')
         expect(mock.callback).toHaveBeenCalled()
 
         done()
@@ -607,10 +607,11 @@ describe('useErrorHandling', () => {
             return <div></div>
         }
 
-        const node = render(document.body, <Component />, undefined, undefined)
+        const vNode = <Component />
+        render(document.body, vNode, undefined, undefined)
 
-        expect(node.nodeType).toBe(Node.COMMENT_NODE)
-        expect(node.textContent).toBe('Nothing')
+        expect(vNode.domRef.nodeType).toBe(Node.COMMENT_NODE)
+        expect(vNode.domRef.textContent).toBe('Nothing')
         expect(mock.callback).toHaveBeenCalled()
 
         done()
@@ -637,8 +638,9 @@ describe('useErrorHandling', () => {
             return <div onclick={doEvolve}></div>
         }
 
-        const node = render(document.body, <Component />, undefined, undefined) as HTMLDivElement
-        node.click()
+        const vNode = <Component />
+        render(document.body, vNode, undefined, undefined)
+        vNode.domRef.click()
         requestAnimationFrame(() => {
             expect(mock.callback).toHaveBeenCalled()
 
@@ -665,11 +667,11 @@ describe('useErrorHandling', () => {
             return <div></div>
         }
 
-        const instance = <Component />
-        const node = render(document.body, instance, undefined, undefined)
-        render(document.body, <nothing />, instance, undefined)
-        expect(node.nodeType).toBe(Node.ELEMENT_NODE)
-        expect(node.textContent).toBe('')
+        const vNode = <Component />
+        render(document.body, vNode, undefined, undefined)
+        render(document.body, <nothing />, vNode, undefined)
+        expect(vNode.domRef.nodeType).toBe(Node.ELEMENT_NODE)
+        expect(vNode.domRef.textContent).toBe('')
         expect(mock.callback).not.toHaveBeenCalled()
 
         done()
@@ -844,15 +846,15 @@ describe('useState', () => {
             return <span>{s.toString()}</span>
         }
 
-        const instance = <Component />
-        const node = render(document.body, instance, undefined, undefined)
+        const vNode = <Component />
+        render(document.body, vNode, undefined, undefined)
 
         requestAnimationFrame(() => {
 
             setStateOuter(1)
             setStateOuter(2)
             requestAnimationFrame(() => {
-                expect(node.textContent).toEqual('2')
+                expect(vNode.domRef.textContent).toEqual('2')
                 done()
             })
         })

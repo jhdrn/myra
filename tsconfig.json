@@ -20,7 +20,8 @@
         "moduleResolution": "node",
         "outDir": "build",
         "jsx": "react",
-        "jsxFactory": "myra.h"
+        "jsxFactory": "myra.h",
+        "jsxFragmentFactory": "myra.Fragment"
     },
     "include": [
         "src",

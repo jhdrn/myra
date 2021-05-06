@@ -34,7 +34,7 @@ export default {
         file: `dist/${libraryName}.min.js`,
         name: camelCase(libraryName),
         format: 'umd',
-        banner: '/** @license MIT https://github.com/jhdrn/myra/blob/master/LICENSE - Copyright (c) 2017-2020 Jonathan Hedrén */',
+        banner: '/** @license MIT https://github.com/jhdrn/myra/blob/master/LICENSE - Copyright (c) 2016-2021 Jonathan Hedrén */',
         sourcemap: false,
     }],
     external: [],
