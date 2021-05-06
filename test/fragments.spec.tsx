@@ -52,6 +52,28 @@ describe('fragment', () => {
         })
     })
 
+    it('renders fragment in fragment child nodes', done => {
+
+        const Component = () => <><><div id="fragment-node5" /><div id="fragment-node6" /></></>
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        myra.mount(<Component />, fragmentContainer)
+
+        requestAnimationFrame(() => {
+            const node1 = fragmentContainer.firstChild
+            const node2 = fragmentContainer.lastChild
+
+            expect(node1).not.toBeNull()
+            expect((node1 as HTMLElement).id).toBe('fragment-node5')
+            expect(node2).not.toBeNull()
+            expect((node2 as HTMLElement).id).toBe('fragment-node6')
+
+            done()
+        })
+    })
+
     it('renders special fragment child nodes', done => {
 
         const ChildComponent = () => <div id="fragment-child1"></div>
@@ -104,12 +126,47 @@ describe('fragment', () => {
         })
     })
 
+    it('removes fragment in fragment child nodes', done => {
+
+        let setDidRenderOuter: myra.Evolve<boolean> = function () { return true }
+        const Component = () => {
+            const [didRender, setDidRender] = myra.useState(false)
+            setDidRenderOuter = setDidRender
+
+            return (
+                <>
+                    <>
+                        {!didRender &&
+                            <>
+                                <div id="fragment-child3"></div>
+                            </>
+                        }
+                    </>
+                </>
+            )
+        }
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        myra.mount(<Component />, fragmentContainer)
+
+        requestAnimationFrame(() => {
+            setDidRenderOuter(true)
+            requestAnimationFrame(() => {
+                const childNode = fragmentContainer.firstElementChild
+                expect(childNode).toBeNull()
+                done()
+            })
+        })
+    })
+
 
     it('removes component fragment child nodes', done => {
 
         let setDidRenderOuter: myra.Evolve<boolean> = function () { return true }
 
-        const ChildComponent = (_props: { foo: 'bar' }) => <><div id="fragment-child3"></div></>
+        const ChildComponent = (_props: { foo: 'bar' }) => <><div id="fragment-child4"></div></>
         const Component = () => {
             const [didRender, setDidRender] = myra.useState(false)
             setDidRenderOuter = setDidRender

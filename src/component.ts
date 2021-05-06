@@ -5,7 +5,6 @@ import {
     ElementVNode,
     FragmentVNode,
     Key,
-    MemoVNode,
     NothingVNode,
     TextVNode,
     VNode,
@@ -285,7 +284,7 @@ function renderCreate(
             }
         }
 
-    } else {
+    } else if (newVNode._ !== VNodeType.Memo) {
 
         let newNode = createNode(newVNode, isSvg)
         newVNode.domRef = newNode
@@ -569,7 +568,7 @@ function renderUpdate(
 }
 
 
-type BasicVNode = TextVNode | ElementVNode<any> | NothingVNode | MemoVNode<any>
+type BasicVNode = TextVNode | ElementVNode<any> | NothingVNode
 
 /** 
  * Creates a DOM Node from a (non component or fragment) VNode. 
@@ -585,7 +584,6 @@ function createNode(vNode: BasicVNode, isSvg: boolean): Node {
             return document.createTextNode(vNode.value)
 
         case VNodeType.Nothing:
-        case VNodeType.Memo:
             return document.createComment('Nothing')
     }
 }
