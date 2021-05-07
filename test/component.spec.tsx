@@ -7,6 +7,12 @@ const q = (x: string) => document.querySelector(x)
  * mount
  */
 describe('mount', () => {
+    beforeEach((done) => {
+        // "Clear view" before each test
+        Array.prototype.slice.call(document.body.childNodes).forEach((c: Node) => document.body.removeChild(c))
+
+        done()
+    })
 
     it('mounts the component', done => {
 
@@ -38,6 +44,12 @@ describe('mount', () => {
 })
 
 describe('component render', () => {
+    beforeEach((done) => {
+        // "Clear view" before each test
+        Array.prototype.slice.call(document.body.childNodes).forEach((c: Node) => document.body.removeChild(c))
+
+        done()
+    })
 
     it('does not call the layout effect listener if the props has not changed', () => {
         const mock = {

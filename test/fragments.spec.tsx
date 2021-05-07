@@ -3,6 +3,12 @@ import * as myra from '../src/myra'
 const q = (x: string) => document.querySelector(x)
 
 describe('fragment', () => {
+    beforeEach((done) => {
+        // "Clear view" before each test
+        Array.prototype.slice.call(document.body.childNodes).forEach((c: Node) => document.body.removeChild(c))
+
+        done()
+    })
 
     it('renders fragment content', done => {
 

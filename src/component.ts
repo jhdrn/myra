@@ -273,6 +273,31 @@ function renderCreate(
 
         renderComponent(parentDomNode, newVNode, undefined, isSvg)
 
+        const domNode = newVNode.domRef
+        if (domNode !== undefined) {
+            if (action === RenderingAction.APPEND) {
+                parentDomNode.appendChild(domNode)
+            }
+            else if (action === RenderingAction.INSERT) {
+                parentDomNode.insertBefore(domNode, oldVNode!.domRef)
+            }
+            else if (action === RenderingAction.REPLACE) {
+
+                // If it's a component node or an element node and it should be 
+                // replaced, unmount any components in the tree.
+                if (oldVNode!._ === VNodeType.Component || oldVNode!._ === VNodeType.Element || oldVNode!._ === VNodeType.Fragment) {
+                    findAndUnmountComponentsRec(oldVNode!)
+                }
+
+                // When using fragments, we can have cases where several "steps" in
+                // the hierarchy is skipped.
+                if (oldVNode!.domRef === undefined && (oldVNode!._ === VNodeType.Fragment || oldVNode!._ === VNodeType.Component)) {
+                    parentDomNode.replaceChild(domNode, parentDomNode.firstChild!)
+                } else {
+                    parentDomNode.replaceChild(domNode, existingDomNode!)
+                }
+            }
+        }
     }
     else if (newVNode._ === VNodeType.Fragment) {
 
@@ -280,7 +305,7 @@ function renderCreate(
         // directly to the parent DOM node
         for (const c of newVNode.props.children) {
             if (c !== undefined) {
-                render(parentDomNode, c, c, undefined, isSvg)
+                render(parentDomNode, c, undefined, undefined, isSvg)
             }
         }
 
@@ -345,7 +370,7 @@ function renderCreate(
 
             for (const c of props.children) {
                 if (c !== undefined) {
-                    render(newNode as Element, c, c, undefined, isSvg)
+                    render(newNode as Element, c, undefined, undefined, isSvg)
                 }
             }
         }

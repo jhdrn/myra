@@ -50,29 +50,77 @@ describe('render', () => {
         done()
     })
 
-    // it(`render unmounts a component when it's replaced`, (done) => {
-    //     const mocks = {
-    //         unmount: () => {
-    //             done()
-    //             return {}
-    //         }
-    //     }
+    it(`render "unmounts" a component when it's replaced`, (done) => {
 
-    //     spyOn(mocks, 'unmount').and.callThrough()
+        const Component = () => {
+            return <div id="component-id" />
+        }
+        const componentInstance = <Component />
+        render(document.body, componentInstance, undefined, undefined)
 
-    //     const TestComponent = () => {
-    //         myra.useEffect(() => () => mocks.unmount())
+        requestAnimationFrame(() => {
 
-    //         return <div />
-    //     }
+            expect(document.getElementById('component-id')).not.toBeNull()
 
-    //     const instance = <TestComponent />
-    //     render(document.body, instance, undefined, undefined)
+            render(document.body, <nothing />, componentInstance, componentInstance.domRef)
+            requestAnimationFrame(() => {
+                expect(document.getElementById('component-id')).toBeNull()
 
-    //     render(document.body, <nothing />, instance, instance.domRef)
+                done()
+            })
+        })
 
-    //     expect(mocks.unmount).toHaveBeenCalledTimes(1)
-    // })
+    })
+
+    it(`render "unmounts" a component when it's parent is replaced`, (done) => {
+
+        const Component = () => {
+            return <div id="component-id" />
+        }
+        const vNode = <div><Component /></div>
+        render(document.body, vNode, undefined, undefined)
+
+        requestAnimationFrame(() => {
+
+            expect(document.getElementById('component-id')).not.toBeNull()
+
+            render(document.body, <nothing />, vNode, vNode.domRef)
+            requestAnimationFrame(() => {
+                expect(document.getElementById('component-id')).toBeNull()
+
+                done()
+            })
+        })
+
+    })
+
+    it('renders a child node that was previously not rendered', (done) => {
+        let setShowChildOuter: myra.Evolve<boolean> = function () { return true }
+
+        const ChildComponent = () => <div id="child-node"></div>
+        const Component = () => {
+            const [showChild, setShowChild] = myra.useState(false)
+            setShowChildOuter = setShowChild
+            return (
+                <div>
+                    {showChild &&
+                        <ChildComponent />
+                    }
+                </div>
+            )
+        }
+
+        myra.mount(<Component />, document.body)
+
+        requestAnimationFrame(() => {
+            setShowChildOuter(true)
+            requestAnimationFrame(() => {
+                const child = document.getElementById('child-node')
+                expect(child).not.toBeNull()
+                done()
+            })
+        })
+    })
 
     it('removes excessive child nodes', (done) => {
         const viewItems1 = ['a', 'b', 'c', 'd']
