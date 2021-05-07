@@ -378,6 +378,91 @@ function renderCreate(
 }
 
 /**
+ * Updates a DOM not from a new VNode.
+ */
+function renderUpdate(
+    parentDomNode: Element,
+    newVNode: VNode,
+    oldVNode: VNode | undefined,
+    existingDomNode: Node | undefined,
+    isSvg = false
+) {
+    // if (!nodesEqual(oldVNode.node, existingDomNode)) {
+    //     TODO: "debug mode" with warnings?
+    //     console.error('The view is not matching the DOM. Are outside forces tampering with it?')
+    // }
+
+    // update existing node
+    switch (newVNode._) {
+        case VNodeType.Element:
+
+            updateElementAttributes(newVNode, oldVNode!, existingDomNode!)
+            updateElementVNode(
+                newVNode,
+                oldVNode as ElementVNode<any>,
+                existingDomNode,
+                isSvg
+            )
+            break
+        case VNodeType.Text:
+            if (existingDomNode!.textContent !== newVNode.value) {
+                existingDomNode!.textContent = newVNode.value
+            }
+            break
+        case VNodeType.Component:
+
+            newVNode.rendition = (oldVNode as ComponentVNode<any>).rendition
+            newVNode.data = (oldVNode as ComponentVNode<any>).data
+            newVNode.effects = (oldVNode as ComponentVNode<any>).effects
+            newVNode.errorHandler = (oldVNode as ComponentVNode<any>).errorHandler
+            newVNode.link = (oldVNode as ComponentVNode<any>).link
+            newVNode.link.vNode = newVNode
+
+            renderComponent(parentDomNode, newVNode, oldVNode as ComponentVNode<any>, isSvg)
+
+            break
+        case VNodeType.Fragment:
+            updateElementVNode(
+                newVNode,
+                oldVNode as FragmentVNode,
+                parentDomNode, // Fragments doesn´t reference any DOM node, instead pass the parent
+                isSvg
+            )
+            break
+    }
+
+    if (newVNode.domRef === undefined) {
+        // add a reference to the node
+        newVNode.domRef = existingDomNode
+    }
+
+    if (newVNode !== oldVNode) {
+        // clean up
+        oldVNode!.domRef = undefined
+    }
+}
+
+type BasicVNode = TextVNode | ElementVNode<any> | NothingVNode
+
+/** 
+ * Creates a DOM Node from a (non component or fragment) VNode. 
+ */
+function createNode(vNode: BasicVNode, isSvg: boolean): Node {
+    switch (vNode._) {
+        case VNodeType.Element:
+            if (isSvg) {
+                return document.createElementNS('http://www.w3.org/2000/svg', vNode.tagName)
+            }
+            return document.createElement(vNode.tagName)
+        case VNodeType.Text:
+            return document.createTextNode(vNode.value)
+
+        case VNodeType.Nothing:
+            return document.createComment('Nothing')
+    }
+}
+
+/**
  * Updates an existing HTMLElement DOM node from a new VNode.
  */
 function updateElementVNode(
@@ -527,91 +612,6 @@ function updateElementVNode(
     }
 }
 
-/**
- * Updates a DOM not from a new VNode.
- */
-function renderUpdate(
-    parentDomNode: Element,
-    newVNode: VNode,
-    oldVNode: VNode | undefined,
-    existingDomNode: Node | undefined,
-    isSvg = false
-) {
-    // if (!nodesEqual(oldVNode.node, existingDomNode)) {
-    //     TODO: "debug mode" with warnings?
-    //     console.error('The view is not matching the DOM. Are outside forces tampering with it?')
-    // }
-
-    // update existing node
-    switch (newVNode._) {
-        case VNodeType.Element:
-
-            updateElementAttributes(newVNode, oldVNode!, existingDomNode!)
-            updateElementVNode(
-                newVNode,
-                oldVNode as ElementVNode<any>,
-                existingDomNode,
-                isSvg
-            )
-            break
-        case VNodeType.Text:
-            if (existingDomNode!.textContent !== newVNode.value) {
-                existingDomNode!.textContent = newVNode.value
-            }
-            break
-        case VNodeType.Component:
-
-            newVNode.rendition = (oldVNode as ComponentVNode<any>).rendition
-            newVNode.data = (oldVNode as ComponentVNode<any>).data
-            newVNode.effects = (oldVNode as ComponentVNode<any>).effects
-            newVNode.errorHandler = (oldVNode as ComponentVNode<any>).errorHandler
-            newVNode.link = (oldVNode as ComponentVNode<any>).link
-            newVNode.link.vNode = newVNode
-
-            renderComponent(parentDomNode, newVNode, oldVNode as ComponentVNode<any>, isSvg)
-
-            break
-        case VNodeType.Fragment:
-            updateElementVNode(
-                newVNode,
-                oldVNode as FragmentVNode,
-                parentDomNode, // Fragments doesn´t reference any DOM node, instead pass the parent
-                isSvg
-            )
-            break
-    }
-
-    if (newVNode.domRef === undefined) {
-        // add a reference to the node
-        newVNode.domRef = existingDomNode
-    }
-
-    if (newVNode !== oldVNode) {
-        // clean up
-        oldVNode!.domRef = undefined
-    }
-}
-
-
-type BasicVNode = TextVNode | ElementVNode<any> | NothingVNode
-
-/** 
- * Creates a DOM Node from a (non component or fragment) VNode. 
- */
-function createNode(vNode: BasicVNode, isSvg: boolean): Node {
-    switch (vNode._) {
-        case VNodeType.Element:
-            if (isSvg) {
-                return document.createElementNS('http://www.w3.org/2000/svg', vNode.tagName)
-            }
-            return document.createElement(vNode.tagName)
-        case VNodeType.Text:
-            return document.createTextNode(vNode.value)
-
-        case VNodeType.Nothing:
-            return document.createComment('Nothing')
-    }
-}
 
 /** 
  * Sets an attribute or event listener on an HTMLElement. 
