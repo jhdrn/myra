@@ -400,7 +400,7 @@ function renderUpdate(
             updateElementVNode(
                 newVNode,
                 oldVNode as ElementVNode<any>,
-                existingDomNode,
+                existingDomNode as Element,
                 isSvg
             )
             break
@@ -468,7 +468,7 @@ function createNode(vNode: BasicVNode, isSvg: boolean): Node {
 function updateElementVNode(
     newVNode: ElementVNode<any> | FragmentVNode,
     oldVNode: ElementVNode<any> | FragmentVNode,
-    existingDomNode: Node | undefined,
+    existingDomNode: Element,
     isSvg = false
 ) {
 
@@ -604,14 +604,33 @@ function updateElementVNode(
             // Make sure any sub-components are "unmounted"
             findAndUnmountComponentsRec(oldChildVNode)
 
-            const oldChildDomNode = oldChildVNode.domRef!
-            if (oldChildDomNode !== undefined && existingDomNode!.contains(oldChildDomNode!)) {
-                existingDomNode!.removeChild(oldChildDomNode!)
+            if (oldChildVNode._ === VNodeType.Fragment) {
+                removeFragmentChildNodesRec(oldChildVNode, existingDomNode)
+            } else {
+                const oldChildDomNode = oldChildVNode.domRef!
+                if (oldChildDomNode !== undefined && existingDomNode.contains(oldChildDomNode)) {
+                    existingDomNode.removeChild(oldChildDomNode)
+                }
             }
         }
     }
 }
 
+/**
+ * Recursively traverses the vNode tree and removes any Fragment child DOM nodes
+ * from domElement
+ */
+function removeFragmentChildNodesRec(fragmentNode: FragmentVNode, domElement: Element) {
+    for (const fragmentChild of fragmentNode.props.children) {
+        if (fragmentChild._ === VNodeType.Fragment) {
+            removeFragmentChildNodesRec(fragmentChild, domElement)
+        }
+        const childNode = fragmentChild.domRef
+        if (childNode !== undefined) {
+            domElement.removeChild(childNode)
+        }
+    }
+}
 
 /** 
  * Sets an attribute or event listener on an HTMLElement. 

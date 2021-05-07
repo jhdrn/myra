@@ -202,6 +202,51 @@ describe('fragment', () => {
         })
     })
 
+    it('removes fragment in fragment child nodes', done => {
+
+        let setItemsOuter: myra.Evolve<string[]>
+        const Component = () => {
+            const [items, setItems] = myra.useState(['a', 'b', 'c'])
+            setItemsOuter = setItems
+            return (
+                <>
+                    {items.map(x =>
+                        <>
+                            <div id={'element1' + x}></div>
+                            <div id={'element2' + x}></div>
+                            <>
+                                <div id={'element3' + x}></div>
+                            </>
+                        </>
+                    )
+
+                    }
+                </>
+            )
+        }
+
+        const fragmentContainer = document.createElement('div')
+        fragmentContainer.className = 'fragment-container'
+        document.body.appendChild(fragmentContainer)
+
+        myra.mount(<Component />, fragmentContainer)
+
+        requestAnimationFrame(() => {
+            setItemsOuter(x => x.slice(1))
+            requestAnimationFrame(() => {
+
+                expect(fragmentContainer.childElementCount).toBe(6)
+                expect((fragmentContainer.firstChild as HTMLElement).id).toBe('element1b')
+                expect((fragmentContainer.children[1] as HTMLElement).id).toBe('element2b')
+                expect((fragmentContainer.children[2] as HTMLElement).id).toBe('element3b')
+                expect((fragmentContainer.children[3] as HTMLElement).id).toBe('element1c')
+                expect((fragmentContainer.children[4] as HTMLElement).id).toBe('element2c')
+                expect((fragmentContainer.lastChild as HTMLElement).id).toBe('element3c')
+                done()
+            })
+        })
+    })
+
     it('removes and "unmounts" component child nodes', done => {
         const mock = {
             unmount: () => { }
