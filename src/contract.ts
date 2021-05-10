@@ -328,7 +328,10 @@ export interface ElementVNode<TElement extends Element> extends VNodeBase {
 
 export interface FragmentVNode extends VNodeBase {
     readonly _: VNodeType.Fragment
-    readonly props: { children: VNode[] }
+    readonly props: {
+        children: VNode[]
+        key?: Key
+    }
     domRef?: HTMLElement
 }
 

@@ -2,7 +2,7 @@ import { FragmentVNode, Key, VNode, VNodeType } from './contract'
 
 interface IProps {
     children?: VNode[]
-    key: Key
+    key?: Key
 }
 
 export function Fragment(props: IProps): FragmentVNode {
