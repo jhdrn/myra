@@ -292,4 +292,52 @@ describe('fragment', () => {
             })
         })
     })
+
+    it('removes component with fragment child node', done => {
+        const ChildComponent = () => {
+            return (
+                <>
+                    <div id="fragment-child5"></div>
+                    text
+                </>
+            )
+        }
+
+        let setDidRenderOuter: myra.Evolve<boolean> = function () { return true }
+        const Component = () => {
+            const [didRender, setDidRender] = myra.useState(false)
+
+            setDidRenderOuter = setDidRender
+
+            return (
+                <>
+                    {!didRender &&
+                        <ChildComponent />
+                    }
+                    <div id="fragment-child6"></div>
+                </>
+            )
+        }
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        myra.mount(<Component />, fragmentContainer)
+
+        requestAnimationFrame(() => {
+            expect((fragmentContainer.firstChild as HTMLElement).id).toBe('fragment-child5')
+            expect((fragmentContainer.childNodes[1] as Node).textContent).toBe('text')
+            expect((fragmentContainer.lastChild as HTMLElement).id).toBe('fragment-child6')
+
+            setDidRenderOuter(true)
+
+            requestAnimationFrame(() => {
+                expect((fragmentContainer.firstChild as Node).textContent).toBe('Nothing')
+                expect((fragmentContainer.lastChild as HTMLElement).id).toBe('fragment-child6')
+                expect(fragmentContainer.childNodes.length).toEqual(2)
+
+                done()
+            })
+        })
+    })
 })
