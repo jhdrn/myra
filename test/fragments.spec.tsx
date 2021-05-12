@@ -340,4 +340,46 @@ describe('fragment', () => {
             })
         })
     })
+
+    it('removes fragment non-firstChild child nodes', done => {
+
+        let setItemsOuter: myra.Evolve<string[]>
+        const Component = () => {
+            const [items, setItems] = myra.useState(['a', 'b', 'c'])
+            setItemsOuter = setItems
+            return (
+                <>
+                    {items.map(x =>
+                        <>
+                            item {x}
+                        </>
+                    )}
+                    <>
+                        d
+                    </>
+                </>
+            )
+        }
+
+        const fragmentContainer = document.createElement('div')
+        fragmentContainer.className = 'fragment-container'
+        document.body.appendChild(fragmentContainer)
+
+        myra.mount(<Component />, fragmentContainer)
+
+        requestAnimationFrame(() => {
+            setItemsOuter(x => [x[0], x[2]])
+            requestAnimationFrame(() => {
+
+                expect(fragmentContainer.childNodes.length).toBe(5)
+                expect(fragmentContainer.childNodes[0].textContent).toBe('item ')
+                expect(fragmentContainer.childNodes[1].textContent).toBe('a')
+                expect(fragmentContainer.childNodes[2].textContent).toBe('item ')
+                expect(fragmentContainer.childNodes[3].textContent).toBe('c')
+                expect(fragmentContainer.childNodes[4].textContent).toBe('d')
+                done()
+            })
+        })
+
+    })
 })

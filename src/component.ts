@@ -292,7 +292,7 @@ function renderCreate(
                 // When using fragments, we can have cases where several "steps" in
                 // the hierarchy is skipped.
                 if (oldVNode!.domRef === undefined && (oldVNode!._ === VNodeType.Fragment || oldVNode!._ === VNodeType.Component)) {
-                    parentDomNode.replaceChild(domNode, parentDomNode.firstChild!)
+                    replaceAndRemoveFragmentNodes(parentDomNode, oldVNode as FragmentVNode, domNode)
                 } else {
                     parentDomNode.replaceChild(domNode, existingDomNode!)
                 }
@@ -337,15 +337,7 @@ function renderCreate(
                 if (oldVNode!._ === VNodeType.Component) {
                     fragmentNode = (oldVNode as ComponentVNode<any>).rendition!
                 }
-                const childNodes = getFragmentChildDomNodesRec(fragmentNode as FragmentVNode, parentDomNode)
-
-                for (const c of childNodes) {
-                    if (parentDomNode.firstChild !== c) {
-                        parentDomNode.removeChild(c)
-                    }
-                }
-                parentDomNode.replaceChild(newNode, parentDomNode.firstChild!)
-
+                replaceAndRemoveFragmentNodes(parentDomNode, fragmentNode as FragmentVNode, newNode)
             } else {
 
                 // If it's an element node remove old event listeners before 
@@ -387,6 +379,23 @@ function renderCreate(
                     render(newNode as Element, c, undefined, undefined, isSvg)
                 }
             }
+        }
+    }
+}
+
+/**
+ * Finds fragment child nodes, replaces the first one with newNode and removes
+ * the rest.
+ */
+function replaceAndRemoveFragmentNodes(parentDomNode: Element, fragmentVNode: FragmentVNode, newNode: Node) {
+    const childNodes = getFragmentChildDomNodesRec(fragmentVNode, parentDomNode)
+
+    for (let i = 0; i < childNodes.length; i++) {
+        const child = childNodes[i]
+        if (i === 0) {
+            parentDomNode.replaceChild(newNode, child)
+        } else {
+            parentDomNode.removeChild(child)
         }
     }
 }
@@ -620,14 +629,12 @@ function updateElementVNode(
 
             if (oldChildVNode._ === VNodeType.Fragment) {
                 removeFragmentChildNodes(oldChildVNode, existingDomNode)
+            } else if (oldChildVNode._ === VNodeType.Component && oldChildVNode.rendition?._ === VNodeType.Fragment) {
+                removeFragmentChildNodes(oldChildVNode.rendition, existingDomNode)
             } else {
-                if (oldChildVNode._ === VNodeType.Component && oldChildVNode.rendition?._ === VNodeType.Fragment) {
-                    removeFragmentChildNodes(oldChildVNode.rendition, existingDomNode)
-                } else {
-                    const oldChildDomNode = oldChildVNode.domRef!
-                    if (oldChildDomNode !== undefined && existingDomNode.contains(oldChildDomNode)) {
-                        existingDomNode.removeChild(oldChildDomNode)
-                    }
+                const oldChildDomNode = oldChildVNode.domRef!
+                if (oldChildDomNode !== undefined && existingDomNode.contains(oldChildDomNode)) {
+                    existingDomNode.removeChild(oldChildDomNode)
                 }
             }
         }
