@@ -33,6 +33,7 @@ Add a tsconfig.json to your project:
         "module": "commonjs",
         "jsx": "react",
         "jsxFactory": "myra.h",
+        "jsxFragmentFactory": "myra.Fragment",
 
         /* Optional, but recommended */
         "strict": true,
