@@ -64,8 +64,8 @@ describe('component render', () => {
         })
 
         const vNode = <Component val={45} />
-        render(document.body, vNode, undefined, undefined)
-        render(document.body, <Component val={45} />, vNode, vNode.domRef)
+        render(document.body, [vNode], [])
+        render(document.body, [<Component val={45} />], [vNode])
 
         expect(mock.beforeRender).toHaveBeenCalledTimes(1)
     })
@@ -83,10 +83,10 @@ describe('component render', () => {
         }
 
         const vNode = <Component prop="a value" />
-        render(document.body, vNode, undefined, undefined)
+        render(document.body, [vNode], [])
 
         const newVNode = <Component prop="a new value" />
-        render(document.body, newVNode, vNode, vNode.domRef)
+        render(document.body, [newVNode], [vNode])
 
         expect(mock.callback).toHaveBeenCalledTimes(2)
     })
@@ -104,10 +104,10 @@ describe('component render', () => {
         })
 
         const vNode = <Component>Child A</Component>
-        render(document.body, vNode, undefined, undefined)
+        render(document.body, [vNode], [])
 
         const newVNode = <Component>Child A</Component>
-        render(document.body, newVNode, vNode, vNode.domRef)
+        render(document.body, [newVNode], [vNode])
 
         expect(mock.callback).toHaveBeenCalledTimes(1)
     })
@@ -125,10 +125,10 @@ describe('component render', () => {
         })
 
         const vNode = <Component>Child A</Component>
-        render(document.body, vNode, undefined, undefined)
+        render(document.body, [vNode], [])
 
         const newVNode = <Component>Child B</Component>
-        render(document.body, newVNode, vNode, vNode.domRef)
+        render(document.body, [newVNode], [vNode])
 
         expect(mock.callback).toHaveBeenCalledTimes(2)
     })

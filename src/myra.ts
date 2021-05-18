@@ -30,6 +30,6 @@ export function define<TProps>(fn: JSXElementFactory<TProps & ComponentProps>) {
  */
 export function mount(vNode: VNode, element: Element) {
     requestAnimationFrame(() => {
-        render(element, vNode, undefined, undefined)
+        render(element, [vNode], [])
     })
 }

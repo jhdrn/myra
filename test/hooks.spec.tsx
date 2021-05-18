@@ -90,10 +90,10 @@ describe('useEffect', () => {
             return <div />
         }
         const componentInstance = <Component />
-        render(document.body, componentInstance, undefined, undefined)
+        render(document.body, [componentInstance], [])
 
         requestAnimationFrame(() => {
-            render(document.body, <nothing />, componentInstance, componentInstance.domRef)
+            render(document.body, [<nothing />], [componentInstance])
             requestAnimationFrame(() => {
                 expect(mock.callback).toHaveBeenCalledTimes(1)
 
@@ -114,10 +114,10 @@ describe('useEffect', () => {
             return <div />
         }
         const componentInstance = <Component />
-        render(document.body, componentInstance, undefined, undefined)
+        render(document.body, [componentInstance], [])
 
         requestAnimationFrame(() => {
-            render(document.body, <nothing />, componentInstance, componentInstance.domRef)
+            render(document.body, [<nothing />], [componentInstance])
             requestAnimationFrame(() => {
                 expect(mock.callback).toHaveBeenCalledTimes(1)
 
@@ -138,10 +138,10 @@ describe('useEffect', () => {
             return <div />
         }
         const componentInstance = <Component />
-        render(document.body, componentInstance, undefined, undefined)
+        render(document.body, [componentInstance], [])
 
         requestAnimationFrame(() => {
-            render(document.body, <nothing />, componentInstance, componentInstance.domRef)
+            render(document.body, [<nothing />], [componentInstance])
             requestAnimationFrame(() => {
                 expect(mock.callback).toHaveBeenCalledTimes(1)
 
@@ -261,9 +261,9 @@ describe('useLayoutEffect', () => {
             return <div />
         }
         const componentInstance = <Component />
-        render(document.body, componentInstance, undefined, undefined)
+        render(document.body, [componentInstance], [])
 
-        render(document.body, <nothing />, componentInstance, componentInstance.domRef)
+        render(document.body, [<nothing />], [componentInstance])
 
         setTimeout(() => {
             expect(mock.callback).toHaveBeenCalledTimes(1)
@@ -284,9 +284,9 @@ describe('useLayoutEffect', () => {
             return <div />
         }
         const componentInstance = <Component />
-        render(document.body, componentInstance, undefined, undefined)
+        render(document.body, [componentInstance], [])
 
-        render(document.body, <nothing />, componentInstance, componentInstance.domRef)
+        render(document.body, [<nothing />], [componentInstance])
 
         setTimeout(() => {
             expect(mock.callback).toHaveBeenCalledTimes(1)
@@ -339,13 +339,13 @@ describe('useMemo', () => {
             return <div />
         }
         const vNode = <Component />
-        render(document.body, vNode, undefined, undefined)
+        render(document.body, [vNode], [])
 
         setTimeout(() => {
             const firstFn = fn!
 
             setTimeout(() => {
-                render(document.body, <Component />, vNode, vNode.domRef)
+                render(document.body, [<Component />], [vNode])
 
                 expect(firstFn).toBe(fn!)
 
@@ -369,13 +369,13 @@ describe('useMemo', () => {
             return <div />
         }
         const vNode1 = <Component input={1} />
-        render(document.body, vNode1, undefined, undefined)
+        render(document.body, [vNode1], [])
 
         setTimeout(() => {
             const firstFn = fn!
 
             setTimeout(() => {
-                render(document.body, <Component input={2} />, vNode1, vNode1.domRef)
+                render(document.body, [<Component input={2} />], [vNode1])
 
                 expect(firstFn).not.toBe(fn!)
 
@@ -396,7 +396,7 @@ describe('useRef', () => {
             return <div />
         }
         const vNode = <Component />
-        render(document.body, vNode, undefined, undefined)
+        render(document.body, [vNode], [])
 
         setTimeout(() => {
             expect(typeof ref).toEqual('object')
@@ -415,7 +415,7 @@ describe('useRef', () => {
             return <div ref={ref} />
         }
         const vNode = <Component />
-        render(document.body, vNode, undefined, undefined)
+        render(document.body, [vNode], [])
 
         setTimeout(() => {
             expect(ref.current).toBe(vNode.domRef)
@@ -433,7 +433,7 @@ describe('useRef', () => {
             return <div><div ref={ref} /></div>
         }
         const vNode = <Component />
-        render(document.body, vNode, undefined, undefined)
+        render(document.body, [vNode], [])
 
         setTimeout(() => {
             expect(ref.current).toBe(vNode.domRef.firstChild)
@@ -451,7 +451,7 @@ describe('useRef', () => {
             return <div />
         }
         const vNode = <Component />
-        render(document.body, vNode, undefined, undefined)
+        render(document.body, [vNode], [])
 
         setTimeout(() => {
             expect(ref.current).toEqual('foo')
@@ -472,10 +472,10 @@ describe('useRef', () => {
             return <div />
         }
         const vNode = <Component />
-        render(document.body, vNode, undefined, undefined)
+        render(document.body, [vNode], [])
 
         requestAnimationFrame(() => {
-            render(document.body, <Component />, vNode, vNode.domRef)
+            render(document.body, [<Component />], [vNode])
             expect(ref.current).toEqual('bar')
 
             done()
@@ -492,7 +492,7 @@ describe('useRef', () => {
             return <div />
         }
         const vNode = <Component />
-        render(document.body, vNode, undefined, undefined)
+        render(document.body, [vNode], [])
 
         setTimeout(() => {
             expect(ref.current).toEqual('bar')
@@ -515,7 +515,7 @@ describe('useErrorHandling', () => {
             return <div>{(undefined as any).property}</div>
         }
         const vNode = <Component />
-        render(document.body, vNode, undefined, undefined)
+        render(document.body, [vNode], [])
 
         expect(vNode.domRef.nodeType).toBe(Node.COMMENT_NODE)
         expect(vNode.domRef.textContent).toBe('Nothing')
@@ -579,7 +579,7 @@ describe('useErrorHandling', () => {
 
         const component = <Component />
 
-        render(document.body, component, undefined, undefined)
+        render(document.body, [component], [])
 
         requestAnimationFrame(() => {
             const node = (component as ComponentVNode<any>).domRef!
@@ -608,7 +608,7 @@ describe('useErrorHandling', () => {
         }
 
         const vNode = <Component />
-        render(document.body, vNode, undefined, undefined)
+        render(document.body, [vNode], [])
 
         expect(vNode.domRef.nodeType).toBe(Node.COMMENT_NODE)
         expect(vNode.domRef.textContent).toBe('Nothing')
@@ -639,7 +639,7 @@ describe('useErrorHandling', () => {
         }
 
         const vNode = <Component />
-        render(document.body, vNode, undefined, undefined)
+        render(document.body, [vNode], [])
         vNode.domRef.click()
         requestAnimationFrame(() => {
             expect(mock.callback).toHaveBeenCalled()
@@ -668,8 +668,8 @@ describe('useErrorHandling', () => {
         }
 
         const vNode = <Component />
-        render(document.body, vNode, undefined, undefined)
-        render(document.body, <nothing />, vNode, undefined)
+        render(document.body, [vNode], [])
+        render(document.body, [<nothing />], [vNode])
         expect(vNode.domRef.nodeType).toBe(Node.ELEMENT_NODE)
         expect(vNode.domRef.textContent).toBe('')
         expect(mock.callback).not.toHaveBeenCalled()
@@ -693,7 +693,7 @@ describe('useErrorHandling', () => {
             return <SubComponent />
         }
 
-        render(document.body, <Component />, undefined, undefined)
+        render(document.body, [<Component />], [])
 
         expect(mock.callback).toHaveBeenCalled()
 
@@ -718,7 +718,7 @@ describe('useErrorHandling', () => {
             </Component>
 
 
-        render(document.body, <Parent />, undefined, undefined)
+        render(document.body, [<Parent />], [])
 
         expect(q('#divTestId')).not.toBeNull()
 
@@ -742,8 +742,7 @@ describe('useState', () => {
             return <div></div>
         }
 
-        const instance = <Component />
-        render(document.body, instance, undefined, undefined)
+        render(document.body, [<Component />], [])
     })
 
     it('lazily initializes the state if the initial state is a function', (done) => {
@@ -766,8 +765,7 @@ describe('useState', () => {
             return <div></div>
         }
 
-        const instance = <Component />
-        render(document.body, instance, undefined, undefined)
+        render(document.body, [<Component />], [])
     })
 
     it('updates the state when an Update function in supplied', () => {
@@ -793,7 +791,7 @@ describe('useState', () => {
             return <button id="postButton" onclick={onclickUpdate}></button>
         }
 
-        render(document.body, <Component />, undefined, undefined)
+        render(document.body, [<Component />], [])
 
         const postBtn = document.getElementById('postButton') as HTMLButtonElement
         postBtn.click()
@@ -826,7 +824,7 @@ describe('useState', () => {
             return <button id="postButton2" onclick={() => evolve(state => mocks.onclickUpdate(state, { val: 2 }))}></button>
         }
 
-        render(document.body, <Component />, undefined, undefined)
+        render(document.body, [<Component />], [])
 
         const postBtn = document.getElementById('postButton2') as HTMLButtonElement
         postBtn.click()
@@ -847,7 +845,7 @@ describe('useState', () => {
         }
 
         const vNode = <Component />
-        render(document.body, vNode, undefined, undefined)
+        render(document.body, [vNode], [])
 
         requestAnimationFrame(() => {
 

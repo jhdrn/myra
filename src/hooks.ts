@@ -1,4 +1,4 @@
-import { getRenderingContext, renderComponent, tryHandleComponentError } from "./component"
+import { getRenderingContext, render, tryHandleComponentError } from "./component"
 import { ComponentVNode, Effect, ErrorHandler, Evolve, Ref, UpdateState } from "./contract"
 import { equal } from "./helpers"
 
@@ -33,7 +33,7 @@ export function useState<TState>(initialState: TState | LazyStateInitialization<
                 if (!currentVNode.debounceRender) {
                     requestAnimationFrame(() => {
                         link.vNode.debounceRender = false
-                        renderComponent(parentElement, link.vNode, undefined, isSvg)
+                        render(parentElement, [link.vNode], [], isSvg)
                     })
                 }
                 currentVNode.debounceRender = true
