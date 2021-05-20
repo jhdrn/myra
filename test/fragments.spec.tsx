@@ -1,5 +1,6 @@
 import * as myra from '../src/myra'
 import { render } from '../src/component'
+import { TextVNode, VNodeType } from '../src/contract'
 
 const q = (x: string) => document.querySelector(x)
 
@@ -24,6 +25,96 @@ describe('fragment', () => {
 
             done()
         })
+    })
+
+    it('renders fragment content replacing a nothing node', () => {
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const view1 = <nothing />
+
+        render(fragmentContainer, [view1], [])
+
+        const view2 =
+            <>
+                <div></div>
+                <div></div>
+            </>
+
+        render(fragmentContainer, [view2], [view1])
+
+        expect(fragmentContainer.childNodes.length).toBe(2)
+    })
+
+    it('renders fragment content replacing a text node', () => {
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const view1: TextVNode = {
+            _: VNodeType.Text,
+            value: 'text'
+        }
+
+        render(fragmentContainer, [view1], [])
+
+        const view2 =
+            <>
+                <div></div>
+                <div></div>
+            </>
+
+        render(fragmentContainer, [view2], [view1])
+
+        expect(fragmentContainer.childNodes.length).toBe(2)
+    })
+
+
+    it('renders fragment content replacing an element node', () => {
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const view1 = <span></span>
+
+        render(fragmentContainer, [view1], [])
+
+        const view2 =
+            <>
+                <div></div>
+                <div></div>
+            </>
+
+        render(fragmentContainer, [view2], [view1])
+
+        expect(fragmentContainer.childNodes.length).toBe(2)
+        expect((fragmentContainer.firstChild as Element).tagName).toBe('DIV')
+        expect((fragmentContainer.lastChild as Element).tagName).toBe('DIV')
+    })
+
+
+    it('renders fragment content replacing a component node', () => {
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const Component = () => <span></span>
+
+        const view1 = <Component />
+        render(fragmentContainer, [view1], [])
+
+        const view2 =
+            <>
+                <div></div>
+                <div></div>
+            </>
+
+        render(fragmentContainer, [view2], [view1])
+
+        expect(fragmentContainer.childNodes.length).toBe(2)
+        expect((fragmentContainer.firstChild as Element).tagName).toBe('DIV')
+        expect((fragmentContainer.lastChild as Element).tagName).toBe('DIV')
     })
 
     it('renders nested fragment content', done => {
@@ -289,6 +380,97 @@ describe('fragment', () => {
         expect(fragmentContainer.firstChild?.childNodes.length).toBe(2)
         expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).toBe('x')
         expect((fragmentContainer.firstChild?.lastChild as HTMLElement).id).toBe('y')
+        done()
+    })
+
+    it('removes DOM nodes when fragment structure is replaced by nothing node', done => {
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const Component = () =>
+            <>
+                <div></div>
+                <div></div>
+            </>
+
+        const view1 =
+            <div>
+                <div id="x"></div>
+                <>
+                    <div id="a"></div>
+                    <div id="b"></div>
+                    <div id="c"></div>
+                    <>
+                        <div id="d"></div>
+                        <div id="e"></div>
+                        <Component />
+                    </>
+                </>
+            </div>
+
+        render(fragmentContainer, [view1], [])
+
+        expect(fragmentContainer.firstChild?.childNodes.length).toBe(8)
+
+        const view2 =
+            <div>
+                <div id="x"></div>
+                <nothing />
+            </div>
+
+
+        render(fragmentContainer, [view2], [view1])
+
+        expect(fragmentContainer.firstChild?.childNodes.length).toBe(2)
+        expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).toBe('x')
+        expect(fragmentContainer.firstChild?.lastChild?.nodeType).toBe(Node.COMMENT_NODE)
+        done()
+    })
+
+    it('removes DOM nodes when fragment structure is replaced by text node', done => {
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const Component = () =>
+            <>
+                <div></div>
+                <div></div>
+            </>
+
+        const view1 =
+            <div>
+                <div id="x"></div>
+                <>
+                    <div id="a"></div>
+                    <div id="b"></div>
+                    <div id="c"></div>
+                    <>
+                        <div id="d"></div>
+                        <div id="e"></div>
+                        <Component />
+                    </>
+                </>
+            </div>
+
+        render(fragmentContainer, [view1], [])
+
+        expect(fragmentContainer.firstChild?.childNodes.length).toBe(8)
+
+        const view2 =
+            <div>
+                <div id="x"></div>
+                text
+            </div>
+
+
+        render(fragmentContainer, [view2], [view1])
+
+        expect(fragmentContainer.firstChild?.childNodes.length).toBe(2)
+        expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).toBe('x')
+        expect(fragmentContainer.firstChild?.lastChild?.nodeType).toBe(Node.TEXT_NODE)
+        expect(fragmentContainer.firstChild?.lastChild?.textContent).toBe('text')
         done()
     })
 
