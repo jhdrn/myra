@@ -3,6 +3,7 @@ import {
     ComponentVNode,
     EffectWrapper,
     ElementVNode,
+    FragmentVNode,
     GlobalAttributes,
     VNode,
     VNodeType,
@@ -652,26 +653,26 @@ function cleanupComponentsRec(vNode: VNode | undefined) {
 //     }
 // }
 
-// /**
-//  * Recursively traverses the vNode tree and removes any Fragment child DOM nodes
-//  * from domElement
-//  */
-// function getFragmentChildDomNodesRec(fragmentNode: FragmentVNode | ComponentVNode<any>, parentDomElement: Element) {
-//     const nodes: Node[] = []
-//     for (const fragmentChild of fragmentNode.props.children) {
-//         if (fragmentChild._ === VNodeType.Fragment) {
-//             nodes.push(...getFragmentChildDomNodesRec(fragmentChild, parentDomElement))
-//         }
-//         else if (fragmentChild._ === VNodeType.Component && fragmentChild.rendition?._ === VNodeType.Fragment) {
-//             nodes.push(...getFragmentChildDomNodesRec(fragmentChild.rendition, parentDomElement))
-//         }
-//         const childNode = fragmentChild.domRef
-//         if (childNode !== undefined) {
-//             nodes.push(childNode)
-//         }
-//     }
-//     return nodes
-// }
+/**
+ * Recursively traverses the vNode tree and removes any Fragment child DOM nodes
+ * from domElement
+ */
+function getFragmentChildDomNodesRec(fragmentNode: FragmentVNode | ComponentVNode<any>, parentDomElement: Element) {
+    const nodes: Node[] = []
+    for (const fragmentChild of fragmentNode.props.children) {
+        if (fragmentChild._ === VNodeType.Fragment) {
+            nodes.push(...getFragmentChildDomNodesRec(fragmentChild, parentDomElement))
+        }
+        else if (fragmentChild._ === VNodeType.Component && fragmentChild.rendition?._ === VNodeType.Fragment) {
+            nodes.push(...getFragmentChildDomNodesRec(fragmentChild.rendition, parentDomElement))
+        }
+        const childNode = fragmentChild.domRef
+        if (childNode !== undefined) {
+            nodes.push(childNode)
+        }
+    }
+    return nodes
+}
 
 
 /** 
@@ -794,7 +795,6 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                     }
                 }
 
-
                 let oldNode: Node | undefined
 
                 if (newChildVNode.rendition !== undefined) {
@@ -867,7 +867,45 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                     render(newChildVNode.domRef as Element, newChildVNode.props.children, oldChildVNode.props.children, isSvg)
                 }
                 else if (oldChildVNode._ === VNodeType.Fragment) {
-                    // FIXME
+
+                    const oldDOMNodes = getFragmentChildDomNodesRec(oldChildVNode, parentElement)
+
+                    let reuseDOMNode: Element | undefined
+                    let replaceDOMNode: Node | undefined
+                    for (let i = 0; i < oldDOMNodes.length; i++) {
+                        const oldDOMNode = oldDOMNodes[i]
+
+                        // Check for a DOM node to reuse
+                        if (reuseDOMNode === undefined && (oldDOMNode as Element).tagName === newChildVNode.tagName) {
+                            reuseDOMNode = oldDOMNode as Element
+                        }
+                        // If no DOM node suitable for reuse is found, keep the
+                        // last one to be replaced
+                        else if (i === oldDOMNodes.length - 1) {
+                            replaceDOMNode = oldDOMNode
+                        }
+                        else {
+                            parentElement.removeChild(oldDOMNode)
+                        }
+                    }
+
+                    if (reuseDOMNode !== undefined) {
+
+                        // Reuse the same DOM element
+                        newChildVNode.domRef = reuseDOMNode
+
+                        // Update/remove/add any attributes
+                        updateElementAttributes(newChildVNode, oldChildVNode, reuseDOMNode as Element)
+                    }
+                    // We should have a DOM node to replace in this case
+                    else {
+
+                        newChildVNode.domRef = createElement(newChildVNode.tagName, isSvg, newChildVNode.props)
+
+                        parentElement.replaceChild(newChildVNode.domRef, replaceDOMNode!)
+                    }
+                    // Render the element's children
+                    render(newChildVNode.domRef as Element, newChildVNode.props.children, [], isSvg)
                 }
                 // Replace the old DOM node with a new element and render it's
                 // children
@@ -1003,12 +1041,13 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
             // Make sure any sub-components are "unmounted"
             cleanupComponentsRec(oldChildVNode)
 
-            if (oldChildVNode._ === VNodeType.Fragment) {
-                // FIXME
-                // removeFragmentChildNodes(oldChildVNode, existingDomNode)
-            } else if (oldChildVNode._ === VNodeType.Component && oldChildVNode.rendition?._ === VNodeType.Fragment) {
-                // FIXME
-                // removeFragmentChildNodes(oldChildVNode.rendition, existingDomNode)
+            if (oldChildVNode._ === VNodeType.Fragment || oldChildVNode._ === VNodeType.Component && oldChildVNode.rendition?._ === VNodeType.Fragment) {
+
+                let count = getFragmentChildDomNodesRec(oldChildVNode._ === VNodeType.Component ? oldChildVNode.rendition as FragmentVNode : oldChildVNode, parentElement).length
+                while (count > 0) {
+                    parentElement.removeChild(parentElement.lastChild!)
+                    count--
+                }
             } else {
                 const oldChildDomNode = oldChildVNode.domRef!
                 if (oldChildDomNode !== undefined && parentElement.contains(oldChildDomNode)) {

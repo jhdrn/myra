@@ -1,4 +1,5 @@
 import * as myra from '../src/myra'
+import { render } from '../src/component'
 
 const q = (x: string) => document.querySelector(x)
 
@@ -130,6 +131,165 @@ describe('fragment', () => {
                 done()
             })
         })
+    })
+
+    it('removes DOM nodes when fragment is removed', done => {
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const view1 =
+            <div>
+                <div></div>
+                <>
+                    <div id="a"></div>
+                    <div id="b"></div>
+                    <div id="c"></div>
+                </>
+                <div></div>
+            </div>
+
+        render(fragmentContainer, [view1], [])
+
+        expect(fragmentContainer.firstChild?.childNodes.length).toBe(5)
+
+        const view2 =
+            <div>
+                <div></div>
+            </div>
+
+
+        render(fragmentContainer, [view2], [view1])
+
+        expect(fragmentContainer.firstChild?.childNodes.length).toBe(1)
+        expect(fragmentContainer.firstChild?.firstChild?.nodeType).toBe(Node.ELEMENT_NODE)
+        done()
+    })
+
+    it('removes DOM nodes when component with a child fragment is removed', done => {
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const Component = () =>
+
+            <>
+                <div id="a"></div>
+                <div id="b"></div>
+                <div id="c"></div>
+            </>
+
+        const view1 =
+            <div>
+                <div id="x"></div>
+                <Component />
+                <div></div>
+            </div>
+
+        render(fragmentContainer, [view1], [])
+
+        expect(fragmentContainer.firstChild?.childNodes.length).toBe(5)
+
+        const view2 =
+            <div>
+                <div id="x"></div>
+            </div>
+
+
+        render(fragmentContainer, [view2], [view1])
+
+        expect(fragmentContainer.firstChild?.childNodes.length).toBe(1)
+        expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).toBe('x')
+        done()
+    })
+
+    it('removes DOM nodes when fragment structure is removed', done => {
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const Component = () =>
+            <>
+                <div></div>
+                <div></div>
+            </>
+
+        const view1 =
+            <div>
+                <div id="x"></div>
+                <>
+                    <div id="a"></div>
+                    <div id="b"></div>
+                    <div id="c"></div>
+                    <>
+                        <div id="d"></div>
+                        <div id="e"></div>
+                        <Component />
+                    </>
+                </>
+                <div id="y"></div>
+            </div>
+
+        render(fragmentContainer, [view1], [])
+
+        expect(fragmentContainer.firstChild?.childNodes.length).toBe(9)
+
+        const view2 =
+            <div>
+                <div id="x"></div>
+            </div>
+
+
+        render(fragmentContainer, [view2], [view1])
+
+        expect(fragmentContainer.firstChild?.childNodes.length).toBe(1)
+        expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).toBe('x')
+        done()
+    })
+
+    it('removes DOM nodes when fragment structure is replaced by element node', done => {
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const Component = () =>
+            <>
+                <div></div>
+                <div></div>
+            </>
+
+        const view1 =
+            <div>
+                <div id="x"></div>
+                <>
+                    <div id="a"></div>
+                    <div id="b"></div>
+                    <div id="c"></div>
+                    <>
+                        <div id="d"></div>
+                        <div id="e"></div>
+                        <Component />
+                    </>
+                </>
+            </div>
+
+        render(fragmentContainer, [view1], [])
+
+        expect(fragmentContainer.firstChild?.childNodes.length).toBe(8)
+
+        const view2 =
+            <div>
+                <div id="x"></div>
+                <div id="y"></div>
+            </div>
+
+
+        render(fragmentContainer, [view2], [view1])
+
+        expect(fragmentContainer.firstChild?.childNodes.length).toBe(2)
+        expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).toBe('x')
+        expect((fragmentContainer.firstChild?.lastChild as HTMLElement).id).toBe('y')
+        done()
     })
 
     it('removes fragment in fragment child nodes', done => {
