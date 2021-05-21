@@ -510,38 +510,115 @@ describe('fragment', () => {
     })
 
 
-    it('removes component fragment child nodes', done => {
-
-        let setDidRenderOuter: myra.Evolve<boolean> = function () { return true }
-
-        const ChildComponent = (_props: { foo: 'bar' }) => <><div id="fragment-child4"></div></>
-        const Component = () => {
-            const [didRender, setDidRender] = myra.useState(false)
-            setDidRenderOuter = setDidRender
-            return (
-                <>
-                    {!didRender &&
-                        <ChildComponent foo="bar" />
-                    }
-                </>
-            )
-        }
+    it('removes component fragment child nodes when replaced by nothing node', done => {
 
         const fragmentContainer = document.createElement('div')
         fragmentContainer.className = 'fragment-container'
         document.body.appendChild(fragmentContainer)
 
-        myra.mount(<Component />, fragmentContainer)
+        const ChildComponent = () => <><div></div></>
+        const view1 =
+            <>
+                <ChildComponent />
+            </>
 
-        requestAnimationFrame(() => {
-            setDidRenderOuter(true)
-            requestAnimationFrame(() => {
-                const nothingNode = fragmentContainer.firstChild
-                expect(nothingNode).not.toBeNull()
-                expect(nothingNode?.nodeType).toBe(Node.COMMENT_NODE)
-                done()
-            })
-        })
+        render(fragmentContainer, [view1], [])
+
+        const view2 = <>
+            <nothing />
+        </>
+
+        render(fragmentContainer, [view2], [view1])
+
+        const nothingNode = fragmentContainer.firstChild
+        expect(nothingNode).not.toBeNull()
+        expect(nothingNode?.nodeType).toBe(Node.COMMENT_NODE)
+        done()
+    })
+
+    it('removes component fragment child nodes when replaced by text node', done => {
+
+        const fragmentContainer = document.createElement('div')
+        fragmentContainer.className = 'fragment-container'
+        document.body.appendChild(fragmentContainer)
+
+        const ChildComponent = () => <><div></div></>
+        const view1 =
+            <>
+                <ChildComponent />
+            </>
+
+        render(fragmentContainer, [view1], [])
+
+        const view2 = <>
+            text
+        </>
+
+        render(fragmentContainer, [view2], [view1])
+
+        const textNode = fragmentContainer.firstChild
+        expect(textNode).not.toBeNull()
+        expect(textNode?.nodeType).toBe(Node.TEXT_NODE)
+        expect(textNode?.textContent).toBe('text')
+        done()
+    })
+
+    it('removes component fragment child nodes when replaced by element node', done => {
+
+        const fragmentContainer = document.createElement('div')
+        fragmentContainer.className = 'fragment-container'
+        document.body.appendChild(fragmentContainer)
+
+        const ChildComponent = () => <><div></div></>
+        const view1 =
+            <>
+                <ChildComponent />
+            </>
+
+        render(fragmentContainer, [view1], [])
+
+        const view2 = <>
+            <span></span>
+        </>
+
+        render(fragmentContainer, [view2], [view1])
+
+        const textNode = fragmentContainer.firstChild
+        expect(textNode).not.toBeNull()
+        expect(textNode?.nodeType).toBe(Node.ELEMENT_NODE)
+        expect((textNode as Element).tagName).toBe('SPAN')
+        done()
+    })
+
+
+    it('removes component fragment child nodes when replaced by memo node', done => {
+
+        const fragmentContainer = document.createElement('div')
+        fragmentContainer.className = 'fragment-container'
+        document.body.appendChild(fragmentContainer)
+
+        const ChildComponent = () => <><div></div></>
+        const view1 =
+            <>
+                <ChildComponent />
+            </>
+
+        render(fragmentContainer, [view1], [])
+
+        const Memo = myra.memo(() =>
+            <>
+                <span></span>
+            </>
+        )
+        const view2 = <Memo />
+
+        render(fragmentContainer, [view2], [view1])
+
+        const textNode = fragmentContainer.firstChild
+        expect(textNode).not.toBeNull()
+        expect(textNode?.nodeType).toBe(Node.ELEMENT_NODE)
+        expect((textNode as Element).tagName).toBe('span')
+        done()
     })
 
     it('removes fragment in fragment child nodes', done => {
