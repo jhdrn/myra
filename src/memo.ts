@@ -1,6 +1,6 @@
 import { ComponentFactory, ComponentProps, JSXElementFactory, VNodeType } from "./contract"
 
-function shallowCompareProps<TProps extends ComponentProps>(newProps: TProps, oldProps: TProps): boolean {
+function shallowCompareProps<TProps extends ComponentProps & Record<string, any>>(newProps: TProps, oldProps: TProps): boolean {
     const newPropsKeys = Object.keys(newProps)
     if (newPropsKeys.length !== Object.keys(oldProps).length) {
         return false

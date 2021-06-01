@@ -276,7 +276,7 @@ export interface Ref<T> {
 export type Effect = () => EffectCleanupCallback
 export type EffectCleanupCallback = (() => void) | void
 
-export interface ComponentProps extends Record<string, any> {
+export interface ComponentProps {
     children?: MyraNode
     key?: Key
 }

@@ -1,7 +1,7 @@
-import { FragmentVNode, Key, VNode, VNodeType } from './contract'
+import { FragmentVNode, Key, MyraNode, VNode, VNodeType } from './contract'
 
 interface IProps {
-    children?: VNode[]
+    children?: MyraNode
     key?: Key
 }
 
@@ -9,7 +9,7 @@ export function Fragment(props: IProps): FragmentVNode {
     return {
         _: VNodeType.Fragment,
         props: {
-            children: props.children ?? [],
+            children: props.children as VNode[] ?? [],
             key: props.key
         }
     }

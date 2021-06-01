@@ -614,10 +614,10 @@ describe('fragment', () => {
 
         render(fragmentContainer, [view2], [view1])
 
-        const textNode = fragmentContainer.firstChild
-        expect(textNode).not.toBeNull()
-        expect(textNode?.nodeType).toBe(Node.ELEMENT_NODE)
-        expect((textNode as Element).tagName).toBe('span')
+        const node = fragmentContainer.firstChild
+        expect(node).not.toBeNull()
+        expect(node?.nodeType).toBe(Node.ELEMENT_NODE)
+        expect((node as Element).tagName).toBe('SPAN')
         done()
     })
 
@@ -801,4 +801,268 @@ describe('fragment', () => {
         })
 
     })
+
+    it('retains view state when fragment children are reordered with keys', (done) => {
+
+        type Item = {
+            id: number
+        }
+        const items = [
+            { id: 1 },
+            { id: 2 },
+            { id: 3 },
+            { id: 4 },
+            { id: 5 },
+        ] as Item[]
+
+        type State = { clicked: boolean }
+        type Props = { item: Item }
+
+        const ItemComponent = (props: Props) => {
+            const [state, evolve] = myra.useState<State>({ clicked: false })
+
+            const setClicked = () => evolve({ clicked: true })
+
+            return (
+                <button id={`item-${props.item.id}`}
+                    class={state.clicked ? "clicked" : ""}
+                    onclick={setClicked}>
+                </button>
+            )
+        }
+
+        const view1 =
+            <div>
+                {items.map(x =>
+                    <myra.Fragment key={x.id.toString()}>
+                        <ItemComponent item={x} />
+                    </myra.Fragment>
+                )}
+            </div>
+
+        render(document.body, [view1], [])
+
+        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
+        btn.click()
+
+        requestAnimationFrame(() => {
+            expect(btn.className).toBe("clicked")
+            expect(btn.id).toBe("item-1")
+
+            const view2 =
+                <div>
+                    {items.reverse().map(x =>
+                        <myra.Fragment key={x.id.toString()}>
+                            <ItemComponent item={x} />
+                        </myra.Fragment>
+                    )}
+                </div>
+
+            render(document.body, [view2], [view1])
+
+            btn = (view2.domRef as HTMLDivElement).querySelector('button')!
+            expect(btn.className).toBe("")
+            expect(btn.id).toBe("item-5")
+
+            // The last element should've been updated
+            btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
+            expect(btn.className).toBe("clicked")
+            expect(btn.id).toBe("item-1")
+
+            done()
+        })
+    })
+
+    it('does not retain view state when fragment children reordered without keys', (done) => {
+
+        type Item = {
+            id: number
+        }
+        const items = [
+            { id: 1 },
+            { id: 2 },
+            { id: 3 },
+            { id: 4 },
+            { id: 5 },
+        ] as Item[]
+
+        type State = { clicked: boolean }
+        type Props = { item: Item }
+
+        const ItemComponent = (props: Props) => {
+            const [state, evolve] = myra.useState<State>({ clicked: false })
+
+            const setClicked = () => evolve({ clicked: true })
+
+            return (
+                <button id={`item-${props.item.id}`}
+                    class={state.clicked ? "clicked" : ""}
+                    onclick={setClicked}>
+                </button>
+            )
+        }
+
+        const view1 =
+            <div>
+                {items.map(x => <><ItemComponent item={x} /></>)}
+            </div>
+
+        render(document.body, [view1], [])
+
+        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
+        btn.click()
+
+        requestAnimationFrame(() => {
+            expect(btn.className).toBe("clicked")
+            expect(btn.id).toBe("item-1")
+
+            const view2 =
+                <div>
+                    {items.reverse().map(x => <><ItemComponent item={x} /></>)}
+                </div>
+
+            render(document.body, [view2], [view1])
+
+            btn = (view2.domRef as HTMLDivElement).querySelector('button')!
+            expect(btn.className).toBe("clicked")
+            expect(btn.id).toBe("item-5")
+
+            // The last element should've been updated
+            btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
+            expect(btn.className).toBe("")
+            expect(btn.id).toBe("item-1")
+            done()
+        })
+    })
+
+
+    it('retains view state when component children are reordered with keys', (done) => {
+
+        type Item = {
+            id: number
+        }
+        const items = [
+            { id: 1 },
+            { id: 2 },
+            { id: 3 },
+            { id: 4 },
+            { id: 5 },
+        ] as Item[]
+
+        type State = { clicked: boolean }
+        type Props = { key: string; item: Item }
+
+        const ItemComponent = (props: Props) => {
+            const [state, evolve] = myra.useState<State>({ clicked: false })
+
+            const setClicked = () => evolve({ clicked: true })
+
+            return (
+                <>
+                    <button id={`item-${props.item.id}`}
+                        class={state.clicked ? "clicked" : ""}
+                        onclick={setClicked}>
+                    </button>
+                </>
+            )
+        }
+
+        const view1 =
+            <div>
+                {items.map(x => <ItemComponent key={x.id.toString()} item={x} />)}
+            </div>
+
+        render(document.body, [view1], [])
+
+        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
+        btn.click()
+
+        requestAnimationFrame(() => {
+            expect(btn.className).toBe("clicked")
+            expect(btn.id).toBe("item-1")
+
+            const view2 =
+                <div>
+                    {items.reverse().map(x => <ItemComponent key={x.id.toString()} item={x} />)}
+                </div>
+
+            render(document.body, [view2], [view1])
+
+            btn = (view2.domRef as HTMLDivElement).querySelector('button')!
+            expect(btn.className).toBe("")
+            expect(btn.id).toBe("item-5")
+
+            // The last element should've been updated
+            btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
+            expect(btn.className).toBe("clicked")
+            expect(btn.id).toBe("item-1")
+
+            done()
+        })
+    })
+
+    it('does not retain view state when component children reordered without keys', (done) => {
+
+        type Item = {
+            id: number
+        }
+        const items = [
+            { id: 1 },
+            { id: 2 },
+            { id: 3 },
+            { id: 4 },
+            { id: 5 },
+        ] as Item[]
+
+        type State = { clicked: boolean }
+        type Props = { item: Item }
+
+        const ItemComponent = (props: Props) => {
+            const [state, evolve] = myra.useState<State>({ clicked: false })
+
+            const setClicked = () => evolve({ clicked: true })
+
+            return (
+                <>
+                    <button id={`item-${props.item.id}`}
+                        class={state.clicked ? "clicked" : ""}
+                        onclick={setClicked}>
+                    </button>
+                </>
+            )
+        }
+
+        const view1 =
+            <div>
+                {items.map(x => <ItemComponent item={x} />)}
+            </div>
+
+        render(document.body, [view1], [])
+
+        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
+        btn.click()
+
+        requestAnimationFrame(() => {
+            expect(btn.className).toBe("clicked")
+            expect(btn.id).toBe("item-1")
+
+            const view2 =
+                <div>
+                    {items.reverse().map(x => <ItemComponent item={x} />)}
+                </div>
+
+            render(document.body, [view2], [view1])
+
+            btn = (view2.domRef as HTMLDivElement).querySelector('button')!
+            expect(btn.className).toBe("clicked")
+            expect(btn.id).toBe("item-5")
+
+            // The last element should've been updated
+            btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
+            expect(btn.className).toBe("")
+            expect(btn.id).toBe("item-1")
+            done()
+        })
+    })
+
 })
