@@ -9,33 +9,6 @@ import {
 } from './contract'
 import { Fragment } from './fragment'
 
-function flattenChildren(children: MyraNode[]) {
-    const flattenedChildren = [] as Array<VNode | TextNode>
-
-    for (const child of children) {
-        if (child === null || child === undefined || typeof child === 'boolean') {
-            flattenedChildren.push({ _: VNodeType.Nothing })
-        }
-        else if (Array.isArray(child)) {
-            for (const c of flattenChildren(child)) {
-                flattenedChildren.push(c)
-            }
-        }
-        else if ((child as VNode)._ === undefined) {
-            // Any node which is not a vNode will be converted to a TextVNode
-            flattenedChildren.push({
-                _: VNodeType.Text,
-                value: child as any as string
-            } as TextVNode)
-        }
-        else {
-            flattenedChildren.push(child)
-        }
-    }
-
-    return flattenedChildren as VNode[]
-}
-
 /**
  * Creates a JSX.Element/VNode from a JSX tag.
  */
@@ -80,4 +53,31 @@ export function h<TProps>(
         vNode
     }
     return vNode
+}
+
+function flattenChildren(children: MyraNode[]) {
+    const flattenedChildren = [] as Array<VNode | TextNode>
+
+    for (const child of children) {
+        if (child === null || child === undefined || typeof child === 'boolean') {
+            flattenedChildren.push({ _: VNodeType.Nothing })
+        }
+        else if (Array.isArray(child)) {
+            for (const c of flattenChildren(child)) {
+                flattenedChildren.push(c)
+            }
+        }
+        else if ((child as VNode)._ === undefined) {
+            // Any node which is not a vNode will be converted to a TextVNode
+            flattenedChildren.push({
+                _: VNodeType.Text,
+                value: child as any as string
+            } as TextVNode)
+        }
+        else {
+            flattenedChildren.push(child)
+        }
+    }
+
+    return flattenedChildren as VNode[]
 }
