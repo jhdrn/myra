@@ -1,21 +1,5 @@
 import { ComponentFactory, ComponentProps, JSXElementFactory, VNodeType } from "./contract"
 
-function shallowCompareProps<TProps extends ComponentProps & Record<string, any>>(newProps: TProps, oldProps: TProps): boolean {
-    const newPropsKeys = Object.keys(newProps)
-    if (newPropsKeys.length !== Object.keys(oldProps).length) {
-        return false
-    }
-    for (const k of newPropsKeys) {
-        if (k === 'children') {
-            continue
-        }
-        if (newProps[k] !== oldProps[k]) {
-            return false
-        }
-    }
-    return true
-}
-
 /**
  * Memoizes a component view, preventing unnecessary renders.
  * 
@@ -36,4 +20,27 @@ export function memo<TProps>(factory: ComponentFactory<TProps & ComponentProps>,
             props
         }
     }
+}
+
+/**
+ * Default compare implementation that performs a shallow comparison of props.
+ * 
+ * @param newProps 
+ * @param oldProps 
+ * @returns true if no changes are found
+ */
+function shallowCompareProps<TProps extends ComponentProps & Record<string, any>>(newProps: TProps, oldProps: TProps): boolean {
+    const newPropsKeys = Object.keys(newProps)
+    if (newPropsKeys.length !== Object.keys(oldProps).length) {
+        return false
+    }
+    for (const k of newPropsKeys) {
+        if (k === 'children') {
+            continue
+        }
+        if (newProps[k] !== oldProps[k]) {
+            return false
+        }
+    }
+    return true
 }
