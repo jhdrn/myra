@@ -27,7 +27,7 @@ describe('render', () => {
         done()
     })
 
-    it('creates and returns a "nothing" comment node from a nothing virtual node', (done) => {
+    it('renders a "nothing" comment node from a virtual node', (done) => {
         const view = <nothing />
 
         render(document.body, [view], [])
@@ -38,7 +38,224 @@ describe('render', () => {
         done()
     })
 
-    it('mounts a component from a component virtual node', (done) => {
+    it(`replaces a nothing node with a text node`, (done) => {
+
+        const view1 = <div><nothing /></div>
+        render(document.body, [view1], [])
+
+        expect(document.body.firstChild?.firstChild?.nodeType).toBe(Node.COMMENT_NODE)
+        expect(document.body.firstChild?.firstChild?.nodeValue).toBe('Nothing')
+
+        render(document.body, [<div>text</div>], [view1])
+        expect(document.body.firstChild?.childNodes.length).toBe(1)
+        expect(document.body.firstChild?.firstChild?.textContent).toEqual('text')
+
+        done()
+    })
+
+    it(`replaces a nothing node with an element node`, (done) => {
+
+        const view1 = <div><nothing /></div>
+        render(document.body, [view1], [])
+
+        expect(document.body.firstChild?.firstChild?.nodeType).toBe(Node.COMMENT_NODE)
+        expect(document.body.firstChild?.firstChild?.nodeValue).toBe('Nothing')
+
+        render(document.body, [<div><span /></div>], [view1])
+        expect(document.body.firstChild?.childNodes.length).toBe(1)
+        expect((document.body.firstChild?.firstChild as HTMLSpanElement).tagName).toEqual('SPAN')
+
+        done()
+    })
+
+    it(`replaces a nothing node with a fragment node`, (done) => {
+
+        const view1 = <div><nothing /></div>
+        render(document.body, [view1], [])
+
+        expect(document.body.firstChild?.firstChild?.nodeType).toBe(Node.COMMENT_NODE)
+        expect(document.body.firstChild?.firstChild?.nodeValue).toBe('Nothing')
+
+        render(document.body, [<div><><span /></></div>], [view1])
+        expect(document.body.firstChild?.childNodes.length).toBe(1)
+        expect((document.body.firstChild?.firstChild as HTMLSpanElement).tagName).toEqual('SPAN')
+
+        done()
+    })
+
+    it(`replaces a nothing node with a component node`, (done) => {
+
+        const view1 = <nothing />
+
+        const Component = () => {
+            return <div id="component-id" />
+        }
+        render(document.body, [view1], [])
+
+        expect(document.body.firstChild?.textContent).toEqual('Nothing')
+
+        const view2 = <Component />
+
+        render(document.body, [view2], [view1])
+
+        expect(document.body.childNodes.length).toBe(1)
+        expect((document.body.firstChild as Element).id).toEqual('component-id')
+        done()
+    })
+
+    it('renders an element node from a virtual node', (done) => {
+        const view = <div></div>
+
+        render(document.body, [view], [])
+        const node = view.domRef as HTMLDivElement
+        expect(node.nodeType).toBe(Node.ELEMENT_NODE)
+        expect(node.tagName).toBe('DIV')
+
+        done()
+    })
+
+
+    it(`replaces an element node with a text node`, (done) => {
+
+        const view1 = <div><span /></div>
+        render(document.body, [view1], [])
+
+        expect((document.body.firstChild?.firstChild as HTMLDivElement).tagName).toEqual('SPAN')
+
+        render(document.body, [<div>text</div>], [view1])
+        expect(document.body.firstChild?.childNodes.length).toBe(1)
+        expect(document.body.firstChild?.firstChild?.textContent).toEqual('text')
+
+        done()
+    })
+
+    it(`replaces an element node with a nothing node`, (done) => {
+
+        const view1 = <div></div>
+        render(document.body, [view1], [])
+
+        expect((document.body.firstChild as HTMLDivElement).tagName).toEqual('DIV')
+
+        render(document.body, [<nothing />], [view1])
+
+        expect(document.body.childNodes.length).toBe(1)
+        expect(document.body.firstChild?.nodeType).toBe(Node.COMMENT_NODE)
+        expect(document.body.firstChild?.nodeValue).toBe('Nothing')
+
+        done()
+    })
+
+    it(`replaces an element node with a fragment node`, (done) => {
+
+        const view1 = <div></div>
+        render(document.body, [view1], [])
+
+        expect((document.body.firstChild as HTMLDivElement).tagName).toEqual('DIV')
+
+        render(document.body, [<><span /></>], [view1])
+        expect(document.body.childNodes.length).toBe(1)
+        expect((document.body.firstChild as HTMLSpanElement).tagName).toEqual('SPAN')
+
+        done()
+    })
+
+    it(`replaces an element node with a component node`, (done) => {
+
+        const view1 = <div></div>
+
+        const Component = () => {
+            return <div id="component-id" />
+        }
+        render(document.body, [view1], [])
+
+        expect((document.body.firstChild as HTMLDivElement).tagName).toEqual('DIV')
+
+        const view2 = <Component />
+
+        render(document.body, [view2], [view1])
+        expect(document.body.childNodes.length).toBe(1)
+
+        expect((document.body.firstChild as Element).id).toEqual('component-id')
+        done()
+    })
+
+    it('renders a text node from a virtual node', (done) => {
+        const view = <div>text</div>
+
+        render(document.body, [view], [])
+        const parentNode = view.domRef as HTMLDivElement
+        expect(parentNode.childNodes.length).toBe(1)
+        expect(parentNode.childNodes[0].nodeType).toBe(Node.TEXT_NODE)
+        expect(parentNode.childNodes[0].textContent).toBe('text')
+
+        done()
+    })
+
+    it(`replaces a text node with a nothing node`, (done) => {
+
+        const view1 = <div>text</div>
+        render(document.body, [view1], [])
+
+        expect(document.body.firstChild?.firstChild?.textContent).toEqual('text')
+
+        render(document.body, [<div><nothing /></div>], [view1])
+
+        expect(document.body.firstChild?.childNodes.length).toBe(1)
+        expect(document.body.firstChild?.firstChild?.nodeType).toBe(Node.COMMENT_NODE)
+        expect(document.body.firstChild?.firstChild?.nodeValue).toBe('Nothing')
+
+        done()
+    })
+
+    it(`replaces a text node with an element node`, (done) => {
+
+        const view1 = <div>text</div>
+        render(document.body, [view1], [])
+
+        expect(document.body.firstChild?.firstChild?.textContent).toEqual('text')
+
+        render(document.body, [<div><span /></div>], [view1])
+        expect(document.body.firstChild?.childNodes.length).toBe(1)
+        expect((document.body.firstChild?.firstChild as HTMLSpanElement).tagName).toEqual('SPAN')
+
+        done()
+    })
+
+    it(`replaces a text node with a fragment node`, (done) => {
+
+        const view1 = <div>text</div>
+        render(document.body, [view1], [])
+
+        expect(document.body.firstChild?.firstChild?.textContent).toEqual('text')
+
+        render(document.body, [<div><><span /></></div>], [view1])
+        expect(document.body.firstChild?.childNodes.length).toBe(1)
+        expect((document.body.firstChild?.firstChild as HTMLSpanElement).tagName).toEqual('SPAN')
+
+        done()
+    })
+
+    it(`replaces a text node with a component node`, (done) => {
+
+        const view1 = <div>text</div>
+
+        const Component = () => {
+            return <div id="component-id" />
+        }
+        render(document.body, [view1], [])
+
+        expect(document.body.firstChild?.firstChild?.textContent).toEqual('text')
+
+        const view2 = <div><Component /></div>
+
+        render(document.body, [view2], [view1])
+        expect(document.body.childNodes.length).toBe(1)
+
+        expect((document.body.firstChild?.firstChild as Element).id).toEqual('component-id')
+        done()
+    })
+
+    it('renders a component from a component virtual node', (done) => {
         const TestComponent = () => <div id="testComponent"></div>
 
         const view = <div><TestComponent /></div>
@@ -50,7 +267,7 @@ describe('render', () => {
         done()
     })
 
-    it(`render "unmounts" a component when it's replaced`, (done) => {
+    it(`replaces a component node with a nothing node`, (done) => {
 
         const Component = () => {
             return <div id="component-id" />
@@ -61,13 +278,65 @@ describe('render', () => {
         expect((document.body.firstChild as Element).id).toEqual('component-id')
 
         render(document.body, [<nothing />], [componentInstance])
+        expect(document.body.childNodes.length).toBe(1)
         expect(document.body.firstChild?.textContent).toEqual('Nothing')
 
         done()
 
     })
 
-    it(`render "unmounts" a component when it's parent is replaced`, (done) => {
+    it(`replaces a component node with a text node`, (done) => {
+
+        const Component = () => {
+            return <div id="component-id" />
+        }
+        const view1 = <div><Component /></div>
+        render(document.body, [view1], [])
+
+        expect((document.body.firstChild?.firstChild as Element).id).toEqual('component-id')
+
+        render(document.body, [<div>text</div>], [view1])
+        expect(document.body.firstChild?.childNodes.length).toBe(1)
+        expect(document.body.firstChild?.firstChild?.textContent).toEqual('text')
+
+        done()
+    })
+
+    it(`replaces a component node with an element node`, (done) => {
+
+        const Component = () => {
+            return <div id="component-id" />
+        }
+        const view1 = <div><Component /></div>
+        render(document.body, [view1], [])
+
+        expect((document.body.firstChild?.firstChild as Element).id).toEqual('component-id')
+
+        render(document.body, [<div><span /></div>], [view1])
+        expect(document.body.firstChild?.childNodes.length).toBe(1)
+        expect((document.body.firstChild?.firstChild as HTMLSpanElement).tagName).toEqual('SPAN')
+
+        done()
+    })
+
+    it(`replaces a component node with a fragment node`, (done) => {
+
+        const Component = () => {
+            return <div id="component-id" />
+        }
+        const view1 = <div><Component /></div>
+        render(document.body, [view1], [])
+
+        expect((document.body.firstChild?.firstChild as Element).id).toEqual('component-id')
+
+        render(document.body, [<div><><span /></></div>], [view1])
+        expect(document.body.firstChild?.childNodes.length).toBe(1)
+        expect((document.body.firstChild?.firstChild as HTMLSpanElement).tagName).toEqual('SPAN')
+
+        done()
+    })
+
+    it(`removes a component when it's parent is replaced`, (done) => {
 
         const Component = () => {
             return <div id="component-id" />
