@@ -28,50 +28,6 @@ export function getRenderingContext() {
 }
 
 /**
- * Triggers all invokeable effects.
- */
-function triggerEffects(newVNode: ComponentVNode<any>, parentElement: Element, isSvg: boolean, sync: boolean) {
-    const effects = newVNode.effects
-    if (effects !== undefined) {
-        for (const i in effects) {
-            const t = effects[i]
-            if (t.invoke) {
-                if (t.sync && sync) {
-                    attemptEffectCleanup(t)
-                    t.cleanup = t.effect()
-                    t.invoke = false
-                } else if (!sync) {
-                    setTimeout(() => {
-                        try {
-                            attemptEffectCleanup(t)
-
-                            t.cleanup = t.effect()
-                        } catch (err) {
-                            tryHandleComponentError(parentElement, newVNode, isSvg, err)
-                        }
-                    }, 0)
-                    t.invoke = false
-                }
-            }
-        }
-    }
-}
-
-/**
- * Calls the cleanup function if it's set and then removes it from the wrapper
- */
-function attemptEffectCleanup(t: EffectWrapper) {
-    if (t.cleanup !== undefined) {
-        try {
-            t.cleanup()
-        } catch (err) {
-            console.error('An error occured during effect cleanup: ' + err)
-        }
-        t.cleanup = undefined
-    }
-}
-
-/**
  * Calls the error handler (if any) and renders the returned view.
  */
 export function tryHandleComponentError(parentElement: Element, vNode: ComponentVNode<any>, isSvg: boolean, err: Error) {
@@ -95,148 +51,6 @@ export function tryHandleComponentError(parentElement: Element, vNode: Component
         throw err
     }
 }
-
-/** 
- * Traverses the virtual node hierarchy and unmounts any components in the 
- * hierarchy.
- */
-function cleanupComponentsRec(vNode: VNode | undefined) {
-    if (vNode === undefined) {
-        return
-    }
-
-    if (vNode._ === VNodeType.Component) {
-        // Attempt to call any "cleanup" function for all effects before unmount.
-        const effects = vNode.effects
-        if (effects !== undefined) {
-            for (const i in effects) {
-                attemptEffectCleanup(effects[i])
-            }
-        }
-        cleanupComponentsRec(vNode.rendition!)
-    }
-    else if (vNode._ === VNodeType.Element || vNode._ === VNodeType.Fragment) {
-        for (const c of vNode.props.children) {
-            cleanupComponentsRec(c)
-        }
-    }
-}
-
-/**
- * Recursively traverses the vNode tree, finds all fragment child nodes and 
- * reuturns them as a flattened array.
- */
-function getFragmentChildNodesRec(parentDomElement: Element, fragmentNode: FragmentVNode | ComponentVNode<any>): VNode[] {
-    const nodes: VNode[] = []
-    for (const fragmentChild of fragmentNode.props.children) {
-        if (fragmentChild._ === VNodeType.Fragment) {
-            nodes.push(...getFragmentChildNodesRec(parentDomElement, fragmentChild))
-        }
-        else if (fragmentChild._ === VNodeType.Component && fragmentChild.rendition?._ === VNodeType.Fragment) {
-            nodes.push(...getFragmentChildNodesRec(parentDomElement, fragmentChild.rendition))
-        }
-        nodes.push(fragmentChild)
-    }
-    return nodes
-}
-
-
-/** 
- * Sets an attribute or event listener on an Element. 
- */
-function setElementAttribute(el: Element, attributeName: string, attributeValue: any) {
-    // The the "value" attribute shoud be set explicitly (and only if it has 
-    // changed) to prevent jumping cursors in some browsers (Safari)
-    if (attributeName === 'value' && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT')) {
-        if ((el as any).value !== attributeValue) {
-            (el as any).value = attributeValue
-        }
-    }
-    else if (attributeName in el) {
-        try {
-            (el as any)[attributeName] = attributeValue
-            return
-        }
-        catch (_) {
-            /** Ignore and use setAttribute instead  */
-        }
-    }
-
-    const attrValueType = typeof attributeValue
-    if (attrValueType !== 'function' && attrValueType !== 'object') {
-        el.setAttribute(attributeName, attributeValue)
-    }
-}
-
-/** 
- * Removes an attribute or event listener from an HTMLElement. 
- */
-function removeElementAttribute(a: string, el: Element) {
-    if (a.indexOf('on') === 0) {
-        (el as any)[a] = null
-    }
-    else if (el.hasAttribute(a)) {
-        el.removeAttribute(a)
-    }
-}
-
-
-/**
- * Sets/removes attributes on an DOM element node
- */
-function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, existingDomNode: Element) {
-    const newProps = newVNode.props
-    const oldProps = (oldVNode as ElementVNode<any>).props
-    // remove any attributes that was added with the old virtual node but does 
-    // not exist in the new virtual node or should be removed anyways (event listeners).
-    for (const attributeName in oldProps) {
-        if (attributeName === 'children' || attributeName === 'key' || attributeName === 'ref') {
-            continue
-        }
-        if ((newProps as any)[attributeName] === undefined || attributeName.indexOf('on') === 0) {
-            removeElementAttribute(attributeName, existingDomNode)
-        }
-    }
-
-    let attributeValue: any
-    let oldAttributeValue: any
-    let hasAttr: boolean
-
-    // update any attribute where the attribute value has changed
-    for (const name in newProps) {
-        if (name === 'children' || name === 'key') {
-            continue
-        } else if (name === 'ref') {
-            (newProps as any)[name].current = existingDomNode
-            continue
-        }
-        attributeValue = (newProps as any)[name]
-        hasAttr = (existingDomNode).hasAttribute(name)
-
-        // We need to check the actual DOM value of the "value" property
-        // otherwise it may not be updated if the new prop value equals the old 
-        // prop value
-        if (name === 'value' && name in existingDomNode) {
-            oldAttributeValue = (existingDomNode as HTMLInputElement).value
-        } else {
-            oldAttributeValue = (oldProps as any)[name]
-        }
-
-        if ((name.indexOf('on') === 0 || attributeValue !== oldAttributeValue ||
-            !hasAttr) && attributeValue !== undefined
-        ) {
-            setElementAttribute(
-                existingDomNode,
-                name,
-                attributeValue
-            )
-        }
-        else if (attributeValue === undefined && hasAttr) {
-            (existingDomNode as Element).removeAttribute(name)
-        }
-    }
-}
-
 
 export function render(parentElement: Element, newChildVNodes: VNode[], oldChildVNodes: VNode[], isSvg = false) {
 
@@ -789,6 +603,194 @@ function tryCleanupEventListeners(oldChildVNode: ElementVNode<any>) {
     }
 }
 
+/** 
+ * Traverses the virtual node hierarchy and unmounts any components in the 
+ * hierarchy.
+ */
+function cleanupComponentsRec(vNode: VNode | undefined) {
+    if (vNode === undefined) {
+        return
+    }
+
+    if (vNode._ === VNodeType.Component) {
+        // Attempt to call any "cleanup" function for all effects before unmount.
+        const effects = vNode.effects
+        if (effects !== undefined) {
+            for (const i in effects) {
+                attemptEffectCleanup(effects[i])
+            }
+        }
+        cleanupComponentsRec(vNode.rendition!)
+    }
+    else if (vNode._ === VNodeType.Element || vNode._ === VNodeType.Fragment) {
+        for (const c of vNode.props.children) {
+            cleanupComponentsRec(c)
+        }
+    }
+}
+
+/**
+ * Recursively traverses the vNode tree, finds all fragment child nodes and 
+ * reuturns them as a flattened array.
+ */
+function getFragmentChildNodesRec(parentDomElement: Element, fragmentNode: FragmentVNode | ComponentVNode<any>): VNode[] {
+    const nodes: VNode[] = []
+    for (const fragmentChild of fragmentNode.props.children) {
+        if (fragmentChild._ === VNodeType.Fragment) {
+            nodes.push(...getFragmentChildNodesRec(parentDomElement, fragmentChild))
+        }
+        else if (fragmentChild._ === VNodeType.Component && fragmentChild.rendition?._ === VNodeType.Fragment) {
+            nodes.push(...getFragmentChildNodesRec(parentDomElement, fragmentChild.rendition))
+        }
+        nodes.push(fragmentChild)
+    }
+    return nodes
+}
+
+/** 
+ * Sets an attribute or event listener on an Element. 
+ */
+function setElementAttribute(el: Element, attributeName: string, attributeValue: any) {
+    // The the "value" attribute shoud be set explicitly (and only if it has 
+    // changed) to prevent jumping cursors in some browsers (Safari)
+    if (attributeName === 'value' && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT')) {
+        if ((el as any).value !== attributeValue) {
+            (el as any).value = attributeValue
+        }
+    }
+    else if (attributeName in el) {
+        try {
+            (el as any)[attributeName] = attributeValue
+            return
+        }
+        catch (_) {
+            /** Ignore and use setAttribute instead  */
+        }
+    }
+
+    const attrValueType = typeof attributeValue
+    if (attrValueType !== 'function' && attrValueType !== 'object') {
+        el.setAttribute(attributeName, attributeValue)
+    }
+}
+
+/** 
+ * Removes an attribute or event listener from an HTMLElement. 
+ */
+function removeElementAttribute(a: string, el: Element) {
+    if (a.indexOf('on') === 0) {
+        (el as any)[a] = null
+    }
+    else if (el.hasAttribute(a)) {
+        el.removeAttribute(a)
+    }
+}
+
+
+/**
+ * Sets/removes attributes on an DOM element node
+ */
+function updateElementAttributes(newVNode: ElementVNode<any>, oldVNode: VNode, existingDomNode: Element) {
+    const newProps = newVNode.props
+    const oldProps = (oldVNode as ElementVNode<any>).props
+    // remove any attributes that was added with the old virtual node but does 
+    // not exist in the new virtual node or should be removed anyways (event listeners).
+    for (const attributeName in oldProps) {
+        if (attributeName === 'children' || attributeName === 'key' || attributeName === 'ref') {
+            continue
+        }
+        if ((newProps as any)[attributeName] === undefined || attributeName.indexOf('on') === 0) {
+            removeElementAttribute(attributeName, existingDomNode)
+        }
+    }
+
+    let attributeValue: any
+    let oldAttributeValue: any
+    let hasAttr: boolean
+
+    // update any attribute where the attribute value has changed
+    for (const name in newProps) {
+        if (name === 'children' || name === 'key') {
+            continue
+        } else if (name === 'ref') {
+            (newProps as any)[name].current = existingDomNode
+            continue
+        }
+        attributeValue = (newProps as any)[name]
+        hasAttr = (existingDomNode).hasAttribute(name)
+
+        // We need to check the actual DOM value of the "value" property
+        // otherwise it may not be updated if the new prop value equals the old 
+        // prop value
+        if (name === 'value' && name in existingDomNode) {
+            oldAttributeValue = (existingDomNode as HTMLInputElement).value
+        } else {
+            oldAttributeValue = (oldProps as any)[name]
+        }
+
+        if ((name.indexOf('on') === 0 || attributeValue !== oldAttributeValue ||
+            !hasAttr) && attributeValue !== undefined
+        ) {
+            setElementAttribute(
+                existingDomNode,
+                name,
+                attributeValue
+            )
+        }
+        else if (attributeValue === undefined && hasAttr) {
+            (existingDomNode as Element).removeAttribute(name)
+        }
+    }
+}
+
+/**
+ * Triggers all invokeable effects.
+ */
+function triggerEffects(newVNode: ComponentVNode<any>, parentElement: Element, isSvg: boolean, sync: boolean) {
+    const effects = newVNode.effects
+    if (effects !== undefined) {
+        for (const i in effects) {
+            const t = effects[i]
+            if (t.invoke) {
+                if (t.sync && sync) {
+                    attemptEffectCleanup(t)
+                    t.cleanup = t.effect()
+                    t.invoke = false
+                } else if (!sync) {
+                    setTimeout(() => {
+                        try {
+                            attemptEffectCleanup(t)
+
+                            t.cleanup = t.effect()
+                        } catch (err) {
+                            tryHandleComponentError(parentElement, newVNode, isSvg, err)
+                        }
+                    }, 0)
+                    t.invoke = false
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Calls the cleanup function if it's set and then removes it from the wrapper
+ */
+function attemptEffectCleanup(t: EffectWrapper) {
+    if (t.cleanup !== undefined) {
+        try {
+            t.cleanup()
+        } catch (err) {
+            console.error('An error occured during effect cleanup: ' + err)
+        }
+        t.cleanup = undefined
+    }
+}
+
+/**
+ * Creates a DOM element, set it's attributes from vNode.props, and sets the
+ * new Element to vNode.domRef.
+ */
 function createAndSetElement(vNode: ElementVNode<any>, isSvg: boolean): Element {
 
     const attributes = vNode.props
@@ -823,6 +825,29 @@ function createAndSetElement(vNode: ElementVNode<any>, isSvg: boolean): Element 
     return el
 }
 
+/**
+ * Creates a comment DOM node and sets it to vNode.domRef.
+ */
+function createAndSetNothingNode(vNode: NothingVNode): Node {
+    const el = document.createComment('Nothing')
+    vNode.domRef = el
+    return el
+}
+
+/**
+ * Creates a text DOM node with textContent set to vNode.text and sets it to 
+ * vNode.domRef.
+ */
+function createAndSetTextNode(vNode: TextVNode): Node {
+    const el = document.createTextNode(vNode.text)
+    vNode.domRef = el
+    return el
+}
+
+function createDocumentFragmentNode(): DocumentFragment {
+    return document.createDocumentFragment()
+}
+
 function appendElementChild(parentElement: Element, newNode: Node) {
     parentElement.appendChild(newNode)
 }
@@ -837,20 +862,4 @@ function replaceElementChild(parentElement: Element, newChild: Node, oldChild: N
 
 function removeElementChild(parentElement: Element, oldDOMNode: Node) {
     parentElement.removeChild(oldDOMNode)
-}
-
-function createAndSetNothingNode(vNode: NothingVNode): Node {
-    const el = document.createComment('Nothing')
-    vNode.domRef = el
-    return el
-}
-
-function createAndSetTextNode(vNode: TextVNode): Node {
-    const el = document.createTextNode(vNode.text)
-    vNode.domRef = el
-    return el
-}
-
-function createDocumentFragmentNode(): DocumentFragment {
-    return document.createDocumentFragment()
 }
