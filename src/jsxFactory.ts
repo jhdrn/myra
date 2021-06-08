@@ -71,7 +71,7 @@ function flattenChildren(children: MyraNode[]) {
             // Any node which is not a vNode will be converted to a TextVNode
             flattenedChildren.push({
                 _: VNodeType.Text,
-                value: child as any as string
+                text: child as any as string
             } as TextVNode)
         }
         else {

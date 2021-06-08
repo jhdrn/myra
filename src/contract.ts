@@ -313,7 +313,7 @@ export interface NothingVNode extends VNodeBase {
  */
 export interface TextVNode extends VNodeBase {
     readonly _: VNodeType.Text
-    readonly value: string
+    readonly text: string
 }
 
 /**

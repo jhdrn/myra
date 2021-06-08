@@ -54,7 +54,7 @@ describe('fragment', () => {
 
         const view1: TextVNode = {
             _: VNodeType.Text,
-            value: 'text'
+            text: 'text'
         }
 
         render(fragmentContainer, [view1], [])

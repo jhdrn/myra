@@ -9,7 +9,7 @@ describe('jsxFactory', () => {
 
         expect(view.props.children[0]).toEqual({
             _: 1,
-            value: 'some text'
+            text: 'some text'
         } as TextVNode)
     })
 
@@ -152,7 +152,7 @@ describe('jsxFactory', () => {
                     childVNode,
                     {
                         _: 1,
-                        value: 'abc'
+                        text: 'abc'
                     } as TextVNode
                 ]
             }
