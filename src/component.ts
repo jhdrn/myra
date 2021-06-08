@@ -228,6 +228,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                                 parentElement,
                                 hookIndex: 0
                             }
+
                             let newView = newChildVNode.view(newChildVNode.props) as VNode
 
                             if (newView._ === VNodeType.Memo) {
@@ -287,9 +288,6 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                         // Render the element's children
                         render(reuseNode as Element, newChildVNode.props.children, oldChildVNode.props.children, isSvg)
                     }
-                    else if (oldChildVNode._ === VNodeType.Fragment) {
-                        replaceFragmentWithElementNode(parentElement, newChildVNode, oldChildVNode, isSvg)
-                    }
                     else if (oldChildVNode._ === VNodeType.Component) {
 
                         cleanupComponentsRec(oldChildVNode)
@@ -298,17 +296,17 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                             replaceFragmentWithElementNode(parentElement, newChildVNode, oldChildVNode.rendition as FragmentVNode, isSvg)
                         }
                         else {
-                            replaceElementChild(parentElement, newChildVNode.domRef, oldChildVNode.domRef!)
-
+                            replaceNode(parentElement, newChildVNode, oldChildVNode, oldChildVNode.domRef!, isSvg)
                             render(newChildVNode.domRef, newChildVNode.props.children, [], isSvg)
                         }
+                    }
+                    else if (oldChildVNode._ === VNodeType.Fragment) {
+                        replaceFragmentWithElementNode(parentElement, newChildVNode, oldChildVNode, isSvg)
                     }
                     // Replace the old DOM node with a new element and render it's
                     // children
                     else {
-
                         replaceNode(parentElement, newChildVNode, oldChildVNode, oldChildVNode.domRef, isSvg)
-
                         render(newChildVNode.domRef, newChildVNode.props.children, [], isSvg)
                     }
                     break
@@ -353,9 +351,6 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                     else if (oldChildVNode._ === VNodeType.Nothing) {
                         newChildVNode.domRef = oldChildVNode.domRef
                     }
-                    else if (oldChildVNode._ === VNodeType.Fragment) {
-                        replaceFragmentWithNothingNode(parentElement, newChildVNode, oldChildVNode)
-                    }
                     else if (oldChildVNode._ === VNodeType.Component) {
 
                         cleanupComponentsRec(oldChildVNode)
@@ -365,6 +360,9 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                         } else {
                             replaceNode(parentElement, newChildVNode, oldChildVNode, oldChildVNode.domRef!)
                         }
+                    }
+                    else if (oldChildVNode._ === VNodeType.Fragment) {
+                        replaceFragmentWithNothingNode(parentElement, newChildVNode, oldChildVNode)
                     }
                     else {
                         replaceNode(parentElement, newChildVNode, oldChildVNode, oldChildVNode.domRef!)
