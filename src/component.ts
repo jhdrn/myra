@@ -212,7 +212,12 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                             newChildVNode.link.vNode = newChildVNode
                         }
                         else if (oldChildVNode._ === VNodeType.Fragment) {
+                            // TODO: Needs some optimization, reuse nodes!
                             removeFragmentDOMNodes(parentElement, oldChildVNode)
+                        }
+                        else {
+                            // TODO: Needs some optimization, reuse nodes!
+                            removeElementChild(parentElement, oldChildVNode.domRef)
                         }
                     }
 
