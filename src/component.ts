@@ -270,7 +270,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                 let oldDOMNode = oldChildVNode.domRef!
                 if (oldChildVNode._ === VNodeType.Fragment || oldChildVNode._ === VNodeType.Component && oldChildVNode.rendition!._ === VNodeType.Fragment) {
                     const fragmentNodes = getFragmentChildDomNodesRec(oldChildVNode._ === VNodeType.Component ? oldChildVNode.rendition as FragmentVNode : oldChildVNode, parentElement)
-                    const documentFragment = document.createDocumentFragment()
+                    const documentFragment = createDocumentFragmentNode()
                     documentFragment.append(...fragmentNodes)
 
                     oldDOMNode = documentFragment
@@ -287,12 +287,12 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                     const nodes = (oldDOMNode as DocumentFragment).childNodes
                     for (let i = 0; i < nodes.length; i++) {
                         const node = nodes.item(i)
-                        if (parentElement.contains(node)) {
+                        if (elementContainsNode(parentElement, node)) {
                             unkeyedNodes.push(node)
                         }
                     }
                 }
-                else if (parentElement.contains(oldDOMNode)) {
+                else if (elementContainsNode(parentElement, oldDOMNode)) {
                     unkeyedNodes.push(oldDOMNode)
                 }
             }
@@ -333,8 +333,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
 
             const newProps = (newChildVNode as ElementVNode<any>).props
             // Check if the new VNode is "keyed"
-            if (newProps !== undefined
-                && oldChildVNodes.length > 0) {
+            if (newProps !== undefined && oldChildVNodes.length > 0) {
 
                 const newChildVNodeKey: Key | undefined = newProps.key
 
@@ -365,11 +364,13 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                         // If there is no DOM node at the current index, 
                         // the matching DOM node should be appended.
                         if (domNodeAtIndex === null) {
-                            parentElement.appendChild(matchingChildDomNode)
+                            appendElementChild(parentElement, matchingChildDomNode)
                         }
                         // Move the node by replacing the node at the current index
-                        else if (parentElement.contains(matchingChildDomNode)) {
-                            parentElement.replaceChild(matchingChildDomNode, domNodeAtIndex)
+                        else if (elementContainsNode(parentElement, matchingChildDomNode)) {
+
+                            replaceElementChild(parentElement, matchingChildDomNode, domNodeAtIndex)
+
                             nextDomNode = matchingChildDomNode.nextSibling
                         }
                         else {
@@ -403,7 +404,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                                 //     oldNode = oldDOMNode as Element
                                 // }
                                 // else {
-                                parentElement.removeChild(oldDOMNode)
+                                removeElementChild(parentElement, oldDOMNode)
                                 // }
                             }
                         }
@@ -462,7 +463,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                     if (oldChildVNode === undefined) {
                         newChildVNode.domRef = createElement(newChildVNode.tagName, isSvg, newChildVNode.props)
 
-                        parentElement.appendChild(newChildVNode.domRef)
+                        appendElementChild(parentElement, newChildVNode.domRef)
 
                         render(newChildVNode.domRef, newChildVNode.props.children, [], isSvg)
                     }
@@ -498,7 +499,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                                 replaceDOMNode = oldDOMNode
                             }
                             else {
-                                parentElement.removeChild(oldDOMNode)
+                                removeElementChild(parentElement, oldDOMNode)
                             }
                         }
 
@@ -515,7 +516,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
 
                             newChildVNode.domRef = createElement(newChildVNode.tagName, isSvg, newChildVNode.props)
 
-                            parentElement.replaceChild(newChildVNode.domRef, replaceDOMNode!)
+                            replaceElementChild(parentElement, newChildVNode.domRef, replaceDOMNode!)
                         }
 
                         // Render the element's children
@@ -544,7 +545,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                                     replaceDOMNode = oldDOMNode
                                 }
                                 else {
-                                    parentElement.removeChild(oldDOMNode)
+                                    removeElementChild(parentElement, oldDOMNode)
                                 }
                             }
 
@@ -561,7 +562,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
 
                                 newChildVNode.domRef = createElement(newChildVNode.tagName, isSvg, newChildVNode.props)
 
-                                parentElement.replaceChild(newChildVNode.domRef, replaceDOMNode!)
+                                replaceElementChild(parentElement, newChildVNode.domRef, replaceDOMNode!)
                             }
 
                             // Render the element's children
@@ -569,7 +570,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                         }
                         else {
 
-                            parentElement.replaceChild(newChildVNode.domRef, oldChildVNode.domRef!)
+                            replaceElementChild(parentElement, newChildVNode.domRef, oldChildVNode.domRef!)
 
                             render(newChildVNode.domRef, newChildVNode.props.children, [], isSvg)
                         }
@@ -589,7 +590,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                             }
                         }
 
-                        parentElement.replaceChild(newChildVNode.domRef, oldChildVNode.domRef!)
+                        replaceElementChild(parentElement, newChildVNode.domRef, oldChildVNode.domRef!)
 
                         render(newChildVNode.domRef, newChildVNode.props.children, [], isSvg)
                     }
@@ -618,10 +619,10 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                             cleanupComponentsRec(oldChildVNode)
                         }
 
-                        const documentFragment = document.createDocumentFragment()
+                        const documentFragment = createDocumentFragmentNode()
                         render(documentFragment as any as Element, newChildVNode.props.children, [])
 
-                        parentElement.replaceChild(documentFragment, oldChildVNode.domRef)
+                        replaceElementChild(parentElement, documentFragment, oldChildVNode.domRef!)
                     }
 
                     break
@@ -633,7 +634,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                 case VNodeType.Nothing:
                     if (oldChildVNode === undefined) {
                         newChildVNode.domRef = createNothingNode()
-                        parentElement.appendChild(newChildVNode.domRef)
+                        appendElementChild(parentElement, newChildVNode.domRef)
                     }
                     // Reuse the old DOM node
                     else if (oldChildVNode._ === VNodeType.Nothing) {
@@ -658,7 +659,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                                 replaceDOMNode = oldDOMNode
                             }
                             else {
-                                parentElement.removeChild(oldDOMNode)
+                                removeElementChild(parentElement, oldDOMNode)
                             }
                         }
 
@@ -672,7 +673,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
 
                             newChildVNode.domRef = createNothingNode()
 
-                            parentElement.replaceChild(newChildVNode.domRef, replaceDOMNode!)
+                            replaceElementChild(parentElement, newChildVNode.domRef, replaceDOMNode!)
                         }
                     }
                     else if (oldChildVNode._ === VNodeType.Component) {
@@ -698,7 +699,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                                     replaceDOMNode = oldDOMNode
                                 }
                                 else {
-                                    parentElement.removeChild(oldDOMNode)
+                                    removeElementChild(parentElement, oldDOMNode)
                                 }
                             }
 
@@ -712,13 +713,13 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
 
                                 newChildVNode.domRef = createNothingNode()
 
-                                parentElement.replaceChild(newChildVNode.domRef, replaceDOMNode!)
+                                replaceElementChild(parentElement, newChildVNode.domRef, replaceDOMNode!)
                             }
                         } else {
 
                             newChildVNode.domRef = createNothingNode()
 
-                            parentElement.replaceChild(newChildVNode.domRef, oldChildVNode.domRef!)
+                            replaceElementChild(parentElement, newChildVNode.domRef, oldChildVNode.domRef!)
                         }
                     }
                     else {
@@ -734,14 +735,15 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                             }
                         }
 
-                        parentElement.replaceChild(newChildVNode.domRef, oldChildVNode.domRef!)
+                        replaceElementChild(parentElement, newChildVNode.domRef, oldChildVNode.domRef!)
                     }
                     break
 
                 case VNodeType.Text:
                     if (oldChildVNode === undefined) {
                         newChildVNode.domRef = createTextNode(newChildVNode.value)
-                        parentElement.appendChild(newChildVNode.domRef)
+
+                        appendElementChild(parentElement, newChildVNode.domRef)
                     }
                     // Reuse the old DOM node and update it's text content if 
                     // changed
@@ -775,7 +777,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                                     replaceDOMNode = oldDOMNode
                                 }
                                 else {
-                                    parentElement.removeChild(oldDOMNode)
+                                    removeElementChild(parentElement, oldDOMNode)
                                 }
                             }
 
@@ -790,13 +792,13 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
 
                                 newChildVNode.domRef = createTextNode(newChildVNode.value)
 
-                                parentElement.replaceChild(newChildVNode.domRef, replaceDOMNode!)
+                                replaceElementChild(parentElement, newChildVNode.domRef, replaceDOMNode!)
                             }
                         } else {
 
                             newChildVNode.domRef = createTextNode(newChildVNode.value)
 
-                            parentElement.replaceChild(newChildVNode.domRef, oldChildVNode.domRef!)
+                            replaceElementChild(parentElement, newChildVNode.domRef, oldChildVNode.domRef!)
                         }
                     }
                     else if (oldChildVNode._ === VNodeType.Fragment) {
@@ -817,7 +819,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                                 replaceDOMNode = oldDOMNode
                             }
                             else {
-                                parentElement.removeChild(oldDOMNode)
+                                removeElementChild(parentElement, oldDOMNode)
                             }
                         }
 
@@ -832,7 +834,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
 
                             newChildVNode.domRef = createTextNode(newChildVNode.value)
 
-                            parentElement.replaceChild(newChildVNode.domRef, replaceDOMNode!)
+                            replaceElementChild(parentElement, newChildVNode.domRef, replaceDOMNode!)
                         }
                     }
                     else {
@@ -848,7 +850,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                             }
                         }
 
-                        parentElement.replaceChild(newChildVNode.domRef, oldChildVNode.domRef!)
+                        replaceElementChild(parentElement, newChildVNode.domRef, oldChildVNode.domRef!)
                     }
                     break
             }
@@ -869,13 +871,13 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
 
                 let count = getFragmentChildDomNodesRec(oldChildVNode._ === VNodeType.Component ? oldChildVNode.rendition as FragmentVNode : oldChildVNode, parentElement).length
                 while (count > 0) {
-                    parentElement.removeChild(parentElement.lastChild!)
+                    removeElementChild(parentElement, parentElement.lastChild!)
                     count--
                 }
             } else {
                 const oldChildDomNode = oldChildVNode.domRef!
-                if (oldChildDomNode !== undefined && parentElement.contains(oldChildDomNode)) {
-                    parentElement.removeChild(oldChildDomNode)
+                if (oldChildDomNode !== undefined && elementContainsNode(parentElement, oldChildDomNode)) {
+                    removeElementChild(parentElement, oldChildDomNode)
                 }
             }
         }
@@ -909,10 +911,30 @@ function createElement(tagName: string, isSvg: boolean, attributes: GlobalAttrib
     return el
 }
 
+function appendElementChild(parentElement: Element, newNode: Node) {
+    parentElement.appendChild(newNode)
+}
+
+function elementContainsNode(parentElement: Element, node: Node) {
+    return parentElement.contains(node)
+}
+
+function replaceElementChild(parentElement: Element, newChild: Node, oldChild: Node) {
+    parentElement.replaceChild(newChild, oldChild)
+}
+
+function removeElementChild(parentElement: Element, oldDOMNode: Node) {
+    parentElement.removeChild(oldDOMNode)
+}
+
 function createNothingNode(): Node {
     return document.createComment('Nothing')
 }
 
 function createTextNode(text: string): Node {
     return document.createTextNode(text)
+}
+
+function createDocumentFragmentNode(): DocumentFragment {
+    return document.createDocumentFragment()
 }
