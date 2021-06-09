@@ -33,7 +33,7 @@ export function useState<TState>(initialState: TState | LazyStateInitialization<
                 if (!currentVNode.debounceRender) {
                     requestAnimationFrame(() => {
                         link.vNode.debounceRender = false
-                        render(parentElement, [link.vNode], [], isSvg)
+                        render(parentElement, [link.vNode], [link.vNode], isSvg)
                     })
                 }
                 currentVNode.debounceRender = true

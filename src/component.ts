@@ -127,6 +127,10 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
 
                 // Make sure any sub-components are "unmounted"
                 cleanupComponentsRec(oldChildVNode)
+
+                // Delete the node. This will make the "oldChildVNode" undefined
+                // when doing the rendering loop
+                delete oldChildVNodes[i]
             }
         }
 
@@ -200,29 +204,37 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
             switch (newChildVNode._) {
                 case VNodeType.Component:
 
-                    let oldNode: Node | undefined
+                    let replaceOrUpdateVNode: VNode | undefined
 
                     if (oldChildVNode !== undefined) {
                         if (oldChildVNode._ === VNodeType.Component) {
-                            newChildVNode.rendition = oldChildVNode.rendition
-                            newChildVNode.data = oldChildVNode.data
-                            newChildVNode.effects = oldChildVNode.effects
-                            newChildVNode.errorHandler = oldChildVNode.errorHandler
-                            newChildVNode.link = oldChildVNode.link
-                            newChildVNode.link.vNode = newChildVNode
+                            if (newChildVNode.view === oldChildVNode.view) {
+                                newChildVNode.data = oldChildVNode.data
+                                newChildVNode.effects = oldChildVNode.effects
+                                newChildVNode.errorHandler = oldChildVNode.errorHandler
+                                newChildVNode.link = oldChildVNode.link
+                                newChildVNode.link.vNode = newChildVNode
+                            }
+
+                            replaceOrUpdateVNode = oldChildVNode.rendition
                         }
                         else if (oldChildVNode._ === VNodeType.Fragment) {
-                            // TODO: Needs some optimization, reuse nodes!
-                            removeFragmentDOMNodes(parentElement, oldChildVNode)
+                            const oldNodes = getFragmentChildNodesRec(parentElement, oldChildVNode)
+
+                            for (let i = 0; i < oldNodes.length; i++) {
+                                const oldNode = oldNodes[i]
+                                // TODO: Optimize by finding a node to reuse?
+                                if (replaceOrUpdateVNode === undefined && oldNode.domRef !== undefined) {
+                                    replaceOrUpdateVNode = oldNode
+                                }
+                                else if (oldNode.domRef !== undefined) {
+                                    removeElementChild(parentElement, oldNode.domRef)
+                                }
+                            }
                         }
                         else {
-                            // TODO: Needs some optimization, reuse nodes!
-                            removeElementChild(parentElement, oldChildVNode.domRef)
+                            replaceOrUpdateVNode = oldChildVNode
                         }
-                    }
-
-                    if (newChildVNode.rendition !== undefined) {
-                        oldNode = newChildVNode.rendition.domRef
                     }
 
                     if (renderingContext === undefined) {
@@ -237,17 +249,19 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                             let newView = newChildVNode.view(newChildVNode.props) as VNode
 
                             if (newView._ === VNodeType.Memo) {
-                                if (oldChildVNode !== undefined && oldChildVNode._ === VNodeType.Component && newView.compare(newChildVNode.props, newChildVNode.props)) {
-                                    newChildVNode.domRef = oldNode
-                                    renderingContext = undefined
-                                    return
+                                if (oldChildVNode === undefined || oldChildVNode._ !== VNodeType.Component || newChildVNode === oldChildVNode || oldChildVNode._ === VNodeType.Component &&
+                                    !newView.compare(newChildVNode.props, oldChildVNode.props)
+                                ) {
+                                    newView = newView.view(newChildVNode.props) as VNode
                                 }
-                                newView = newView.view(newChildVNode.props) as VNode
+                                else {
+                                    newView = oldChildVNode.rendition!
+                                }
                             }
 
                             renderingContext = undefined
 
-                            render(parentElement, [newView], newChildVNode.rendition === undefined ? [] : [newChildVNode.rendition], isSvg)
+                            render(parentElement, [newView], replaceOrUpdateVNode === undefined ? [] : [replaceOrUpdateVNode], isSvg)
 
                             newChildVNode.rendition = (newView as VNode)
                             newChildVNode.domRef = (newView as VNode).domRef
@@ -342,10 +356,6 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                         replaceElementChild(parentElement, documentFragment, oldChildVNode.domRef!)
                     }
 
-                    break
-
-                case VNodeType.Memo:
-                    // FIXME
                     break
 
                 case VNodeType.Nothing:
