@@ -24,18 +24,17 @@ export function memo<TProps>(factory: ComponentFactory<TProps & ComponentProps>,
 
         ref.current = props
 
-        const renderingContext = getRenderingContext()
+        const renderingContext = getRenderingContext()!
 
-        const keepMemo = compare!(props, oldProps)
-
-        renderingContext!.memo = keepMemo
-
-        if (keepMemo) {
-            return {
-                _: VNodeType.Nothing
-            }
+        if (renderingContext.oldVNode === undefined || !compare!(props, oldProps)) {
+            return factory(props) as VNode
         }
-        return factory(props) as VNode
+
+        renderingContext!.memo = true
+
+        return {
+            _: VNodeType.Nothing
+        }
     }
 }
 

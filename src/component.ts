@@ -15,6 +15,7 @@ interface IRenderingContext {
     hookIndex: number
     isSvg: boolean
     memo?: boolean
+    oldVNode: VNode | undefined
     parentElement: Element
     vNode: ComponentVNode<ComponentProps>
 }
@@ -238,43 +239,13 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                         }
                     }
 
-                    if (renderingContext === undefined) {
-                        try {
-                            renderingContext = {
-                                vNode: newChildVNode,
-                                isSvg,
-                                parentElement,
-                                hookIndex: 0
-                            }
-
-                            let newView = newChildVNode.view(newChildVNode.props) as VNode
-
-                            if (oldChildVNode !== undefined && oldChildVNode._ === VNodeType.Component && renderingContext!.memo) {
-                                newChildVNode.domRef = oldChildVNode.domRef
-                                newChildVNode.rendition = oldChildVNode.rendition
-
-                                renderingContext = undefined
-
-                                return
-                            }
-
-                            renderingContext = undefined
-
-                            render(parentElement, [newView], replaceOrUpdateVNode === undefined ? [] : [replaceOrUpdateVNode], isSvg)
-
-                            newChildVNode.rendition = (newView as VNode)
-                            newChildVNode.domRef = (newView as VNode).domRef
-
-                            // Trigger synchronous effects (useLayoutEffect)
-                            triggerEffects(newChildVNode, parentElement, isSvg, true)
-
-                            // Trigger asynchronous effects (useEffect)
-                            triggerEffects(newChildVNode, parentElement, isSvg, false)
-                        }
-                        catch (err) {
-                            tryHandleComponentError(parentElement, newChildVNode, isSvg, err)
-                        }
-                    }
+                    renderComponent(
+                        parentElement,
+                        newChildVNode,
+                        oldChildVNode,
+                        replaceOrUpdateVNode,
+                        isSvg
+                    )
                     break
 
                 case VNodeType.Element:
@@ -439,6 +410,57 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                     removeElementChild(parentElement, oldChildDomNode)
                 }
             }
+        }
+    }
+}
+
+
+/**
+ * Renders a component and then triggers any effects
+ */
+export function renderComponent(
+    parentElement: Element,
+    newVNode: ComponentVNode<any>,
+    oldVNode: VNode | undefined,
+    replaceOrUpdateVNode: VNode | undefined,
+    isSvg: boolean
+) {
+    if (renderingContext === undefined) {
+        try {
+            renderingContext = {
+                vNode: newVNode,
+                isSvg,
+                oldVNode,
+                parentElement,
+                hookIndex: 0
+            }
+
+            let newView = newVNode.view(newVNode.props) as VNode
+
+            if (oldVNode !== undefined && oldVNode._ === VNodeType.Component && renderingContext!.memo) {
+                newVNode.domRef = oldVNode.domRef
+                newVNode.rendition = oldVNode.rendition
+
+                renderingContext = undefined
+
+                return
+            }
+
+            renderingContext = undefined
+
+            render(parentElement, [newView], replaceOrUpdateVNode === undefined ? [] : [replaceOrUpdateVNode], isSvg)
+
+            newVNode.rendition = (newView as VNode)
+            newVNode.domRef = (newView as VNode).domRef
+
+            // Trigger synchronous effects (useLayoutEffect)
+            triggerEffects(newVNode, parentElement, isSvg, true)
+
+            // Trigger asynchronous effects (useEffect)
+            triggerEffects(newVNode, parentElement, isSvg, false)
+        }
+        catch (err) {
+            tryHandleComponentError(parentElement, newVNode, isSvg, err)
         }
     }
 }
