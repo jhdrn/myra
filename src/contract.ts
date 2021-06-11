@@ -361,16 +361,10 @@ export interface ComponentVNode<TProps> extends VNodeBase {
     view: ComponentFactory<TProps>
 }
 
-export interface MemoVNode<TProps> extends VNodeBase {
-    readonly _: VNodeType.Memo
-    readonly compare: (newProps: TProps, oldProps: TProps) => boolean
-    readonly view: ComponentFactory<TProps>
-}
-
 /**
  * Union type of the different types of virtual nodes.
  */
-export type VNode = TextVNode | ElementVNode<any> | FragmentVNode | ComponentVNode<any> | NothingVNode | MemoVNode<any>
+export type VNode = TextVNode | ElementVNode<any> | FragmentVNode | ComponentVNode<any> | NothingVNode
 
 export interface GenericEvent<T extends EventTarget> extends Event {
     currentTarget: T

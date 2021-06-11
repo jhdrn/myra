@@ -1,4 +1,6 @@
-import { ComponentFactory, ComponentProps, JSXElementFactory, VNodeType } from "./contract"
+import { getRenderingContext } from "./component"
+import { ComponentFactory, ComponentProps, JSXElementFactory, VNode, VNodeType } from "./contract"
+import { useRef } from "./hooks"
 
 /**
  * Memoizes a component view, preventing unnecessary renders.
@@ -12,13 +14,28 @@ import { ComponentFactory, ComponentProps, JSXElementFactory, VNodeType } from "
  *                will be rerendered.
  */
 export function memo<TProps>(factory: ComponentFactory<TProps & ComponentProps>, compare?: (newProps: TProps, oldProps: TProps) => boolean): JSXElementFactory<TProps & ComponentProps> {
+
+    compare = compare ?? shallowCompareProps
+
     return (props: TProps) => {
-        return {
-            _: VNodeType.Memo,
-            compare: compare || shallowCompareProps,
-            view: factory,
-            props
+
+        const ref = useRef<TProps>({} as TProps)
+        const oldProps = ref.current
+
+        ref.current = props
+
+        const renderingContext = getRenderingContext()
+
+        const keepMemo = compare!(props, oldProps)
+
+        renderingContext!.memo = keepMemo
+
+        if (keepMemo) {
+            return {
+                _: VNodeType.Nothing
+            }
         }
+        return factory(props) as VNode
     }
 }
 

@@ -12,10 +12,11 @@ import {
 } from './contract'
 
 interface IRenderingContext {
-    vNode: ComponentVNode<ComponentProps>
-    isSvg: boolean
-    parentElement: Element
     hookIndex: number
+    isSvg: boolean
+    memo?: boolean
+    parentElement: Element
+    vNode: ComponentVNode<ComponentProps>
 }
 
 /**
@@ -248,15 +249,13 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
 
                             let newView = newChildVNode.view(newChildVNode.props) as VNode
 
-                            if (newView._ === VNodeType.Memo) {
-                                if (oldChildVNode === undefined || oldChildVNode._ !== VNodeType.Component || newChildVNode === oldChildVNode || oldChildVNode._ === VNodeType.Component &&
-                                    !newView.compare(newChildVNode.props, oldChildVNode.props)
-                                ) {
-                                    newView = newView.view(newChildVNode.props) as VNode
-                                }
-                                else {
-                                    newView = oldChildVNode.rendition!
-                                }
+                            if (oldChildVNode !== undefined && oldChildVNode._ === VNodeType.Component && renderingContext!.memo) {
+                                newChildVNode.domRef = oldChildVNode.domRef
+                                newChildVNode.rendition = oldChildVNode.rendition
+
+                                renderingContext = undefined
+
+                                return
                             }
 
                             renderingContext = undefined
