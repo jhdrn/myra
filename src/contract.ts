@@ -357,6 +357,8 @@ export interface ComponentVNode<TProps> extends VNodeBase {
     props: TProps
     /** The most recent VNode tree of the component. */
     rendition?: VNode
+    /** A stale component should not be rendered */
+    stale?: boolean
     /** The function that generates a VNode tree for the component. */
     view: ComponentFactory<TProps>
 }

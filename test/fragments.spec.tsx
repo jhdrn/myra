@@ -621,6 +621,54 @@ describe('fragment', () => {
         done()
     })
 
+    it('replaces and inserts fragment child nodes in correct order', () => {
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const view1 = <div>
+            <>
+                <span>
+                    A1
+                </span>
+            </>
+            <span>
+                B1
+            </span>
+        </div>
+
+        render(fragmentContainer, [view1], [])
+
+        const view2 = <table>
+            <>
+                <div>A2</div>
+                <div>B2</div>
+                <>
+                    <div>C2</div>
+                    <div>D2</div>
+                </>
+            </>
+            <span>E2</span>
+        </table>
+
+        render(fragmentContainer, [view2], [view1])
+
+        const div = fragmentContainer.firstChild as HTMLDivElement
+
+        expect(div.childNodes.length).toBe(5)
+        expect(div.childNodes[0].textContent).toBe('A2')
+        expect((div.childNodes[0] as Element).tagName).toBe('DIV')
+        expect(div.childNodes[1].textContent).toBe('B2')
+        expect((div.childNodes[1] as Element).tagName).toBe('DIV')
+        expect(div.childNodes[2].textContent).toBe('C2')
+        expect((div.childNodes[2] as Element).tagName).toBe('DIV')
+        expect(div.childNodes[3].textContent).toBe('D2')
+        expect((div.childNodes[3] as Element).tagName).toBe('DIV')
+        expect(div.childNodes[4].textContent).toBe('E2')
+        expect((div.childNodes[4] as Element).tagName).toBe('SPAN')
+
+    })
+
     it('removes fragment in fragment child nodes', done => {
 
         let setItemsOuter: myra.Evolve<string[]>
