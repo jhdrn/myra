@@ -505,7 +505,7 @@ function replaceFragmentWithElementNode(parentElement: Element, newChildVNode: E
         newChildVNode.domRef = reuseVNode.domRef
 
         // Update/remove/add any attributes
-        updateElementAttributes(newChildVNode, oldChildVNode, reuseVNode.domRef)
+        updateElementAttributes(newChildVNode, reuseVNode, reuseVNode.domRef)
 
         oldChildren = reuseVNode.props.children
     }
