@@ -370,8 +370,6 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                             reuseNode.textContent = newChildVNode.text
                         }
                     }
-                    // If the old child node is a component, it's (and it's 
-                    // children's) effects should be "cleaned up"
                     else if (oldChildVNode._ === VNodeType.Component && oldChildVNode.rendition!._ === VNodeType.Fragment) {
                         replaceFragmentWithTextNode(parentElement, newChildVNode, oldChildVNode.rendition as FragmentVNode)
                     }
