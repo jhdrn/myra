@@ -283,14 +283,8 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                         // Render the element's children
                         render(reuseNode as Element, newChildVNode.props.children, oldChildVNode.props.children, isSvg)
                     }
-                    else if (oldChildVNode._ === VNodeType.Component) {
-                        if (oldChildVNode.rendition!._ === VNodeType.Fragment) {
-                            replaceFragmentWithElementNode(parentElement, newChildVNode, oldChildVNode.rendition as FragmentVNode, isSvg)
-                        }
-                        else {
-                            replaceNode(parentElement, newChildVNode, oldChildVNode, oldChildVNode.domRef!, isSvg)
-                            render(newChildVNode.domRef, newChildVNode.props.children, [], isSvg)
-                        }
+                    else if (oldChildVNode._ === VNodeType.Component && oldChildVNode.rendition!._ === VNodeType.Fragment) {
+                        replaceFragmentWithElementNode(parentElement, newChildVNode, oldChildVNode.rendition as FragmentVNode, isSvg)
                     }
                     else if (oldChildVNode._ === VNodeType.Fragment) {
                         replaceFragmentWithElementNode(parentElement, newChildVNode, oldChildVNode, isSvg)
@@ -352,12 +346,8 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                     else if (oldChildVNode._ === VNodeType.Nothing) {
                         newChildVNode.domRef = oldChildVNode.domRef
                     }
-                    else if (oldChildVNode._ === VNodeType.Component) {
-                        if (oldChildVNode.rendition!._ === VNodeType.Fragment) {
-                            replaceFragmentWithNothingNode(parentElement, newChildVNode, oldChildVNode.rendition as FragmentVNode)
-                        } else {
-                            replaceNode(parentElement, newChildVNode, oldChildVNode, oldChildVNode.domRef!)
-                        }
+                    else if (oldChildVNode._ === VNodeType.Component && oldChildVNode.rendition!._ === VNodeType.Fragment) {
+                        replaceFragmentWithNothingNode(parentElement, newChildVNode, oldChildVNode.rendition as FragmentVNode)
                     }
                     else if (oldChildVNode._ === VNodeType.Fragment) {
                         replaceFragmentWithNothingNode(parentElement, newChildVNode, oldChildVNode)
@@ -380,14 +370,8 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                             reuseNode.textContent = newChildVNode.text
                         }
                     }
-                    // If the old child node is a component, it's (and it's 
-                    // children's) effects should be "cleaned up"
-                    else if (oldChildVNode._ === VNodeType.Component) {
-                        if (oldChildVNode.rendition!._ === VNodeType.Fragment) {
-                            replaceFragmentWithTextNode(parentElement, newChildVNode, oldChildVNode.rendition as FragmentVNode)
-                        } else {
-                            replaceNode(parentElement, newChildVNode, oldChildVNode, oldChildVNode.domRef!)
-                        }
+                    else if (oldChildVNode._ === VNodeType.Component && oldChildVNode.rendition!._ === VNodeType.Fragment) {
+                        replaceFragmentWithTextNode(parentElement, newChildVNode, oldChildVNode.rendition as FragmentVNode)
                     }
                     else if (oldChildVNode._ === VNodeType.Fragment) {
                         replaceFragmentWithTextNode(parentElement, newChildVNode, oldChildVNode)
@@ -521,7 +505,7 @@ function replaceFragmentWithElementNode(parentElement: Element, newChildVNode: E
         newChildVNode.domRef = reuseVNode.domRef
 
         // Update/remove/add any attributes
-        updateElementAttributes(newChildVNode, oldChildVNode, reuseVNode.domRef)
+        updateElementAttributes(newChildVNode, reuseVNode, reuseVNode.domRef)
 
         oldChildren = reuseVNode.props.children
     }
