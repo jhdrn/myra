@@ -590,7 +590,6 @@ describe('fragment', () => {
         done()
     })
 
-
     it('removes component fragment child nodes when replaced by memo node', done => {
 
         const fragmentContainer = document.createElement('div')
@@ -618,6 +617,36 @@ describe('fragment', () => {
         expect(node).not.toBeNull()
         expect(node?.nodeType).toBe(Node.ELEMENT_NODE)
         expect((node as Element).tagName).toBe('SPAN')
+        done()
+    })
+
+
+    it('updates element attributes when a fragment is replaced by an element node', done => {
+
+        const fragmentContainer = document.createElement('div')
+        fragmentContainer.className = 'fragment-container'
+        document.body.appendChild(fragmentContainer)
+
+
+        const view1 =
+            <>
+                <div class="A" title="A"></div>
+            </>
+
+        render(fragmentContainer, [view1], [])
+
+        const view2 =
+            <div title="B"></div>
+
+
+        render(fragmentContainer, [view2], [view1])
+
+        const element = fragmentContainer.firstChild as Element
+        const titleAttr = element.attributes.getNamedItem('title')
+        expect(element).not.toBeNull()
+        expect(titleAttr).not.toBeNull()
+        expect(titleAttr?.value).toBe('B')
+        expect(element.classList.length).toBe(0)
         done()
     })
 
