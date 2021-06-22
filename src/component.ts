@@ -677,8 +677,9 @@ function getFragmentChildNodesRec(parentDomElement: Element, fragmentNode: Fragm
         }
         else if (fragmentChild._ === VNodeType.Component && fragmentChild.rendition?._ === VNodeType.Fragment) {
             nodes.push(...getFragmentChildNodesRec(parentDomElement, fragmentChild.rendition))
+        } else {
+            nodes.push(fragmentChild)
         }
-        nodes.push(fragmentChild)
     }
     return nodes
 }

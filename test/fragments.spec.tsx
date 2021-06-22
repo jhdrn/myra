@@ -698,6 +698,50 @@ describe('fragment', () => {
 
     })
 
+    it('replaces and inserts nested fragment child nodes in correct order', () => {
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const view1 = <>
+            <>
+                A
+                <>
+                    A-A
+                </>
+            </>
+            <>
+                B
+            </>
+        </>
+
+        render(fragmentContainer, [view1], [])
+
+        const view2 = <>
+            <>
+                A
+                <>
+                    A-A
+                </>
+                <>
+                    A-B
+                </>
+            </>
+            <>
+                B
+            </>
+        </>
+
+        render(fragmentContainer, [view2], [view1])
+
+        expect(fragmentContainer.childNodes.length).toBe(4)
+        expect(fragmentContainer.childNodes[0].textContent).toBe('A')
+        expect(fragmentContainer.childNodes[1].textContent).toBe('A-A')
+        expect(fragmentContainer.childNodes[2].textContent).toBe('A-B')
+        expect(fragmentContainer.childNodes[3].textContent).toBe('B')
+
+    })
+
     it('removes fragment in fragment child nodes', done => {
 
         let setItemsOuter: myra.Evolve<string[]>
