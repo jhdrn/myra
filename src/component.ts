@@ -30,6 +30,15 @@ export function getRenderingContext() {
 }
 
 /**
+ * An array of DOM nodes to use as DOM hierarchy references
+ * when rendering nodes withing fragment nodes. When a fragment
+ * is rendered, any "nextSibling" will be pushed to this array,
+ * and will then be used to insert other nodes. When the fragment
+ * has been rendered, the last DOM node will be removed.
+ */
+const fragmentNextSiblings: Node[] = []
+
+/**
  * Calls the error handler (if any) and renders the returned view.
  */
 export function tryHandleComponentError(parentElement: Element, vNode: ComponentVNode<any>, isSvg: boolean, err: Error) {
@@ -83,7 +92,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
             if (props !== undefined && props !== null && props.key !== undefined) {
                 let oldDOMNode = oldChildVNode.domRef!
                 if (oldChildVNode._ === VNodeType.Fragment || oldChildVNode._ === VNodeType.Component && oldChildVNode.rendition!._ === VNodeType.Fragment) {
-                    const fragmentNodes = getFragmentChildNodesRec(parentElement, oldChildVNode._ === VNodeType.Component ? oldChildVNode.rendition as FragmentVNode : oldChildVNode)
+                    const fragmentNodes = getFragmentChildNodesRec(oldChildVNode._ === VNodeType.Component ? oldChildVNode.rendition as FragmentVNode : oldChildVNode)
                     const documentFragment = createDocumentFragmentNode()
                     const fragmentDOMNodes = Array<Node>(fragmentNodes.length)
                     for (let i = 0; i < fragmentNodes.length; i++) {
@@ -222,7 +231,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                             replaceOrUpdateVNode = oldChildVNode.rendition
                         }
                         else if (oldChildVNode._ === VNodeType.Fragment) {
-                            const oldNodes = getFragmentChildNodesRec(parentElement, oldChildVNode)
+                            const oldNodes = getFragmentChildNodesRec(oldChildVNode)
 
                             for (let i = 0; i < oldNodes.length; i++) {
                                 const oldNode = oldNodes[i]
@@ -264,7 +273,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                     if (oldChildVNode === undefined) {
                         const newNode = createAndSetElement(newChildVNode, isSvg)
 
-                        appendElementChild(parentElement, newNode)
+                        insertOrAppendDOMNode(parentElement, newNode)
 
                         render(newNode, newChildVNode.props.children, [], isSvg)
                     }
@@ -298,32 +307,31 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                     break
 
                 case VNodeType.Fragment:
+
                     if (oldChildVNode === undefined) {
                         render(parentElement, newChildVNode.props.children, [], isSvg)
                     }
                     else if (oldChildVNode._ === newChildVNode._) {
                         const newChildren = newChildVNode.props.children
                         const oldChildren = oldChildVNode.props.children
-                        const allOldChildren = getFragmentChildNodesRec(parentElement, oldChildVNode)
 
-                        if (newChildren.length > allOldChildren.length) {
-                            const fragment = createDocumentFragmentNode() as unknown as Element
-                            render(fragment, newChildren, [])
-
-                            let lastNode: Node
-                            let i = 0
-                            while (fragment.childNodes.length > 0) {
-                                const n = fragment.childNodes.item(0)
-                                if (i < allOldChildren.length) {
-                                    replaceElementChild(parentElement, n, allOldChildren[i].domRef)
-                                } else {
-                                    parentElement.insertBefore(n, lastNode!.nextSibling)
-                                }
-                                lastNode = n
-                                i++
+                        let nextSibling: Node | null = null
+                        const allOldChildren = getFragmentChildNodesRec(oldChildVNode)
+                        for (let i = allOldChildren.length - 1; i > -1; i--) {
+                            const child = allOldChildren[i]
+                            if (child.domRef.parentElement === parentElement) {
+                                nextSibling = child.domRef.nextSibling
+                                break
                             }
-                        } else {
-                            render(parentElement, newChildren, oldChildren)
+                        }
+                        if (nextSibling !== null) {
+                            fragmentNextSiblings.push(nextSibling)
+                        }
+
+                        render(parentElement, newChildren, oldChildren, isSvg)
+
+                        if (fragmentNextSiblings[fragmentNextSiblings.length - 1] === nextSibling) {
+                            fragmentNextSiblings.pop()
                         }
                     }
                     else {
@@ -331,16 +339,17 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
 
                         const documentFragment = createDocumentFragmentNode()
 
-                        render(documentFragment as any as Element, newChildVNode.props.children, [])
+                        render(documentFragment as any as Element, newChildVNode.props.children, [], isSvg)
 
                         replaceElementChild(parentElement, documentFragment, oldChildVNode.domRef!)
                     }
-
                     break
 
                 case VNodeType.Nothing:
                     if (oldChildVNode === undefined) {
-                        appendElementChild(parentElement, createAndSetNothingNode(newChildVNode))
+                        const newNode = createAndSetNothingNode(newChildVNode)
+
+                        insertOrAppendDOMNode(parentElement, newNode)
                     }
                     // Reuse the old DOM node
                     else if (oldChildVNode._ === VNodeType.Nothing) {
@@ -359,7 +368,9 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
 
                 case VNodeType.Text:
                     if (oldChildVNode === undefined) {
-                        appendElementChild(parentElement, createAndSetTextNode(newChildVNode))
+                        const newNode = createAndSetTextNode(newChildVNode)
+
+                        insertOrAppendDOMNode(parentElement, newNode)
                     }
                     // Reuse the old DOM node and update it's text content if 
                     // changed
@@ -407,7 +418,6 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
         }
     }
 }
-
 
 /**
  * Renders a component and then triggers any effects
@@ -459,8 +469,18 @@ export function renderComponent(
     }
 }
 
+function insertOrAppendDOMNode(parentElement: Element, newNode: Node) {
+    const nextSibling = fragmentNextSiblings[fragmentNextSiblings.length - 1]
+    if (nextSibling !== undefined && nextSibling.parentElement === parentElement) {
+        parentElement.insertBefore(newNode, nextSibling)
+    }
+    else {
+        appendElementChild(parentElement, newNode)
+    }
+}
+
 function removeFragmentDOMNodes(parentElement: Element, oldChildVNode: FragmentVNode,) {
-    const oldVNodes = getFragmentChildNodesRec(parentElement, oldChildVNode)
+    const oldVNodes = getFragmentChildNodesRec(oldChildVNode)
     for (let i = oldVNodes.length; i > 0; i--) {
         const oldNode = oldVNodes[i - 1]
         if (oldNode.domRef !== undefined) {
@@ -470,7 +490,7 @@ function removeFragmentDOMNodes(parentElement: Element, oldChildVNode: FragmentV
 }
 
 function replaceFragmentWithElementNode(parentElement: Element, newChildVNode: ElementVNode<any>, oldChildVNode: FragmentVNode, isSvg: boolean) {
-    const oldNodes = getFragmentChildNodesRec(parentElement, oldChildVNode)
+    const oldNodes = getFragmentChildNodesRec(oldChildVNode)
 
     let reuseVNode: ElementVNode<any> | undefined
     let replaceVNode: VNode | undefined
@@ -523,7 +543,7 @@ function replaceFragmentWithElementNode(parentElement: Element, newChildVNode: E
 }
 
 function replaceFragmentWithNothingNode(parentElement: Element, newChildVNode: NothingVNode, oldChildVNode: FragmentVNode) {
-    const oldNodes = getFragmentChildNodesRec(parentElement, oldChildVNode)
+    const oldNodes = getFragmentChildNodesRec(oldChildVNode)
 
     let reuseVNode: NothingVNode | undefined
     let replaceVNode: VNode | undefined
@@ -564,7 +584,7 @@ function replaceFragmentWithNothingNode(parentElement: Element, newChildVNode: N
 }
 
 function replaceFragmentWithTextNode(parentElement: Element, newChildVNode: TextVNode, oldChildVNode: FragmentVNode) {
-    const oldNodes = getFragmentChildNodesRec(parentElement, oldChildVNode)
+    const oldNodes = getFragmentChildNodesRec(oldChildVNode)
 
     let reuseVNode: TextVNode | undefined
     let replaceVNode: VNode | undefined
@@ -669,14 +689,14 @@ function cleanupRecursively(vNode: VNode | undefined) {
  * Recursively traverses the vNode tree, finds all fragment child nodes and 
  * reuturns them as a flattened array.
  */
-function getFragmentChildNodesRec(parentDomElement: Element, fragmentNode: FragmentVNode | ComponentVNode<any>): VNode[] {
+function getFragmentChildNodesRec(fragmentNode: FragmentVNode | ComponentVNode<any>): VNode[] {
     const nodes: VNode[] = []
     for (const fragmentChild of fragmentNode.props.children) {
         if (fragmentChild._ === VNodeType.Fragment) {
-            nodes.push(...getFragmentChildNodesRec(parentDomElement, fragmentChild))
+            nodes.push(...getFragmentChildNodesRec(fragmentChild))
         }
         else if (fragmentChild._ === VNodeType.Component && fragmentChild.rendition?._ === VNodeType.Fragment) {
-            nodes.push(...getFragmentChildNodesRec(parentDomElement, fragmentChild.rendition))
+            nodes.push(...getFragmentChildNodesRec(fragmentChild.rendition))
         } else {
             nodes.push(fragmentChild)
         }
