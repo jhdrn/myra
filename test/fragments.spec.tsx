@@ -510,6 +510,24 @@ describe('fragment', () => {
     })
 
 
+    it('renders a nothing node if fragment has no children', done => {
+
+        const fragmentContainer = document.createElement('div')
+        fragmentContainer.className = 'fragment-container'
+        document.body.appendChild(fragmentContainer)
+
+        const view1 =
+            <>
+            </>
+
+        render(fragmentContainer, [view1], [])
+
+        const nothingNode = fragmentContainer.firstChild
+        expect(nothingNode).not.toBeNull()
+        expect(nothingNode?.nodeType).toBe(Node.COMMENT_NODE)
+        done()
+    })
+
     it('removes component fragment child nodes when replaced by nothing node', done => {
 
         const fragmentContainer = document.createElement('div')
