@@ -411,6 +411,33 @@ describe('render', () => {
         done()
     })
 
+    it('removes excessive keyed child nodes', (done) => {
+        const viewItems1 = ['a', 'b', 'c', 'd']
+        const viewItems2 = ['a', 'c']
+        const view1 =
+            <div>
+                {viewItems1.map(item => <div key={item}>{item}</div>)}
+            </div>
+        const view2 =
+            <div>
+                {viewItems2.map(item => <div key={item}>{item}</div>)}
+            </div>
+
+        render(document.body, [view1], [])
+        let node = view1.domRef as HTMLDivElement
+
+        expect(node.childElementCount).toBe(viewItems1.length)
+
+        render(document.body, [view2], [view1])
+        node = view2.domRef as HTMLDivElement
+
+        expect(node.childElementCount).toBe(viewItems2.length)
+        expect(node.children[0].textContent).toBe('a')
+        expect(node.children[1].textContent).toBe('c')
+
+        done()
+    })
+
     it('adds child nodes if needed', (done) => {
         const viewItems1 = ['a', 'b']
         const viewItems2 = ['a', 'b', 'c', 'd']
@@ -655,24 +682,6 @@ describe('render', () => {
 
         expect((node as any)._id).not.toBeDefined()
         expect(node.tagName).toBe('SPAN')
-
-        done()
-    })
-
-    it('removes old event listeners when element is replaced', (done) => {
-        const view1 = <button onclick={() => (m: any) => m} />
-
-        const view2 = <nothing />
-
-        render(document.body, [view1], [])
-
-        const node = view1.domRef as HTMLButtonElement
-
-        expect(node.onclick).not.toBeNull()
-
-        render(document.body, [view2], [view1])
-
-        expect(node.onclick).toBeNull()
 
         done()
     })
@@ -1152,3 +1161,28 @@ describe('render', () => {
     })
 
 })
+
+it('keeps focus of element when rendering keyed siblings', (done) => {
+    const view1 = <div>
+        <input />
+    </div>
+
+    const view2 = <div>
+        <input />
+        <span key="test"></span>
+    </div>
+
+    render(document.body, [view1], [])
+
+    let node = (view1.domRef as HTMLDivElement).firstChild as HTMLInputElement
+    node.focus()
+
+    expect(node).toBe(document.activeElement as HTMLInputElement)
+
+    render(document.body, [view2], [view1])
+
+    expect(node).toBe(document.activeElement as HTMLInputElement)
+
+    done()
+})
+

@@ -46,7 +46,7 @@ export function useState<TState>(initialState: TState | LazyStateInitialization<
                 currentVNode.debounceRender = true
             } catch (err) {
                 requestAnimationFrame(() => {
-                    tryHandleComponentError(parentElement, currentVNode, isSvg, err)
+                    tryHandleComponentError(parentElement, currentVNode, isSvg, err as Error)
                 })
             }
             return currentVNode.data![hookIndex][0]
@@ -76,12 +76,8 @@ export function useRef<T>(current?: T): Ref<T> {
     }
 
     if (vNode.data[hookIndex] === undefined) {
-        const link = vNode.link
         vNode.data[hookIndex] = {
-            current,
-            get node() {
-                return link.vNode.domRef
-            }
+            current
         }
     }
     renderingContext!.hookIndex++
