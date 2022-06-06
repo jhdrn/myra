@@ -56,28 +56,46 @@ export function h<TProps>(
 }
 
 function flattenChildren(children: MyraNode[]) {
-    const flattenedChildren = [] as Array<VNode | TextNode>
+    if (children.length === 0) {
+        return children as VNode[]
+    }
 
-    for (const child of children) {
+    const flattenedChildren = Array(children.length) as Array<VNode | TextNode>
+    let childIndex = 0
+    let targetIndex = 0
+    while (true) {
+
+        const child = children[childIndex++]
         if (child === null || child === undefined || typeof child === 'boolean') {
-            flattenedChildren.push({ _: VNodeType.Nothing })
+            flattenedChildren[targetIndex++] = { _: VNodeType.Nothing }
         }
         else if (Array.isArray(child)) {
-            for (const c of flattenChildren(child)) {
-                flattenedChildren.push(c)
+            const subChildren = flattenChildren(child)
+            if (subChildren.length === 0) {
+                flattenedChildren.length--
+            }
+            else if (subChildren.length > 1) {
+                flattenedChildren.length += subChildren.length - 1
+                for (let j = 0; j < subChildren.length; j++) {
+                    flattenedChildren[targetIndex++] = subChildren[j]
+                }
+            } else {
+                flattenedChildren[targetIndex++] = subChildren[0]
             }
         }
         else if ((child as VNode)._ === undefined) {
             // Any node which is not a vNode will be converted to a TextVNode
-            flattenedChildren.push({
+            flattenedChildren[targetIndex++] = {
                 _: VNodeType.Text,
                 text: child as any as string
-            } as TextVNode)
+            } as TextVNode
         }
         else {
-            flattenedChildren.push(child)
+            flattenedChildren[targetIndex++] = child
+        }
+
+        if (childIndex == children.length) {
+            return flattenedChildren as VNode[]
         }
     }
-
-    return flattenedChildren as VNode[]
 }
