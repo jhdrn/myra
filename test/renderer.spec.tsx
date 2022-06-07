@@ -438,6 +438,36 @@ describe('render', () => {
         done()
     })
 
+    it('correctly inserts and appends keyed child nodes', (done) => {
+        const viewItems1 = ['b', 'd']
+        const viewItems2 = ['a', 'b', 'c', 'd', 'e']
+        const view1 =
+            <div>
+                {viewItems1.map(item => <div key={item}>{item}</div>)}
+            </div>
+        const view2 =
+            <div>
+                {viewItems2.map(item => <div key={item}>{item}</div>)}
+            </div>
+
+        render(document.body, [view1], [])
+        let node = view1.domRef as HTMLDivElement
+
+        expect(node.childElementCount).toBe(viewItems1.length)
+
+        render(document.body, [view2], [view1])
+        node = view2.domRef as HTMLDivElement
+
+        expect(node.childElementCount).toBe(viewItems2.length)
+        expect(node.children[0].textContent).toBe('a')
+        expect(node.children[1].textContent).toBe('b')
+        expect(node.children[2].textContent).toBe('c')
+        expect(node.children[3].textContent).toBe('d')
+        expect(node.children[4].textContent).toBe('e')
+
+        done()
+    })
+
     it('adds child nodes if needed', (done) => {
         const viewItems1 = ['a', 'b']
         const viewItems2 = ['a', 'b', 'c', 'd']

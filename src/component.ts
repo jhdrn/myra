@@ -31,7 +31,7 @@ export function getRenderingContext() {
 
 /**
  * An array of DOM nodes to use as DOM hierarchy references
- * when rendering nodes withing fragment nodes. When a fragment
+ * when rendering nodes within fragment nodes. When a fragment
  * is rendered, any "nextSibling" will be pushed to this array,
  * and will then be used to insert other nodes. When the fragment
  * has been rendered, the last DOM node will be removed.
@@ -137,7 +137,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
 
         for (let i = 0; i < newChildVNodes.length; i++) {
             const newChildVNode = newChildVNodes[i]
-            let oldChildVNode = oldChildVNodes[i]
+            let oldChildVNode: VNode | undefined = oldChildVNodes[i]
             let matchingChildDomNode: Node | undefined
 
             if (domNodeAtIndex !== null) {
@@ -160,9 +160,21 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                     // Fetch the old keyed item from the key map
                     const keyMapEntry = keyMap[newChildVNodeKey]
 
-                    // If there was no old matching key, reuse an old unkeyed node
+                    // If there was no old matching key, either...
                     if (keyMapEntry === undefined) {
-                        matchingChildDomNode = unkeyedNodes.shift()
+
+                        if (unkeyedNodes.length > 0) {
+                            // ...reuse an old unkeyed node, if any available
+                            matchingChildDomNode = unkeyedNodes.shift()
+                        } else {
+                            // ...or (somewhat ugly) reset oldChildVNode so a  
+                            // new DOM node will be added
+                            oldChildVNode = {
+                                _: VNodeType.Nothing,
+                            }
+                            createAndSetNothingNode(oldChildVNode)
+                            parentElement.insertBefore(oldChildVNode.domRef!, domNodeAtIndex)
+                        }
                     }
                     // If there was a matching key, use the old vNodes dom ref
                     else {
@@ -275,7 +287,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
     }
 }
 
-function renderTextVNode(oldChildVNode: VNode, newChildVNode: TextVNode, parentElement: Element) {
+function renderTextVNode(oldChildVNode: VNode | undefined, newChildVNode: TextVNode, parentElement: Element) {
     if (oldChildVNode === undefined) {
         const newNode = createAndSetTextNode(newChildVNode)
 
@@ -302,7 +314,7 @@ function renderTextVNode(oldChildVNode: VNode, newChildVNode: TextVNode, parentE
     }
 }
 
-function renderNothingVNode(oldChildVNode: VNode, newChildVNode: NothingVNode, parentElement: Element) {
+function renderNothingVNode(oldChildVNode: VNode | undefined, newChildVNode: NothingVNode, parentElement: Element) {
     if (oldChildVNode === undefined) {
         const newNode = createAndSetNothingNode(newChildVNode)
 
@@ -324,7 +336,7 @@ function renderNothingVNode(oldChildVNode: VNode, newChildVNode: NothingVNode, p
     }
 }
 
-function renderElementVNode(oldChildVNode: VNode, newChildVNode: ElementVNode<any>, parentElement: Element, isSvg: boolean) {
+function renderElementVNode(oldChildVNode: VNode | undefined, newChildVNode: ElementVNode<any>, parentElement: Element, isSvg: boolean) {
     if (newChildVNode.tagName === 'svg') {
         isSvg = true
     }
@@ -367,7 +379,7 @@ function renderElementVNode(oldChildVNode: VNode, newChildVNode: ElementVNode<an
     }
 }
 
-function renderFragmentVNode(oldChildVNode: VNode, newChildVNode: FragmentVNode, parentElement: Element, isSvg: boolean) {
+function renderFragmentVNode(oldChildVNode: VNode | undefined, newChildVNode: FragmentVNode, parentElement: Element, isSvg: boolean) {
 
     if (oldChildVNode === undefined) {
         render(parentElement, newChildVNode.props.children, [], isSvg)
@@ -406,7 +418,7 @@ function renderFragmentVNode(oldChildVNode: VNode, newChildVNode: FragmentVNode,
     }
 }
 
-function renderComponentVNode(oldChildVNode: VNode, newChildVNode: ComponentVNode<any>, parentElement: Element, isSvg: boolean) {
+function renderComponentVNode(oldChildVNode: VNode | undefined, newChildVNode: ComponentVNode<any>, parentElement: Element, isSvg: boolean) {
     let replaceOrUpdateVNode: VNode | undefined
 
     if (oldChildVNode !== undefined) {
