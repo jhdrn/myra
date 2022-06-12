@@ -173,7 +173,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                                 _: VNodeType.Nothing,
                             }
                             createAndSetNothingNode(oldChildVNode)
-                            parentElement.insertBefore(oldChildVNode.domRef!, domNodeAtIndex)
+                            insertElementChildBefore(parentElement, oldChildVNode.domRef!, domNodeAtIndex)
                         }
                     }
                     // If there was a matching key, use the old vNodes dom ref
@@ -206,7 +206,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                             nextDomNode = matchingChildDomNode.nextSibling
                         }
                         else {
-                            parentElement.insertBefore(matchingChildDomNode, domNodeAtIndex)
+                            insertElementChildBefore(parentElement, matchingChildDomNode, domNodeAtIndex)
                         }
                     }
                 }
@@ -520,7 +520,7 @@ export function renderComponent(
 function insertOrAppendDOMNode(parentElement: Element, newNode: Node) {
     const nextSibling = fragmentNextSiblings[fragmentNextSiblings.length - 1]
     if (nextSibling !== undefined && nextSibling.parentElement === parentElement) {
-        parentElement.insertBefore(newNode, nextSibling)
+        insertElementChildBefore(parentElement, newNode, nextSibling)
     }
     else {
         appendElementChild(parentElement, newNode)
@@ -959,6 +959,10 @@ function appendElementChild(parentElement: Element, newNode: Node) {
 
 function elementContainsNode(parentElement: Element, node: Node) {
     return parentElement.contains(node)
+}
+
+function insertElementChildBefore(parentElement: Element, newNode: Node, beforeChild: Node | null) {
+    parentElement.insertBefore(newNode, beforeChild)
 }
 
 function replaceElementChild(parentElement: Element, newChild: Node, oldChild: Node) {
