@@ -72,9 +72,6 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
         // VNodes indexed by key
         const keyMap: Record<string, [VNode, Node] | undefined> = {}
 
-        // Node "pool" for reuse
-        const unkeyedNodes: Node[] = []
-
         let anyKeyedNodes = false
 
         // Prepare the map with the keys from the new nodes
@@ -115,19 +112,6 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                     if (props.key in keyMap) {
                         keyMap[props.key] = [oldChildVNode, oldDOMNode]
                     }
-                    // else save the DOM node for reuse or removal
-                    else if (oldDOMNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-                        const nodes = (oldDOMNode as DocumentFragment).childNodes
-                        for (let i = 0; i < nodes.length; i++) {
-                            const node = nodes.item(i)
-                            if (elementContainsNode(parentElement, node)) {
-                                unkeyedNodes.push(node)
-                            }
-                        }
-                    }
-                    else if (elementContainsNode(parentElement, oldDOMNode)) {
-                        unkeyedNodes.push(oldDOMNode)
-                    }
                 }
             }
         }
@@ -160,28 +144,24 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                     // Fetch the old keyed item from the key map
                     const keyMapEntry = keyMap[newChildVNodeKey]
 
-                    // If there was no old matching key, either...
+                    // If there was no old matching key, reset oldChildVNode so 
+                    // a new DOM node will be added (somewhat ugly) 
                     if (keyMapEntry === undefined) {
 
-                        if (unkeyedNodes.length > 0) {
-                            // ...reuse an old unkeyed node, if any available
-                            matchingChildDomNode = unkeyedNodes.shift()
-                        } else {
-                            // ...or (somewhat ugly) reset oldChildVNode so a  
-                            // new DOM node will be added
-                            oldChildVNode = {
-                                _: VNodeType.Nothing,
-                            }
-                            createAndSetNothingNode(oldChildVNode)
-                            insertElementChildBefore(parentElement, oldChildVNode.domRef!, domNodeAtIndex)
+                        oldChildVNode = {
+                            _: VNodeType.Nothing,
                         }
+                        createAndSetNothingNode(oldChildVNode)
+                        insertElementChildBefore(parentElement, oldChildVNode.domRef!, domNodeAtIndex)
+
+                        nextDomNode = domNodeAtIndex
                     }
                     // If there was a matching key, use the old vNodes dom ref
                     else {
 
                         const [mappedVNode, domNode] = keyMapEntry
 
-                        if (mappedVNode != oldChildVNode) {
+                        if (oldChildVNode !== undefined && mappedVNode != oldChildVNode) {
                             // Push the "unused" VNode to the end
                             oldChildVNodes.splice(i, 1)
                             oldChildVNodes.push(oldChildVNode);
@@ -207,6 +187,8 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                         }
                         else {
                             insertElementChildBefore(parentElement, matchingChildDomNode, domNodeAtIndex)
+
+                            nextDomNode = matchingChildDomNode.nextSibling
                         }
                     }
                 }
@@ -276,7 +258,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
             }
         }
 
-    } else {
+    } else if (oldChildVNodes.length > 0) {
         // no new nodes, clear DOM and clean up
         parentElement.replaceChildren()
 
