@@ -412,8 +412,70 @@ describe('render', () => {
     })
 
     it('removes excessive keyed child nodes', (done) => {
-        const viewItems1 = ['a', 'b', 'c', 'd']
-        const viewItems2 = ['a', 'c']
+        const viewItems1 = ['a', 'b', 'c', 'd', 'e', 'f']
+        const viewItems2 = ['c', 'e']
+        const view1 =
+            <div>
+                {viewItems1.map(item => <div key={item}>{item}</div>)}
+            </div>
+        const view2 =
+            <div>
+                {viewItems2.map(item => <div key={item}>{item}</div>)}
+            </div>
+
+        render(document.body, [view1], [])
+        let node = view1.domRef as HTMLDivElement
+
+        expect(node.childElementCount).toBe(viewItems1.length)
+
+        render(document.body, [view2], [view1])
+        node = view2.domRef as HTMLDivElement
+
+        expect(node.childElementCount).toBe(viewItems2.length)
+        expect(node.children[0].textContent).toBe('c')
+        expect(node.children[1].textContent).toBe('e')
+
+        done()
+    })
+
+    it('removes excessive keyed component child nodes', (done) => {
+        const viewItems1 = ['a', 'b', 'c', 'd', 'e', 'f']
+        const viewItems2 = ['c', 'e']
+
+
+        const Component = myra.define(props => {
+            return (
+                <div>{props.key}</div>
+            )
+        })
+
+        const view1 =
+            <div>
+                {viewItems1.map(item => <Component key={item} />)}
+            </div>
+        const view2 =
+            <div>
+                {viewItems2.map(item => <Component key={item} />)}
+            </div>
+
+        render(document.body, [view1], [])
+        let node = view1.domRef as HTMLDivElement
+
+        expect(node.childElementCount).toBe(viewItems1.length)
+
+        render(document.body, [view2], [view1])
+        node = view2.domRef as HTMLDivElement
+
+        expect(node.childElementCount).toBe(viewItems2.length)
+        expect(node.children[0].textContent).toBe('c')
+        expect(node.children[1].textContent).toBe('e')
+
+        done()
+    })
+
+    it('correctly inserts and appends keyed child nodes', (done) => {
+        const viewItems1 = ['c', 'e']
+        const viewItems2 = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
         const view1 =
             <div>
                 {viewItems1.map(item => <div key={item}>{item}</div>)}
@@ -433,7 +495,177 @@ describe('render', () => {
 
         expect(node.childElementCount).toBe(viewItems2.length)
         expect(node.children[0].textContent).toBe('a')
+        expect(node.children[1].textContent).toBe('b')
+        expect(node.children[2].textContent).toBe('c')
+        expect(node.children[3].textContent).toBe('d')
+        expect(node.children[4].textContent).toBe('e')
+        expect(node.children[5].textContent).toBe('f')
+        expect(node.children[6].textContent).toBe('g')
+
+        done()
+    })
+
+
+    it('correctly inserts and appends keyed fragment child nodes', (done) => {
+        const viewItems1 = ['c', 'e']
+        const viewItems2 = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+        const view1 =
+            <div>
+                {viewItems1.map(item => <myra.Fragment key={item}>{item}</myra.Fragment>)}
+            </div>
+        const view2 =
+            <div>
+                {viewItems2.map(item => <myra.Fragment key={item}>{item}</myra.Fragment>)}
+            </div>
+
+        render(document.body, [view1], [])
+        let node = view1.domRef as HTMLDivElement
+
+        expect(node.childNodes.length).toBe(viewItems1.length)
+
+        render(document.body, [view2], [view1])
+        node = view2.domRef as HTMLDivElement
+
+        expect(node.childNodes.length).toBe(viewItems2.length)
+        expect(node.childNodes[0].textContent).toBe('a')
+        expect(node.childNodes[1].textContent).toBe('b')
+        expect(node.childNodes[2].textContent).toBe('c')
+        expect(node.childNodes[3].textContent).toBe('d')
+        expect(node.childNodes[4].textContent).toBe('e')
+        expect(node.childNodes[5].textContent).toBe('f')
+        expect(node.childNodes[6].textContent).toBe('g')
+
+        done()
+    })
+
+    it('correctly inserts and appends keyed component child nodes', (done) => {
+        const viewItems1 = ['c', 'e']
+        const viewItems2 = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+
+        const Component = myra.define(props => {
+            return (
+                <div>{props.key}</div>
+            )
+        })
+
+        const view1 =
+            <div>
+                {viewItems1.map(item => <Component key={item} />)}
+            </div>
+        const view2 =
+            <div>
+                {viewItems2.map(item => <Component key={item} />)}
+            </div>
+
+        render(document.body, [view1], [])
+        let node = view1.domRef as HTMLDivElement
+
+        expect(node.childElementCount).toBe(viewItems1.length)
+
+        render(document.body, [view2], [view1])
+        node = view2.domRef as HTMLDivElement
+
+        expect(node.childElementCount).toBe(viewItems2.length)
+        expect(node.children[0].textContent).toBe('a')
+        expect(node.children[1].textContent).toBe('b')
+        expect(node.children[2].textContent).toBe('c')
+        expect(node.children[3].textContent).toBe('d')
+        expect(node.children[4].textContent).toBe('e')
+        expect(node.children[5].textContent).toBe('f')
+        expect(node.children[6].textContent).toBe('g')
+
+        done()
+    })
+
+    it('correctly updates and appends keyed child nodes', (done) => {
+        const viewItems1 = ['a', 'b', 'c']
+        const viewItems2 = ['b', 'c', 'd']
+
+        const view1 =
+            <div>
+                {viewItems1.map(item => <div key={item}>{item}</div>)}
+            </div>
+        const view2 =
+            <div>
+                {viewItems2.map(item => <div key={item}>{item}</div>)}
+            </div>
+
+        render(document.body, [view1], [])
+        let node = view1.domRef as HTMLDivElement
+
+        expect(node.childElementCount).toBe(viewItems1.length)
+
+        render(document.body, [view2], [view1])
+        node = view2.domRef as HTMLDivElement
+
+        expect(node.childElementCount).toBe(viewItems2.length)
+        expect(node.children[0].textContent).toBe('b')
         expect(node.children[1].textContent).toBe('c')
+        expect(node.children[2].textContent).toBe('d')
+
+        done()
+    })
+
+    it('correctly updates and appends keyed fragment child nodes', (done) => {
+        const viewItems1 = ['a', 'b', 'c']
+        const viewItems2 = ['b', 'c', 'd']
+
+        const view1 =
+            <div>
+                {viewItems1.map(item => <myra.Fragment key={item}>{item}</myra.Fragment>)}
+            </div>
+        const view2 =
+            <div>
+                {viewItems2.map(item => <myra.Fragment key={item}>{item}</myra.Fragment>)}
+            </div>
+
+        render(document.body, [view1], [])
+        let node = view1.domRef as HTMLDivElement
+
+        expect(node.childNodes.length).toBe(viewItems1.length)
+
+        render(document.body, [view2], [view1])
+        node = view2.domRef as HTMLDivElement
+
+        expect(node.childNodes.length).toBe(viewItems2.length)
+        expect(node.childNodes[0].textContent).toBe('b')
+        expect(node.childNodes[1].textContent).toBe('c')
+        expect(node.childNodes[2].textContent).toBe('d')
+
+        done()
+    })
+
+    it('correctly updates and appends keyed component child nodes', (done) => {
+        const viewItems1 = ['a', 'b', 'c']
+        const viewItems2 = ['b', 'c', 'd']
+
+        const Component = myra.define(props => {
+            return (
+                <div>{props.key}</div>
+            )
+        })
+
+        const view1 =
+            <div>
+                {viewItems1.map(item => <Component key={item} />)}
+            </div>
+        const view2 =
+            <div>
+                {viewItems2.map(item => <Component key={item} />)}
+            </div>
+
+        render(document.body, [view1], [])
+        let node = view1.domRef as HTMLDivElement
+
+        expect(node.childElementCount).toBe(viewItems1.length)
+
+        render(document.body, [view2], [view1])
+        node = view2.domRef as HTMLDivElement
+
+        expect(node.childElementCount).toBe(viewItems2.length)
+        expect(node.children[0].textContent).toBe('b')
+        expect(node.children[1].textContent).toBe('c')
+        expect(node.children[2].textContent).toBe('d')
 
         done()
     })
