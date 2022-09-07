@@ -57,7 +57,6 @@ export function tryHandleComponentError(parentElement: Element, vNode: Component
         render(parentElement, [errorView], vNode.rendition === undefined ? [] : [vNode.rendition], isSvg)
 
         vNode.rendition = errorView
-        vNode.domRef = errorView.domRef
     } else {
         throw err
     }
@@ -513,7 +512,7 @@ export function renderComponent(
             let newView = newVNode.view(newVNode.props) as VNode
 
             if (oldVNode !== undefined && oldVNode._ === VNodeType.Component && renderingContext!.memo) {
-                newVNode.domRef = oldVNode.domRef
+
                 newVNode.rendition = oldVNode.rendition
 
                 renderingContext = undefined
@@ -526,7 +525,6 @@ export function renderComponent(
             render(parentElement, [newView], replaceOrUpdateVNode === undefined ? [] : [replaceOrUpdateVNode], isSvg)
 
             newVNode.rendition = (newView as VNode)
-            newVNode.domRef = (newView as VNode).domRef
 
             // Trigger synchronous effects (useLayoutEffect)
             triggerEffects(newVNode, parentElement, isSvg, true)

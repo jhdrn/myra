@@ -346,8 +346,9 @@ export interface EffectWrapper {
 /**
  * A virtual node representing a component.
  */
-export interface ComponentVNode<TProps> extends VNodeBase {
+export interface ComponentVNode<TProps> {
     readonly _: VNodeType.Component
+    readonly domRef?: Node
     data?: any[]
     /** A flag to indicate whether a new "renderComponent" call should be queued or not. */
     debounceRender: boolean

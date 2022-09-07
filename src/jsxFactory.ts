@@ -45,6 +45,9 @@ export function h<TProps>(
     const vNode = {
         _: VNodeType.Component,
         debounceRender: false,
+        get domRef() {
+            return this.rendition.domRef
+        },
         props,
         view: tagNameOrComponent
     } as any as ComponentVNode<any>
