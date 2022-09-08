@@ -46,7 +46,10 @@ export function h<TProps>(
         _: VNodeType.Component,
         debounceRender: false,
         get domRef() {
-            return this.rendition.domRef
+            if (this.rendition !== undefined) {
+                return this.rendition.domRef
+            }
+            return undefined
         },
         props,
         view: tagNameOrComponent
