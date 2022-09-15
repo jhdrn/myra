@@ -213,8 +213,16 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                         }
                     }
                 }
-            } else if (oldChildVNodesToRemove.length > 0) {
-                oldChildVNodesToRemove.shift()
+            } else {
+                if (oldChildVNodesToRemove.length > 0) {
+                    oldChildVNodesToRemove.shift()
+                }
+
+                // Remove the current DOM node from unkeyedNodes to make sure it's not reused!
+                const unkeyedIndex = unkeyedNodes.indexOf(domNodeAtIndex!)
+                if (unkeyedIndex >= 0) {
+                    unkeyedNodes.splice(unkeyedIndex, 1)
+                }
             }
 
             switch (newChildVNode._) {
