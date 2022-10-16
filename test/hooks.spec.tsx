@@ -24,18 +24,16 @@ describe('useEffect', () => {
         }
         myra.mount(<Component />, document.body)
 
+        // Trigger re-render
+        updateState(1)
+
         requestAnimationFrame(() => {
             // Trigger re-render
-            updateState(1)
-
+            updateState(2)
             requestAnimationFrame(() => {
-                // Trigger re-render
-                updateState(2)
-                requestAnimationFrame(() => {
-                    expect(mock.callback).toHaveBeenCalledTimes(2)
+                expect(mock.callback).toHaveBeenCalledTimes(3)
 
-                    done()
-                })
+                done()
             })
         })
     })
@@ -58,20 +56,18 @@ describe('useEffect', () => {
         }
         myra.mount(<Component />, document.body)
 
+        // Trigger re-render
+        updateState(1)
         requestAnimationFrame(() => {
             // Trigger re-render
-            updateState(1)
+            updateState(2)
             requestAnimationFrame(() => {
-                // Trigger re-render
-                updateState(2)
-                requestAnimationFrame(() => {
 
-                    // We need to use setTimeout as the effect is cleaned up asynchronously
-                    setTimeout(() => {
-                        expect(mock.callback).toHaveBeenCalledTimes(2)
-                        done()
-                    }, 0)
-                })
+                // We need to use setTimeout as the effect is cleaned up asynchronously
+                setTimeout(() => {
+                    expect(mock.callback).toHaveBeenCalledTimes(2)
+                    done()
+                }, 0)
             })
         })
     })
@@ -167,17 +163,15 @@ describe('useEffect', () => {
         }
         myra.mount(<Component />, document.body)
 
+        // Trigger re-render
+        updateState(1)
         requestAnimationFrame(() => {
             // Trigger re-render
-            updateState(1)
+            updateState(2)
             requestAnimationFrame(() => {
-                // Trigger re-render
-                updateState(2)
-                requestAnimationFrame(() => {
-                    expect(mock.callback).toHaveBeenCalledTimes(1)
+                expect(mock.callback).toHaveBeenCalledTimes(1)
 
-                    done()
-                })
+                done()
             })
         })
     })
@@ -202,17 +196,15 @@ describe('useLayoutEffect', () => {
         }
         myra.mount(<Component />, document.body)
 
+        // Trigger re-render
+        updateState(1)
+
         requestAnimationFrame(() => {
             // Trigger re-render
-            updateState(1)
+            updateState(2)
+            expect(mock.callback).toHaveBeenCalledTimes(2)
 
-            requestAnimationFrame(() => {
-                // Trigger re-render
-                updateState(2)
-                expect(mock.callback).toHaveBeenCalledTimes(2)
-
-                done()
-            })
+            done()
         })
     })
 
@@ -233,18 +225,16 @@ describe('useLayoutEffect', () => {
         }
         myra.mount(<Component />, document.body)
 
+        // Trigger re-render
+        updateState(1)
+
         requestAnimationFrame(() => {
             // Trigger re-render
-            updateState(1)
-
+            updateState(2)
             requestAnimationFrame(() => {
-                // Trigger re-render
-                updateState(2)
-                requestAnimationFrame(() => {
-                    expect(mock.callback).toHaveBeenCalledTimes(2)
+                expect(mock.callback).toHaveBeenCalledTimes(2)
 
-                    done()
-                })
+                done()
             })
         })
     })
@@ -312,13 +302,12 @@ describe('useLayoutEffect', () => {
         }
         myra.mount(<Component />, document.body)
 
-        requestAnimationFrame(() => {
-            updateState(1)
-            requestAnimationFrame(() => {
-                expect(mock.callback).toHaveBeenCalledTimes(1)
+        updateState(1)
 
-                done()
-            })
+        requestAnimationFrame(() => {
+            expect(mock.callback).toHaveBeenCalledTimes(1)
+
+            done()
         })
     })
 })
@@ -545,17 +534,13 @@ describe('useErrorHandling', () => {
         myra.mount(component, document.body)
 
         requestAnimationFrame(() => {
-            // Need to request another frame as the effect is triggered async 
-            // after the first render.
-            requestAnimationFrame(() => {
-                const node = (component as ComponentVNode<any>).domRef!
+            const node = (component as ComponentVNode<any>).domRef!
 
-                expect(node.nodeType).toBe(Node.COMMENT_NODE)
-                expect(node.textContent).toBe('Nothing')
-                expect(mock.callback).toHaveBeenCalled()
+            expect(node.nodeType).toBe(Node.COMMENT_NODE)
+            expect(node.textContent).toBe('Nothing')
+            expect(mock.callback).toHaveBeenCalled()
 
-                done()
-            })
+            done()
         })
     })
 
@@ -847,14 +832,12 @@ describe('useState', () => {
         const vNode = <Component />
         render(document.body, [vNode], [])
 
-        requestAnimationFrame(() => {
 
-            setStateOuter(1)
-            setStateOuter(2)
-            requestAnimationFrame(() => {
-                expect(vNode.domRef.textContent).toEqual('2')
-                done()
-            })
+        setStateOuter(1)
+        setStateOuter(2)
+        requestAnimationFrame(() => {
+            expect(vNode.domRef.textContent).toEqual('2')
+            done()
         })
 
     })

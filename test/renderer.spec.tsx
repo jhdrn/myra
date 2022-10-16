@@ -376,13 +376,11 @@ describe('render', () => {
 
         myra.mount(<Component />, document.body)
 
+        setShowChildOuter(true)
         requestAnimationFrame(() => {
-            setShowChildOuter(true)
-            requestAnimationFrame(() => {
-                const child = document.getElementById('child-node')
-                expect(child).not.toBeNull()
-                done()
-            })
+            const child = document.getElementById('child-node')
+            expect(child).not.toBeNull()
+            done()
         })
     })
 
@@ -1050,32 +1048,34 @@ describe('render', () => {
 
         render(document.body, [view1], [])
 
-        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
-        btn.click()
-
         requestAnimationFrame(() => {
+            let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
+            btn.click()
 
-            expect(btn.className).toBe("clicked")
-            expect(btn.id).toBe("item-1")
+            requestAnimationFrame(() => {
 
-            const view2 =
-                <div>
-                    {items.reverse().map(x => <div key={x.id.toString()}><ItemComponent forceUpdate item={x} /></div>)}
-                </div>
+                expect(btn.className).toBe("clicked")
+                expect(btn.id).toBe("item-1")
 
-            render(document.body, [view2], [view1])
+                const view2 =
+                    <div>
+                        {items.reverse().map(x => <div key={x.id.toString()}><ItemComponent forceUpdate item={x} /></div>)}
+                    </div>
 
-            btn = (view2.domRef as HTMLDivElement).querySelector('button')!
-            expect(btn.id).toBe("item-5")
-            expect(btn.className).toBe("")
+                render(document.body, [view2], [view1])
 
-            // The last element should've been updated
-            btn = ((view2.domRef as HTMLDivElement).lastChild as HTMLDivElement).firstChild as HTMLButtonElement
+                btn = (view2.domRef as HTMLDivElement).querySelector('button')!
+                expect(btn.id).toBe("item-5")
+                expect(btn.className).toBe("")
 
-            expect(btn.id).toBe("item-1")
-            expect(btn.className).toBe("clicked")
+                // The last element should've been updated
+                btn = ((view2.domRef as HTMLDivElement).lastChild as HTMLDivElement).firstChild as HTMLButtonElement
 
-            done()
+                expect(btn.id).toBe("item-1")
+                expect(btn.className).toBe("clicked")
+
+                done()
+            })
         })
     })
 
@@ -1380,40 +1380,42 @@ describe('render', () => {
             </div> as ElementVNode<HTMLDivElement>
 
         render(document.body, [view1], [])
-
-        let btn = view1.domRef!.querySelector('button')!
-        btn.click()
         requestAnimationFrame(() => {
-            expect(btn.className).toBe("clicked")
-            expect(btn.id).toBe("item-1")
 
-            // Clear id so it's set from state
-            btn.id = ""
-            btn.className = ""
+            let btn = view1.domRef!.querySelector('button')!
+            btn.click()
+            requestAnimationFrame(() => {
+                expect(btn.className).toBe("clicked")
+                expect(btn.id).toBe("item-1")
 
-            // We also need to modify the node, else the attributes won't be updated
-            delete btnVNode!.props.id
-            delete btnVNode!.props.class
+                // Clear id so it's set from state
+                btn.id = ""
+                btn.className = ""
 
-            const reversedItems = items.reverse()
-            const view2 =
-                <div>
-                    {reversedItems.map(x => <ItemComponent item={x} forceUpdate={true} />)}
-                </div> as ElementVNode<HTMLDivElement>
+                // We also need to modify the node, else the attributes won't be updated
+                delete btnVNode!.props.id
+                delete btnVNode!.props.class
 
-            render(document.body, [view2], [view1])
+                const reversedItems = items.reverse()
+                const view2 =
+                    <div>
+                        {reversedItems.map(x => <ItemComponent item={x} forceUpdate={true} />)}
+                    </div> as ElementVNode<HTMLDivElement>
 
-            btn = view2.domRef!.querySelector('button')!
+                render(document.body, [view2], [view1])
 
-            expect(btn.className).toBe("clicked")
-            expect(btn.id).toBe("item-5")
+                btn = view2.domRef!.querySelector('button')!
 
-            // The last element should've been updated with the same values
-            btn = view2.domRef!.lastChild as HTMLButtonElement
+                expect(btn.className).toBe("clicked")
+                expect(btn.id).toBe("item-5")
 
-            expect(btn.className).toBe("")
-            expect(btn.id).toBe("item-1")
-            done()
+                // The last element should've been updated with the same values
+                btn = view2.domRef!.lastChild as HTMLButtonElement
+
+                expect(btn.className).toBe("")
+                expect(btn.id).toBe("item-1")
+                done()
+            })
         })
     })
 

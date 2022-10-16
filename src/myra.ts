@@ -29,7 +29,5 @@ export function define<TProps>(fn: JSXElementFactory<TProps & ComponentProps>) {
  * Mounts a virtual DOM node onto the supplied element.
  */
 export function mount(vNode: VNode, element: Element) {
-    requestAnimationFrame(() => {
-        render(element, [vNode], [])
-    })
+    render(element, [vNode], [])
 }

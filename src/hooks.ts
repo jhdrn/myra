@@ -31,7 +31,7 @@ export function useState<TState>(initialState: TState | LazyStateInitialization<
                 currentVNode.data![hookIndex] = [update, evolve]
 
                 if (!currentVNode.debounceRender) {
-                    requestAnimationFrame(() => {
+                    setTimeout(() => {
                         link.vNode.debounceRender = false
 
                         renderComponent(
@@ -41,13 +41,13 @@ export function useState<TState>(initialState: TState | LazyStateInitialization<
                             link.vNode.rendition,
                             isSvg
                         )
-                    })
+                    }, 0)
                 }
                 currentVNode.debounceRender = true
             } catch (err) {
-                requestAnimationFrame(() => {
+                setTimeout(() => {
                     tryHandleComponentError(parentElement, currentVNode, isSvg, err as Error)
-                })
+                }, 0)
             }
             return currentVNode.data![hookIndex][0]
         }

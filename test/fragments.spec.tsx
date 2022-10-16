@@ -214,13 +214,11 @@ describe('fragment', () => {
 
         myra.mount(<Component />, fragmentContainer)
 
+        setDidRenderOuter(true)
         requestAnimationFrame(() => {
-            setDidRenderOuter(true)
-            requestAnimationFrame(() => {
-                const childNode = fragmentContainer.firstElementChild
-                expect(childNode).toBeNull()
-                done()
-            })
+            const childNode = fragmentContainer.firstElementChild
+            expect(childNode).toBeNull()
+            done()
         })
     })
 
@@ -499,13 +497,11 @@ describe('fragment', () => {
 
         myra.mount(<Component />, fragmentContainer)
 
+        setDidRenderOuter(true)
         requestAnimationFrame(() => {
-            setDidRenderOuter(true)
-            requestAnimationFrame(() => {
-                const childNode = fragmentContainer.firstElementChild
-                expect(childNode).toBeNull()
-                done()
-            })
+            const childNode = fragmentContainer.firstElementChild
+            expect(childNode).toBeNull()
+            done()
         })
     })
 
@@ -791,6 +787,7 @@ describe('fragment', () => {
 
         requestAnimationFrame(() => {
             setItemsOuter(x => x.slice(1))
+
             requestAnimationFrame(() => {
 
                 expect(fragmentContainer.childElementCount).toBe(6)
@@ -839,15 +836,13 @@ describe('fragment', () => {
 
         myra.mount(<Component />, fragmentContainer)
 
+        setDidRenderOuter(true)
         requestAnimationFrame(() => {
-            setDidRenderOuter(true)
-            requestAnimationFrame(() => {
-                const childNode = fragmentContainer.firstElementChild
-                expect(childNode).toBeNull()
+            const childNode = fragmentContainer.firstElementChild
+            expect(childNode).toBeNull()
 
-                expect(mock.unmount).toHaveBeenCalledTimes(1)
-                done()
-            })
+            expect(mock.unmount).toHaveBeenCalledTimes(1)
+            done()
         })
     })
 
@@ -1048,29 +1043,31 @@ describe('fragment', () => {
 
         render(document.body, [view1], [])
 
-        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
-        btn.click()
-
         requestAnimationFrame(() => {
-            expect(btn.className).toBe("clicked")
-            expect(btn.id).toBe("item-1")
+            let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
+            btn.click()
 
-            const view2 =
-                <div>
-                    {items.reverse().map(x => <><ItemComponent item={x} /></>)}
-                </div>
+            requestAnimationFrame(() => {
+                expect(btn.className).toBe("clicked")
+                expect(btn.id).toBe("item-1")
 
-            render(document.body, [view2], [view1])
+                const view2 =
+                    <div>
+                        {items.reverse().map(x => <><ItemComponent item={x} /></>)}
+                    </div>
 
-            btn = (view2.domRef as HTMLDivElement).querySelector('button')!
-            expect(btn.className).toBe("clicked")
-            expect(btn.id).toBe("item-5")
+                render(document.body, [view2], [view1])
 
-            // The last element should've been updated
-            btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
-            expect(btn.className).toBe("")
-            expect(btn.id).toBe("item-1")
-            done()
+                btn = (view2.domRef as HTMLDivElement).querySelector('button')!
+                expect(btn.className).toBe("clicked")
+                expect(btn.id).toBe("item-5")
+
+                // The last element should've been updated
+                btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
+                expect(btn.className).toBe("")
+                expect(btn.id).toBe("item-1")
+                done()
+            })
         })
     })
 
