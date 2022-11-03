@@ -15,7 +15,7 @@ Myra is (another) JSX rendering library. It is small, simple and built with and 
 [![NPM](https://nodei.co/npm/myra.png)](https://nodei.co/npm/myra/)
 
 Myra is a JSX rendering engine implementing a subset of React, but with some
-differences (one being Myra uses requestAnimationFrame for updates).
+differences.
 
 ## Setup
 
