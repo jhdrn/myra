@@ -32,7 +32,7 @@ export function equal<T>(a: T, b: T): boolean {
         if (a === b) {
             return true
         }
-        if (Object.keys(a).length !== Object.keys(b).length) {
+        if (Object.keys(a as Object).length !== Object.keys(b as Object).length) {
             return false
         }
         for (const k in a) {
