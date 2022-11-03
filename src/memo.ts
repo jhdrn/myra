@@ -2,6 +2,8 @@ import { getRenderingContext } from "./component"
 import { ComponentFactory, ComponentProps, JSXElementFactory, VNode, VNodeType } from "./contract"
 import { useRef } from "./hooks"
 
+type CompareFn<TProps> = (newProps: TProps, oldProps: TProps) => boolean
+
 /**
  * Memoizes a component view, preventing unnecessary renders.
  * 
@@ -13,9 +15,9 @@ import { useRef } from "./hooks"
  *                returned the memoized view will be kept, otherwise the view 
  *                will be rerendered.
  */
-export function memo<TProps>(factory: ComponentFactory<TProps & ComponentProps>, compare?: (newProps: TProps, oldProps: TProps) => boolean): JSXElementFactory<TProps & ComponentProps> {
+export function memo<TProps>(factory: ComponentFactory<TProps & ComponentProps>, compare?: CompareFn<TProps>): JSXElementFactory<TProps & ComponentProps> {
 
-    compare = compare ?? shallowCompareProps
+    compare = compare ?? shallowCompareProps as CompareFn<TProps>
 
     return (props: TProps) => {
 
@@ -27,7 +29,7 @@ export function memo<TProps>(factory: ComponentFactory<TProps & ComponentProps>,
         const renderingContext = getRenderingContext()!
 
         if (renderingContext.oldVNode === undefined || !compare!(props, oldProps)) {
-            return factory(props) as VNode
+            return factory(props as TProps & ComponentProps) as VNode
         }
 
         renderingContext!.memo = true
