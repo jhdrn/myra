@@ -1,5 +1,8 @@
-import * as myra from '../src/myra'
-import { ElementVNode, TextVNode, NothingVNode, ComponentVNode, VNode, ComponentProps, VNodeType } from '../src/contract'
+/**
+ * @jest-environment jsdom
+ */
+import * as myra from '../myra'
+import { ElementVNode, TextVNode, NothingVNode, ComponentVNode, VNode, ComponentProps, VNodeType } from '../contract'
 
 describe('jsxFactory', () => {
 

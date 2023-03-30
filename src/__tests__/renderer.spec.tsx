@@ -1,7 +1,10 @@
-import { render } from '../src/component'
-import { ComponentProps, ElementVNode } from '../src/contract'
-import { useState } from '../src/hooks'
-import * as myra from '../src/myra'
+/**
+ * @jest-environment jsdom
+ */
+import { render } from '../component'
+import { ComponentProps, ElementVNode } from '../contract'
+import { useState } from '../hooks'
+import * as myra from '../myra'
 
 // const keyPressEvent = (keyCode: number) => {
 //     const event = document.createEvent('Event')
@@ -802,7 +805,7 @@ describe('render', () => {
         const mocks = {
             onclickUpdate: () => { /* dummy */ }
         }
-        spyOn(mocks, 'onclickUpdate')
+        jest.spyOn(mocks, 'onclickUpdate')
 
         const view =
             <button onclick={mocks.onclickUpdate}></button>
@@ -872,8 +875,8 @@ describe('render', () => {
             onclickUpdate1: () => { /* dummy */ },
             onclickUpdate2: () => { /* dummy */ }
         }
-        spyOn(mocks, 'onclickUpdate1')
-        spyOn(mocks, 'onclickUpdate2')
+        jest.spyOn(mocks, 'onclickUpdate1')
+        jest.spyOn(mocks, 'onclickUpdate2')
 
         const view1 = <button onclick={mocks.onclickUpdate1}></button>
 
@@ -997,7 +1000,7 @@ describe('render', () => {
                 expect(props).toEqual({ test: 'test', children: [] })
         }
 
-        spyOn(mocks, 'assertProps').and.callThrough()
+        jest.spyOn(mocks, 'assertProps')
 
         const ChildComponent = (props: ChildComponentProps) => {
             mocks.assertProps(props as ChildComponentProps & ComponentProps)
@@ -1425,7 +1428,7 @@ describe('render', () => {
     //         unmount: () => { }
     //     }
 
-    //     spyOn(mountMock, 'unmount').and.callThrough()
+    //     jest.spyOn(mountMock, 'unmount')
 
     //     const ChildComponent = () => {
     //         useLifecycle(ev => ev.phase === LifecyclePhase.BeforeUnmount && mountMock.unmount())

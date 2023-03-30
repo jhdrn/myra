@@ -1,8 +1,13 @@
 {
   "name": "myra",
-  "private": true,
   "version": "6.0.0",
   "description": "Myra is a simple and small Typescript JSX rendering library.",
+  "files": [
+    "lib/**/*"
+  ],
+  "main": "myra.js",
+  "module": "myra.es.js",
+  "typings": "myra.d.ts",
   "readme": "README.md",
   "repository": {
     "type": "git",
@@ -17,57 +22,37 @@
     "name": "Jonathan Hedrén",
     "email": "jonathan.hedren@gmail.com"
   },
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/jhdrn/myra/issues"
   },
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org"
-  },
-  "license": "MIT",
   "devDependencies": {
-    "@types/jasmine": "^2.8.17",
-    "@types/node": "^16.11.66",
-    "codecov": "^3.8.2",
-    "copyfiles": "^2.4.1",
-    "dts-bundle": "^0.7.3",
-    "http-server": "^14.1.1",
-    "jasmine-core": "^2.99.1",
-    "karma": "^5.2.3",
-    "karma-chrome-launcher": "^3.1.0",
-    "karma-coverage": "^2.0.3",
-    "karma-edge-launcher": "^0.4.2",
-    "karma-firefox-launcher": "^2.1.0",
-    "karma-ie-launcher": "^1.0.0",
-    "karma-jasmine": "^1.1.2",
-    "karma-safari-launcher": "^1.0.0",
-    "karma-sauce-launcher": "^1.2.0",
-    "karma-spec-reporter": "0.0.32",
-    "lodash.camelcase": "^4.3.0",
-    "remap-istanbul": "^0.13.0",
-    "rimraf": "^3.0.2",
-    "rollup": "^2.75.5",
-    "rollup-plugin-sourcemaps": "^0.6.3",
-    "rollup-plugin-uglify": "^6.0.4",
-    "systemjs": "^0.19.47",
-    "ts-node": "^10.9.1",
-    "typescript": "^4.8.4",
-    "uglify-es": "^3.3.9"
+    "@types/jest": "^29.5.0",
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
+    "@typescript-eslint/parser": "^5.57.0",
+    "eslint": "^8.37.0",
+    "eslint-plugin-jest": "27.2.1",
+    "jest": "^29.5.0",
+    "jest-environment-jsdom": "^29.5.0",
+    "prettier": "^2.8.7",
+    "ts-jest": "29.0.5",
+    "typescript": "^5.0.2"
   },
   "scripts": {
-    "prebuild": "rimraf dist",
-    "build": "npm run build:es && npm run build:umd:dev && npm run build:umd:prod",
-    "build:es": "tsc && rollup -c --output.file=dist/myra.es.js --output.format=es",
-    "build:umd:dev": "tsc && rollup -c rollup.config.js --output.file=dist/myra.js",
-    "build:umd:prod": "tsc && rollup -c --environment=BUILD:production --output.file=dist/myra.min.js",
-    "postbuild": "rimraf build && ts-node scripts/postbuild.ts && copyfiles LICENSE README.md package.json dist",
-    "pretest": "tsc --module commonjs",
-    "test": "karma start karma.conf-ci.js",
-    "test:local": "npm run pretest && karma start karma.conf-local.js && npm run posttest",
-    "posttest": "node_modules/.bin/remap-istanbul -i ./coverage/coverage.json -o ./coverage -t html",
-    "codecov": "node_modules/.bin/remap-istanbul -i coverage/coverage.json -o ./coverage/lcov.info -t lcovonly && codecov -f ./coverage/lcov.info",
-    "coverage": "http-server -c-1 -o -p 9875 ./coverage"
+    "build": "tsc --noEmit && npm run bundle",
+    "bundle": "node esbuild.js",
+    "format": "prettier --write \"src/**/*.(ts|tsx)\"",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --fix --ext .ts,.tsx",
+    "test": "jest --config jest.config.js",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run lint",
+    "preversion": "npm run lint",
+    "version": "npm run format && git add -A src",
+    "postversion": "git push && git push --tags"
   },
-  "main": "myra.js",
-  "module": "myra.es.js",
-  "typings": "myra.d.ts"
+  "type": "module",
+  "dependencies": {
+    "esbuild": "0.17.14"
+  }
 }

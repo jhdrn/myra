@@ -1,7 +1,10 @@
-import { render } from '../src/component'
-import { ComponentVNode, Ref } from '../src/contract'
-import { useEffect, useErrorHandler, useLayoutEffect, useMemo, useRef, useState } from '../src/hooks'
-import * as myra from '../src/myra'
+/**
+ * @jest-environment jsdom
+ */
+import { render } from '../component'
+import { ComponentVNode, Ref } from '../contract'
+import { useEffect, useErrorHandler, useLayoutEffect, useMemo, useRef, useState } from '../hooks'
+import * as myra from '../myra'
 
 const q = (x: string) => document.querySelector(x)
 
@@ -12,7 +15,7 @@ describe('useEffect', () => {
             callback: () => { }
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
 
         // Create a fake function that will be replaced by the real Evolve impl.
         let updateState: myra.Evolve<number> = function () { return 0 }
@@ -45,7 +48,7 @@ describe('useEffect', () => {
             }
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
         // Create a fake function that will be replaced by the real Evolve impl.
         let updateState: myra.Evolve<number> = function () { return 0 }
         const Component = () => {
@@ -79,7 +82,7 @@ describe('useEffect', () => {
             }
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
 
         const Component = () => {
             useEffect(() => mock.callback)
@@ -103,7 +106,7 @@ describe('useEffect', () => {
             callback: () => { }
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
 
         const Component = () => {
             useEffect(() => mock.callback)
@@ -127,7 +130,7 @@ describe('useEffect', () => {
             callback: () => { }
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
 
         const Component = () => {
             useEffect(() => mock.callback, [])
@@ -151,7 +154,7 @@ describe('useEffect', () => {
             callback: () => { }
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
 
         // Create a fake function that will be replaced by the real Evolve impl.
         let updateState: myra.Evolve<number> = function () { return 0 }
@@ -184,7 +187,7 @@ describe('useLayoutEffect', () => {
             callback: () => { }
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
 
         // Create a fake function that will be replaced by the real Evolve impl.
         let updateState: myra.Evolve<number> = function () { return 0 }
@@ -213,7 +216,7 @@ describe('useLayoutEffect', () => {
             callback: () => { }
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
 
         // Create a fake function that will be replaced by the real Evolve impl.
         let updateState: myra.Evolve<number> = function () { return 0 }
@@ -244,7 +247,7 @@ describe('useLayoutEffect', () => {
             callback: () => { }
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
 
         const Component = () => {
             useLayoutEffect(() => mock.callback)
@@ -267,7 +270,7 @@ describe('useLayoutEffect', () => {
             callback: () => { }
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
 
         const Component = () => {
             useLayoutEffect(() => mock.callback, [])
@@ -290,7 +293,7 @@ describe('useLayoutEffect', () => {
             callback: () => { }
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
 
         // Create a fake function that will be replaced by the real Evolve impl.
         let updateState: myra.Evolve<number> = function () { return 0 }
@@ -318,7 +321,7 @@ describe('useMemo', () => {
             callback: () => { }
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
 
         let fn: Function
 
@@ -348,7 +351,7 @@ describe('useMemo', () => {
             callback: () => { }
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
 
         let fn: Function
 
@@ -497,7 +500,7 @@ describe('useErrorHandling', () => {
             callback: () => <nothing />
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
 
         const Component = () => {
             useErrorHandler(mock.callback)
@@ -518,7 +521,7 @@ describe('useErrorHandling', () => {
             callback: () => <nothing />
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
 
         const Component = () => {
 
@@ -550,7 +553,7 @@ describe('useErrorHandling', () => {
             callback: () => <nothing />
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
 
         const Component = () => {
 
@@ -581,7 +584,7 @@ describe('useErrorHandling', () => {
             callback: () => <nothing />
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
 
         const Component = () => {
 
@@ -607,7 +610,7 @@ describe('useErrorHandling', () => {
             callback: () => <nothing />
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
 
         const Component = () => {
 
@@ -638,7 +641,7 @@ describe('useErrorHandling', () => {
             callback: () => <nothing />
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
 
         const Component = () => {
 
@@ -667,7 +670,7 @@ describe('useErrorHandling', () => {
             callback: () => <nothing />
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
 
         const SubComponent = () => <div>{(undefined as any).property}</div>
 
@@ -693,7 +696,7 @@ describe('useErrorHandling', () => {
             }
         }
 
-        spyOn(viewMock, 'view').and.callThrough()
+        jest.spyOn(viewMock, 'view')
 
         const Component = viewMock.view
 
@@ -768,7 +771,7 @@ describe('useState', () => {
             }
         }
 
-        spyOn(mocks, 'onclickUpdate').and.callThrough()
+        jest.spyOn(mocks, 'onclickUpdate')
 
         const Component = () => {
             const [, evolve] = useState({ val: 1 })
@@ -802,7 +805,7 @@ describe('useState', () => {
             }
         }
 
-        spyOn(mocks, 'onclickUpdate').and.callThrough()
+        jest.spyOn(mocks, 'onclickUpdate')
 
         const Component = () => {
             const [, evolve] = useState({ val: 1 })

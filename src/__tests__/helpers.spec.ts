@@ -1,4 +1,7 @@
-import { equal, typeOf } from '../src/helpers'
+/**
+ * @jest-environment jsdom
+ */
+import { equal, typeOf } from '../helpers'
 
 describe('core.helpers.equal', () => {
 

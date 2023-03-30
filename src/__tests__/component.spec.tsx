@@ -1,5 +1,10 @@
-import { render } from '../src/component'
-import * as myra from '../src/myra'
+/**
+ * @jest-environment jsdom
+ */
+
+
+import { render } from '../component'
+import * as myra from '../myra'
 
 const q = (x: string) => document.querySelector(x)
 
@@ -56,7 +61,7 @@ describe('component render', () => {
             beforeRender: () => { }
         }
 
-        spyOn(mock, 'beforeRender').and.callThrough()
+        jest.spyOn(mock, 'beforeRender')
 
         const Component = myra.memo((_p: { val: number }) => {
             myra.useLayoutEffect(() => mock.beforeRender())
@@ -75,7 +80,7 @@ describe('component render', () => {
             callback: () => { }
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
 
         const Component = (_p: { prop: string }) => {
             myra.useLayoutEffect(() => mock.callback())
@@ -96,7 +101,7 @@ describe('component render', () => {
             callback: () => { }
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
 
         const Component = myra.memo(props => {
             myra.useLayoutEffect(() => mock.callback())
@@ -117,7 +122,7 @@ describe('component render', () => {
             callback: () => { }
         }
 
-        spyOn(mock, 'callback').and.callThrough()
+        jest.spyOn(mock, 'callback')
 
         const Component = myra.define(props => {
             myra.useLayoutEffect(() => mock.callback())

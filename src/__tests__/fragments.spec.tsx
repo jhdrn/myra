@@ -1,6 +1,10 @@
-import * as myra from '../src/myra'
-import { render } from '../src/component'
-import { TextVNode, VNodeType } from '../src/contract'
+/**
+ * @jest-environment jsdom
+ */
+
+import * as myra from '../myra'
+import { render } from '../component'
+import { TextVNode, VNodeType } from '../contract'
 
 const q = (x: string) => document.querySelector(x)
 
@@ -70,6 +74,38 @@ describe('fragment', () => {
         expect(fragmentContainer.childNodes.length).toBe(2)
     })
 
+    it('renders component root fragment replacing an element node', () => {
+
+        const container = document.createElement('div')
+        document.body.appendChild(container)
+
+
+        let renderFragment = false
+
+        const Component = () => {
+            if (renderFragment) {
+                return <><div>A</div><span>B</span></>
+            }
+            return <div>C</div>
+        }
+
+        const view1 = <Component />
+        render(container, [view1], [])
+
+        expect(container.childNodes.length).toBe(1)
+        expect(container.children[0].tagName).toBe('DIV')
+        expect(container.children[0].textContent).toBe('C')
+
+        renderFragment = true
+
+        render(container, [view1], [view1])
+
+        expect(container.childNodes.length).toBe(2)
+        expect(container.children[0].tagName).toBe('DIV')
+        expect(container.children[0].textContent).toBe('A')
+        expect(container.children[1].tagName).toBe('SPAN')
+        expect(container.children[1].textContent).toBe('B')
+    })
 
     it('renders fragment content replacing an element node', () => {
 
@@ -807,7 +843,7 @@ describe('fragment', () => {
             unmount: () => { }
         }
 
-        spyOn(mock, 'unmount').and.callThrough()
+        jest.spyOn(mock, 'unmount')
 
         const ChildComponent = () => {
             myra.useEffect(() => {
