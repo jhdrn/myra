@@ -1,6 +1,6 @@
 import * as myra from '../src/myra'
 import { render } from '../src/component'
-import { TextVNode, VNodeType } from '../src/contract'
+import { ComponentProps, TextVNode, VNodeType } from '../src/contract'
 
 const q = (x: string) => document.querySelector(x)
 
@@ -370,6 +370,42 @@ describe('fragment', () => {
             <div>
                 <div id="x"></div>
                 <div id="y"></div>
+            </div>
+
+
+        render(fragmentContainer, [view2], [view1])
+
+        expect(fragmentContainer.firstChild?.childNodes.length).toBe(2)
+        expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).toBe('x')
+        expect((fragmentContainer.firstChild?.lastChild as HTMLElement).id).toBe('y')
+        done()
+    })
+
+    it('removes DOM nodes when fragment structure with component children is replaced by element node', done => {
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const ComponentA = ({ children }: ComponentProps) => <div>{children}</div>
+        const ComponentB = () =>
+            <>
+                <div id="x"></div>
+                <span id="y"></span>
+            </>
+
+        const view1 =
+            <>
+                <ComponentA><p></p></ComponentA>
+                <ComponentA />
+            </>
+
+        render(fragmentContainer, [view1], [])
+
+        expect(fragmentContainer.childNodes.length).toBe(2)
+
+        const view2 =
+            <div>
+                <ComponentB />
             </div>
 
 
