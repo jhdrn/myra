@@ -609,10 +609,6 @@ function replaceFragmentWithElementNode(parentElement: Element, newChildVNode: E
     // We should have a DOM node to replace in this case
     else {
         replaceNode(parentElement, newChildVNode, replaceVNode!, replaceVNode!.domRef, isSvg)
-
-        if ((replaceVNode as ElementVNode<any>).props !== undefined) {
-            oldChildren = (replaceVNode as ElementVNode<any>).props.children
-        }
     }
 
     // Render the element's children
