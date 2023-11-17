@@ -4,7 +4,6 @@ import {
     EffectWrapper,
     ElementVNode,
     FragmentVNode,
-    Key,
     NothingVNode,
     TextVNode,
     VNode,
@@ -147,69 +146,67 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
 
             const newProps = (newChildVNode as ElementVNode<any>).props
             // Check if the new VNode is "keyed"
-            if (anyKeyedNodes && newProps !== undefined && newProps.key != undefined && oldChildVNodes.length > 0) {
+            if (anyKeyedNodes && newProps !== undefined && newProps.key !== undefined && oldChildVNodes.length > 0) {
 
-                const newChildVNodeKey: Key | undefined = newProps.key
-                if (newChildVNodeKey !== undefined) {
+                const newChildVNodeKey = newProps.key
 
-                    // Fetch the old keyed item from the key map
-                    const keyMapEntry = keyMap[newChildVNodeKey]
+                // Fetch the old keyed item from the key map
+                const keyMapEntry = keyMap[newChildVNodeKey]
 
-                    // If there was no old matching key, reset oldChildVNode so 
-                    // a new DOM node will be added (somewhat ugly) 
-                    if (keyMapEntry === undefined) {
-                        if (domNodeAtIndex === null) {
-                            // unsetting the oldChildVNode will cause the DOM node to be appended
-                            oldChildVNode = undefined
+                // If there was no old matching key, reset oldChildVNode so 
+                // a new DOM node will be added (somewhat ugly) 
+                if (keyMapEntry === undefined) {
+                    if (domNodeAtIndex === null) {
+                        // unsetting the oldChildVNode will cause the DOM node to be appended
+                        oldChildVNode = undefined
+                    }
+                    else if (unkeyedNodes.length > 0) {
+
+                        const domNode = unkeyedNodes.shift()!
+                        // ...reuse an old unkeyed node, if any available
+                        oldChildVNode = {
+                            _: VNodeType.Nothing,
+                            domRef: domNode
                         }
-                        else if (unkeyedNodes.length > 0) {
 
-                            const domNode = unkeyedNodes.shift()!
-                            // ...reuse an old unkeyed node, if any available
-                            oldChildVNode = {
-                                _: VNodeType.Nothing,
-                                domRef: domNode
-                            }
+                        replaceElementChild(parentElement, domNode, domNodeAtIndex)
+
+                        nextDomNode = domNode.nextSibling
+                    } else {
+                        oldChildVNode = {
+                            _: VNodeType.Nothing,
+                            domRef: domNodeAtIndex
+                        }
+                    }
+                }
+                // If there was a matching key, use the old vNodes dom ref
+                else {
+
+                    const [mappedVNode, domNode] = keyMapEntry
+
+                    oldChildVNodesToRemove.splice(oldChildVNodesToRemove.indexOf(mappedVNode), 1)
+
+                    oldChildVNode = mappedVNode
+
+                    // FIXME: handle fragments with multiple children
+                    // Move the matching dom node to it's new position
+                    if (domNode !== undefined && domNode !== domNodeAtIndex) {
+                        // If there is no DOM node at the current index, 
+                        // the matching DOM node should be appended.
+                        if (domNodeAtIndex === null) {
+                            appendElementChild(parentElement, domNode)
+                        }
+                        // Move the node by replacing the node at the current index
+                        else if (elementContainsNode(parentElement, domNode)) {
 
                             replaceElementChild(parentElement, domNode, domNodeAtIndex)
 
                             nextDomNode = domNode.nextSibling
-                        } else {
-                            oldChildVNode = {
-                                _: VNodeType.Nothing,
-                                domRef: domNodeAtIndex
-                            }
                         }
-                    }
-                    // If there was a matching key, use the old vNodes dom ref
-                    else {
+                        else {
+                            insertElementChildBefore(parentElement, domNode, domNodeAtIndex)
 
-                        const [mappedVNode, domNode] = keyMapEntry
-
-                        oldChildVNodesToRemove.splice(oldChildVNodesToRemove.indexOf(mappedVNode), 1)
-
-                        oldChildVNode = mappedVNode
-
-                        // FIXME: handle fragments with multiple children
-                        // Move the matching dom node to it's new position
-                        if (domNode !== undefined && domNode !== domNodeAtIndex) {
-                            // If there is no DOM node at the current index, 
-                            // the matching DOM node should be appended.
-                            if (domNodeAtIndex === null) {
-                                appendElementChild(parentElement, domNode)
-                            }
-                            // Move the node by replacing the node at the current index
-                            else if (elementContainsNode(parentElement, domNode)) {
-
-                                replaceElementChild(parentElement, domNode, domNodeAtIndex)
-
-                                nextDomNode = domNode.nextSibling
-                            }
-                            else {
-                                insertElementChildBefore(parentElement, domNode, domNodeAtIndex)
-
-                                nextDomNode = domNode.nextSibling
-                            }
+                            nextDomNode = domNode.nextSibling
                         }
                     }
                 }
