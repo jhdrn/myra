@@ -55,7 +55,7 @@
     "pretest": "tsc",
     "test": "web-test-runner",
     "test:local": "npm run pretest && web-test-runner --watch && npm run posttest",
-    "coverage": "http-server coverage/lcov-report"
+    "coverage": "http-server -c-1 -o -p 9875 ./coverage/lcov-report"
   },
   "main": "myra.js",
   "module": "myra.mjs",
