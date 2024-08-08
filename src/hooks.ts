@@ -1,6 +1,6 @@
-import { getRenderingContext, renderComponent, tryHandleComponentError } from "./component"
-import { ComponentProps, ComponentVNode, Effect, ErrorHandler, Evolve, Ref, UpdateState } from "./contract"
-import { equal } from "./helpers"
+import { getRenderingContext, renderComponent, tryHandleComponentError } from './component'
+import { ComponentProps, ComponentVNode, Effect, ErrorHandler, Evolve, Ref, UpdateState } from './contract'
+import { equal } from './helpers'
 
 
 type LazyStateInitialization<TState> = () => TState
@@ -41,13 +41,13 @@ export function useState<TState>(initialState: TState | LazyStateInitialization<
                             link.vNode.rendition,
                             isSvg
                         )
-                    }, 0)
+                    })
                 }
                 currentVNode.debounceRender = true
             } catch (err) {
                 setTimeout(() => {
                     tryHandleComponentError(parentElement, currentVNode, isSvg, err as Error)
-                }, 0)
+                })
             }
             return currentVNode.data![hookIndex][0]
         }
