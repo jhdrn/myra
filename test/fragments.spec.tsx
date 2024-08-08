@@ -20,7 +20,7 @@ describe('fragment', () => {
 
         myra.mount(<Component />, document.body)
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             const node = q('body > #fragment-node1')
 
             expect(node).not.to.be.null
@@ -125,7 +125,7 @@ describe('fragment', () => {
 
         myra.mount(<Component />, document.body)
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             const node = q('body > div > #fragment-node2')
 
             expect(node).not.to.be.null
@@ -141,7 +141,7 @@ describe('fragment', () => {
 
         myra.mount(<Component />, document.body)
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             const node1 = q('body > #fragment-node3')
             const node2 = q('body > #fragment-node4')
 
@@ -161,7 +161,7 @@ describe('fragment', () => {
 
         myra.mount(<Component />, fragmentContainer)
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             const node1 = fragmentContainer.firstChild
             const node2 = fragmentContainer.lastChild
 
@@ -184,7 +184,7 @@ describe('fragment', () => {
 
         myra.mount(<Component />, fragmentContainer)
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             const nothingNode = fragmentContainer.firstChild
             const childNode = fragmentContainer.firstElementChild
             expect(nothingNode).not.to.be.null
@@ -217,7 +217,7 @@ describe('fragment', () => {
         myra.mount(<Component />, fragmentContainer)
 
         setDidRenderOuter(true)
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             const childNode = fragmentContainer.firstElementChild
             expect(childNode).to.be.null
             done()
@@ -536,7 +536,7 @@ describe('fragment', () => {
         myra.mount(<Component />, fragmentContainer)
 
         setDidRenderOuter(true)
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             const childNode = fragmentContainer.firstElementChild
             expect(childNode).to.be.null
             done()
@@ -823,10 +823,10 @@ describe('fragment', () => {
 
         myra.mount(<Component />, fragmentContainer)
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             setItemsOuter(x => x.slice(1))
 
-            requestAnimationFrame(() => {
+            setTimeout(() => {
 
                 expect(fragmentContainer.childElementCount).to.be.eq(6)
                 expect((fragmentContainer.firstChild as HTMLElement).id).to.be.eq('element1b')
@@ -872,7 +872,7 @@ describe('fragment', () => {
         myra.mount(<Component />, fragmentContainer)
 
         setDidRenderOuter(true)
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             const childNode = fragmentContainer.firstElementChild
             expect(childNode).to.be.null
 
@@ -912,14 +912,14 @@ describe('fragment', () => {
 
         myra.mount(<Component />, fragmentContainer)
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             expect((fragmentContainer.firstChild as HTMLElement).id).to.be.eq('fragment-child5')
             expect((fragmentContainer.childNodes[1] as Node).textContent).to.be.eq('text')
             expect((fragmentContainer.lastChild as HTMLElement).id).to.be.eq('fragment-child6')
 
             setDidRenderOuter(true)
 
-            requestAnimationFrame(() => {
+            setTimeout(() => {
                 expect((fragmentContainer.firstChild as Node).textContent).to.be.eq('Nothing')
                 expect((fragmentContainer.lastChild as HTMLElement).id).to.be.eq('fragment-child6')
                 expect(fragmentContainer.childNodes.length).to.eq(2)
@@ -955,9 +955,9 @@ describe('fragment', () => {
 
         myra.mount(<Component />, fragmentContainer)
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             setItemsOuter(x => [x[0], x[2]])
-            requestAnimationFrame(() => {
+            setTimeout(() => {
 
                 expect(fragmentContainer.childNodes.length).to.be.eq(5)
                 expect(fragmentContainer.childNodes[0].textContent).to.be.eq('item ')
@@ -1014,7 +1014,7 @@ describe('fragment', () => {
         let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
         btn.click()
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             expect(btn.className).to.be.eq("clicked")
             expect(btn.id).to.be.eq("item-1")
 
@@ -1078,11 +1078,11 @@ describe('fragment', () => {
 
         render(document.body, [view1], [])
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
             btn.click()
 
-            requestAnimationFrame(() => {
+            setTimeout(() => {
                 expect(btn.className).to.be.eq("clicked")
                 expect(btn.id).to.be.eq("item-1")
 
@@ -1148,7 +1148,7 @@ describe('fragment', () => {
         let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
         btn.click()
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             expect(btn.className).to.be.eq("clicked")
             expect(btn.id).to.be.eq("item-1")
 
@@ -1213,7 +1213,7 @@ describe('fragment', () => {
         let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
         btn.click()
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             expect(btn.className).to.be.eq("clicked")
             expect(btn.id).to.be.eq("item-1")
 

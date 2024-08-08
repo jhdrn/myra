@@ -22,7 +22,7 @@ describe('mount', () => {
 
         myra.mount(<Component />, document.body)
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             const rootNode = q('#root')
 
             expect(rootNode).not.to.be.null
@@ -35,7 +35,7 @@ describe('mount', () => {
 
         myra.mount(<div id="root" />, document.body)
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             const rootNode = q('#root')
 
             expect(rootNode).not.to.be.null

@@ -24,17 +24,23 @@ describe('useEffect', () => {
         }
         myra.mount(<Component />, document.body)
 
-        // Trigger re-render
-        updateState(1)
-
-        requestAnimationFrame(() => {
+        setTimeout(() => {
+            expect(mock.callback.callCount).to.eq(1)
             // Trigger re-render
-            updateState(2)
-            requestAnimationFrame(() => {
-                expect(mock.callback.callCount).to.eq(3)
+            updateState(1)
 
-                done()
+            setTimeout(() => {
+                expect(mock.callback.callCount).to.eq(2)
+                // Trigger re-render
+                updateState(2)
+
+                setTimeout(() => {
+                    expect(mock.callback.callCount).to.eq(3)
+
+                    done()
+                })
             })
+
         })
     })
 
@@ -57,10 +63,10 @@ describe('useEffect', () => {
 
         // Trigger re-render
         updateState(1)
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             // Trigger re-render
             updateState(2)
-            requestAnimationFrame(() => {
+            setTimeout(() => {
 
                 // We need to use setTimeout as the effect is cleaned up asynchronously
                 setTimeout(() => {
@@ -85,9 +91,9 @@ describe('useEffect', () => {
         const componentInstance = <Component />
         render(document.body, [componentInstance], [])
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             render(document.body, [<nothing />], [componentInstance])
-            requestAnimationFrame(() => {
+            setTimeout(() => {
                 expect(mock.callback.callCount).to.eq(1)
 
                 done()
@@ -107,9 +113,9 @@ describe('useEffect', () => {
         const componentInstance = <Component />
         render(document.body, [componentInstance], [])
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             render(document.body, [<nothing />], [componentInstance])
-            requestAnimationFrame(() => {
+            setTimeout(() => {
                 expect(mock.callback.callCount).to.eq(1)
 
                 done()
@@ -129,9 +135,9 @@ describe('useEffect', () => {
         const componentInstance = <Component />
         render(document.body, [componentInstance], [])
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             render(document.body, [<nothing />], [componentInstance])
-            requestAnimationFrame(() => {
+            setTimeout(() => {
                 expect(mock.callback.callCount).to.eq(1)
 
                 done()
@@ -156,10 +162,10 @@ describe('useEffect', () => {
 
         // Trigger re-render
         updateState(1)
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             // Trigger re-render
             updateState(2)
-            requestAnimationFrame(() => {
+            setTimeout(() => {
                 expect(mock.callback.callCount).to.eq(1)
 
                 done()
@@ -188,7 +194,7 @@ describe('useLayoutEffect', () => {
         // Trigger re-render
         updateState(1)
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             // Trigger re-render
             updateState(2)
             expect(mock.callback.callCount).to.eq(2)
@@ -215,10 +221,10 @@ describe('useLayoutEffect', () => {
         // Trigger re-render
         updateState(1)
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             // Trigger re-render
             updateState(2)
-            requestAnimationFrame(() => {
+            setTimeout(() => {
                 expect(mock.callback.callCount).to.eq(2)
 
                 done()
@@ -285,7 +291,7 @@ describe('useLayoutEffect', () => {
 
         updateState(1)
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             expect(mock.callback.callCount).to.eq(1)
 
             done()
@@ -436,7 +442,7 @@ describe('useRef', () => {
         const vNode = <Component />
         render(document.body, [vNode], [])
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             render(document.body, [<Component />], [vNode])
             expect(ref.current).to.eq('bar')
 
@@ -503,7 +509,7 @@ describe('useErrorHandling', () => {
         const component = <Component />
         myra.mount(component, document.body)
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             const node = (component as ComponentVNode<unknown>).domRef!
 
             expect(node.nodeType).to.be.eq(Node.COMMENT_NODE)
@@ -534,7 +540,7 @@ describe('useErrorHandling', () => {
 
         render(document.body, [component], [])
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             const node = (component as ComponentVNode<unknown>).domRef!
             expect(node.nodeType).to.be.eq(Node.COMMENT_NODE)
             expect(node.textContent).to.be.eq('Nothing')
@@ -590,7 +596,7 @@ describe('useErrorHandling', () => {
         const vNode = <Component />
         render(document.body, [vNode], [])
         vNode.domRef.click()
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             expect(mock.callback.called).to.be.true
 
             done()
@@ -791,7 +797,7 @@ describe('useState', () => {
 
         setStateOuter(1)
         setStateOuter(2)
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             expect(vNode.domRef.textContent).to.eq('2')
             done()
         })

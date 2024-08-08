@@ -346,12 +346,12 @@ describe('render', () => {
         const vNode = <div><Component /></div>
         render(document.body, [vNode], [])
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
 
             expect(document.getElementById('component-id')).not.to.be.null
 
             render(document.body, [<nothing />], [vNode])
-            requestAnimationFrame(() => {
+            setTimeout(() => {
                 expect(document.getElementById('component-id')).to.be.null
 
                 done()
@@ -379,7 +379,7 @@ describe('render', () => {
         myra.mount(<Component />, document.body)
 
         setShowChildOuter(true)
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             const child = document.getElementById('child-node')
             expect(child).not.to.be.null
             done()
@@ -1047,11 +1047,11 @@ describe('render', () => {
 
         render(document.body, [view1], [])
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
             btn.click()
 
-            requestAnimationFrame(() => {
+            setTimeout(() => {
 
                 expect(btn.className).to.be.eq('clicked')
                 expect(btn.id).to.be.eq('item-1')
@@ -1117,7 +1117,7 @@ describe('render', () => {
         let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
         btn.click()
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             expect(btn.className).to.be.eq('clicked')
             expect(btn.id).to.be.eq('item-1')
 
@@ -1180,7 +1180,7 @@ describe('render', () => {
         let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
         btn.click()
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             expect(btn.className).to.be.eq('clicked')
             expect(btn.id).to.be.eq('item-1')
 
@@ -1243,7 +1243,7 @@ describe('render', () => {
         let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
         btn.click()
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             expect(btn.className).to.be.eq('clicked')
             expect(btn.id).to.be.eq('item-1')
 
@@ -1307,7 +1307,7 @@ describe('render', () => {
         let btn = view1.domRef!.querySelector('button')!
         btn.click()
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             expect(btn.className).to.be.eq('clicked')
             expect(btn.id).to.be.eq('item-1')
 
@@ -1379,11 +1379,11 @@ describe('render', () => {
             </div> as ElementVNode<HTMLDivElement>
 
         render(document.body, [view1], [])
-        requestAnimationFrame(() => {
+        setTimeout(() => {
 
             let btn = view1.domRef!.querySelector('button')!
             btn.click()
-            requestAnimationFrame(() => {
+            setTimeout(() => {
                 expect(btn.className).to.be.eq('clicked')
                 expect(btn.id).to.be.eq('item-1')
 
