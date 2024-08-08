@@ -5,7 +5,7 @@ Myra
 Myra is (another) JSX rendering library. It is small, simple and built with and for [Typescript](http://www.typescriptlang.org/).
 
 [![npm](https://img.shields.io/npm/v/myra.svg?maxAge=24000)](https://www.npmjs.com/package/myra)
-[![Travis](https://img.shields.io/travis/jhdrn/myra.svg?maxAge=36000)](https://travis-ci.org/jhdrn/myra)
+[![CircleCI](https://dl.circleci.com/status-badge/img/circleci/D4GwQGdQNVPkQc73YZ9WfS/3SYtbN9QW7kqgT75UE6sjS/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/circleci/D4GwQGdQNVPkQc73YZ9WfS/3SYtbN9QW7kqgT75UE6sjS/tree/master)
 [![codecov](https://codecov.io/gh/jhdrn/myra/branch/master/graph/badge.svg)](https://codecov.io/gh/jhdrn/myra)
 [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/jhdrn/myra.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/jhdrn/myra/context:javascript)
 [![Downloads](https://img.shields.io/npm/dm/myra.svg)](https://www.npmjs.com/package/myra)
