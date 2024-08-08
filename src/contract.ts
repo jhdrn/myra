@@ -257,8 +257,7 @@ export type Key = string | number
 
 type MyraChild = VNode | TextNode
 
-interface MyraNodeArray extends Array<MyraNode> { }
-export type MyraNode = MyraChild | MyraNodeArray | boolean | null | undefined
+export type MyraNode = MyraChild | Array<MyraNode> | boolean | null | undefined
 
 export type UpdateState<TState> = TState | ((s: TState) => TState)
 export type Evolve<TState> = (update: UpdateState<TState>) => TState
@@ -267,7 +266,7 @@ export type ComponentFactory<TProps> = (props: TProps) => MyraNode
 
 export type JSXElementFactory<TProps> = (props: TProps) => VNode
 
-export type ErrorHandler = (error: any) => VNode
+export type ErrorHandler = (error: unknown) => VNode
 
 export interface Ref<T> {
     current: T

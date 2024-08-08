@@ -1,6 +1,8 @@
 import * as myra from '../src/myra'
 import { render } from '../src/component'
 import { ComponentProps, TextVNode, VNodeType } from '../src/contract'
+import { expect } from 'chai'
+import * as sinon from 'sinon'
 
 const q = (x: string) => document.querySelector(x)
 
@@ -21,7 +23,7 @@ describe('fragment', () => {
         requestAnimationFrame(() => {
             const node = q('body > #fragment-node1')
 
-            expect(node).not.toBeNull()
+            expect(node).not.to.be.null
 
             done()
         })
@@ -44,7 +46,7 @@ describe('fragment', () => {
 
         render(fragmentContainer, [view2], [view1])
 
-        expect(fragmentContainer.childNodes.length).toBe(2)
+        expect(fragmentContainer.childNodes.length).to.be.eq(2)
     })
 
     it('renders fragment content replacing a text node', () => {
@@ -67,7 +69,7 @@ describe('fragment', () => {
 
         render(fragmentContainer, [view2], [view1])
 
-        expect(fragmentContainer.childNodes.length).toBe(2)
+        expect(fragmentContainer.childNodes.length).to.be.eq(2)
     })
 
 
@@ -88,9 +90,9 @@ describe('fragment', () => {
 
         render(fragmentContainer, [view2], [view1])
 
-        expect(fragmentContainer.childNodes.length).toBe(2)
-        expect((fragmentContainer.firstChild as Element).tagName).toBe('DIV')
-        expect((fragmentContainer.lastChild as Element).tagName).toBe('DIV')
+        expect(fragmentContainer.childNodes.length).to.be.eq(2)
+        expect((fragmentContainer.firstChild as Element).tagName).to.be.eq('DIV')
+        expect((fragmentContainer.lastChild as Element).tagName).to.be.eq('DIV')
     })
 
 
@@ -112,9 +114,9 @@ describe('fragment', () => {
 
         render(fragmentContainer, [view2], [view1])
 
-        expect(fragmentContainer.childNodes.length).toBe(2)
-        expect((fragmentContainer.firstChild as Element).tagName).toBe('DIV')
-        expect((fragmentContainer.lastChild as Element).tagName).toBe('DIV')
+        expect(fragmentContainer.childNodes.length).to.be.eq(2)
+        expect((fragmentContainer.firstChild as Element).tagName).to.be.eq('DIV')
+        expect((fragmentContainer.lastChild as Element).tagName).to.be.eq('DIV')
     })
 
     it('renders nested fragment content', done => {
@@ -126,7 +128,7 @@ describe('fragment', () => {
         requestAnimationFrame(() => {
             const node = q('body > div > #fragment-node2')
 
-            expect(node).not.toBeNull()
+            expect(node).not.to.be.null
 
             done()
         })
@@ -143,8 +145,8 @@ describe('fragment', () => {
             const node1 = q('body > #fragment-node3')
             const node2 = q('body > #fragment-node4')
 
-            expect(node1).not.toBeNull()
-            expect(node2).not.toBeNull()
+            expect(node1).not.to.be.null
+            expect(node2).not.to.be.null
 
             done()
         })
@@ -163,10 +165,10 @@ describe('fragment', () => {
             const node1 = fragmentContainer.firstChild
             const node2 = fragmentContainer.lastChild
 
-            expect(node1).not.toBeNull()
-            expect((node1 as HTMLElement).id).toBe('fragment-node5')
-            expect(node2).not.toBeNull()
-            expect((node2 as HTMLElement).id).toBe('fragment-node6')
+            expect(node1).not.to.be.null
+            expect((node1 as HTMLElement).id).to.be.eq('fragment-node5')
+            expect(node2).not.to.be.null
+            expect((node2 as HTMLElement).id).to.be.eq('fragment-node6')
 
             done()
         })
@@ -185,9 +187,9 @@ describe('fragment', () => {
         requestAnimationFrame(() => {
             const nothingNode = fragmentContainer.firstChild
             const childNode = fragmentContainer.firstElementChild
-            expect(nothingNode).not.toBeNull()
-            expect(nothingNode?.nodeType).toBe(Node.COMMENT_NODE)
-            expect(childNode).not.toBeNull()
+            expect(nothingNode).not.to.be.null
+            expect(nothingNode?.nodeType).to.be.eq(Node.COMMENT_NODE)
+            expect(childNode).not.to.be.null
 
             done()
         })
@@ -217,7 +219,7 @@ describe('fragment', () => {
         setDidRenderOuter(true)
         requestAnimationFrame(() => {
             const childNode = fragmentContainer.firstElementChild
-            expect(childNode).toBeNull()
+            expect(childNode).to.be.null
             done()
         })
     })
@@ -240,7 +242,7 @@ describe('fragment', () => {
 
         render(fragmentContainer, [view1], [])
 
-        expect(fragmentContainer.firstChild?.childNodes.length).toBe(5)
+        expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(5)
 
         const view2 =
             <div>
@@ -250,8 +252,8 @@ describe('fragment', () => {
 
         render(fragmentContainer, [view2], [view1])
 
-        expect(fragmentContainer.firstChild?.childNodes.length).toBe(1)
-        expect(fragmentContainer.firstChild?.firstChild?.nodeType).toBe(Node.ELEMENT_NODE)
+        expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(1)
+        expect(fragmentContainer.firstChild?.firstChild?.nodeType).to.be.eq(Node.ELEMENT_NODE)
         done()
     })
 
@@ -277,7 +279,7 @@ describe('fragment', () => {
 
         render(fragmentContainer, [view1], [])
 
-        expect(fragmentContainer.firstChild?.childNodes.length).toBe(5)
+        expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(5)
 
         const view2 =
             <div>
@@ -287,8 +289,8 @@ describe('fragment', () => {
 
         render(fragmentContainer, [view2], [view1])
 
-        expect(fragmentContainer.firstChild?.childNodes.length).toBe(1)
-        expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).toBe('x')
+        expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(1)
+        expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('x')
         done()
     })
 
@@ -321,7 +323,7 @@ describe('fragment', () => {
 
         render(fragmentContainer, [view1], [])
 
-        expect(fragmentContainer.firstChild?.childNodes.length).toBe(9)
+        expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(9)
 
         const view2 =
             <div>
@@ -331,8 +333,8 @@ describe('fragment', () => {
 
         render(fragmentContainer, [view2], [view1])
 
-        expect(fragmentContainer.firstChild?.childNodes.length).toBe(1)
-        expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).toBe('x')
+        expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(1)
+        expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('x')
         done()
     })
 
@@ -364,7 +366,7 @@ describe('fragment', () => {
 
         render(fragmentContainer, [view1], [])
 
-        expect(fragmentContainer.firstChild?.childNodes.length).toBe(8)
+        expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(8)
 
         const view2 =
             <div>
@@ -375,9 +377,9 @@ describe('fragment', () => {
 
         render(fragmentContainer, [view2], [view1])
 
-        expect(fragmentContainer.firstChild?.childNodes.length).toBe(2)
-        expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).toBe('x')
-        expect((fragmentContainer.firstChild?.lastChild as HTMLElement).id).toBe('y')
+        expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(2)
+        expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('x')
+        expect((fragmentContainer.firstChild?.lastChild as HTMLElement).id).to.be.eq('y')
         done()
     })
 
@@ -401,7 +403,7 @@ describe('fragment', () => {
 
         render(fragmentContainer, [view1], [])
 
-        expect(fragmentContainer.childNodes.length).toBe(2)
+        expect(fragmentContainer.childNodes.length).to.be.eq(2)
 
         const view2 =
             <div>
@@ -411,9 +413,9 @@ describe('fragment', () => {
 
         render(fragmentContainer, [view2], [view1])
 
-        expect(fragmentContainer.firstChild?.childNodes.length).toBe(2)
-        expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).toBe('x')
-        expect((fragmentContainer.firstChild?.lastChild as HTMLElement).id).toBe('y')
+        expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(2)
+        expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('x')
+        expect((fragmentContainer.firstChild?.lastChild as HTMLElement).id).to.be.eq('y')
         done()
     })
 
@@ -445,7 +447,7 @@ describe('fragment', () => {
 
         render(fragmentContainer, [view1], [])
 
-        expect(fragmentContainer.firstChild?.childNodes.length).toBe(8)
+        expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(8)
 
         const view2 =
             <div>
@@ -456,9 +458,9 @@ describe('fragment', () => {
 
         render(fragmentContainer, [view2], [view1])
 
-        expect(fragmentContainer.firstChild?.childNodes.length).toBe(2)
-        expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).toBe('x')
-        expect(fragmentContainer.firstChild?.lastChild?.nodeType).toBe(Node.COMMENT_NODE)
+        expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(2)
+        expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('x')
+        expect(fragmentContainer.firstChild?.lastChild?.nodeType).to.be.eq(Node.COMMENT_NODE)
         done()
     })
 
@@ -490,7 +492,7 @@ describe('fragment', () => {
 
         render(fragmentContainer, [view1], [])
 
-        expect(fragmentContainer.firstChild?.childNodes.length).toBe(8)
+        expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(8)
 
         const view2 =
             <div>
@@ -501,10 +503,10 @@ describe('fragment', () => {
 
         render(fragmentContainer, [view2], [view1])
 
-        expect(fragmentContainer.firstChild?.childNodes.length).toBe(2)
-        expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).toBe('x')
-        expect(fragmentContainer.firstChild?.lastChild?.nodeType).toBe(Node.TEXT_NODE)
-        expect(fragmentContainer.firstChild?.lastChild?.textContent).toBe('text')
+        expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(2)
+        expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('x')
+        expect(fragmentContainer.firstChild?.lastChild?.nodeType).to.be.eq(Node.TEXT_NODE)
+        expect(fragmentContainer.firstChild?.lastChild?.textContent).to.be.eq('text')
         done()
     })
 
@@ -536,7 +538,7 @@ describe('fragment', () => {
         setDidRenderOuter(true)
         requestAnimationFrame(() => {
             const childNode = fragmentContainer.firstElementChild
-            expect(childNode).toBeNull()
+            expect(childNode).to.be.null
             done()
         })
     })
@@ -555,8 +557,8 @@ describe('fragment', () => {
         render(fragmentContainer, [view1], [])
 
         const nothingNode = fragmentContainer.firstChild
-        expect(nothingNode).not.toBeNull()
-        expect(nothingNode?.nodeType).toBe(Node.COMMENT_NODE)
+        expect(nothingNode).not.to.be.null
+        expect(nothingNode?.nodeType).to.be.eq(Node.COMMENT_NODE)
         done()
     })
 
@@ -581,8 +583,8 @@ describe('fragment', () => {
         render(fragmentContainer, [view2], [view1])
 
         const nothingNode = fragmentContainer.firstChild
-        expect(nothingNode).not.toBeNull()
-        expect(nothingNode?.nodeType).toBe(Node.COMMENT_NODE)
+        expect(nothingNode).not.to.be.null
+        expect(nothingNode?.nodeType).to.be.eq(Node.COMMENT_NODE)
         done()
     })
 
@@ -607,9 +609,9 @@ describe('fragment', () => {
         render(fragmentContainer, [view2], [view1])
 
         const textNode = fragmentContainer.firstChild
-        expect(textNode).not.toBeNull()
-        expect(textNode?.nodeType).toBe(Node.TEXT_NODE)
-        expect(textNode?.textContent).toBe('text')
+        expect(textNode).not.to.be.null
+        expect(textNode?.nodeType).to.be.eq(Node.TEXT_NODE)
+        expect(textNode?.textContent).to.be.eq('text')
         done()
     })
 
@@ -634,9 +636,9 @@ describe('fragment', () => {
         render(fragmentContainer, [view2], [view1])
 
         const textNode = fragmentContainer.firstChild
-        expect(textNode).not.toBeNull()
-        expect(textNode?.nodeType).toBe(Node.ELEMENT_NODE)
-        expect((textNode as Element).tagName).toBe('SPAN')
+        expect(textNode).not.to.be.null
+        expect(textNode?.nodeType).to.be.eq(Node.ELEMENT_NODE)
+        expect((textNode as Element).tagName).to.be.eq('SPAN')
         done()
     })
 
@@ -664,9 +666,9 @@ describe('fragment', () => {
         render(fragmentContainer, [view2], [view1])
 
         const node = fragmentContainer.firstChild
-        expect(node).not.toBeNull()
-        expect(node?.nodeType).toBe(Node.ELEMENT_NODE)
-        expect((node as Element).tagName).toBe('SPAN')
+        expect(node).not.to.be.null
+        expect(node?.nodeType).to.be.eq(Node.ELEMENT_NODE)
+        expect((node as Element).tagName).to.be.eq('SPAN')
         done()
     })
 
@@ -693,10 +695,10 @@ describe('fragment', () => {
 
         const element = fragmentContainer.firstChild as Element
         const titleAttr = element.attributes.getNamedItem('title')
-        expect(element).not.toBeNull()
-        expect(titleAttr).not.toBeNull()
-        expect(titleAttr?.value).toBe('B')
-        expect(element.classList.length).toBe(0)
+        expect(element).not.to.be.null
+        expect(titleAttr).not.to.be.null
+        expect(titleAttr?.value).to.be.eq('B')
+        expect(element.classList.length).to.be.eq(0)
         done()
     })
 
@@ -734,17 +736,17 @@ describe('fragment', () => {
 
         const div = fragmentContainer.firstChild as HTMLDivElement
 
-        expect(div.childNodes.length).toBe(5)
-        expect(div.childNodes[0].textContent).toBe('A2')
-        expect((div.childNodes[0] as Element).tagName).toBe('DIV')
-        expect(div.childNodes[1].textContent).toBe('B2')
-        expect((div.childNodes[1] as Element).tagName).toBe('DIV')
-        expect(div.childNodes[2].textContent).toBe('C2')
-        expect((div.childNodes[2] as Element).tagName).toBe('DIV')
-        expect(div.childNodes[3].textContent).toBe('D2')
-        expect((div.childNodes[3] as Element).tagName).toBe('DIV')
-        expect(div.childNodes[4].textContent).toBe('E2')
-        expect((div.childNodes[4] as Element).tagName).toBe('SPAN')
+        expect(div.childNodes.length).to.be.eq(5)
+        expect(div.childNodes[0].textContent).to.be.eq('A2')
+        expect((div.childNodes[0] as Element).tagName).to.be.eq('DIV')
+        expect(div.childNodes[1].textContent).to.be.eq('B2')
+        expect((div.childNodes[1] as Element).tagName).to.be.eq('DIV')
+        expect(div.childNodes[2].textContent).to.be.eq('C2')
+        expect((div.childNodes[2] as Element).tagName).to.be.eq('DIV')
+        expect(div.childNodes[3].textContent).to.be.eq('D2')
+        expect((div.childNodes[3] as Element).tagName).to.be.eq('DIV')
+        expect(div.childNodes[4].textContent).to.be.eq('E2')
+        expect((div.childNodes[4] as Element).tagName).to.be.eq('SPAN')
 
     })
 
@@ -784,11 +786,11 @@ describe('fragment', () => {
 
         render(fragmentContainer, [view2], [view1])
 
-        expect(fragmentContainer.childNodes.length).toBe(4)
-        expect(fragmentContainer.childNodes[0].textContent).toBe('A')
-        expect(fragmentContainer.childNodes[1].textContent).toBe('A-A')
-        expect(fragmentContainer.childNodes[2].textContent).toBe('A-B')
-        expect(fragmentContainer.childNodes[3].textContent).toBe('B')
+        expect(fragmentContainer.childNodes.length).to.be.eq(4)
+        expect(fragmentContainer.childNodes[0].textContent).to.be.eq('A')
+        expect(fragmentContainer.childNodes[1].textContent).to.be.eq('A-A')
+        expect(fragmentContainer.childNodes[2].textContent).to.be.eq('A-B')
+        expect(fragmentContainer.childNodes[3].textContent).to.be.eq('B')
 
     })
 
@@ -826,25 +828,22 @@ describe('fragment', () => {
 
             requestAnimationFrame(() => {
 
-                expect(fragmentContainer.childElementCount).toBe(6)
-                expect((fragmentContainer.firstChild as HTMLElement).id).toBe('element1b')
-                expect((fragmentContainer.children[1] as HTMLElement).id).toBe('element2b')
-                expect((fragmentContainer.children[2] as HTMLElement).id).toBe('element3b')
-                expect((fragmentContainer.children[3] as HTMLElement).id).toBe('element1c')
-                expect((fragmentContainer.children[4] as HTMLElement).id).toBe('element2c')
-                expect((fragmentContainer.lastChild as HTMLElement).id).toBe('element3c')
+                expect(fragmentContainer.childElementCount).to.be.eq(6)
+                expect((fragmentContainer.firstChild as HTMLElement).id).to.be.eq('element1b')
+                expect((fragmentContainer.children[1] as HTMLElement).id).to.be.eq('element2b')
+                expect((fragmentContainer.children[2] as HTMLElement).id).to.be.eq('element3b')
+                expect((fragmentContainer.children[3] as HTMLElement).id).to.be.eq('element1c')
+                expect((fragmentContainer.children[4] as HTMLElement).id).to.be.eq('element2c')
+                expect((fragmentContainer.lastChild as HTMLElement).id).to.be.eq('element3c')
                 done()
             })
         })
     })
 
     it('removes and "unmounts" component child nodes', done => {
-        const mock = {
+        const mock = sinon.spy({
             unmount: () => { }
-        }
-
-        spyOn(mock, 'unmount').and.callThrough()
-
+        })
         const ChildComponent = () => {
             myra.useEffect(() => {
                 return mock.unmount
@@ -875,9 +874,9 @@ describe('fragment', () => {
         setDidRenderOuter(true)
         requestAnimationFrame(() => {
             const childNode = fragmentContainer.firstElementChild
-            expect(childNode).toBeNull()
+            expect(childNode).to.be.null
 
-            expect(mock.unmount).toHaveBeenCalledTimes(1)
+            expect(mock.unmount.callCount).to.eq(1)
             done()
         })
     })
@@ -914,16 +913,16 @@ describe('fragment', () => {
         myra.mount(<Component />, fragmentContainer)
 
         requestAnimationFrame(() => {
-            expect((fragmentContainer.firstChild as HTMLElement).id).toBe('fragment-child5')
-            expect((fragmentContainer.childNodes[1] as Node).textContent).toBe('text')
-            expect((fragmentContainer.lastChild as HTMLElement).id).toBe('fragment-child6')
+            expect((fragmentContainer.firstChild as HTMLElement).id).to.be.eq('fragment-child5')
+            expect((fragmentContainer.childNodes[1] as Node).textContent).to.be.eq('text')
+            expect((fragmentContainer.lastChild as HTMLElement).id).to.be.eq('fragment-child6')
 
             setDidRenderOuter(true)
 
             requestAnimationFrame(() => {
-                expect((fragmentContainer.firstChild as Node).textContent).toBe('Nothing')
-                expect((fragmentContainer.lastChild as HTMLElement).id).toBe('fragment-child6')
-                expect(fragmentContainer.childNodes.length).toEqual(2)
+                expect((fragmentContainer.firstChild as Node).textContent).to.be.eq('Nothing')
+                expect((fragmentContainer.lastChild as HTMLElement).id).to.be.eq('fragment-child6')
+                expect(fragmentContainer.childNodes.length).to.eq(2)
 
                 done()
             })
@@ -960,12 +959,12 @@ describe('fragment', () => {
             setItemsOuter(x => [x[0], x[2]])
             requestAnimationFrame(() => {
 
-                expect(fragmentContainer.childNodes.length).toBe(5)
-                expect(fragmentContainer.childNodes[0].textContent).toBe('item ')
-                expect(fragmentContainer.childNodes[1].textContent).toBe('a')
-                expect(fragmentContainer.childNodes[2].textContent).toBe('item ')
-                expect(fragmentContainer.childNodes[3].textContent).toBe('c')
-                expect(fragmentContainer.childNodes[4].textContent).toBe('d')
+                expect(fragmentContainer.childNodes.length).to.be.eq(5)
+                expect(fragmentContainer.childNodes[0].textContent).to.be.eq('item ')
+                expect(fragmentContainer.childNodes[1].textContent).to.be.eq('a')
+                expect(fragmentContainer.childNodes[2].textContent).to.be.eq('item ')
+                expect(fragmentContainer.childNodes[3].textContent).to.be.eq('c')
+                expect(fragmentContainer.childNodes[4].textContent).to.be.eq('d')
                 done()
             })
         })
@@ -1016,8 +1015,8 @@ describe('fragment', () => {
         btn.click()
 
         requestAnimationFrame(() => {
-            expect(btn.className).toBe("clicked")
-            expect(btn.id).toBe("item-1")
+            expect(btn.className).to.be.eq("clicked")
+            expect(btn.id).to.be.eq("item-1")
 
             const view2 =
                 <div>
@@ -1031,13 +1030,13 @@ describe('fragment', () => {
             render(document.body, [view2], [view1])
 
             btn = (view2.domRef as HTMLDivElement).querySelector('button')!
-            expect(btn.className).toBe("")
-            expect(btn.id).toBe("item-5")
+            expect(btn.className).to.be.eq("")
+            expect(btn.id).to.be.eq("item-5")
 
             // The last element should've been updated
             btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
-            expect(btn.className).toBe("clicked")
-            expect(btn.id).toBe("item-1")
+            expect(btn.className).to.be.eq("clicked")
+            expect(btn.id).to.be.eq("item-1")
 
             done()
         })
@@ -1084,8 +1083,8 @@ describe('fragment', () => {
             btn.click()
 
             requestAnimationFrame(() => {
-                expect(btn.className).toBe("clicked")
-                expect(btn.id).toBe("item-1")
+                expect(btn.className).to.be.eq("clicked")
+                expect(btn.id).to.be.eq("item-1")
 
                 const view2 =
                     <div>
@@ -1095,13 +1094,13 @@ describe('fragment', () => {
                 render(document.body, [view2], [view1])
 
                 btn = (view2.domRef as HTMLDivElement).querySelector('button')!
-                expect(btn.className).toBe("clicked")
-                expect(btn.id).toBe("item-5")
+                expect(btn.className).to.be.eq("clicked")
+                expect(btn.id).to.be.eq("item-5")
 
                 // The last element should've been updated
                 btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
-                expect(btn.className).toBe("")
-                expect(btn.id).toBe("item-1")
+                expect(btn.className).to.be.eq("")
+                expect(btn.id).to.be.eq("item-1")
                 done()
             })
         })
@@ -1150,8 +1149,8 @@ describe('fragment', () => {
         btn.click()
 
         requestAnimationFrame(() => {
-            expect(btn.className).toBe("clicked")
-            expect(btn.id).toBe("item-1")
+            expect(btn.className).to.be.eq("clicked")
+            expect(btn.id).to.be.eq("item-1")
 
             const view2 =
                 <div>
@@ -1161,13 +1160,13 @@ describe('fragment', () => {
             render(document.body, [view2], [view1])
 
             btn = (view2.domRef as HTMLDivElement).querySelector('button')!
-            expect(btn.className).toBe("")
-            expect(btn.id).toBe("item-5")
+            expect(btn.className).to.be.eq("")
+            expect(btn.id).to.be.eq("item-5")
 
             // The last element should've been updated
             btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
-            expect(btn.className).toBe("clicked")
-            expect(btn.id).toBe("item-1")
+            expect(btn.className).to.be.eq("clicked")
+            expect(btn.id).to.be.eq("item-1")
 
             done()
         })
@@ -1215,8 +1214,8 @@ describe('fragment', () => {
         btn.click()
 
         requestAnimationFrame(() => {
-            expect(btn.className).toBe("clicked")
-            expect(btn.id).toBe("item-1")
+            expect(btn.className).to.be.eq("clicked")
+            expect(btn.id).to.be.eq("item-1")
 
             const view2 =
                 <div>
@@ -1226,13 +1225,13 @@ describe('fragment', () => {
             render(document.body, [view2], [view1])
 
             btn = (view2.domRef as HTMLDivElement).querySelector('button')!
-            expect(btn.className).toBe("clicked")
-            expect(btn.id).toBe("item-5")
+            expect(btn.className).to.be.eq("clicked")
+            expect(btn.id).to.be.eq("item-5")
 
             // The last element should've been updated
             btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
-            expect(btn.className).toBe("")
-            expect(btn.id).toBe("item-1")
+            expect(btn.className).to.be.eq("")
+            expect(btn.id).to.be.eq("item-1")
             done()
         })
     })

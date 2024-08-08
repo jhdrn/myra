@@ -47,7 +47,7 @@ export function memo<TProps>(factory: ComponentFactory<TProps & ComponentProps>,
  * @param oldProps 
  * @returns true if no changes are found
  */
-function shallowCompareProps<TProps extends ComponentProps & Record<string, any>>(newProps: TProps, oldProps: TProps): boolean {
+function shallowCompareProps<TProps extends ComponentProps & Record<string, unknown>>(newProps: TProps, oldProps: TProps): boolean {
     const newPropsKeys = Object.keys(newProps)
     if (newPropsKeys.length !== Object.keys(oldProps).length) {
         return false

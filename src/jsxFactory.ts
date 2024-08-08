@@ -29,14 +29,14 @@ export function h<TProps>(
         props = {} as TProps
     }
 
-    (props as any as { children: VNode[] }).children = flattenChildren(children)
+    (props as unknown as { children: VNode[] }).children = flattenChildren(children)
 
     if (typeof tagNameOrComponent === 'string') {
 
         return {
             _: VNodeType.Element,
             tagName: tagNameOrComponent,
-            props: props as any as { children: Array<VNode> }
+            props: props as unknown as { children: Array<VNode> }
         }
     } else if (tagNameOrComponent === Fragment) {
         return tagNameOrComponent(props as any) as VNode
@@ -93,7 +93,7 @@ function flattenChildren(children: MyraNode[]) {
             // Any node which is not a vNode will be converted to a TextVNode
             flattenedChildren[targetIndex++] = {
                 _: VNodeType.Text,
-                text: child as any as string
+                text: child as unknown as string
             } as TextVNode
         }
         else {

@@ -1,5 +1,5 @@
 import { getRenderingContext, renderComponent, tryHandleComponentError } from "./component"
-import { ComponentVNode, Effect, ErrorHandler, Evolve, Ref, UpdateState } from "./contract"
+import { ComponentProps, ComponentVNode, Effect, ErrorHandler, Evolve, Ref, UpdateState } from "./contract"
 import { equal } from "./helpers"
 
 
@@ -21,7 +21,7 @@ export function useState<TState>(initialState: TState | LazyStateInitialization<
 
         const link = vNode.link
 
-        const evolve = (update: UpdateState<any>) => {
+        const evolve = (update: UpdateState<unknown>) => {
             const currentVNode = link.vNode
             try {
                 if (typeof update === 'function') {
@@ -90,7 +90,7 @@ export function useRef<T>(current?: T): Ref<T> {
  */
 export function useErrorHandler(handler: ErrorHandler) {
     const renderingContext = getRenderingContext()
-    const vNode = renderingContext!.vNode as ComponentVNode<any>
+    const vNode = renderingContext!.vNode as ComponentVNode<ComponentProps>
     vNode.errorHandler = handler
 }
 
@@ -159,7 +159,7 @@ export function useMemo<TMemoization, TArgs>(fn: (args: TArgs) => TMemoization, 
         vNode.data[hookIndex] = [res, inputs]
     }
     else {
-        let [prevRes, prevInputs] = vNode.data[hookIndex]
+        const [prevRes, prevInputs] = vNode.data[hookIndex]
         if (equal(prevInputs, inputs)) {
             res = prevRes
         }

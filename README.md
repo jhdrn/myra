@@ -88,4 +88,4 @@ _It's value must be unique amongst the items in the list._
 
 [MIT](http://opensource.org/licenses/MIT)
 
-Copyright (c) 2016-2022 Jonathan Hedrén
+Copyright (c) 2016-2024 Jonathan Hedrén
