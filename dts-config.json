@@ -1,0 +1,13 @@
+{
+    "entries": [
+        {
+            "filePath": "src/myra.ts",
+            "outFile": "dist/myra.d.ts",
+            "output": {
+                "inlineDeclareGlobals": true,
+                "exportReferencedTypes": false,
+                "umdModuleName": "myra"
+            }
+        }
+    ]
+}

@@ -1,5 +1,7 @@
 import { render } from '../src/component'
 import * as myra from '../src/myra'
+import { expect } from 'chai'
+import * as sinon from 'sinon'
 
 const q = (x: string) => document.querySelector(x)
 
@@ -23,7 +25,7 @@ describe('mount', () => {
         requestAnimationFrame(() => {
             const rootNode = q('#root')
 
-            expect(rootNode).not.toBeNull()
+            expect(rootNode).not.to.be.null
 
             done()
         })
@@ -36,7 +38,7 @@ describe('mount', () => {
         requestAnimationFrame(() => {
             const rootNode = q('#root')
 
-            expect(rootNode).not.toBeNull()
+            expect(rootNode).not.to.be.null
 
             done()
         })
@@ -52,12 +54,11 @@ describe('component render', () => {
     })
 
     it('does not call the layout effect listener if the props has not changed', () => {
-        const mock = {
+        const mock = sinon.spy({
             beforeRender: () => { }
-        }
+        })
 
-        spyOn(mock, 'beforeRender').and.callThrough()
-
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const Component = myra.memo((_p: { val: number }) => {
             myra.useLayoutEffect(() => mock.beforeRender())
             return <div />
@@ -67,16 +68,15 @@ describe('component render', () => {
         render(document.body, [vNode], [])
         render(document.body, [<Component val={45} />], [vNode])
 
-        expect(mock.beforeRender).toHaveBeenCalledTimes(1)
+        expect(mock.beforeRender.callCount).to.eq(1)
     })
 
     it('calls the layout effect listener if the supplied props are not equal to the previous props', () => {
-        const mock = {
+        const mock = sinon.spy({
             callback: () => { }
-        }
+        })
 
-        spyOn(mock, 'callback').and.callThrough()
-
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const Component = (_p: { prop: string }) => {
             myra.useLayoutEffect(() => mock.callback())
             return <div />
@@ -88,15 +88,13 @@ describe('component render', () => {
         const newVNode = <Component prop="a new value" />
         render(document.body, [newVNode], [vNode])
 
-        expect(mock.callback).toHaveBeenCalledTimes(2)
+        expect(mock.callback.callCount).to.eq(2)
     })
 
     it('does not call the layout effect listener if the children has not changed', () => {
-        const mock = {
+        const mock = sinon.spy({
             callback: () => { }
-        }
-
-        spyOn(mock, 'callback').and.callThrough()
+        })
 
         const Component = myra.memo(props => {
             myra.useLayoutEffect(() => mock.callback())
@@ -109,15 +107,13 @@ describe('component render', () => {
         const newVNode = <Component>Child A</Component>
         render(document.body, [newVNode], [vNode])
 
-        expect(mock.callback).toHaveBeenCalledTimes(1)
+        expect(mock.callback.callCount).to.eq(1)
     })
 
     it('calls the layout effect event if the supplied children are not equal to the previous children', () => {
-        const mock = {
+        const mock = sinon.spy({
             callback: () => { }
-        }
-
-        spyOn(mock, 'callback').and.callThrough()
+        })
 
         const Component = myra.define(props => {
             myra.useLayoutEffect(() => mock.callback())
@@ -130,6 +126,6 @@ describe('component render', () => {
         const newVNode = <Component>Child B</Component>
         render(document.body, [newVNode], [vNode])
 
-        expect(mock.callback).toHaveBeenCalledTimes(2)
+        expect(mock.callback.callCount).to.eq(2)
     })
 })

@@ -5,7 +5,7 @@ import {
     VNode
 } from './contract'
 
-export {
+export type {
     ErrorHandler,
     Evolve,
     Ref

@@ -2,17 +2,17 @@ import { render } from '../src/component'
 import { ComponentVNode, Ref } from '../src/contract'
 import { useEffect, useErrorHandler, useLayoutEffect, useMemo, useRef, useState } from '../src/hooks'
 import * as myra from '../src/myra'
+import { expect } from 'chai'
+import * as sinon from 'sinon'
 
 const q = (x: string) => document.querySelector(x)
 
 describe('useEffect', () => {
 
     it('is invoked every render if supplied with no argument', done => {
-        const mock = {
+        const mock = sinon.spy({
             callback: () => { }
-        }
-
-        spyOn(mock, 'callback').and.callThrough()
+        })
 
         // Create a fake function that will be replaced by the real Evolve impl.
         let updateState: myra.Evolve<number> = function () { return 0 }
@@ -31,7 +31,7 @@ describe('useEffect', () => {
             // Trigger re-render
             updateState(2)
             requestAnimationFrame(() => {
-                expect(mock.callback).toHaveBeenCalledTimes(3)
+                expect(mock.callback.callCount).to.eq(3)
 
                 done()
             })
@@ -39,13 +39,12 @@ describe('useEffect', () => {
     })
 
     it('is cleaned up before every render if supplied with no argument', done => {
-        const mock = {
+        const mock = sinon.spy({
             callback: () => {
 
             }
-        }
+        })
 
-        spyOn(mock, 'callback').and.callThrough()
         // Create a fake function that will be replaced by the real Evolve impl.
         let updateState: myra.Evolve<number> = function () { return 0 }
         const Component = () => {
@@ -65,7 +64,7 @@ describe('useEffect', () => {
 
                 // We need to use setTimeout as the effect is cleaned up asynchronously
                 setTimeout(() => {
-                    expect(mock.callback).toHaveBeenCalledTimes(2)
+                    expect(mock.callback.callCount).to.eq(2)
                     done()
                 }, 0)
             })
@@ -73,13 +72,11 @@ describe('useEffect', () => {
     })
 
     it('handles error during cleanup', done => {
-        const mock = {
+        const mock = sinon.spy({
             callback: () => {
                 throw 'An error'
             }
-        }
-
-        spyOn(mock, 'callback').and.callThrough()
+        })
 
         const Component = () => {
             useEffect(() => mock.callback)
@@ -91,7 +88,7 @@ describe('useEffect', () => {
         requestAnimationFrame(() => {
             render(document.body, [<nothing />], [componentInstance])
             requestAnimationFrame(() => {
-                expect(mock.callback).toHaveBeenCalledTimes(1)
+                expect(mock.callback.callCount).to.eq(1)
 
                 done()
             })
@@ -99,11 +96,9 @@ describe('useEffect', () => {
     })
 
     it('is cleaned up before unmount if supplied with no argument', done => {
-        const mock = {
+        const mock = sinon.spy({
             callback: () => { }
-        }
-
-        spyOn(mock, 'callback').and.callThrough()
+        })
 
         const Component = () => {
             useEffect(() => mock.callback)
@@ -115,7 +110,7 @@ describe('useEffect', () => {
         requestAnimationFrame(() => {
             render(document.body, [<nothing />], [componentInstance])
             requestAnimationFrame(() => {
-                expect(mock.callback).toHaveBeenCalledTimes(1)
+                expect(mock.callback.callCount).to.eq(1)
 
                 done()
             })
@@ -123,14 +118,12 @@ describe('useEffect', () => {
     })
 
     it('is cleaned up before unmount if supplied with argument', done => {
-        const mock = {
+        const mock = sinon.spy({
             callback: () => { }
-        }
-
-        spyOn(mock, 'callback').and.callThrough()
+        })
 
         const Component = () => {
-            useEffect(() => mock.callback, [])
+            useEffect(() => mock.callback, ['argument'])
             return <div />
         }
         const componentInstance = <Component />
@@ -139,7 +132,7 @@ describe('useEffect', () => {
         requestAnimationFrame(() => {
             render(document.body, [<nothing />], [componentInstance])
             requestAnimationFrame(() => {
-                expect(mock.callback).toHaveBeenCalledTimes(1)
+                expect(mock.callback.callCount).to.eq(1)
 
                 done()
             })
@@ -147,11 +140,9 @@ describe('useEffect', () => {
     })
 
     it('is invoked only once if supplied with the same argument', done => {
-        const mock = {
+        const mock = sinon.spy({
             callback: () => { }
-        }
-
-        spyOn(mock, 'callback').and.callThrough()
+        })
 
         // Create a fake function that will be replaced by the real Evolve impl.
         let updateState: myra.Evolve<number> = function () { return 0 }
@@ -169,7 +160,7 @@ describe('useEffect', () => {
             // Trigger re-render
             updateState(2)
             requestAnimationFrame(() => {
-                expect(mock.callback).toHaveBeenCalledTimes(1)
+                expect(mock.callback.callCount).to.eq(1)
 
                 done()
             })
@@ -180,11 +171,9 @@ describe('useEffect', () => {
 describe('useLayoutEffect', () => {
 
     it('is invoked every render if supplied with no argument', done => {
-        const mock = {
+        const mock = sinon.spy({
             callback: () => { }
-        }
-
-        spyOn(mock, 'callback').and.callThrough()
+        })
 
         // Create a fake function that will be replaced by the real Evolve impl.
         let updateState: myra.Evolve<number> = function () { return 0 }
@@ -202,18 +191,16 @@ describe('useLayoutEffect', () => {
         requestAnimationFrame(() => {
             // Trigger re-render
             updateState(2)
-            expect(mock.callback).toHaveBeenCalledTimes(2)
+            expect(mock.callback.callCount).to.eq(2)
 
             done()
         })
     })
 
     it('is cleaned up before every render if supplied with no argument', done => {
-        const mock = {
+        const mock = sinon.spy({
             callback: () => { }
-        }
-
-        spyOn(mock, 'callback').and.callThrough()
+        })
 
         // Create a fake function that will be replaced by the real Evolve impl.
         let updateState: myra.Evolve<number> = function () { return 0 }
@@ -232,7 +219,7 @@ describe('useLayoutEffect', () => {
             // Trigger re-render
             updateState(2)
             requestAnimationFrame(() => {
-                expect(mock.callback).toHaveBeenCalledTimes(2)
+                expect(mock.callback.callCount).to.eq(2)
 
                 done()
             })
@@ -240,11 +227,9 @@ describe('useLayoutEffect', () => {
     })
 
     it('is cleaned up before unmount if supplied with no argument', done => {
-        const mock = {
+        const mock = sinon.spy({
             callback: () => { }
-        }
-
-        spyOn(mock, 'callback').and.callThrough()
+        })
 
         const Component = () => {
             useLayoutEffect(() => mock.callback)
@@ -256,21 +241,19 @@ describe('useLayoutEffect', () => {
         render(document.body, [<nothing />], [componentInstance])
 
         setTimeout(() => {
-            expect(mock.callback).toHaveBeenCalledTimes(1)
+            expect(mock.callback.callCount).to.eq(1)
 
             done()
         }, 0)
     })
 
     it('is cleaned up before unmount if supplied with argument', done => {
-        const mock = {
+        const mock = sinon.spy({
             callback: () => { }
-        }
-
-        spyOn(mock, 'callback').and.callThrough()
+        })
 
         const Component = () => {
-            useLayoutEffect(() => mock.callback, [])
+            useLayoutEffect(() => mock.callback, ['argument'])
             return <div />
         }
         const componentInstance = <Component />
@@ -279,18 +262,16 @@ describe('useLayoutEffect', () => {
         render(document.body, [<nothing />], [componentInstance])
 
         setTimeout(() => {
-            expect(mock.callback).toHaveBeenCalledTimes(1)
+            expect(mock.callback.callCount).to.eq(1)
 
             done()
         }, 0)
     })
 
     it('is invoked only once if supplied with the same argument', done => {
-        const mock = {
+        const mock = sinon.spy({
             callback: () => { }
-        }
-
-        spyOn(mock, 'callback').and.callThrough()
+        })
 
         // Create a fake function that will be replaced by the real Evolve impl.
         let updateState: myra.Evolve<number> = function () { return 0 }
@@ -305,7 +286,7 @@ describe('useLayoutEffect', () => {
         updateState(1)
 
         requestAnimationFrame(() => {
-            expect(mock.callback).toHaveBeenCalledTimes(1)
+            expect(mock.callback.callCount).to.eq(1)
 
             done()
         })
@@ -314,12 +295,8 @@ describe('useLayoutEffect', () => {
 
 describe('useMemo', () => {
     it('returns the same value when the inputs does not change', done => {
-        const mock = {
-            callback: () => { }
-        }
 
-        spyOn(mock, 'callback').and.callThrough()
-
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
         let fn: Function
 
         const Component = () => {
@@ -336,7 +313,7 @@ describe('useMemo', () => {
             setTimeout(() => {
                 render(document.body, [<Component />], [vNode])
 
-                expect(firstFn).toBe(fn!)
+                expect(firstFn).to.be.eq(fn!)
 
                 done()
             })
@@ -344,12 +321,8 @@ describe('useMemo', () => {
     })
 
     it('returns a new value when the inputs does change', done => {
-        const mock = {
-            callback: () => { }
-        }
 
-        spyOn(mock, 'callback').and.callThrough()
-
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
         let fn: Function
 
         const Component = (p: { input: number }) => {
@@ -366,7 +339,7 @@ describe('useMemo', () => {
             setTimeout(() => {
                 render(document.body, [<Component input={2} />], [vNode1])
 
-                expect(firstFn).not.toBe(fn!)
+                expect(firstFn).not.to.be.eq(fn!)
 
                 done()
             })
@@ -388,7 +361,7 @@ describe('useRef', () => {
         render(document.body, [vNode], [])
 
         setTimeout(() => {
-            expect(typeof ref).toEqual('object')
+            expect(typeof ref).to.eq('object')
 
             done()
         })
@@ -407,7 +380,7 @@ describe('useRef', () => {
         render(document.body, [vNode], [])
 
         setTimeout(() => {
-            expect(ref.current).toBe(vNode.domRef)
+            expect(ref.current).to.be.eq(vNode.domRef)
 
             done()
         })
@@ -425,7 +398,7 @@ describe('useRef', () => {
         render(document.body, [vNode], [])
 
         setTimeout(() => {
-            expect(ref.current).toBe(vNode.domRef.firstChild)
+            expect(ref.current).to.be.eq(vNode.domRef.firstChild)
 
             done()
         })
@@ -443,7 +416,7 @@ describe('useRef', () => {
         render(document.body, [vNode], [])
 
         setTimeout(() => {
-            expect(ref.current).toEqual('foo')
+            expect(ref.current).to.eq('foo')
 
             done()
         })
@@ -465,7 +438,7 @@ describe('useRef', () => {
 
         requestAnimationFrame(() => {
             render(document.body, [<Component />], [vNode])
-            expect(ref.current).toEqual('bar')
+            expect(ref.current).to.eq('bar')
 
             done()
         })
@@ -484,7 +457,7 @@ describe('useRef', () => {
         render(document.body, [vNode], [])
 
         setTimeout(() => {
-            expect(ref.current).toEqual('bar')
+            expect(ref.current).to.eq('bar')
 
             done()
         })
@@ -493,32 +466,29 @@ describe('useRef', () => {
 
 describe('useErrorHandling', () => {
     it('calls the useErrorHandling listener on view rendering error', done => {
-        const mock = {
+        const mock = sinon.spy({
             callback: () => <nothing />
-        }
-
-        spyOn(mock, 'callback').and.callThrough()
+        })
 
         const Component = () => {
             useErrorHandler(mock.callback)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return <div>{(undefined as any).property}</div>
         }
         const vNode = <Component />
         render(document.body, [vNode], [])
 
-        expect(vNode.domRef.nodeType).toBe(Node.COMMENT_NODE)
-        expect(vNode.domRef.textContent).toBe('Nothing')
-        expect(mock.callback).toHaveBeenCalled()
+        expect(vNode.domRef.nodeType).to.be.eq(Node.COMMENT_NODE)
+        expect(vNode.domRef.textContent).to.be.eq('Nothing')
+        expect(mock.callback.called).to.be.true
 
         done()
     })
 
     it('calls the useErrorHandling listener on effect error', done => {
-        const mock = {
+        const mock = sinon.spy({
             callback: () => <nothing />
-        }
-
-        spyOn(mock, 'callback').and.callThrough()
+        })
 
         const Component = () => {
 
@@ -534,11 +504,11 @@ describe('useErrorHandling', () => {
         myra.mount(component, document.body)
 
         requestAnimationFrame(() => {
-            const node = (component as ComponentVNode<any>).domRef!
+            const node = (component as ComponentVNode<unknown>).domRef!
 
-            expect(node.nodeType).toBe(Node.COMMENT_NODE)
-            expect(node.textContent).toBe('Nothing')
-            expect(mock.callback).toHaveBeenCalled()
+            expect(node.nodeType).to.be.eq(Node.COMMENT_NODE)
+            expect(node.textContent).to.be.eq('Nothing')
+            expect(mock.callback.called).to.be.true
 
             done()
         })
@@ -546,11 +516,9 @@ describe('useErrorHandling', () => {
 
 
     it('calls the useErrorHandling listener on useLayoutEffect error', done => {
-        const mock = {
+        const mock = sinon.spy({
             callback: () => <nothing />
-        }
-
-        spyOn(mock, 'callback').and.callThrough()
+        })
 
         const Component = () => {
 
@@ -567,21 +535,19 @@ describe('useErrorHandling', () => {
         render(document.body, [component], [])
 
         requestAnimationFrame(() => {
-            const node = (component as ComponentVNode<any>).domRef!
-            expect(node.nodeType).toBe(Node.COMMENT_NODE)
-            expect(node.textContent).toBe('Nothing')
-            expect(mock.callback).toHaveBeenCalled()
+            const node = (component as ComponentVNode<unknown>).domRef!
+            expect(node.nodeType).to.be.eq(Node.COMMENT_NODE)
+            expect(node.textContent).to.be.eq('Nothing')
+            expect(mock.callback.called).to.be.true
 
             done()
         })
     })
 
     it('calls the useErrorHandling listener on initialization error', done => {
-        const mock = {
+        const mock = sinon.spy({
             callback: () => <nothing />
-        }
-
-        spyOn(mock, 'callback').and.callThrough()
+        })
 
         const Component = () => {
 
@@ -595,19 +561,17 @@ describe('useErrorHandling', () => {
         const vNode = <Component />
         render(document.body, [vNode], [])
 
-        expect(vNode.domRef.nodeType).toBe(Node.COMMENT_NODE)
-        expect(vNode.domRef.textContent).toBe('Nothing')
-        expect(mock.callback).toHaveBeenCalled()
+        expect(vNode.domRef.nodeType).to.be.eq(Node.COMMENT_NODE)
+        expect(vNode.domRef.textContent).to.be.eq('Nothing')
+        expect(mock.callback.called).to.be.true
 
         done()
     })
 
     it('calls the useErrorHandling listener on evolve error', done => {
-        const mock = {
+        const mock = sinon.spy({
             callback: () => <nothing />
-        }
-
-        spyOn(mock, 'callback').and.callThrough()
+        })
 
         const Component = () => {
 
@@ -627,18 +591,16 @@ describe('useErrorHandling', () => {
         render(document.body, [vNode], [])
         vNode.domRef.click()
         requestAnimationFrame(() => {
-            expect(mock.callback).toHaveBeenCalled()
+            expect(mock.callback.called).to.be.true
 
             done()
         })
     })
 
     it('does not call the useErrorHandling listener on effect cleanup error', done => {
-        const mock = {
+        const mock = sinon.spy({
             callback: () => <nothing />
-        }
-
-        spyOn(mock, 'callback').and.callThrough()
+        })
 
         const Component = () => {
 
@@ -655,20 +617,19 @@ describe('useErrorHandling', () => {
         const vNode = <Component />
         render(document.body, [vNode], [])
         render(document.body, [<nothing />], [vNode])
-        expect(vNode.domRef.nodeType).toBe(Node.ELEMENT_NODE)
-        expect(vNode.domRef.textContent).toBe('')
-        expect(mock.callback).not.toHaveBeenCalled()
+        expect(vNode.domRef.nodeType).to.be.eq(Node.ELEMENT_NODE)
+        expect(vNode.domRef.textContent).to.be.eq('')
+        expect(mock.callback.called).not.to.be.true
 
         done()
     })
 
     it('passes on an exception up the component tree', done => {
-        const mock = {
+        const mock = sinon.spy({
             callback: () => <nothing />
-        }
+        })
 
-        spyOn(mock, 'callback').and.callThrough()
-
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const SubComponent = () => <div>{(undefined as any).property}</div>
 
         const Component = () => {
@@ -680,20 +641,19 @@ describe('useErrorHandling', () => {
 
         render(document.body, [<Component />], [])
 
-        expect(mock.callback).toHaveBeenCalled()
+        expect(mock.callback.called).to.be.true
 
         done()
     })
 
-    it(`passes the children of a component to it view`, done => {
-        const viewMock = {
+    it('passes the children of a component to it view', done => {
+        const viewMock = sinon.spy({
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             view: (p: any) => {
-                expect(Array.isArray(p.children)).toBe(true)
+                expect(Array.isArray(p.children)).to.be.eq(true)
                 return <div>{p.children}</div>
             }
-        }
-
-        spyOn(viewMock, 'view').and.callThrough()
+        })
 
         const Component = viewMock.view
 
@@ -705,9 +665,9 @@ describe('useErrorHandling', () => {
 
         render(document.body, [<Parent />], [])
 
-        expect(q('#divTestId')).not.toBeNull()
+        expect(q('#divTestId')).not.to.be.null
 
-        expect(viewMock.view).toHaveBeenCalledTimes(1)
+        expect(viewMock.view.callCount).to.be.eq(1)
 
         done()
     })
@@ -720,7 +680,7 @@ describe('useState', () => {
             const [s, evolve] = useState(0)
             const ref = useRef(evolve)
 
-            expect(ref.current).toBe(evolve)
+            expect(ref.current).to.be.eq(evolve)
             if (s < 2) {
                 evolve(s + 1)
             }
@@ -740,11 +700,11 @@ describe('useState', () => {
             })
             const ref = useRef(evolve)
 
-            expect(ref.current).toBe(evolve)
+            expect(ref.current).to.be.eq(evolve)
             if (s < 2) {
                 evolve(s + 1)
             } else {
-                expect(callCount).toEqual(1)
+                expect(callCount).to.eq(1)
                 done()
             }
             return <div></div>
@@ -756,19 +716,17 @@ describe('useState', () => {
     it('updates the state when an Update function in supplied', () => {
         let firstUpdate = true
 
-        const mocks = {
+        const mocks = sinon.spy({
             onclickUpdate: (state: { val: number }) => {
                 if (firstUpdate) {
-                    expect(state).toEqual({ val: 1 })
+                    expect(state).to.deep.eq({ val: 1 })
                 }
                 else {
-                    expect(state).toEqual({ val: 2 })
+                    expect(state).to.deep.eq({ val: 2 })
                 }
                 return { val: 2 }
             }
-        }
-
-        spyOn(mocks, 'onclickUpdate').and.callThrough()
+        })
 
         const Component = () => {
             const [, evolve] = useState({ val: 1 })
@@ -783,26 +741,24 @@ describe('useState', () => {
         firstUpdate = false
         postBtn.click()
 
-        expect(mocks.onclickUpdate).toHaveBeenCalledTimes(2)
+        expect(mocks.onclickUpdate.callCount).to.eq(2)
     })
 
     it('updates the state when an object in supplied', () => {
         let firstUpdate = true
 
-        const mocks = {
+        const mocks = sinon.spy({
             onclickUpdate: (s: { val: number }, newState: { val: number }) => {
 
                 if (firstUpdate) {
-                    expect(s).toEqual({ val: 1 })
+                    expect(s).to.deep.eq({ val: 1 })
                 }
                 else {
-                    expect(s).toEqual({ val: 2 })
+                    expect(s).to.deep.eq({ val: 2 })
                 }
                 return newState
             }
-        }
-
-        spyOn(mocks, 'onclickUpdate').and.callThrough()
+        })
 
         const Component = () => {
             const [, evolve] = useState({ val: 1 })
@@ -816,7 +772,7 @@ describe('useState', () => {
         firstUpdate = false
         postBtn.click()
 
-        expect(mocks.onclickUpdate).toHaveBeenCalledTimes(2)
+        expect(mocks.onclickUpdate.callCount).to.eq(2)
     })
 
     it('debounces multiple state updates into a single render', (done) => {
@@ -824,7 +780,7 @@ describe('useState', () => {
         let setStateOuter: myra.Evolve<number> = function () { return 0 }
         const Component = () => {
 
-            let [s, setState] = useState(0)
+            const [s, setState] = useState(0)
             setStateOuter = setState
             return <span>{s.toString()}</span>
         }
@@ -836,7 +792,7 @@ describe('useState', () => {
         setStateOuter(1)
         setStateOuter(2)
         requestAnimationFrame(() => {
-            expect(vNode.domRef.textContent).toEqual('2')
+            expect(vNode.domRef.textContent).to.eq('2')
             done()
         })
 

@@ -3,7 +3,7 @@ export type Type = 'array' | 'object' | 'string' | 'date' | 'regexp' | 'function
 /**
  * Better "typeof" which identifies arrays.
  */
-export function typeOf(obj: any): Type {
+export function typeOf(obj: unknown): Type {
     const objType = typeof obj
     if (objType === 'string' || objType === 'number' || objType === 'boolean' || objType === 'function') {
         return objType
@@ -32,7 +32,7 @@ export function equal<T>(a: T, b: T): boolean {
         if (a === b) {
             return true
         }
-        if (Object.keys(a as Object).length !== Object.keys(b as Object).length) {
+        if (Object.keys(a as object).length !== Object.keys(b as object).length) {
             return false
         }
         for (const k in a) {
@@ -48,21 +48,21 @@ export function equal<T>(a: T, b: T): boolean {
         if (a === b) {
             return true
         }
-        if ((a as any as Array<any>).length !== (b as any as Array<any>).length) {
+        if ((a as unknown as Array<unknown>).length !== (b as unknown as Array<unknown>).length) {
             return false
         }
         for (const i in a) {
-            if (!equal((a as any as Array<any>)[i as any], (b as any as Array<any>)[i as any])) {
+            if (!equal((a as unknown as Array<unknown>)[i as any], (b as unknown as Array<unknown>)[i as any])) {
                 return false
             }
         }
         return true
     }
     else if (typeOfA === 'date' && typeOfB === 'date') {
-        return (a as any as Date).getTime() === (b as any as Date).getTime()
+        return (a as unknown as Date).getTime() === (b as unknown as Date).getTime()
     }
     else if (typeOfA === 'regexp' && typeOfB === 'regexp') {
-        return (a as any).toString() === (b as any).toString()
+        return (a as unknown as RegExp).toString() === (b as unknown as RegExp).toString()
     }
     else if (typeOfA === typeOfB) {
         return a === b
