@@ -43,7 +43,7 @@
     "lodash.camelcase": "^4.3.0",
     "mocha": "^10.7.0",
     "rimraf": "^6.0.1",
-    "rollup": "^4.20.0",
+    "rollup": "^4.22.4",
     "sinon": "^18.0.0",
     "typescript": "^5.5.4",
     "typescript-eslint": "^8.0.1"
