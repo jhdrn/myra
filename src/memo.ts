@@ -1,6 +1,6 @@
-import { getRenderingContext } from "./component"
-import { ComponentFactory, ComponentProps, JSXElementFactory, VNode, VNodeType } from "./contract"
-import { useRef } from "./hooks"
+import { getRenderingContext } from './component'
+import { ComponentFactory, ComponentProps, JSXElementFactory, VNode, VNodeType } from './contract'
+import { useRef } from './hooks'
 
 type CompareFn<TProps> = (newProps: TProps, oldProps: TProps) => boolean
 
@@ -20,20 +20,16 @@ export function memo<TProps>(factory: ComponentFactory<TProps & ComponentProps>,
     compare = compare ?? shallowCompareProps as CompareFn<TProps>
 
     return (props: TProps) => {
-
         const ref = useRef<TProps>({} as TProps)
         const oldProps = ref.current
 
-        ref.current = props
-
         const renderingContext = getRenderingContext()!
-
-        if (renderingContext.oldVNode === undefined || !compare!(props, oldProps)) {
+        const shouldRerender = renderingContext.oldVNode === undefined || !compare(props, oldProps)
+        ref.current = props
+        if (shouldRerender) {
             return factory(props as TProps & ComponentProps) as VNode
         }
-
-        renderingContext!.memo = true
-
+        renderingContext.memo = true
         return {
             _: VNodeType.Nothing
         }
@@ -49,14 +45,31 @@ export function memo<TProps>(factory: ComponentFactory<TProps & ComponentProps>,
  */
 function shallowCompareProps<TProps extends ComponentProps & Record<string, unknown>>(newProps: TProps, oldProps: TProps): boolean {
     const newPropsKeys = Object.keys(newProps)
-    if (newPropsKeys.length !== Object.keys(oldProps).length) {
+    const oldPropsKeys = Object.keys(oldProps)
+
+    if (newPropsKeys.length !== oldPropsKeys.length) {
         return false
     }
+
     for (const k of newPropsKeys) {
-        if (k === 'children') {
+        const newVal = newProps[k]
+        const oldVal = oldProps[k]
+
+        if (k === 'children' && Array.isArray(newVal) && Array.isArray(oldVal)) {
+            if (newVal.length !== oldVal.length) {
+                return false
+            }
+            for (let i = 0; i < newVal.length; i++) {
+                if (newVal[i] !== oldVal[i]) {
+                    console.log(`shallowCompareProps: children[${i}] changed`, newVal[i], oldVal[i])
+                    return false
+                }
+            }
             continue
         }
-        if (newProps[k] !== oldProps[k]) {
+        if (newVal !== oldVal) {
+
+            console.log(`shallowCompareProps: ${k} changed`, newVal, oldVal)
             return false
         }
     }

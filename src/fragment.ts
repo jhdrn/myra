@@ -6,7 +6,15 @@ interface IProps {
 }
 
 export function Fragment(props: IProps): FragmentVNode | NothingVNode {
-    const children = props.children as VNode[] ?? []
+    // Normalize children to always be an array
+    let children: VNode[] = []
+    if (props.children === undefined || props.children === null) {
+        children = []
+    } else if (Array.isArray(props.children)) {
+        children = props.children as VNode[]
+    } else {
+        children = [props.children as VNode]
+    }
     if (!children.length) {
         return {
             _: VNodeType.Nothing

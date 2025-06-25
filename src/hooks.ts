@@ -1,7 +1,7 @@
-import { getRenderingContext, renderComponent, tryHandleComponentError } from './component'
+import { getRenderingContext, tryHandleComponentError } from './component'
 import { ComponentProps, ComponentVNode, Effect, ErrorHandler, Evolve, Ref, UpdateState } from './contract'
 import { equal } from './helpers'
-
+import { scheduleRender } from './schedule'
 
 type LazyStateInitialization<TState> = () => TState
 
@@ -27,23 +27,9 @@ export function useState<TState>(initialState: TState | LazyStateInitialization<
                 if (typeof update === 'function') {
                     update = update(currentVNode.data![hookIndex][0])
                 }
-
                 currentVNode.data![hookIndex] = [update, evolve]
 
-                if (!currentVNode.debounceRender) {
-                    setTimeout(() => {
-                        link.vNode.debounceRender = false
-
-                        renderComponent(
-                            parentElement,
-                            link.vNode,
-                            undefined,
-                            link.vNode.rendition,
-                            isSvg
-                        )
-                    })
-                }
-                currentVNode.debounceRender = true
+                scheduleRender(link.vNode, parentElement, isSvg)
             } catch (err) {
                 setTimeout(() => {
                     tryHandleComponentError(parentElement, currentVNode, isSvg, err as Error)

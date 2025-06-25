@@ -35,9 +35,10 @@ export function equal<T>(a: T, b: T): boolean {
         if (Object.keys(a as object).length !== Object.keys(b as object).length) {
             return false
         }
-        for (const k in a) {
-            if ((a as Object).hasOwnProperty(k)) {
-                if (!equal((a as any)[k], (b as any)[k])) {
+        for (const k of Object.keys(a as object)) {
+            // Use Object.prototype.hasOwnProperty.call for safety
+            if (Object.prototype.hasOwnProperty.call(a, k)) {
+                if (!equal((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k])) {
                     return false
                 }
             }
@@ -51,8 +52,8 @@ export function equal<T>(a: T, b: T): boolean {
         if ((a as unknown as Array<unknown>).length !== (b as unknown as Array<unknown>).length) {
             return false
         }
-        for (const i in a) {
-            if (!equal((a as unknown as Array<unknown>)[i as any], (b as unknown as Array<unknown>)[i as any])) {
+        for (let i = 0; i < (a as unknown[]).length; i++) {
+            if (!equal((a as unknown[])[i], (b as unknown[])[i])) {
                 return false
             }
         }
@@ -68,4 +69,77 @@ export function equal<T>(a: T, b: T): boolean {
         return a === b
     }
     return false
+}
+
+// Helper for safe dynamic property access
+export function getPropValue<T extends object>(obj: T, key: string): unknown {
+    if (key in obj) {
+        return obj[key as keyof T]
+    } else {
+        return (obj as unknown as Record<string, unknown>)[key]
+    }
+}
+
+export function createDocumentFragmentNode(): DocumentFragment {
+    return document.createDocumentFragment()
+}
+
+export function appendElementChild(parentElement: Element, newNode: Node) {
+    parentElement.appendChild(newNode)
+}
+
+export function elementContainsNode(parentElement: Element, node: Node) {
+    return parentElement.contains(node)
+}
+
+export function insertElementChildBefore(parentElement: Element, newNode: Node, beforeChild: Node | null) {
+    parentElement.insertBefore(newNode, beforeChild)
+}
+
+export function replaceElementChild(parentElement: Element, newChild: Node, oldChild: Node) {
+    parentElement.replaceChild(newChild, oldChild)
+}
+
+export function removeElementChild(parentElement: Element, oldDOMNode: Node) {
+    parentElement.removeChild(oldDOMNode)
+}
+
+/** 
+ * Removes an attribute or event listener from an HTMLElement. 
+ */
+export function removeElementAttribute(a: string, el: Element) {
+    if (a.indexOf('on') === 0) {
+        (el as unknown as Record<string, unknown>)[a] = null
+    }
+    else if (el.hasAttribute(a)) {
+        el.removeAttribute(a)
+    }
+}
+
+/** 
+ * Sets an attribute or event listener on an Element. 
+ */
+export function setElementAttribute(el: Element, attributeName: string, attributeValue: string) {
+    // The the "value" attribute shoud be set explicitly (and only if it has 
+    // changed) to prevent jumping cursors in some browsers (Safari)
+    if (attributeName === 'value' && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT')) {
+        if ((el as HTMLInputElement).value !== attributeValue) {
+            (el as HTMLInputElement).value = attributeValue
+        }
+    }
+    else if (attributeName in el) {
+        try {
+            (el as unknown as Record<string, unknown>)[attributeName] = attributeValue
+            return
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        catch (_) {
+            /** Ignore and use setAttribute instead  */
+        }
+    }
+
+    const attrValueType = typeof attributeValue
+    if (attrValueType !== 'function' && attrValueType !== 'object') {
+        el.setAttribute(attributeName, attributeValue)
+    }
 }

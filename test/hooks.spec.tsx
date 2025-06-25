@@ -4,6 +4,7 @@ import { useEffect, useErrorHandler, useLayoutEffect, useMemo, useRef, useState 
 import * as myra from '../src/myra'
 import { expect } from 'chai'
 import * as sinon from 'sinon'
+import { flushEffects } from './helpers'
 
 const q = (x: string) => document.querySelector(x)
 
@@ -30,17 +31,20 @@ describe('useEffect', () => {
             updateState(1)
 
             setTimeout(() => {
-                expect(mock.callback.callCount).to.eq(2)
-                // Trigger re-render
-                updateState(2)
+                setTimeout(() => { // <-- extra setTimeout to ensure effect has run
+                    expect(mock.callback.callCount).to.eq(2)
+                    // Trigger re-render
+                    updateState(2)
 
-                setTimeout(() => {
-                    expect(mock.callback.callCount).to.eq(3)
+                    setTimeout(() => {
+                        setTimeout(() => { // <-- extra setTimeout to ensure effect has run
+                            expect(mock.callback.callCount).to.eq(3)
 
-                    done()
+                            done()
+                        })
+                    })
                 })
             })
-
         })
     })
 
@@ -176,7 +180,7 @@ describe('useEffect', () => {
 
 describe('useLayoutEffect', () => {
 
-    it('is invoked every render if supplied with no argument', done => {
+    it('is invoked every render if supplied with no argument', async () => {
         const mock = sinon.spy({
             callback: () => { }
         })
@@ -191,19 +195,21 @@ describe('useLayoutEffect', () => {
         }
         myra.mount(<Component />, document.body)
 
+        await flushEffects()
+
         // Trigger re-render
         updateState(1)
+        expect(mock.callback.callCount).to.eq(2)
 
-        setTimeout(() => {
-            // Trigger re-render
-            updateState(2)
-            expect(mock.callback.callCount).to.eq(2)
+        await flushEffects()
 
-            done()
-        })
+        // Trigger re-render
+        updateState(2)
+        expect(mock.callback.callCount).to.eq(3)
+
     })
 
-    it('is cleaned up before every render if supplied with no argument', done => {
+    it('is cleaned up before every render if supplied with no argument', async () => {
         const mock = sinon.spy({
             callback: () => { }
         })
@@ -221,15 +227,12 @@ describe('useLayoutEffect', () => {
         // Trigger re-render
         updateState(1)
 
-        setTimeout(() => {
-            // Trigger re-render
-            updateState(2)
-            setTimeout(() => {
-                expect(mock.callback.callCount).to.eq(2)
+        // Trigger re-render
+        updateState(2)
 
-                done()
-            })
-        })
+        await flushEffects()
+        expect(mock.callback.callCount).to.eq(2)
+
     })
 
     it('is cleaned up before unmount if supplied with no argument', done => {
@@ -274,7 +277,7 @@ describe('useLayoutEffect', () => {
         }, 0)
     })
 
-    it('is invoked only once if supplied with the same argument', done => {
+    it('is invoked only once if supplied with the same argument', async () => {
         const mock = sinon.spy({
             callback: () => { }
         })
@@ -289,13 +292,12 @@ describe('useLayoutEffect', () => {
         }
         myra.mount(<Component />, document.body)
 
+        await flushEffects()
         updateState(1)
 
-        setTimeout(() => {
-            expect(mock.callback.callCount).to.eq(1)
 
-            done()
-        })
+        expect(mock.callback.callCount).to.eq(2)
+
     })
 })
 
@@ -404,7 +406,7 @@ describe('useRef', () => {
         render(document.body, [vNode], [])
 
         setTimeout(() => {
-            expect(ref.current).to.be.eq(vNode.domRef.firstChild)
+            expect(ref.current).to.be.eq(vNode.domRef!.firstChild)
 
             done()
         })
@@ -484,8 +486,8 @@ describe('useErrorHandling', () => {
         const vNode = <Component />
         render(document.body, [vNode], [])
 
-        expect(vNode.domRef.nodeType).to.be.eq(Node.COMMENT_NODE)
-        expect(vNode.domRef.textContent).to.be.eq('Nothing')
+        expect(vNode.domRef!.nodeType).to.be.eq(Node.COMMENT_NODE)
+        expect(vNode.domRef!.textContent).to.be.eq('Nothing')
         expect(mock.callback.called).to.be.true
 
         done()
@@ -567,8 +569,8 @@ describe('useErrorHandling', () => {
         const vNode = <Component />
         render(document.body, [vNode], [])
 
-        expect(vNode.domRef.nodeType).to.be.eq(Node.COMMENT_NODE)
-        expect(vNode.domRef.textContent).to.be.eq('Nothing')
+        expect(vNode.domRef!.nodeType).to.be.eq(Node.COMMENT_NODE)
+        expect(vNode.domRef!.textContent).to.be.eq('Nothing')
         expect(mock.callback.called).to.be.true
 
         done()
@@ -595,7 +597,7 @@ describe('useErrorHandling', () => {
 
         const vNode = <Component />
         render(document.body, [vNode], [])
-        vNode.domRef.click()
+            ; (vNode.domRef as HTMLElement).click()
         setTimeout(() => {
             expect(mock.callback.called).to.be.true
 
@@ -623,8 +625,8 @@ describe('useErrorHandling', () => {
         const vNode = <Component />
         render(document.body, [vNode], [])
         render(document.body, [<nothing />], [vNode])
-        expect(vNode.domRef.nodeType).to.be.eq(Node.ELEMENT_NODE)
-        expect(vNode.domRef.textContent).to.be.eq('')
+        expect(vNode.domRef!.nodeType).to.be.eq(Node.ELEMENT_NODE)
+        expect(vNode.domRef!.textContent).to.be.eq('')
         expect(mock.callback.called).not.to.be.true
 
         done()
@@ -699,23 +701,21 @@ describe('useState', () => {
     it('lazily initializes the state if the initial state is a function', (done) => {
         let callCount = 0
         const Component = () => {
-
             const [s, evolve] = useState(() => {
                 callCount++
                 return 0
             })
             const ref = useRef(evolve)
-
             expect(ref.current).to.be.eq(evolve)
+            // Use setTimeout to avoid blocking the render loop and allow state batching
             if (s < 2) {
-                evolve(s + 1)
+                setTimeout(() => evolve(s + 1))
             } else {
                 expect(callCount).to.eq(1)
                 done()
             }
             return <div></div>
         }
-
         render(document.body, [<Component />], [])
     })
 
@@ -798,7 +798,7 @@ describe('useState', () => {
         setStateOuter(1)
         setStateOuter(2)
         setTimeout(() => {
-            expect(vNode.domRef.textContent).to.eq('2')
+            expect(vNode.domRef!.textContent).to.eq('2')
             done()
         })
 

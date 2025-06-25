@@ -1,9 +1,9 @@
+import { expect } from 'chai'
+import * as sinon from 'sinon'
 import { render } from '../src/component'
 import { ButtonAttributes, ComponentProps, ElementVNode } from '../src/contract'
 import { useState } from '../src/hooks'
 import * as myra from '../src/myra'
-import { expect } from 'chai'
-import * as sinon from 'sinon'
 
 // const keyPressEvent = (keyCode: number) => {
 //     const event = document.createEvent('Event')
@@ -506,7 +506,7 @@ describe('render', () => {
     })
 
 
-    it('correctly inserts and appends keyed an non-keyed child nodes', (done) => {
+    it('correctly inserts and appends keyed and non-keyed child nodes', (done) => {
 
         const keyedItems = ['a', 'c', 'd', 'g']
         const viewItems1 = ['c', 'e']
@@ -541,7 +541,7 @@ describe('render', () => {
     })
 
 
-    it('correctly updates keyed an non-keyed child nodes', (done) => {
+    it('correctly updates keyed and non-keyed child nodes', (done) => {
 
         const keyedItems = ['a', 'c', 'd', 'g']
         const viewItems1 = ['c', 'e']
@@ -830,7 +830,7 @@ describe('render', () => {
 
         render(document.body, [view], [])
 
-        const node = view.domRef
+        const node = view.domRef as Element
         expect(node.getAttribute('onCustomClick')).to.be.null
 
         done()
@@ -1300,7 +1300,7 @@ describe('render', () => {
         const view1 =
             <div>
                 {items.map(x => <ItemComponent key={x.id.toString()} item={x} forceUpdate={0} />)}
-            </div> as ElementVNode<HTMLDivElement>
+            </div> as ElementVNode<Element>
 
         render(document.body, [view1], [])
 
@@ -1322,7 +1322,7 @@ describe('render', () => {
             const view2 =
                 <div>
                     {reversedItems.map(x => <ItemComponent key={x.id.toString()} item={x} forceUpdate={1} />)}
-                </div> as ElementVNode<HTMLDivElement>
+                </div> as ElementVNode<Element>
 
             render(document.body, [view2], [view1])
 
@@ -1376,7 +1376,7 @@ describe('render', () => {
         const view1 =
             <div>
                 {items.map(x => <ItemComponent item={x} forceUpdate={true} />)}
-            </div> as ElementVNode<HTMLDivElement>
+            </div> as ElementVNode<Element>
 
         render(document.body, [view1], [])
         setTimeout(() => {
@@ -1399,7 +1399,7 @@ describe('render', () => {
                 const view2 =
                     <div>
                         {reversedItems.map(x => <ItemComponent item={x} forceUpdate={true} />)}
-                    </div> as ElementVNode<HTMLDivElement>
+                    </div> as ElementVNode<Element>
 
                 render(document.body, [view2], [view1])
 

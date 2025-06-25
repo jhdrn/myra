@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 declare global {
 
     namespace JSX {
@@ -12,14 +13,14 @@ declare global {
         export interface ElementAttributesProperty<TProps> {
             props: TProps
         }
-        export interface ElementChildrenAttribute { children: {} }
+        export interface ElementChildrenAttribute { children: unknown }
 
         interface IntrinsicAttributes {
             key?: string | number
         }
 
         export interface IntrinsicElements {
-            nothing: {}
+            nothing: object
 
             a: AAttributes
             abbr: GlobalHtmlAttributes<HTMLElement>
@@ -366,7 +367,7 @@ export interface ComponentVNode<TProps> {
 /**
  * Union type of the different types of virtual nodes.
  */
-export type VNode = TextVNode | ElementVNode<any> | FragmentVNode | ComponentVNode<any> | NothingVNode
+export type VNode = TextVNode | ElementVNode<Element> | FragmentVNode | ComponentVNode<unknown> | NothingVNode
 
 export interface GenericEvent<T extends EventTarget> extends Event {
     currentTarget: T
@@ -486,50 +487,50 @@ export interface GlobalAttributes<TElement extends Element> {
 
     // Widget attributes
 
-    'aria-autocomplete'?: any
-    'aria-checked'?: any
-    'aria-disabled'?: any
-    'aria-expanded'?: any
-    'aria-haspopup'?: any
-    'aria-hidden'?: any
-    'aria-invalid'?: any
-    'aria-label'?: any
-    'aria-level'?: any
-    'aria-multiline'?: any
-    'aria-multiselectable'?: any
-    'aria-orientation'?: any
-    'aria-pressed'?: any
-    'aria-readonly'?: any
-    'aria-required'?: any
-    'aria-selected'?: any
-    'aria-sort'?: any
-    'aria-valuemax'?: any
-    'aria-valuemin'?: any
-    'aria-valuenow'?: any
-    'aria-valuetext'?: any
+    'aria-autocomplete'?: string
+    'aria-checked'?: boolean | 'true' | 'false'
+    'aria-disabled'?: boolean | 'true' | 'false'
+    'aria-expanded'?: boolean | 'true' | 'false'
+    'aria-haspopup'?: boolean | 'true' | 'false'
+    'aria-hidden'?: boolean | 'true' | 'false'
+    'aria-invalid'?: boolean | 'true' | 'false'
+    'aria-label'?: string
+    'aria-level'?: number
+    'aria-multiline'?: boolean | 'true' | 'false'
+    'aria-multiselectable'?: boolean | 'true' | 'false'
+    'aria-orientation'?: 'horizontal' | 'vertical'
+    'aria-pressed'?: boolean | 'true' | 'false'
+    'aria-readonly'?: boolean | 'true' | 'false'
+    'aria-required'?: boolean | 'true' | 'false'
+    'aria-selected'?: boolean | 'true' | 'false'
+    'aria-sort'?: 'none' | 'ascending' | 'descending' | 'other'
+    'aria-valuemax'?: number
+    'aria-valuemin'?: number
+    'aria-valuenow'?: number
+    'aria-valuetext'?: string
 
     // Live region attributes
 
-    'aria-live'?: any
-    'aria-relevant'?: any
-    'aria-atomic'?: any
-    'aria-busy'?: any
+    'aria-live'?: 'off' | 'polite' | 'assertive'
+    'aria-relevant'?: string
+    'aria-atomic'?: boolean | 'true' | 'false'
+    'aria-busy'?: boolean | 'true' | 'false'
 
     // Drag & drop attributes
 
-    'aria-dropeffect'?: any
-    'aria-dragged'?: any
+    'aria-dropeffect'?: string
+    'aria-dragged'?: string
 
     // Relationship attributes
 
-    'aria-activedescendant'?: any
-    'aria-controls'?: any
-    'aria-describedby'?: any
-    'aria-flowto'?: any
-    'aria-labelledby'?: any
-    'aria-owns'?: any
-    'aria-posinset'?: any
-    'aria-setsize'?: any
+    'aria-activedescendant'?: string
+    'aria-controls'?: string
+    'aria-describedby'?: string
+    'aria-flowto'?: string
+    'aria-labelledby'?: string
+    'aria-owns'?: string
+    'aria-posinset'?: number
+    'aria-setsize'?: number
 
     // [name: string]: any
 }
@@ -557,11 +558,11 @@ export interface AreaAttributes extends GlobalAttributes<HTMLAreaElement> {
 }
 export interface AudioAttributes extends GlobalAttributes<HTMLAudioElement> {
     autoplay?: boolean | 'true' | 'false'
-    buffered?: any
-    controls?: any
+    buffered?: string | number
+    controls?: boolean | 'true' | 'false'
     loop?: boolean | 'true' | 'false'
     muted?: boolean | 'true' | 'false'
-    played?: any
+    played?: string | number
     preload?: '' | 'none' | 'metadata' | 'auto'
     src?: string
     volume?: number | string
@@ -795,7 +796,7 @@ export interface TrackAttributes extends GlobalAttributes<HTMLTrackElement> {
 }
 export interface VideoAttributes extends GlobalAttributes<HTMLVideoElement> {
     autoplay?: boolean | 'true' | 'false'
-    buffered?: any
+    buffered?: string | number
     controls?: boolean | 'true' | 'false'
     crossorigin?: 'anonymous' | 'use-credentials'
     height?: number | string
@@ -811,4 +812,7 @@ export interface VideoAttributes extends GlobalAttributes<HTMLVideoElement> {
 // TODO: explicit attributes
 export interface SvgAttributes {
     [name: string]: any
+    children?: MyraNode
+    key?: Key
+    ref?: Ref<SVGElement>
 }

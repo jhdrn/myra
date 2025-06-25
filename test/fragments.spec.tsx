@@ -1,8 +1,8 @@
-import * as myra from '../src/myra'
-import { render } from '../src/component'
-import { ComponentProps, TextVNode, VNodeType } from '../src/contract'
 import { expect } from 'chai'
 import * as sinon from 'sinon'
+import { render } from '../src/component'
+import { ComponentProps, TextVNode, VNodeType } from '../src/contract'
+import * as myra from '../src/myra'
 
 const q = (x: string) => document.querySelector(x)
 
@@ -840,45 +840,36 @@ describe('fragment', () => {
         })
     })
 
-    it('removes and "unmounts" component child nodes', done => {
+    it('removes and "unmounts" component child nodes', async () => {
         const mock = sinon.spy({
             unmount: () => { }
         })
         const ChildComponent = () => {
-            myra.useEffect(() => {
-                return mock.unmount
-            }, [])
+            myra.useEffect(() => mock.unmount, [])
             return <div id="fragment-child4"></div>
-        }
-
-        let setDidRenderOuter: myra.Evolve<boolean> = function () { return true }
-        const Component = () => {
-            const [didRender, setDidRender] = myra.useState(false)
-
-            setDidRenderOuter = setDidRender
-
-            return (
-                <>
-                    {!didRender &&
-                        <ChildComponent />
-                    }
-                </>
-            )
         }
 
         const fragmentContainer = document.createElement('div')
         document.body.appendChild(fragmentContainer)
 
+        function Component() {
+            const [didRender, setDidRender] = myra.useState(false)
+            return (
+                <>
+                    {!didRender && <ChildComponent />}
+                    <button id="remove" onclick={() => setDidRender(true)} />
+                </>
+            )
+        }
+
         myra.mount(<Component />, fragmentContainer)
 
-        setDidRenderOuter(true)
-        setTimeout(() => {
-            const childNode = fragmentContainer.firstElementChild
-            expect(childNode).to.be.null
+        const btn = fragmentContainer.querySelector('#remove') as HTMLButtonElement | null
+        if (btn) btn.click()
+        await new Promise(r => setTimeout(r, 0))
 
-            expect(mock.unmount.callCount).to.eq(1)
-            done()
-        })
+        expect(fragmentContainer.firstElementChild?.id).to.eq('remove')
+        expect(mock.unmount.callCount).to.eq(1)
     })
 
     it('removes component with fragment child node', done => {
@@ -994,7 +985,7 @@ describe('fragment', () => {
 
             return (
                 <button id={`item-${props.item.id}`}
-                    class={state.clicked ? "clicked" : ""}
+                    class={state.clicked ? 'clicked' : ''}
                     onclick={setClicked}>
                 </button>
             )
@@ -1015,8 +1006,8 @@ describe('fragment', () => {
         btn.click()
 
         setTimeout(() => {
-            expect(btn.className).to.be.eq("clicked")
-            expect(btn.id).to.be.eq("item-1")
+            expect(btn.className).to.be.eq('clicked')
+            expect(btn.id).to.be.eq('item-1')
 
             const view2 =
                 <div>
@@ -1030,13 +1021,13 @@ describe('fragment', () => {
             render(document.body, [view2], [view1])
 
             btn = (view2.domRef as HTMLDivElement).querySelector('button')!
-            expect(btn.className).to.be.eq("")
-            expect(btn.id).to.be.eq("item-5")
+            expect(btn.className).to.be.eq('')
+            expect(btn.id).to.be.eq('item-5')
 
             // The last element should've been updated
             btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
-            expect(btn.className).to.be.eq("clicked")
-            expect(btn.id).to.be.eq("item-1")
+            expect(btn.className).to.be.eq('clicked')
+            expect(btn.id).to.be.eq('item-1')
 
             done()
         })
@@ -1065,7 +1056,7 @@ describe('fragment', () => {
 
             return (
                 <button id={`item-${props.item.id}`}
-                    class={state.clicked ? "clicked" : ""}
+                    class={state.clicked ? 'clicked' : ''}
                     onclick={setClicked}>
                 </button>
             )
@@ -1083,8 +1074,8 @@ describe('fragment', () => {
             btn.click()
 
             setTimeout(() => {
-                expect(btn.className).to.be.eq("clicked")
-                expect(btn.id).to.be.eq("item-1")
+                expect(btn.className).to.be.eq('clicked')
+                expect(btn.id).to.be.eq('item-1')
 
                 const view2 =
                     <div>
@@ -1094,13 +1085,13 @@ describe('fragment', () => {
                 render(document.body, [view2], [view1])
 
                 btn = (view2.domRef as HTMLDivElement).querySelector('button')!
-                expect(btn.className).to.be.eq("clicked")
-                expect(btn.id).to.be.eq("item-5")
+                expect(btn.className).to.be.eq('clicked')
+                expect(btn.id).to.be.eq('item-5')
 
                 // The last element should've been updated
                 btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
-                expect(btn.className).to.be.eq("")
-                expect(btn.id).to.be.eq("item-1")
+                expect(btn.className).to.be.eq('')
+                expect(btn.id).to.be.eq('item-1')
                 done()
             })
         })
@@ -1131,7 +1122,7 @@ describe('fragment', () => {
             return (
                 <>
                     <button id={`item-${props.item.id}`}
-                        class={state.clicked ? "clicked" : ""}
+                        class={state.clicked ? 'clicked' : ''}
                         onclick={setClicked}>
                     </button>
                 </>
@@ -1149,8 +1140,8 @@ describe('fragment', () => {
         btn.click()
 
         setTimeout(() => {
-            expect(btn.className).to.be.eq("clicked")
-            expect(btn.id).to.be.eq("item-1")
+            expect(btn.className).to.be.eq('clicked')
+            expect(btn.id).to.be.eq('item-1')
 
             const view2 =
                 <div>
@@ -1160,13 +1151,13 @@ describe('fragment', () => {
             render(document.body, [view2], [view1])
 
             btn = (view2.domRef as HTMLDivElement).querySelector('button')!
-            expect(btn.className).to.be.eq("")
-            expect(btn.id).to.be.eq("item-5")
+            expect(btn.className).to.be.eq('')
+            expect(btn.id).to.be.eq('item-5')
 
             // The last element should've been updated
             btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
-            expect(btn.className).to.be.eq("clicked")
-            expect(btn.id).to.be.eq("item-1")
+            expect(btn.className).to.be.eq('clicked')
+            expect(btn.id).to.be.eq('item-1')
 
             done()
         })
@@ -1196,7 +1187,7 @@ describe('fragment', () => {
             return (
                 <>
                     <button id={`item-${props.item.id}`}
-                        class={state.clicked ? "clicked" : ""}
+                        class={state.clicked ? 'clicked' : ''}
                         onclick={setClicked}>
                     </button>
                 </>
@@ -1214,8 +1205,8 @@ describe('fragment', () => {
         btn.click()
 
         setTimeout(() => {
-            expect(btn.className).to.be.eq("clicked")
-            expect(btn.id).to.be.eq("item-1")
+            expect(btn.className).to.be.eq('clicked')
+            expect(btn.id).to.be.eq('item-1')
 
             const view2 =
                 <div>
@@ -1225,13 +1216,13 @@ describe('fragment', () => {
             render(document.body, [view2], [view1])
 
             btn = (view2.domRef as HTMLDivElement).querySelector('button')!
-            expect(btn.className).to.be.eq("clicked")
-            expect(btn.id).to.be.eq("item-5")
+            expect(btn.className).to.be.eq('clicked')
+            expect(btn.id).to.be.eq('item-5')
 
             // The last element should've been updated
             btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
-            expect(btn.className).to.be.eq("")
-            expect(btn.id).to.be.eq("item-1")
+            expect(btn.className).to.be.eq('')
+            expect(btn.id).to.be.eq('item-1')
             done()
         })
     })
