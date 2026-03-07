@@ -7,3 +7,4 @@ src/**/*.js.map
 examples/**/src/*.js
 examples/**/src/*.js.map
 .DS_Store
+.rollup.cache

@@ -1,16 +1,17 @@
 import terser from '@rollup/plugin-terser'
-import camelCase from 'lodash.camelcase'
+import typescript from '@rollup/plugin-typescript'
 
 const libraryName = 'myra'
 
 const banner = '/** @license MIT https://github.com/jhdrn/myra/blob/master/LICENSE - Copyright (c) 2016-2024 Jonathan Hedrén */'
 
 export default {
-    input: `build/src/${libraryName}.js`,
+    input: `src/${libraryName}.ts`,
+    plugins: [typescript({ declaration: false, declarationMap: false, sourceMap: true })],
     output: [
         {
             file: `dist/${libraryName}.min.js`,
-            name: camelCase(libraryName),
+            name: libraryName,
             format: 'umd',
             banner,
             sourcemap: false,
@@ -18,14 +19,14 @@ export default {
         },
         {
             file: `dist/${libraryName}.js`,
-            name: camelCase(libraryName),
+            name: libraryName,
             format: 'umd',
             banner,
             sourcemap: true,
         },
         {
             file: `dist/${libraryName}.mjs`,
-            name: camelCase(libraryName),
+            name: libraryName,
             format: 'es',
             banner,
             sourcemap: true,
@@ -33,6 +34,6 @@ export default {
     ],
     external: [],
     watch: {
-        include: 'build/src/**',
+        include: 'src/**',
     },
 }

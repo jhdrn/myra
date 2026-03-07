@@ -12,7 +12,7 @@ export default {
     plugins: [esbuildPlugin({
         target: 'auto',
         ts: true,
-        tsconfig: './tsconfig.json',
+        tsconfig: './tsconfig.test.json',
         tsx: true,
     })],
 }

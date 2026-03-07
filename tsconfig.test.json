@@ -1,0 +1,13 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "types": ["mocha"],
+        "jsx": "react",
+        "jsxFactory": "myra.h",
+        "jsxFragmentFactory": "myra.Fragment"
+    },
+    "include": [
+        "src",
+        "test"
+    ]
+}
