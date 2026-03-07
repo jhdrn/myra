@@ -791,7 +791,7 @@ function cleanupRecursively(vNode: VNode | undefined, removeEventListeners: bool
 
 /**
  * Recursively traverses the vNode tree, finds all fragment child nodes and
- * reuturns them as a flattened array.
+ * returns them as a flattened array.
  */
 function getFragmentChildNodesRec(fragmentNode: FragmentVNode): VNode[] {
     const nodes: VNode[] = []
