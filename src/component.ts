@@ -496,15 +496,20 @@ function renderComponentVNode(oldChildVNode: VNode | undefined, newChildVNode: C
 
             for (let i = 0; i < oldNodes.length; i++) {
                 const oldNode = oldNodes[i]
-                // TODO: Optimize by finding a node to reuse?
-                if (replaceOrUpdateVNode === undefined && oldNode.domRef !== undefined) {
-                    replaceOrUpdateVNode = oldNode
-                }
-                else if (oldNode.domRef !== undefined) {
+                // ComponentVNode.domRef is always undefined — the real DOM lives in its
+                // rendition chain. Resolve to the leaf vnode so we can find the DOM ref.
+                const leafNode = oldNode._ === VNodeType.Component
+                    ? getLeafFromComponent(oldNode)
+                    : oldNode
+                const domRef = leafNode?.domRef
 
+                if (replaceOrUpdateVNode === undefined && domRef !== undefined) {
                     cleanupRecursively(oldNode, false)
-
-                    removeElementChild(parentElement, oldNode.domRef)
+                    replaceOrUpdateVNode = leafNode!
+                }
+                else if (domRef !== undefined) {
+                    cleanupRecursively(oldNode, false)
+                    removeElementChild(parentElement, domRef)
                 }
             }
         }
@@ -806,6 +811,22 @@ function getFragmentChildNodesRec(fragmentNode: FragmentVNode): VNode[] {
         }
     }
     return nodes
+}
+
+/**
+ * Follows a component's rendition chain and returns the first non-Component
+ * VNode encountered (the leaf), or undefined if the component has not rendered.
+ * Used to resolve the actual DOM reference for a ComponentVNode.
+ */
+function getLeafFromComponent(vNode: ComponentVNode<ComponentProps>): VNode | undefined {
+    const rendition = vNode.rendition
+    if (rendition === undefined) {
+        return undefined
+    }
+    if (rendition._ === VNodeType.Component) {
+        return getLeafFromComponent(rendition)
+    }
+    return rendition
 }
 
 /**

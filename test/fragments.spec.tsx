@@ -1375,6 +1375,86 @@ describe('fragment', () => {
         })
     })
 
+    it('replaces component DOM node when a fragment containing a component with non-fragment root is replaced by a component', () => {
+
+        // Regression: when a Fragment's only child is a Component that renders
+        // a non-fragment leaf, getFragmentChildNodesRec returns a ComponentVNode.
+        // ComponentVNode.domRef is always undefined, so the old domRef check
+        // silently skipped it — leaving the old DOM node in the parent (ghost node)
+        // and never calling cleanupRecursively (leaked effects).
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const OldComp = () => <div id="old-comp-leaf"></div>
+        const NewComp = () => <span id="new-comp-leaf"></span>
+
+        const view1 = <><OldComp /></>
+        render(fragmentContainer, [view1], [])
+
+        expect(fragmentContainer.querySelector('#old-comp-leaf')).not.to.be.null
+
+        const view2 = <NewComp />
+        render(fragmentContainer, [view2], [view1])
+
+        expect(fragmentContainer.childNodes.length).to.be.eq(1)
+        expect(fragmentContainer.querySelector('#old-comp-leaf')).to.be.null
+        expect(fragmentContainer.querySelector('#new-comp-leaf')).not.to.be.null
+    })
+
+    it('removes all ghost DOM nodes when a fragment with multiple component children is replaced by a component', () => {
+
+        // Regression: multiple ComponentVNodes in the old fragment must each have
+        // their DOM resolved through the rendition chain and removed.
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const CompA = () => <div id="ghost-a"></div>
+        const CompB = () => <div id="ghost-b"></div>
+        const NewComp = () => <span id="replacement"></span>
+
+        const view1 = <><CompA /><CompB /></>
+        render(fragmentContainer, [view1], [])
+
+        expect(fragmentContainer.childNodes.length).to.be.eq(2)
+
+        const view2 = <NewComp />
+        render(fragmentContainer, [view2], [view1])
+
+        expect(fragmentContainer.childNodes.length).to.be.eq(1)
+        expect(fragmentContainer.querySelector('#ghost-a')).to.be.null
+        expect(fragmentContainer.querySelector('#ghost-b')).to.be.null
+        expect(fragmentContainer.querySelector('#replacement')).not.to.be.null
+    })
+
+    it('calls effect cleanup when a fragment containing a component with non-fragment root is replaced', done => {
+
+        // Regression: cleanupRecursively was never called for the old ComponentVNode,
+        // so useEffect cleanup callbacks were silently skipped.
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const cleanup = sinon.spy()
+        const OldComp = () => {
+            myra.useEffect(() => cleanup, [])
+            return <div id="old-for-cleanup"></div>
+        }
+        const NewComp = () => <span id="new-after-cleanup"></span>
+
+        const view1 = <><OldComp /></>
+        render(fragmentContainer, [view1], [])
+
+        setTimeout(() => {
+            const view2 = <NewComp />
+            render(fragmentContainer, [view2], [view1])
+
+            expect(cleanup.callCount).to.eq(1)
+            done()
+        })
+    })
+
     it('correctly positions nodes after a reordered multi-child keyed fragment', () => {
 
         // Regression test: when a keyed fragment with multiple DOM children is
