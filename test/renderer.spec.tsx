@@ -894,6 +894,53 @@ describe('render', () => {
         done()
     })
 
+    it('does not re-set event listener when handler reference is unchanged', (done) => {
+        const handler = sinon.spy()
+
+        const view1 = <button onclick={handler}></button>
+        render(document.body, [view1], [])
+
+        const node = view1.domRef as HTMLButtonElement
+
+        // Intercept onclick assignment to count how many times it is written
+        let setCount = 0
+        let currentOnclick = node.onclick
+        Object.defineProperty(node, 'onclick', {
+            get() { return currentOnclick },
+            set(v) { setCount++; currentOnclick = v },
+            configurable: true
+        })
+
+        const view2 = <button onclick={handler}></button>
+        render(document.body, [view2], [view1])
+
+        expect(setCount).to.eq(0)
+
+        // Handler must still fire
+        node.click()
+        expect(handler.callCount).to.eq(1)
+
+        done()
+    })
+
+    it('removes an event listener when omitted on re-render', (done) => {
+        const handler = sinon.spy()
+
+        const view1 = <button onclick={handler}></button>
+        render(document.body, [view1], [])
+
+        const node = view1.domRef as HTMLButtonElement
+
+        const view2 = <button></button>
+        render(document.body, [view2], [view1])
+
+        node.click()
+        expect(handler.called).to.be.false
+        expect(node.onclick).to.be.null
+
+        done()
+    })
+
     it('updates attributes if they have changed', (done) => {
         const view1 =
             <div class="foo" id="bar"></div>
@@ -914,6 +961,44 @@ describe('render', () => {
 
         expect(node.className).to.be.eq('bar')
         expect(node.id).to.be.eq('foo')
+
+        done()
+    })
+
+    it('does not re-set attribute when value is unchanged', (done) => {
+        const view1 = <div class="foo"></div>
+        render(document.body, [view1], [])
+
+        const node = view1.domRef as HTMLDivElement
+
+        let setCount = 0
+        let currentClass = node.className
+        Object.defineProperty(node, 'className', {
+            get() { return currentClass },
+            set(v) { setCount++; currentClass = v },
+            configurable: true
+        })
+
+        const view2 = <div class="foo"></div>
+        render(document.body, [view2], [view1])
+
+        expect(setCount).to.eq(0)
+        expect(node.className).to.eq('foo')
+
+        done()
+    })
+
+    it('adds an attribute introduced on re-render', (done) => {
+        const view1 = <div></div>
+        render(document.body, [view1], [])
+
+        const node = view1.domRef as HTMLDivElement
+        expect(node.hasAttribute('id')).to.be.false
+
+        const view2 = <div id="new"></div>
+        render(document.body, [view2], [view1])
+
+        expect(node.id).to.eq('new')
 
         done()
     })

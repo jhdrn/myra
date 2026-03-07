@@ -894,13 +894,14 @@ function removeElementAttribute(a: string, el: Element) {
 function updateElementAttributes(newVNode: ElementVNode<Element>, oldVNode: VNode, existingDomNode: Element) {
     const newProps = newVNode.props
     const oldProps = (oldVNode as ElementVNode<Element>).props
-    // remove any attributes that was added with the old virtual node but does 
-    // not exist in the new virtual node or should be removed anyways (event listeners).
+    // remove any attributes that were in the old virtual node but are absent in
+    // the new one, or whose event handler reference has changed.
     for (const attributeName in oldProps) {
         if (attributeName === 'children' || attributeName === 'key' || attributeName === 'ref') {
             continue
         }
-        if ((newProps as any)[attributeName] === undefined || attributeName.indexOf('on') === 0) {
+        if ((newProps as any)[attributeName] === undefined ||
+            (attributeName.indexOf('on') === 0 && (newProps as any)[attributeName] !== (oldProps as any)[attributeName])) {
             removeElementAttribute(attributeName, existingDomNode)
         }
     }
@@ -929,9 +930,7 @@ function updateElementAttributes(newVNode: ElementVNode<Element>, oldVNode: VNod
             oldAttributeValue = (oldProps as any)[name]
         }
 
-        if ((name.indexOf('on') === 0 || attributeValue !== oldAttributeValue ||
-            !hasAttr) && attributeValue !== undefined
-        ) {
+        if ((attributeValue !== oldAttributeValue || (!hasAttr && name.indexOf('on') !== 0)) && attributeValue !== undefined) {
             setElementAttribute(
                 existingDomNode,
                 name,
