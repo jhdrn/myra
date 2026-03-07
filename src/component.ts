@@ -433,6 +433,27 @@ function renderFragmentVNode(oldChildVNode: VNode | undefined, newChildVNode: Fr
             fragmentNextSiblings.pop()
         }
     }
+    else if (oldChildVNode._ === VNodeType.Component && oldChildVNode.rendition?._ === VNodeType.Fragment) {
+        cleanupRecursively(oldChildVNode, false)
+
+        const documentFragment = createDocumentFragmentNode()
+
+        render(documentFragment as unknown as Element, newChildVNode.props.children, [], isSvg)
+
+        const oldNodes = getFragmentChildNodesRec(oldChildVNode.rendition as FragmentVNode)
+        const firstDomRef = oldNodes.length > 0 ? oldNodes[0].domRef : undefined
+        if (firstDomRef !== undefined) {
+            insertElementChildBefore(parentElement, documentFragment, firstDomRef)
+        } else {
+            appendElementChild(parentElement, documentFragment)
+        }
+        for (let i = 0; i < oldNodes.length; i++) {
+            const domRef = oldNodes[i].domRef
+            if (domRef !== undefined && elementContainsNode(parentElement, domRef)) {
+                removeElementChild(parentElement, domRef)
+            }
+        }
+    }
     else {
         cleanupRecursively(oldChildVNode, false)
 
@@ -756,22 +777,45 @@ function cleanupRecursively(vNode: VNode | undefined, removeEventListeners: bool
 }
 
 /**
- * Recursively traverses the vNode tree, finds all fragment child nodes and 
+ * Recursively traverses the vNode tree, finds all fragment child nodes and
  * reuturns them as a flattened array.
  */
-function getFragmentChildNodesRec(fragmentNode: FragmentVNode | ComponentVNode<{ children: VNode[] }>): VNode[] {
+function getFragmentChildNodesRec(fragmentNode: FragmentVNode): VNode[] {
     const nodes: VNode[] = []
     for (const fragmentChild of fragmentNode.props.children) {
         if (fragmentChild._ === VNodeType.Fragment) {
             nodes.push(...getFragmentChildNodesRec(fragmentChild))
         }
-        else if (fragmentChild._ === VNodeType.Component && fragmentChild.rendition?._ === VNodeType.Fragment) {
-            nodes.push(...getFragmentChildNodesRec(fragmentChild.rendition))
+        else if (fragmentChild._ === VNodeType.Component) {
+            const innerFragment = getComponentRenderedFragment(fragmentChild)
+            if (innerFragment !== undefined) {
+                nodes.push(...getFragmentChildNodesRec(innerFragment))
+            } else {
+                nodes.push(fragmentChild)
+            }
         } else {
             nodes.push(fragmentChild)
         }
     }
     return nodes
+}
+
+/**
+ * Follows a component's rendition chain and returns the first FragmentVNode
+ * encountered, or undefined if the component renders a non-fragment leaf.
+ */
+function getComponentRenderedFragment(vNode: ComponentVNode<ComponentProps>): FragmentVNode | undefined {
+    const rendition = vNode.rendition
+    if (rendition === undefined) {
+        return undefined
+    }
+    if (rendition._ === VNodeType.Fragment) {
+        return rendition
+    }
+    if (rendition._ === VNodeType.Component) {
+        return getComponentRenderedFragment(rendition)
+    }
+    return undefined
 }
 
 /** 
@@ -886,6 +930,9 @@ function triggerEffects(newVNode: ComponentVNode<ComponentProps>, parentElement:
                     t.invoke = false
                 } else if (!sync) {
                     setTimeout(() => {
+                        if (newVNode.stale) {
+                            return
+                        }
                         try {
                             attemptEffectCleanup(t)
 

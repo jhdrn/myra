@@ -642,6 +642,145 @@ describe('fragment', () => {
         done()
     })
 
+    it('renders fragment content replacing a component node with fragment root', () => {
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const Component = () => <><div></div><div></div></>
+
+        const view1 = <Component />
+        render(fragmentContainer, [view1], [])
+
+        expect(fragmentContainer.childNodes.length).to.be.eq(2)
+
+        const view2 =
+            <>
+                <span></span>
+            </>
+
+        render(fragmentContainer, [view2], [view1])
+
+        expect(fragmentContainer.childNodes.length).to.be.eq(1)
+        expect((fragmentContainer.firstChild as Element).tagName).to.be.eq('SPAN')
+    })
+
+    it('renders element replacing a component node with fragment root', () => {
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const Component = () => <><div></div><div></div></>
+
+        const view1 = <Component />
+        render(fragmentContainer, [view1], [])
+
+        expect(fragmentContainer.childNodes.length).to.be.eq(2)
+
+        render(fragmentContainer, [<span></span>], [view1])
+
+        expect(fragmentContainer.childNodes.length).to.be.eq(1)
+        expect((fragmentContainer.firstChild as Element).tagName).to.be.eq('SPAN')
+    })
+
+    it('renders nothing replacing a component node with fragment root', () => {
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const Component = () => <><div></div><div></div></>
+
+        const view1 = <Component />
+        render(fragmentContainer, [view1], [])
+
+        expect(fragmentContainer.childNodes.length).to.be.eq(2)
+
+        render(fragmentContainer, [<nothing />], [view1])
+
+        expect(fragmentContainer.childNodes.length).to.be.eq(1)
+        expect(fragmentContainer.firstChild?.nodeType).to.be.eq(Node.COMMENT_NODE)
+    })
+
+    it('renders text replacing a component node with fragment root', () => {
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const Component = () => <><div></div><div></div></>
+
+        const view1 = <Component />
+        render(fragmentContainer, [view1], [])
+
+        expect(fragmentContainer.childNodes.length).to.be.eq(2)
+
+        const textVNode: TextVNode = { _: VNodeType.Text, text: 'replacement' }
+        render(fragmentContainer, [textVNode], [view1])
+
+        expect(fragmentContainer.childNodes.length).to.be.eq(1)
+        expect(fragmentContainer.firstChild?.nodeType).to.be.eq(Node.TEXT_NODE)
+        expect(fragmentContainer.firstChild?.textContent).to.be.eq('replacement')
+    })
+
+    it('removes DOM nodes when fragment contains a component with fragment root', () => {
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const Inner = () => <><div id="inner-a"></div><div id="inner-b"></div></>
+
+        const view1 =
+            <div>
+                <>
+                    <Inner />
+                    <div id="sibling"></div>
+                </>
+            </div>
+
+        render(fragmentContainer, [view1], [])
+
+        expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(3)
+        expect((fragmentContainer.firstChild?.childNodes[0] as HTMLElement).id).to.be.eq('inner-a')
+        expect((fragmentContainer.firstChild?.childNodes[1] as HTMLElement).id).to.be.eq('inner-b')
+        expect((fragmentContainer.firstChild?.childNodes[2] as HTMLElement).id).to.be.eq('sibling')
+
+        const view2 = <div><span id="only"></span></div>
+
+        render(fragmentContainer, [view2], [view1])
+
+        expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(1)
+        expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('only')
+    })
+
+    it('collects leaf DOM nodes for component chains ending in a fragment', () => {
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        // Component chain: Outer → Middle → Inner (fragment root)
+        const Inner = () => <><div id="deep-a"></div><div id="deep-b"></div></>
+        const Middle = () => <Inner />
+        const Outer = () => <Middle />
+
+        const view1 =
+            <div>
+                <>
+                    <Outer />
+                    <span id="after"></span>
+                </>
+            </div>
+
+        render(fragmentContainer, [view1], [])
+
+        expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(3)
+
+        const view2 = <div><p id="replaced"></p></div>
+
+        render(fragmentContainer, [view2], [view1])
+
+        expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(1)
+        expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('replaced')
+    })
+
     it('removes component fragment child nodes when replaced by memo node', done => {
 
         const fragmentContainer = document.createElement('div')
