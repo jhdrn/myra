@@ -30,14 +30,18 @@ describe('useEffect', () => {
             updateState(1)
 
             setTimeout(() => {
-                expect(mock.callback.callCount).to.eq(2)
-                // Trigger re-render
-                updateState(2)
-
                 setTimeout(() => {
-                    expect(mock.callback.callCount).to.eq(3)
+                    expect(mock.callback.callCount).to.eq(2)
+                    // Trigger re-render
+                    updateState(2)
 
-                    done()
+                    setTimeout(() => {
+                        setTimeout(() => {
+                            expect(mock.callback.callCount).to.eq(3)
+
+                            done()
+                        })
+                    })
                 })
             })
 
