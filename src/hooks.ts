@@ -140,9 +140,36 @@ function useEffectInternal<TArg>(sync: boolean, effect: Effect, arg?: TArg) {
 }
 
 /**
- * 
- * @param fn 
- * @param inputs 
+ *
+ * @param callback
+ * @param deps
+ */
+export function useCallback<TCallback extends (...args: any[]) => any>(callback: TCallback, deps: unknown[]): TCallback {
+
+    const renderingContext = getRenderingContext()
+    const { hookIndex, vNode } = renderingContext!
+
+    if (vNode.data === undefined) {
+        vNode.data = []
+    }
+
+    if (vNode.data[hookIndex] === undefined) {
+        vNode.data[hookIndex] = [callback, deps]
+    } else {
+        const [, prevDeps] = vNode.data[hookIndex]
+        if (!equal(prevDeps, deps)) {
+            vNode.data[hookIndex] = [callback, deps]
+        }
+    }
+
+    renderingContext!.hookIndex++
+    return vNode.data[hookIndex][0]
+}
+
+/**
+ *
+ * @param fn
+ * @param inputs
  */
 export function useMemo<TMemoization, TArgs>(fn: (args: TArgs) => TMemoization, inputs: TArgs): TMemoization {
 
