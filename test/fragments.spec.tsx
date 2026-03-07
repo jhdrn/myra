@@ -1375,4 +1375,105 @@ describe('fragment', () => {
         })
     })
 
+    it('correctly positions nodes after a reordered multi-child keyed fragment', () => {
+
+        // Regression test: when a keyed fragment with multiple DOM children is
+        // moved via DocumentFragment.insertBefore, the fragment is emptied on
+        // insertion so domNode.nextSibling is always null. The loop must instead
+        // read lastFragmentChild.nextSibling to keep track of its position.
+        //
+        // Old order: [div#a (keyed), Fragment key="b" (spans b1+b2), span.static]
+        // New order: [Fragment key="b", div#a (keyed), span.static]
+        // Expected DOM: [span#b1, span#b2, div#a, span.static]
+
+        const container = document.createElement('div')
+        document.body.appendChild(container)
+
+        const view1 =
+            <div>
+                <div id="a" key="a" />
+                <myra.Fragment key="b">
+                    <span id="b1" />
+                    <span id="b2" />
+                </myra.Fragment>
+                <span id="static" />
+            </div>
+
+        render(document.body, [view1], [])
+
+        const parent = view1.domRef as HTMLDivElement
+
+        const view2 =
+            <div>
+                <myra.Fragment key="b">
+                    <span id="b1" />
+                    <span id="b2" />
+                </myra.Fragment>
+                <div id="a" key="a" />
+                <span id="static" />
+            </div>
+
+        render(document.body, [view2], [view1])
+
+        const children = Array.from(parent.childNodes) as HTMLElement[]
+        expect(children).to.have.length(4)
+        expect(children[0].id).to.eq('b1')
+        expect(children[1].id).to.eq('b2')
+        expect(children[2].id).to.eq('a')
+        expect(children[3].id).to.eq('static')
+    })
+
+    it('correctly positions all nodes when multiple multi-child keyed fragments are reordered', () => {
+
+        // Regression: verify that two keyed fragments each with 2 children
+        // followed by a trailing keyed element reorder correctly.
+        //
+        // Old: [Fragment key="X" (x1,x2), Fragment key="Y" (y1,y2), div#z (key="Z")]
+        // New: [Fragment key="Y", Fragment key="X", div#z (key="Z")]
+        // Expected DOM: [span#y1, span#y2, span#x1, span#x2, div#z]
+
+        const container = document.createElement('div')
+        document.body.appendChild(container)
+
+        const view1 =
+            <div>
+                <myra.Fragment key="X">
+                    <span id="x1" />
+                    <span id="x2" />
+                </myra.Fragment>
+                <myra.Fragment key="Y">
+                    <span id="y1" />
+                    <span id="y2" />
+                </myra.Fragment>
+                <div id="z" key="Z" />
+            </div>
+
+        render(document.body, [view1], [])
+
+        const parent = view1.domRef as HTMLDivElement
+
+        const view2 =
+            <div>
+                <myra.Fragment key="Y">
+                    <span id="y1" />
+                    <span id="y2" />
+                </myra.Fragment>
+                <myra.Fragment key="X">
+                    <span id="x1" />
+                    <span id="x2" />
+                </myra.Fragment>
+                <div id="z" key="Z" />
+            </div>
+
+        render(document.body, [view2], [view1])
+
+        const children = Array.from(parent.childNodes) as HTMLElement[]
+        expect(children).to.have.length(5)
+        expect(children[0].id).to.eq('y1')
+        expect(children[1].id).to.eq('y2')
+        expect(children[2].id).to.eq('x1')
+        expect(children[3].id).to.eq('x2')
+        expect(children[4].id).to.eq('z')
+    })
+
 })

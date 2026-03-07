@@ -188,10 +188,18 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
 
                     oldChildVNode = mappedVNode
 
-                    // FIXME: handle fragments with multiple children
                     // Move the matching dom node to it's new position
                     if (domNode !== undefined && domNode !== domNodeAtIndex) {
-                        // If there is no DOM node at the current index, 
+                        // DocumentFragment nodes are emptied when inserted into the DOM —
+                        // their children are moved into the parent and the fragment itself
+                        // has no parent afterwards, so domNode.nextSibling would always be
+                        // null. Capture the last child before insertion so we can find the
+                        // correct next sibling afterwards.
+                        const lastFragmentChild = domNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE
+                            ? domNode.lastChild
+                            : null
+
+                        // If there is no DOM node at the current index,
                         // the matching DOM node should be appended.
                         if (domNodeAtIndex === null) {
                             appendElementChild(parentElement, domNode)
@@ -201,12 +209,12 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
 
                             replaceElementChild(parentElement, domNode, domNodeAtIndex)
 
-                            nextDomNode = domNode.nextSibling
+                            nextDomNode = lastFragmentChild !== null ? lastFragmentChild.nextSibling : domNode.nextSibling
                         }
                         else {
                             insertElementChildBefore(parentElement, domNode, domNodeAtIndex)
 
-                            nextDomNode = domNode.nextSibling
+                            nextDomNode = lastFragmentChild !== null ? lastFragmentChild.nextSibling : domNode.nextSibling
                         }
                     }
                 }
