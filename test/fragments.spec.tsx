@@ -1455,6 +1455,31 @@ describe('fragment', () => {
         })
     })
 
+    it('does not throw when re-rendering a fragment whose child component renders a non-fragment leaf', () => {
+
+        // Regression: getFragmentChildNodesRec was returning a ComponentVNode for
+        // components that render a non-fragment leaf. The fragment-to-fragment path
+        // in renderFragmentVNode unconditionally accessed child.domRef.parentElement
+        // (line 429), which threw a TypeError because ComponentVNode.domRef is always
+        // undefined.
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const Child = () => <div id="child-leaf"></div>
+
+        const view1 = <><Child /></>
+        render(fragmentContainer, [view1], [])
+
+        expect(fragmentContainer.querySelector('#child-leaf')).not.to.be.null
+
+        // Re-render fragment-to-fragment — must not throw
+        const view2 = <><Child /></>
+        expect(() => render(fragmentContainer, [view2], [view1])).not.to.throw()
+
+        expect(fragmentContainer.querySelector('#child-leaf')).not.to.be.null
+    })
+
     it('correctly positions nodes after a reordered multi-child keyed fragment', () => {
 
         // Regression test: when a keyed fragment with multiple DOM children is

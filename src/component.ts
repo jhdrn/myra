@@ -426,8 +426,9 @@ function renderFragmentVNode(oldChildVNode: VNode | undefined, newChildVNode: Fr
         const allOldChildren = getFragmentChildNodesRec(oldChildVNode)
         for (let i = allOldChildren.length - 1; i > -1; i--) {
             const child = allOldChildren[i]
-            if (child.domRef.parentElement === parentElement) {
-                nextSibling = child.domRef.nextSibling
+            const childDomRef = getVNodeDomRef(child)
+            if (childDomRef !== undefined && childDomRef.parentElement === parentElement) {
+                nextSibling = childDomRef.nextSibling
                 break
             }
         }
@@ -591,8 +592,9 @@ function removeFragmentDOMNodes(parentElement: Element, oldChildVNode: FragmentV
     const oldVNodes = getFragmentChildNodesRec(oldChildVNode)
     for (let i = oldVNodes.length; i > 0; i--) {
         const oldNode = oldVNodes[i - 1]
-        if (oldNode.domRef !== undefined && elementContainsNode(parentElement, oldNode.domRef)) {
-            removeElementChild(parentElement, oldNode.domRef)
+        const domRef = getVNodeDomRef(oldNode)
+        if (domRef !== undefined && elementContainsNode(parentElement, domRef)) {
+            removeElementChild(parentElement, domRef)
         }
     }
 }
@@ -602,6 +604,7 @@ function replaceFragmentWithElementNode(parentElement: Element, newChildVNode: E
 
     let reuseVNode: ElementVNode<Element> | undefined
     let replaceVNode: VNode | undefined
+    let replaceDomRef: Node | undefined
     for (let i = 0; i < oldNodes.length; i++) {
         const oldNode = oldNodes[i]
         const doReuseNode = reuseVNode === undefined && (oldNode as ElementVNode<Element>).tagName === newChildVNode.tagName
@@ -613,11 +616,15 @@ function replaceFragmentWithElementNode(parentElement: Element, newChildVNode: E
             reuseVNode = oldNode as ElementVNode<Element>
         }
         // If no DOM node suitable for reuse is found, keep one to replace
-        else if (replaceVNode === undefined && oldNode.domRef !== undefined) {
-            replaceVNode = oldNode
-        }
-        else if (oldNode.domRef !== undefined) {
-            removeElementChild(parentElement, oldNode.domRef)
+        else {
+            const domRef = getVNodeDomRef(oldNode)
+            if (replaceVNode === undefined && domRef !== undefined) {
+                replaceVNode = oldNode
+                replaceDomRef = domRef
+            }
+            else if (domRef !== undefined) {
+                removeElementChild(parentElement, domRef)
+            }
         }
     }
 
@@ -625,8 +632,8 @@ function replaceFragmentWithElementNode(parentElement: Element, newChildVNode: E
     if (reuseVNode !== undefined) {
 
         // Clean up any temporary "replaceVNode"
-        if (replaceVNode !== undefined) {
-            removeElementChild(parentElement, replaceVNode.domRef)
+        if (replaceDomRef !== undefined) {
+            removeElementChild(parentElement, replaceDomRef)
         }
 
         // Reuse the same DOM element
@@ -639,7 +646,7 @@ function replaceFragmentWithElementNode(parentElement: Element, newChildVNode: E
     }
     // We should have a DOM node to replace in this case
     else {
-        replaceNode(parentElement, newChildVNode, replaceVNode!, replaceVNode!.domRef, isSvg)
+        replaceNode(parentElement, newChildVNode, replaceVNode!, replaceDomRef!, isSvg)
     }
 
     // Render the element's children
@@ -651,6 +658,7 @@ function replaceFragmentWithNothingNode(parentElement: Element, newChildVNode: N
 
     let reuseVNode: NothingVNode | undefined
     let replaceVNode: VNode | undefined
+    let replaceDomRef: Node | undefined
     for (let i = 0; i < oldNodes.length; i++) {
         const oldNode = oldNodes[i]
         const doReuseNode = reuseVNode === undefined && oldNode._ === VNodeType.Nothing
@@ -662,19 +670,23 @@ function replaceFragmentWithNothingNode(parentElement: Element, newChildVNode: N
             reuseVNode = oldNode
         }
         // If no DOM node suitable for reuse is found, keep one to replace
-        else if (replaceVNode === undefined && oldNode.domRef !== undefined) {
-            replaceVNode = oldNode
-        }
-        else if (oldNode.domRef !== undefined) {
-            removeElementChild(parentElement, oldNode.domRef)
+        else {
+            const domRef = getVNodeDomRef(oldNode)
+            if (replaceVNode === undefined && domRef !== undefined) {
+                replaceVNode = oldNode
+                replaceDomRef = domRef
+            }
+            else if (domRef !== undefined) {
+                removeElementChild(parentElement, domRef)
+            }
         }
     }
 
     if (reuseVNode !== undefined) {
 
         // Clean up any temporary "replaceVNode"
-        if (replaceVNode !== undefined) {
-            removeElementChild(parentElement, replaceVNode.domRef)
+        if (replaceDomRef !== undefined) {
+            removeElementChild(parentElement, replaceDomRef)
         }
 
         // Reuse the same DOM element
@@ -683,7 +695,7 @@ function replaceFragmentWithNothingNode(parentElement: Element, newChildVNode: N
 
     // We should have a DOM node to replace in this case
     else {
-        replaceNode(parentElement, newChildVNode, replaceVNode!, replaceVNode?.domRef)
+        replaceNode(parentElement, newChildVNode, replaceVNode!, replaceDomRef!)
     }
 }
 
@@ -692,6 +704,7 @@ function replaceFragmentWithTextNode(parentElement: Element, newChildVNode: Text
 
     let reuseVNode: TextVNode | undefined
     let replaceVNode: VNode | undefined
+    let replaceDomRef: Node | undefined
     for (let i = 0; i < oldNodes.length; i++) {
         const oldNode = oldNodes[i]
         const doReuseNode = reuseVNode === undefined && oldNode._ === VNodeType.Text
@@ -703,19 +716,23 @@ function replaceFragmentWithTextNode(parentElement: Element, newChildVNode: Text
             reuseVNode = oldNode
         }
         // If no DOM node suitable for reuse is found keep one to replace
-        else if (replaceVNode === undefined && oldNode.domRef !== undefined) {
-            replaceVNode = oldNode
-        }
-        else if (oldNode.domRef !== undefined) {
-            removeElementChild(parentElement, oldNode.domRef)
+        else {
+            const domRef = getVNodeDomRef(oldNode)
+            if (replaceVNode === undefined && domRef !== undefined) {
+                replaceVNode = oldNode
+                replaceDomRef = domRef
+            }
+            else if (domRef !== undefined) {
+                removeElementChild(parentElement, domRef)
+            }
         }
     }
 
     if (reuseVNode !== undefined) {
 
         // Clean up any temporary "replaceVNode"
-        if (replaceVNode !== undefined) {
-            removeElementChild(parentElement, replaceVNode.domRef)
+        if (replaceDomRef !== undefined) {
+            removeElementChild(parentElement, replaceDomRef)
         }
 
         // Reuse the same DOM element
@@ -726,7 +743,7 @@ function replaceFragmentWithTextNode(parentElement: Element, newChildVNode: Text
 
     // We should have a DOM node to replace in this case
     else {
-        replaceNode(parentElement, newChildVNode, replaceVNode!, replaceVNode?.domRef)
+        replaceNode(parentElement, newChildVNode, replaceVNode!, replaceDomRef!)
     }
 }
 
@@ -827,6 +844,19 @@ function getLeafFromComponent(vNode: ComponentVNode<ComponentProps>): VNode | un
         return getLeafFromComponent(rendition)
     }
     return rendition
+}
+
+/**
+ * Returns the DOM node associated with a VNode, resolving through component
+ * rendition chains when the VNode is a ComponentVNode (which has no domRef of
+ * its own). Used when callers need the actual DOM node for a node that may be
+ * a component rendering a non-fragment leaf.
+ */
+function getVNodeDomRef(vNode: VNode): Node | undefined {
+    if (vNode._ === VNodeType.Component) {
+        return getLeafFromComponent(vNode)?.domRef
+    }
+    return vNode.domRef
 }
 
 /**
