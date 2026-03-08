@@ -450,14 +450,14 @@ function renderFragmentVNode(oldChildVNode: VNode | undefined, newChildVNode: Fr
         render(documentFragment as unknown as Element, newChildVNode.props.children, [], isSvg)
 
         const oldNodes = getFragmentChildNodesRec(oldChildVNode.rendition as FragmentVNode)
-        const firstDomRef = oldNodes.length > 0 ? oldNodes[0].domRef : undefined
+        const firstDomRef = oldNodes.length > 0 ? getVNodeDomRef(oldNodes[0]) : undefined
         if (firstDomRef !== undefined) {
             insertElementChildBefore(parentElement, documentFragment, firstDomRef)
         } else {
             appendElementChild(parentElement, documentFragment)
         }
         for (let i = 0; i < oldNodes.length; i++) {
-            const domRef = oldNodes[i].domRef
+            const domRef = getVNodeDomRef(oldNodes[i])
             if (domRef !== undefined && elementContainsNode(parentElement, domRef)) {
                 removeElementChild(parentElement, domRef)
             }

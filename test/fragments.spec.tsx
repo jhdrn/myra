@@ -721,6 +721,35 @@ describe('fragment', () => {
         expect(fragmentContainer.firstChild?.textContent).to.be.eq('replacement')
     })
 
+    it('removes ghost DOM nodes when replacing a component (fragment root, component child) with a fragment', () => {
+
+        // Regression: the old node is a ComponentVNode whose rendition is a
+        // FragmentVNode whose child is itself a ComponentVNode rendering a non-fragment
+        // leaf. getFragmentChildNodesRec returns that inner ComponentVNode, and the
+        // direct .domRef accesses at lines 453/460 were undefined, causing the old
+        // DOM node to be silently skipped (ghost node).
+
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        const LeafComp = () => <div id="old-inner-leaf"></div>
+        const OuterComp = () => <><LeafComp /></>
+
+        const view1 = <OuterComp />
+        render(fragmentContainer, [view1], [])
+
+        expect(fragmentContainer.querySelector('#old-inner-leaf')).not.to.be.null
+        expect(fragmentContainer.childNodes.length).to.be.eq(1)
+
+        const view2 = <><span id="new-fragment-child"></span></>
+        render(fragmentContainer, [view2], [view1])
+
+        // Old leaf must be gone (no ghost node)
+        expect(fragmentContainer.querySelector('#old-inner-leaf')).to.be.null
+        expect(fragmentContainer.querySelector('#new-fragment-child')).not.to.be.null
+        expect(fragmentContainer.childNodes.length).to.be.eq(1)
+    })
+
     it('removes DOM nodes when fragment contains a component with fragment root', () => {
 
         const fragmentContainer = document.createElement('div')
