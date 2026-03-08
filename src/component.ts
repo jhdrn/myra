@@ -134,7 +134,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
         let domNodeAtIndex: Node | null = parentElement.firstChild
         let nextDomNode: Node | null = null
 
-        const oldChildVNodesToRemove: VNode[] = oldChildVNodes.slice()
+        const oldChildVNodesToRemove = new Set<VNode>(oldChildVNodes)
 
         for (let i = 0; i < newChildVNodes.length; i++) {
             const newChildVNode = newChildVNodes[i]
@@ -184,7 +184,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
 
                     const [mappedVNode, domNode] = keyMapEntry
 
-                    oldChildVNodesToRemove.splice(oldChildVNodesToRemove.indexOf(mappedVNode), 1)
+                    oldChildVNodesToRemove.delete(mappedVNode)
 
                     oldChildVNode = mappedVNode
 
@@ -219,8 +219,8 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                     }
                 }
             } else {
-                if (oldChildVNodesToRemove.length > 0) {
-                    oldChildVNodesToRemove.shift()
+                if (oldChildVNode !== undefined) {
+                    oldChildVNodesToRemove.delete(oldChildVNode)
                 }
 
                 // Remove the current DOM node from unkeyedNodes to make sure it's not reused!
@@ -255,44 +255,21 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
             domNodeAtIndex = nextDomNode
         }
 
-        if (oldChildVNodesToRemove.length > 0) {
-            // const diffThresholdMet = diffNoOfChildNodes > (newChildVNodes.length / 2)
-            // if (diffThresholdMet) {
-            //     const newChildDomNodes: Node[] = []
-            //     for (let i = 0; i < newChildVNodes.length; i++) {
-            //         const n = newChildVNodes[i]
+        oldChildVNodesToRemove.forEach(oldChildVNode => {
+            // Make sure any sub-components are "unmounted"
+            cleanupRecursively(oldChildVNode, false)
 
-            //         if (n._ === VNodeType.Fragment || n._ === VNodeType.Component && n.rendition?._ === VNodeType.Fragment) {
-            //             newChildDomNodes.push(...getFragmentChildNodesRec(n).map(fn => fn.domRef!))
-            //         } else {
-            //             newChildDomNodes.push(n.domRef!)
-            //         }
-            //     }
-
-            //     parentElement.replaceChildren(...newChildDomNodes)
-            // }
-
-            // Remove old unused nodes backwards from the end
-            for (let i = oldChildVNodesToRemove.length - 1; i > -1; i--) {
-                const oldChildVNode = oldChildVNodesToRemove[i]
-
-                // Make sure any sub-components are "unmounted"
-                cleanupRecursively(oldChildVNode, false)
-
-                // if (!diffThresholdMet) {
-                if (oldChildVNode._ === VNodeType.Fragment) {
-                    removeFragmentDOMNodes(parentElement, oldChildVNode)
-                } else if (oldChildVNode._ === VNodeType.Component && oldChildVNode.rendition?._ === VNodeType.Fragment) {
-                    removeFragmentDOMNodes(parentElement, oldChildVNode.rendition as FragmentVNode)
-                } else {
-                    const oldChildDomNode = oldChildVNode.domRef!
-                    if (oldChildDomNode !== undefined && elementContainsNode(parentElement, oldChildDomNode)) {
-                        removeElementChild(parentElement, oldChildDomNode)
-                    }
+            if (oldChildVNode._ === VNodeType.Fragment) {
+                removeFragmentDOMNodes(parentElement, oldChildVNode)
+            } else if (oldChildVNode._ === VNodeType.Component && oldChildVNode.rendition?._ === VNodeType.Fragment) {
+                removeFragmentDOMNodes(parentElement, oldChildVNode.rendition as FragmentVNode)
+            } else {
+                const oldChildDomNode = oldChildVNode.domRef!
+                if (oldChildDomNode !== undefined && elementContainsNode(parentElement, oldChildDomNode)) {
+                    removeElementChild(parentElement, oldChildDomNode)
                 }
-                // }
             }
-        }
+        })
 
     } else if (oldChildVNodes.length > 0) {
         // no new nodes, clear DOM and clean up
