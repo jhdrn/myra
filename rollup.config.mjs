@@ -3,7 +3,7 @@ import typescript from '@rollup/plugin-typescript'
 
 const libraryName = 'myra'
 
-const banner = '/** @license MIT https://github.com/jhdrn/myra/blob/master/LICENSE - Copyright (c) 2016-2024 Jonathan Hedrén */'
+const banner = '/** @license MIT https://github.com/jhdrn/myra/blob/master/LICENSE - Copyright (c) Jonathan Hedrén */'
 
 export default {
     input: `src/${libraryName}.ts`,
