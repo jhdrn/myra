@@ -1,7 +1,6 @@
 version: 2.1
 orbs:
   browser-tools: circleci/browser-tools@1.4.8
-  codecov: codecov/codecov@4.1.0
   node: circleci/node@5
 jobs:
   test-node:
@@ -23,7 +22,9 @@ jobs:
       - run:
           name: Run tests
           command: npm test
-      - codecov/upload
+      - run:
+          name: Upload coverage
+          command: curl -Os https://uploader.codecov.io/latest/linux/codecov && chmod +x codecov && ./codecov
 
 workflows:
   test:
