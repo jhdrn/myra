@@ -51,11 +51,15 @@ export function tryHandleComponentError(parentElement: Element, vNode: Component
 
         renderingContext = undefined
 
-        const errorView = vNode.errorHandler(err)
 
-        render(parentElement, [errorView], vNode.rendition === undefined ? [] : [vNode.rendition], isSvg)
-
-        vNode.rendition = errorView
+        try {
+            const errorView = vNode.errorHandler(err)
+            render(parentElement, [errorView], vNode.rendition === undefined ? [] : [vNode.rendition], isSvg)
+            vNode.rendition = errorView
+        } catch (handlerErr) {
+            console.error('An error occurred in the error handler: ' + handlerErr)
+            throw err
+        }
     } else {
         throw err
     }
@@ -991,7 +995,7 @@ function attemptEffectCleanup(t: EffectWrapper) {
         try {
             t.cleanup()
         } catch (err) {
-            console.error('An error occured during effect cleanup: ' + err)
+            console.error('An error occurred during effect cleanup: ' + err)
         }
         t.cleanup = undefined
     }
