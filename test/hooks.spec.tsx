@@ -291,7 +291,7 @@ describe('useMemo', () => {
         let fn: Function
 
         const Component = () => {
-            fn = useMemo(() => () => { }, 0)
+            fn = useMemo(() => () => { }, [0])
 
             return <div />
         }
@@ -313,7 +313,7 @@ describe('useMemo', () => {
         let fn: Function
 
         const Component = (p: { input: number }) => {
-            fn = useMemo(() => () => { }, p.input)
+            fn = useMemo(() => () => { }, [p.input])
 
             return <div />
         }
@@ -745,7 +745,7 @@ describe('useState', () => {
 })
 
 describe('useCallback', () => {
-    it('returns the same function reference when deps have not changed', done => {
+    it('returns the same function reference when deps have not changed', async () => {
         const callbacks: ((...args: any[]) => any)[] = []
 
         let updateState: myra.Evolve<number> = () => 0
@@ -759,17 +759,14 @@ describe('useCallback', () => {
 
         render(document.body, [<Component />], [])
 
-        setTimeout(() => {
-            updateState(1)
-            setTimeout(() => {
-                expect(callbacks.length).to.eq(2)
-                expect(callbacks[0]).to.eq(callbacks[1])
-                done()
-            })
-        })
+        await tick()
+        updateState(1)
+        await tick()
+        expect(callbacks.length).to.eq(2)
+        expect(callbacks[0]).to.eq(callbacks[1])
     })
 
-    it('returns a new function reference when deps change', done => {
+    it('returns a new function reference when deps change', async () => {
         const callbacks: ((...args: any[]) => any)[] = []
 
         let updateState: myra.Evolve<number> = () => 0
@@ -783,17 +780,14 @@ describe('useCallback', () => {
 
         render(document.body, [<Component />], [])
 
-        setTimeout(() => {
-            updateState(1)
-            setTimeout(() => {
-                expect(callbacks.length).to.eq(2)
-                expect(callbacks[0]).not.to.eq(callbacks[1])
-                done()
-            })
-        })
+        await tick()
+        updateState(1)
+        await tick()
+        expect(callbacks.length).to.eq(2)
+        expect(callbacks[0]).not.to.eq(callbacks[1])
     })
 
-    it('allows memo components to skip re-render when callback deps are stable', done => {
+    it('allows memo components to skip re-render when callback deps are stable', async () => {
         let renderCount = 0
 
         const MemoChild = myra.memo((_props: { onClick: () => void }) => {
@@ -811,13 +805,10 @@ describe('useCallback', () => {
 
         render(document.body, [<Parent />], [])
 
-        setTimeout(() => {
-            expect(renderCount).to.eq(1)
-            updateState(1)
-            setTimeout(() => {
-                expect(renderCount).to.eq(1)
-                done()
-            })
-        })
+        await tick()
+        expect(renderCount).to.eq(1)
+        updateState(1)
+        await tick()
+        expect(renderCount).to.eq(1)
     })
 })
