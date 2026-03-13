@@ -140,11 +140,11 @@ function useEffectInternal<TArg>(sync: boolean, effect: Effect, arg?: TArg) {
 }
 
 /**
- * 
- * @param fn 
- * @param inputs 
+ *
+ * @param fn
+ * @param deps
  */
-export function useMemo<TMemoization, TArgs>(fn: (args: TArgs) => TMemoization, inputs: TArgs): TMemoization {
+export function useMemo<TMemoization>(fn: () => TMemoization, deps: unknown[]): TMemoization {
 
     const renderingContext = getRenderingContext()
     const { hookIndex, vNode } = renderingContext!
@@ -155,20 +155,30 @@ export function useMemo<TMemoization, TArgs>(fn: (args: TArgs) => TMemoization, 
 
     let res: TMemoization
     if (vNode.data[hookIndex] === undefined) {
-        res = fn(inputs)
-        vNode.data[hookIndex] = [res, inputs]
+        res = fn()
+        vNode.data[hookIndex] = [res, deps]
     }
     else {
-        const [prevRes, prevInputs] = vNode.data[hookIndex]
-        if (equal(prevInputs, inputs)) {
+        const [prevRes, prevDeps] = vNode.data[hookIndex]
+        if (equal(prevDeps, deps)) {
             res = prevRes
         }
         else {
-            res = fn(inputs)
-            vNode.data[hookIndex] = [res, inputs]
+            res = fn()
+            vNode.data[hookIndex] = [res, deps]
         }
     }
 
     renderingContext!.hookIndex++
     return res
+}
+
+/**
+ *
+ * @param callback
+ * @param deps
+ */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+export function useCallback<TCallback extends Function>(callback: TCallback, deps: unknown[]): TCallback {
+    return useMemo(() => callback, deps)
 }

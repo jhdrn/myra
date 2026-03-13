@@ -1,6 +1,6 @@
 import { render } from '../src/component'
 import { ComponentVNode, Ref } from '../src/contract'
-import { useEffect, useErrorHandler, useLayoutEffect, useMemo, useRef, useState } from '../src/hooks'
+import { useCallback, useEffect, useErrorHandler, useLayoutEffect, useMemo, useRef, useState } from '../src/hooks'
 import * as myra from '../src/myra'
 import { expect } from 'chai'
 import * as sinon from 'sinon'
@@ -291,7 +291,7 @@ describe('useMemo', () => {
         let fn: Function
 
         const Component = () => {
-            fn = useMemo(() => () => { }, 0)
+            fn = useMemo(() => () => { }, [0])
 
             return <div />
         }
@@ -313,7 +313,7 @@ describe('useMemo', () => {
         let fn: Function
 
         const Component = (p: { input: number }) => {
-            fn = useMemo(() => () => { }, p.input)
+            fn = useMemo(() => () => { }, [p.input])
 
             return <div />
         }
@@ -741,5 +741,74 @@ describe('useState', () => {
         setStateOuter(2)
         await tick()
         expect(vNode.domRef.textContent).to.eq('2')
+    })
+})
+
+describe('useCallback', () => {
+    it('returns the same function reference when deps have not changed', async () => {
+        const callbacks: ((...args: any[]) => any)[] = []
+
+        let updateState: myra.Evolve<number> = () => 0
+        const Component = () => {
+            const [count, setCount] = useState(0)
+            updateState = setCount
+            const cb = useCallback(() => count, [])
+            callbacks.push(cb)
+            return <div />
+        }
+
+        render(document.body, [<Component />], [])
+
+        await tick()
+        updateState(1)
+        await tick()
+        expect(callbacks.length).to.eq(2)
+        expect(callbacks[0]).to.eq(callbacks[1])
+    })
+
+    it('returns a new function reference when deps change', async () => {
+        const callbacks: ((...args: any[]) => any)[] = []
+
+        let updateState: myra.Evolve<number> = () => 0
+        const Component = () => {
+            const [count, setCount] = useState(0)
+            updateState = setCount
+            const cb = useCallback(() => count, [count])
+            callbacks.push(cb)
+            return <div />
+        }
+
+        render(document.body, [<Component />], [])
+
+        await tick()
+        updateState(1)
+        await tick()
+        expect(callbacks.length).to.eq(2)
+        expect(callbacks[0]).not.to.eq(callbacks[1])
+    })
+
+    it('allows memo components to skip re-render when callback deps are stable', async () => {
+        let renderCount = 0
+
+        const MemoChild = myra.memo((_props: { onClick: () => void }) => {
+            renderCount++
+            return <button />
+        })
+
+        let updateState: myra.Evolve<number> = () => 0
+        const Parent = () => {
+            const [, setCount] = useState(0)
+            updateState = setCount
+            const handleClick = useCallback(() => { }, [])
+            return <MemoChild onClick={handleClick} />
+        }
+
+        render(document.body, [<Parent />], [])
+
+        await tick()
+        expect(renderCount).to.eq(1)
+        updateState(1)
+        await tick()
+        expect(renderCount).to.eq(1)
     })
 })
