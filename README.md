@@ -28,7 +28,7 @@ Add a tsconfig.json to your project:
 
     {
       "compilerOptions": {
-        "target": "es5",
+        "target": "es2015",
         "module": "commonjs",
         "jsx": "react",
         "jsxFactory": "myra.h",

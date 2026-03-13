@@ -4,29 +4,26 @@ import { ComponentProps, TextVNode, VNodeType } from '../src/contract'
 import { expect } from 'chai'
 import * as sinon from 'sinon'
 
+const tick = (ms = 0) => new Promise<void>(resolve => setTimeout(resolve, ms))
+
 const q = (x: string) => document.querySelector(x)
 
 describe('fragment', () => {
-    beforeEach((done) => {
+    beforeEach(() => {
         // "Clear view" before each test
         Array.prototype.slice.call(document.body.childNodes).forEach((c: Node) => document.body.removeChild(c))
-
-        done()
     })
 
-    it('renders fragment content', done => {
+    it('renders fragment content', async () => {
 
         const Component = () => <><div id="fragment-node1" /></>
 
         myra.mount(<Component />, document.body)
 
-        setTimeout(() => {
-            const node = q('body > #fragment-node1')
+        await tick()
+        const node = q('body > #fragment-node1')
 
-            expect(node).not.to.be.null
-
-            done()
-        })
+        expect(node).not.to.be.null
     })
 
     it('renders fragment content replacing a nothing node', () => {
@@ -119,40 +116,34 @@ describe('fragment', () => {
         expect((fragmentContainer.lastChild as Element).tagName).to.be.eq('DIV')
     })
 
-    it('renders nested fragment content', done => {
+    it('renders nested fragment content', async () => {
 
         const Component = () => <div><><div id="fragment-node2" /></></div>
 
         myra.mount(<Component />, document.body)
 
-        setTimeout(() => {
-            const node = q('body > div > #fragment-node2')
+        await tick()
+        const node = q('body > div > #fragment-node2')
 
-            expect(node).not.to.be.null
-
-            done()
-        })
+        expect(node).not.to.be.null
     })
 
 
-    it('renders multiple fragment child nodes', done => {
+    it('renders multiple fragment child nodes', async () => {
 
         const Component = () => <><div id="fragment-node3" /><div id="fragment-node4" /></>
 
         myra.mount(<Component />, document.body)
 
-        setTimeout(() => {
-            const node1 = q('body > #fragment-node3')
-            const node2 = q('body > #fragment-node4')
+        await tick()
+        const node1 = q('body > #fragment-node3')
+        const node2 = q('body > #fragment-node4')
 
-            expect(node1).not.to.be.null
-            expect(node2).not.to.be.null
-
-            done()
-        })
+        expect(node1).not.to.be.null
+        expect(node2).not.to.be.null
     })
 
-    it('renders fragment in fragment child nodes', done => {
+    it('renders fragment in fragment child nodes', async () => {
 
         const Component = () => <><><div id="fragment-node5" /><div id="fragment-node6" /></></>
 
@@ -161,20 +152,17 @@ describe('fragment', () => {
 
         myra.mount(<Component />, fragmentContainer)
 
-        setTimeout(() => {
-            const node1 = fragmentContainer.firstChild
-            const node2 = fragmentContainer.lastChild
+        await tick()
+        const node1 = fragmentContainer.firstChild
+        const node2 = fragmentContainer.lastChild
 
-            expect(node1).not.to.be.null
-            expect((node1 as HTMLElement).id).to.be.eq('fragment-node5')
-            expect(node2).not.to.be.null
-            expect((node2 as HTMLElement).id).to.be.eq('fragment-node6')
-
-            done()
-        })
+        expect(node1).not.to.be.null
+        expect((node1 as HTMLElement).id).to.be.eq('fragment-node5')
+        expect(node2).not.to.be.null
+        expect((node2 as HTMLElement).id).to.be.eq('fragment-node6')
     })
 
-    it('renders special fragment child nodes', done => {
+    it('renders special fragment child nodes', async () => {
 
         const ChildComponent = () => <div id="fragment-child1"></div>
         const Component = () => <><nothing /><ChildComponent /></>
@@ -184,18 +172,15 @@ describe('fragment', () => {
 
         myra.mount(<Component />, fragmentContainer)
 
-        setTimeout(() => {
-            const nothingNode = fragmentContainer.firstChild
-            const childNode = fragmentContainer.firstElementChild
-            expect(nothingNode).not.to.be.null
-            expect(nothingNode?.nodeType).to.be.eq(Node.COMMENT_NODE)
-            expect(childNode).not.to.be.null
-
-            done()
-        })
+        await tick()
+        const nothingNode = fragmentContainer.firstChild
+        const childNode = fragmentContainer.firstElementChild
+        expect(nothingNode).not.to.be.null
+        expect(nothingNode?.nodeType).to.be.eq(Node.COMMENT_NODE)
+        expect(childNode).not.to.be.null
     })
 
-    it('removes child nodes', done => {
+    it('removes child nodes', async () => {
 
         let setDidRenderOuter: myra.Evolve<boolean> = function () { return true }
         const Component = () => {
@@ -217,14 +202,12 @@ describe('fragment', () => {
         myra.mount(<Component />, fragmentContainer)
 
         setDidRenderOuter(true)
-        setTimeout(() => {
-            const childNode = fragmentContainer.firstElementChild
-            expect(childNode).to.be.null
-            done()
-        })
+        await tick()
+        const childNode = fragmentContainer.firstElementChild
+        expect(childNode).to.be.null
     })
 
-    it('removes DOM nodes when fragment is removed', done => {
+    it('removes DOM nodes when fragment is removed', () => {
 
         const fragmentContainer = document.createElement('div')
         document.body.appendChild(fragmentContainer)
@@ -254,10 +237,9 @@ describe('fragment', () => {
 
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(1)
         expect(fragmentContainer.firstChild?.firstChild?.nodeType).to.be.eq(Node.ELEMENT_NODE)
-        done()
     })
 
-    it('removes DOM nodes when component with a child fragment is removed', done => {
+    it('removes DOM nodes when component with a child fragment is removed', () => {
 
         const fragmentContainer = document.createElement('div')
         document.body.appendChild(fragmentContainer)
@@ -291,10 +273,9 @@ describe('fragment', () => {
 
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(1)
         expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('x')
-        done()
     })
 
-    it('removes DOM nodes when fragment structure is removed', done => {
+    it('removes DOM nodes when fragment structure is removed', () => {
 
         const fragmentContainer = document.createElement('div')
         document.body.appendChild(fragmentContainer)
@@ -335,10 +316,9 @@ describe('fragment', () => {
 
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(1)
         expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('x')
-        done()
     })
 
-    it('removes DOM nodes when fragment structure is replaced by element node', done => {
+    it('removes DOM nodes when fragment structure is replaced by element node', () => {
 
         const fragmentContainer = document.createElement('div')
         document.body.appendChild(fragmentContainer)
@@ -380,10 +360,9 @@ describe('fragment', () => {
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(2)
         expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('x')
         expect((fragmentContainer.firstChild?.lastChild as HTMLElement).id).to.be.eq('y')
-        done()
     })
 
-    it('removes DOM nodes when fragment structure with component children is replaced by element node', done => {
+    it('removes DOM nodes when fragment structure with component children is replaced by element node', () => {
 
         const fragmentContainer = document.createElement('div')
         document.body.appendChild(fragmentContainer)
@@ -416,10 +395,9 @@ describe('fragment', () => {
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(2)
         expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('x')
         expect((fragmentContainer.firstChild?.lastChild as HTMLElement).id).to.be.eq('y')
-        done()
     })
 
-    it('removes DOM nodes when fragment structure is replaced by nothing node', done => {
+    it('removes DOM nodes when fragment structure is replaced by nothing node', () => {
 
         const fragmentContainer = document.createElement('div')
         document.body.appendChild(fragmentContainer)
@@ -461,10 +439,9 @@ describe('fragment', () => {
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(2)
         expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('x')
         expect(fragmentContainer.firstChild?.lastChild?.nodeType).to.be.eq(Node.COMMENT_NODE)
-        done()
     })
 
-    it('removes DOM nodes when fragment structure is replaced by text node', done => {
+    it('removes DOM nodes when fragment structure is replaced by text node', () => {
 
         const fragmentContainer = document.createElement('div')
         document.body.appendChild(fragmentContainer)
@@ -507,10 +484,9 @@ describe('fragment', () => {
         expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('x')
         expect(fragmentContainer.firstChild?.lastChild?.nodeType).to.be.eq(Node.TEXT_NODE)
         expect(fragmentContainer.firstChild?.lastChild?.textContent).to.be.eq('text')
-        done()
     })
 
-    it('removes fragment in fragment child nodes', done => {
+    it('removes fragment in fragment child nodes', async () => {
 
         let setDidRenderOuter: myra.Evolve<boolean> = function () { return true }
         const Component = () => {
@@ -536,15 +512,13 @@ describe('fragment', () => {
         myra.mount(<Component />, fragmentContainer)
 
         setDidRenderOuter(true)
-        setTimeout(() => {
-            const childNode = fragmentContainer.firstElementChild
-            expect(childNode).to.be.null
-            done()
-        })
+        await tick()
+        const childNode = fragmentContainer.firstElementChild
+        expect(childNode).to.be.null
     })
 
 
-    it('renders a nothing node if fragment has no children', done => {
+    it('renders a nothing node if fragment has no children', () => {
 
         const fragmentContainer = document.createElement('div')
         fragmentContainer.className = 'fragment-container'
@@ -559,10 +533,9 @@ describe('fragment', () => {
         const nothingNode = fragmentContainer.firstChild
         expect(nothingNode).not.to.be.null
         expect(nothingNode?.nodeType).to.be.eq(Node.COMMENT_NODE)
-        done()
     })
 
-    it('removes component fragment child nodes when replaced by nothing node', done => {
+    it('removes component fragment child nodes when replaced by nothing node', () => {
 
         const fragmentContainer = document.createElement('div')
         fragmentContainer.className = 'fragment-container'
@@ -585,10 +558,9 @@ describe('fragment', () => {
         const nothingNode = fragmentContainer.firstChild
         expect(nothingNode).not.to.be.null
         expect(nothingNode?.nodeType).to.be.eq(Node.COMMENT_NODE)
-        done()
     })
 
-    it('removes component fragment child nodes when replaced by text node', done => {
+    it('removes component fragment child nodes when replaced by text node', () => {
 
         const fragmentContainer = document.createElement('div')
         fragmentContainer.className = 'fragment-container'
@@ -612,10 +584,9 @@ describe('fragment', () => {
         expect(textNode).not.to.be.null
         expect(textNode?.nodeType).to.be.eq(Node.TEXT_NODE)
         expect(textNode?.textContent).to.be.eq('text')
-        done()
     })
 
-    it('removes component fragment child nodes when replaced by element node', done => {
+    it('removes component fragment child nodes when replaced by element node', () => {
 
         const fragmentContainer = document.createElement('div')
         fragmentContainer.className = 'fragment-container'
@@ -639,7 +610,6 @@ describe('fragment', () => {
         expect(textNode).not.to.be.null
         expect(textNode?.nodeType).to.be.eq(Node.ELEMENT_NODE)
         expect((textNode as Element).tagName).to.be.eq('SPAN')
-        done()
     })
 
     it('renders fragment content replacing a component node with fragment root', () => {
@@ -810,7 +780,7 @@ describe('fragment', () => {
         expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('replaced')
     })
 
-    it('removes component fragment child nodes when replaced by memo node', done => {
+    it('removes component fragment child nodes when replaced by memo node', () => {
 
         const fragmentContainer = document.createElement('div')
         fragmentContainer.className = 'fragment-container'
@@ -837,11 +807,10 @@ describe('fragment', () => {
         expect(node).not.to.be.null
         expect(node?.nodeType).to.be.eq(Node.ELEMENT_NODE)
         expect((node as Element).tagName).to.be.eq('SPAN')
-        done()
     })
 
 
-    it('updates element attributes when a fragment is replaced by an element node', done => {
+    it('updates element attributes when a fragment is replaced by an element node', () => {
 
         const fragmentContainer = document.createElement('div')
         fragmentContainer.className = 'fragment-container'
@@ -867,7 +836,6 @@ describe('fragment', () => {
         expect(titleAttr).not.to.be.null
         expect(titleAttr?.value).to.be.eq('B')
         expect(element.classList.length).to.be.eq(0)
-        done()
     })
 
     it('replaces and inserts fragment child nodes in correct order', () => {
@@ -962,9 +930,9 @@ describe('fragment', () => {
 
     })
 
-    it('removes fragment in fragment child nodes', done => {
+    it('removes fragment in fragment child nodes', async () => {
 
-        let setItemsOuter: myra.Evolve<string[]>
+        let setItemsOuter!: myra.Evolve<string[]>
         const Component = () => {
             const [items, setItems] = myra.useState(['a', 'b', 'c'])
             setItemsOuter = setItems
@@ -991,24 +959,20 @@ describe('fragment', () => {
 
         myra.mount(<Component />, fragmentContainer)
 
-        setTimeout(() => {
-            setItemsOuter(x => x.slice(1))
+        await tick()
+        setItemsOuter(x => x.slice(1))
 
-            setTimeout(() => {
-
-                expect(fragmentContainer.childElementCount).to.be.eq(6)
-                expect((fragmentContainer.firstChild as HTMLElement).id).to.be.eq('element1b')
-                expect((fragmentContainer.children[1] as HTMLElement).id).to.be.eq('element2b')
-                expect((fragmentContainer.children[2] as HTMLElement).id).to.be.eq('element3b')
-                expect((fragmentContainer.children[3] as HTMLElement).id).to.be.eq('element1c')
-                expect((fragmentContainer.children[4] as HTMLElement).id).to.be.eq('element2c')
-                expect((fragmentContainer.lastChild as HTMLElement).id).to.be.eq('element3c')
-                done()
-            })
-        })
+        await tick()
+        expect(fragmentContainer.childElementCount).to.be.eq(6)
+        expect((fragmentContainer.firstChild as HTMLElement).id).to.be.eq('element1b')
+        expect((fragmentContainer.children[1] as HTMLElement).id).to.be.eq('element2b')
+        expect((fragmentContainer.children[2] as HTMLElement).id).to.be.eq('element3b')
+        expect((fragmentContainer.children[3] as HTMLElement).id).to.be.eq('element1c')
+        expect((fragmentContainer.children[4] as HTMLElement).id).to.be.eq('element2c')
+        expect((fragmentContainer.lastChild as HTMLElement).id).to.be.eq('element3c')
     })
 
-    it('removes and "unmounts" component child nodes', done => {
+    it('removes and "unmounts" component child nodes', async () => {
         const mock = sinon.spy({
             unmount: () => { }
         })
@@ -1040,16 +1004,14 @@ describe('fragment', () => {
         myra.mount(<Component />, fragmentContainer)
 
         setDidRenderOuter(true)
-        setTimeout(() => {
-            const childNode = fragmentContainer.firstElementChild
-            expect(childNode).to.be.null
+        await tick()
+        const childNode = fragmentContainer.firstElementChild
+        expect(childNode).to.be.null
 
-            expect(mock.unmount.callCount).to.eq(1)
-            done()
-        })
+        expect(mock.unmount.callCount).to.eq(1)
     })
 
-    it('removes component with fragment child node', done => {
+    it('removes component with fragment child node', async () => {
         const ChildComponent = () => {
             return (
                 <>
@@ -1080,26 +1042,22 @@ describe('fragment', () => {
 
         myra.mount(<Component />, fragmentContainer)
 
-        setTimeout(() => {
-            expect((fragmentContainer.firstChild as HTMLElement).id).to.be.eq('fragment-child5')
-            expect((fragmentContainer.childNodes[1] as Node).textContent).to.be.eq('text')
-            expect((fragmentContainer.lastChild as HTMLElement).id).to.be.eq('fragment-child6')
+        await tick()
+        expect((fragmentContainer.firstChild as HTMLElement).id).to.be.eq('fragment-child5')
+        expect((fragmentContainer.childNodes[1] as Node).textContent).to.be.eq('text')
+        expect((fragmentContainer.lastChild as HTMLElement).id).to.be.eq('fragment-child6')
 
-            setDidRenderOuter(true)
+        setDidRenderOuter(true)
 
-            setTimeout(() => {
-                expect((fragmentContainer.firstChild as Node).textContent).to.be.eq('Nothing')
-                expect((fragmentContainer.lastChild as HTMLElement).id).to.be.eq('fragment-child6')
-                expect(fragmentContainer.childNodes.length).to.eq(2)
-
-                done()
-            })
-        })
+        await tick()
+        expect((fragmentContainer.firstChild as Node).textContent).to.be.eq('Nothing')
+        expect((fragmentContainer.lastChild as HTMLElement).id).to.be.eq('fragment-child6')
+        expect(fragmentContainer.childNodes.length).to.eq(2)
     })
 
-    it('removes fragment non-firstChild child nodes', done => {
+    it('removes fragment non-firstChild child nodes', async () => {
 
-        let setItemsOuter: myra.Evolve<string[]>
+        let setItemsOuter!: myra.Evolve<string[]>
         const Component = () => {
             const [items, setItems] = myra.useState(['a', 'b', 'c'])
             setItemsOuter = setItems
@@ -1123,23 +1081,19 @@ describe('fragment', () => {
 
         myra.mount(<Component />, fragmentContainer)
 
-        setTimeout(() => {
-            setItemsOuter(x => [x[0], x[2]])
-            setTimeout(() => {
+        await tick()
+        setItemsOuter(x => [x[0], x[2]])
+        await tick()
 
-                expect(fragmentContainer.childNodes.length).to.be.eq(5)
-                expect(fragmentContainer.childNodes[0].textContent).to.be.eq('item ')
-                expect(fragmentContainer.childNodes[1].textContent).to.be.eq('a')
-                expect(fragmentContainer.childNodes[2].textContent).to.be.eq('item ')
-                expect(fragmentContainer.childNodes[3].textContent).to.be.eq('c')
-                expect(fragmentContainer.childNodes[4].textContent).to.be.eq('d')
-                done()
-            })
-        })
-
+        expect(fragmentContainer.childNodes.length).to.be.eq(5)
+        expect(fragmentContainer.childNodes[0].textContent).to.be.eq('item ')
+        expect(fragmentContainer.childNodes[1].textContent).to.be.eq('a')
+        expect(fragmentContainer.childNodes[2].textContent).to.be.eq('item ')
+        expect(fragmentContainer.childNodes[3].textContent).to.be.eq('c')
+        expect(fragmentContainer.childNodes[4].textContent).to.be.eq('d')
     })
 
-    it('retains view state when fragment children are reordered with keys', (done) => {
+    it('retains view state when fragment children are reordered with keys', async () => {
 
         type Item = {
             id: number
@@ -1182,35 +1136,32 @@ describe('fragment', () => {
         let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
         btn.click()
 
-        setTimeout(() => {
-            expect(btn.className).to.be.eq("clicked")
-            expect(btn.id).to.be.eq("item-1")
+        await tick()
+        expect(btn.className).to.be.eq("clicked")
+        expect(btn.id).to.be.eq("item-1")
 
-            const view2 =
-                <div>
-                    {items.reverse().map(x =>
-                        <myra.Fragment key={x.id.toString()}>
-                            <ItemComponent item={x} />
-                        </myra.Fragment>
-                    )}
-                </div>
+        const view2 =
+            <div>
+                {items.reverse().map(x =>
+                    <myra.Fragment key={x.id.toString()}>
+                        <ItemComponent item={x} />
+                    </myra.Fragment>
+                )}
+            </div>
 
-            render(document.body, [view2], [view1])
+        render(document.body, [view2], [view1])
 
-            btn = (view2.domRef as HTMLDivElement).querySelector('button')!
-            expect(btn.className).to.be.eq("")
-            expect(btn.id).to.be.eq("item-5")
+        btn = (view2.domRef as HTMLDivElement).querySelector('button')!
+        expect(btn.className).to.be.eq("")
+        expect(btn.id).to.be.eq("item-5")
 
-            // The last element should've been updated
-            btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
-            expect(btn.className).to.be.eq("clicked")
-            expect(btn.id).to.be.eq("item-1")
-
-            done()
-        })
+        // The last element should've been updated
+        btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
+        expect(btn.className).to.be.eq("clicked")
+        expect(btn.id).to.be.eq("item-1")
     })
 
-    it('does not retain view state when fragment children reordered without keys', (done) => {
+    it('does not retain view state when fragment children reordered without keys', async () => {
 
         type Item = {
             id: number
@@ -1246,36 +1197,33 @@ describe('fragment', () => {
 
         render(document.body, [view1], [])
 
-        setTimeout(() => {
-            let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
-            btn.click()
+        await tick()
+        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
+        btn.click()
 
-            setTimeout(() => {
-                expect(btn.className).to.be.eq("clicked")
-                expect(btn.id).to.be.eq("item-1")
+        await tick()
+        expect(btn.className).to.be.eq("clicked")
+        expect(btn.id).to.be.eq("item-1")
 
-                const view2 =
-                    <div>
-                        {items.reverse().map(x => <><ItemComponent item={x} /></>)}
-                    </div>
+        const view2 =
+            <div>
+                {items.reverse().map(x => <><ItemComponent item={x} /></>)}
+            </div>
 
-                render(document.body, [view2], [view1])
+        render(document.body, [view2], [view1])
 
-                btn = (view2.domRef as HTMLDivElement).querySelector('button')!
-                expect(btn.className).to.be.eq("clicked")
-                expect(btn.id).to.be.eq("item-5")
+        btn = (view2.domRef as HTMLDivElement).querySelector('button')!
+        expect(btn.className).to.be.eq("clicked")
+        expect(btn.id).to.be.eq("item-5")
 
-                // The last element should've been updated
-                btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
-                expect(btn.className).to.be.eq("")
-                expect(btn.id).to.be.eq("item-1")
-                done()
-            })
-        })
+        // The last element should've been updated
+        btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
+        expect(btn.className).to.be.eq("")
+        expect(btn.id).to.be.eq("item-1")
     })
 
 
-    it('retains view state when component children are reordered with keys', (done) => {
+    it('retains view state when component children are reordered with keys', async () => {
 
         type Item = {
             id: number
@@ -1316,31 +1264,28 @@ describe('fragment', () => {
         let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
         btn.click()
 
-        setTimeout(() => {
-            expect(btn.className).to.be.eq("clicked")
-            expect(btn.id).to.be.eq("item-1")
+        await tick()
+        expect(btn.className).to.be.eq("clicked")
+        expect(btn.id).to.be.eq("item-1")
 
-            const view2 =
-                <div>
-                    {items.reverse().map(x => <ItemComponent key={x.id.toString()} item={x} />)}
-                </div>
+        const view2 =
+            <div>
+                {items.reverse().map(x => <ItemComponent key={x.id.toString()} item={x} />)}
+            </div>
 
-            render(document.body, [view2], [view1])
+        render(document.body, [view2], [view1])
 
-            btn = (view2.domRef as HTMLDivElement).querySelector('button')!
-            expect(btn.className).to.be.eq("")
-            expect(btn.id).to.be.eq("item-5")
+        btn = (view2.domRef as HTMLDivElement).querySelector('button')!
+        expect(btn.className).to.be.eq("")
+        expect(btn.id).to.be.eq("item-5")
 
-            // The last element should've been updated
-            btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
-            expect(btn.className).to.be.eq("clicked")
-            expect(btn.id).to.be.eq("item-1")
-
-            done()
-        })
+        // The last element should've been updated
+        btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
+        expect(btn.className).to.be.eq("clicked")
+        expect(btn.id).to.be.eq("item-1")
     })
 
-    it('does not retain view state when component children reordered without keys', (done) => {
+    it('does not retain view state when component children reordered without keys', async () => {
 
         type Item = {
             id: number
@@ -1381,27 +1326,25 @@ describe('fragment', () => {
         let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
         btn.click()
 
-        setTimeout(() => {
-            expect(btn.className).to.be.eq("clicked")
-            expect(btn.id).to.be.eq("item-1")
+        await tick()
+        expect(btn.className).to.be.eq("clicked")
+        expect(btn.id).to.be.eq("item-1")
 
-            const view2 =
-                <div>
-                    {items.reverse().map(x => <ItemComponent item={x} />)}
-                </div>
+        const view2 =
+            <div>
+                {items.reverse().map(x => <ItemComponent item={x} />)}
+            </div>
 
-            render(document.body, [view2], [view1])
+        render(document.body, [view2], [view1])
 
-            btn = (view2.domRef as HTMLDivElement).querySelector('button')!
-            expect(btn.className).to.be.eq("clicked")
-            expect(btn.id).to.be.eq("item-5")
+        btn = (view2.domRef as HTMLDivElement).querySelector('button')!
+        expect(btn.className).to.be.eq("clicked")
+        expect(btn.id).to.be.eq("item-5")
 
-            // The last element should've been updated
-            btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
-            expect(btn.className).to.be.eq("")
-            expect(btn.id).to.be.eq("item-1")
-            done()
-        })
+        // The last element should've been updated
+        btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
+        expect(btn.className).to.be.eq("")
+        expect(btn.id).to.be.eq("item-1")
     })
 
     it('replaces component DOM node when a fragment containing a component with non-fragment root is replaced by a component', () => {
@@ -1457,7 +1400,7 @@ describe('fragment', () => {
         expect(fragmentContainer.querySelector('#replacement')).not.to.be.null
     })
 
-    it('calls effect cleanup when a fragment containing a component with non-fragment root is replaced', done => {
+    it('calls effect cleanup when a fragment containing a component with non-fragment root is replaced', async () => {
 
         // Regression: cleanupRecursively was never called for the old ComponentVNode,
         // so useEffect cleanup callbacks were silently skipped.
@@ -1475,13 +1418,11 @@ describe('fragment', () => {
         const view1 = <><OldComp /></>
         render(fragmentContainer, [view1], [])
 
-        setTimeout(() => {
-            const view2 = <NewComp />
-            render(fragmentContainer, [view2], [view1])
+        await tick()
+        const view2 = <NewComp />
+        render(fragmentContainer, [view2], [view1])
 
-            expect(cleanup.callCount).to.eq(1)
-            done()
-        })
+        expect(cleanup.callCount).to.eq(1)
     })
 
     it('does not throw when re-rendering a fragment whose child component renders a non-fragment leaf', () => {

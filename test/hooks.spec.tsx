@@ -5,11 +5,13 @@ import * as myra from '../src/myra'
 import { expect } from 'chai'
 import * as sinon from 'sinon'
 
+const tick = (ms = 0) => new Promise<void>(resolve => setTimeout(resolve, ms))
+
 const q = (x: string) => document.querySelector(x)
 
 describe('useEffect', () => {
 
-    it('is invoked every render if supplied with no argument', done => {
+    it('is invoked every render if supplied with no argument', async () => {
         const mock = sinon.spy({
             callback: () => { }
         })
@@ -24,31 +26,23 @@ describe('useEffect', () => {
         }
         myra.mount(<Component />, document.body)
 
-        setTimeout(() => {
-            expect(mock.callback.callCount).to.eq(1)
-            // Trigger re-render
-            updateState(1)
+        await tick()
+        expect(mock.callback.callCount).to.eq(1)
+        // Trigger re-render
+        updateState(1)
 
-            setTimeout(() => {
-                setTimeout(() => {
-                    expect(mock.callback.callCount).to.eq(2)
-                    // Trigger re-render
-                    updateState(2)
+        await tick()
+        await tick()
+        expect(mock.callback.callCount).to.eq(2)
+        // Trigger re-render
+        updateState(2)
 
-                    setTimeout(() => {
-                        setTimeout(() => {
-                            expect(mock.callback.callCount).to.eq(3)
-
-                            done()
-                        })
-                    })
-                })
-            })
-
-        })
+        await tick()
+        await tick()
+        expect(mock.callback.callCount).to.eq(3)
     })
 
-    it('is cleaned up before every render if supplied with no argument', done => {
+    it('is cleaned up before every render if supplied with no argument', async () => {
         const mock = sinon.spy({
             callback: () => {
 
@@ -67,21 +61,17 @@ describe('useEffect', () => {
 
         // Trigger re-render
         updateState(1)
-        setTimeout(() => {
-            // Trigger re-render
-            updateState(2)
-            setTimeout(() => {
+        await tick()
+        // Trigger re-render
+        updateState(2)
+        await tick()
 
-                // We need to use setTimeout as the effect is cleaned up asynchronously
-                setTimeout(() => {
-                    expect(mock.callback.callCount).to.eq(2)
-                    done()
-                }, 0)
-            })
-        })
+        // We need to use setTimeout as the effect is cleaned up asynchronously
+        await tick()
+        expect(mock.callback.callCount).to.eq(2)
     })
 
-    it('handles error during cleanup', done => {
+    it('handles error during cleanup', async () => {
         const mock = sinon.spy({
             callback: () => {
                 throw 'An error'
@@ -95,17 +85,13 @@ describe('useEffect', () => {
         const componentInstance = <Component />
         render(document.body, [componentInstance], [])
 
-        setTimeout(() => {
-            render(document.body, [<nothing />], [componentInstance])
-            setTimeout(() => {
-                expect(mock.callback.callCount).to.eq(1)
-
-                done()
-            })
-        })
+        await tick()
+        render(document.body, [<nothing />], [componentInstance])
+        await tick()
+        expect(mock.callback.callCount).to.eq(1)
     })
 
-    it('is cleaned up before unmount if supplied with no argument', done => {
+    it('is cleaned up before unmount if supplied with no argument', async () => {
         const mock = sinon.spy({
             callback: () => { }
         })
@@ -117,17 +103,13 @@ describe('useEffect', () => {
         const componentInstance = <Component />
         render(document.body, [componentInstance], [])
 
-        setTimeout(() => {
-            render(document.body, [<nothing />], [componentInstance])
-            setTimeout(() => {
-                expect(mock.callback.callCount).to.eq(1)
-
-                done()
-            })
-        })
+        await tick()
+        render(document.body, [<nothing />], [componentInstance])
+        await tick()
+        expect(mock.callback.callCount).to.eq(1)
     })
 
-    it('is cleaned up before unmount if supplied with argument', done => {
+    it('is cleaned up before unmount if supplied with argument', async () => {
         const mock = sinon.spy({
             callback: () => { }
         })
@@ -139,17 +121,13 @@ describe('useEffect', () => {
         const componentInstance = <Component />
         render(document.body, [componentInstance], [])
 
-        setTimeout(() => {
-            render(document.body, [<nothing />], [componentInstance])
-            setTimeout(() => {
-                expect(mock.callback.callCount).to.eq(1)
-
-                done()
-            })
-        })
+        await tick()
+        render(document.body, [<nothing />], [componentInstance])
+        await tick()
+        expect(mock.callback.callCount).to.eq(1)
     })
 
-    it('is invoked only once if supplied with the same argument', done => {
+    it('is invoked only once if supplied with the same argument', async () => {
         const mock = sinon.spy({
             callback: () => { }
         })
@@ -166,18 +144,14 @@ describe('useEffect', () => {
 
         // Trigger re-render
         updateState(1)
-        setTimeout(() => {
-            // Trigger re-render
-            updateState(2)
-            setTimeout(() => {
-                expect(mock.callback.callCount).to.eq(1)
-
-                done()
-            })
-        })
+        await tick()
+        // Trigger re-render
+        updateState(2)
+        await tick()
+        expect(mock.callback.callCount).to.eq(1)
     })
 
-    it('is not invoked after the component is unmounted', done => {
+    it('is not invoked after the component is unmounted', async () => {
         const mock = sinon.spy({
             callback: () => { }
         })
@@ -196,16 +170,14 @@ describe('useEffect', () => {
         // Immediately unmount by replacing with a nothing node
         render(container, [<nothing />], [view1])
 
-        setTimeout(() => {
-            expect(mock.callback.callCount).to.eq(0)
-            done()
-        })
+        await tick()
+        expect(mock.callback.callCount).to.eq(0)
     })
 })
 
 describe('useLayoutEffect', () => {
 
-    it('is invoked every render if supplied with no argument', done => {
+    it('is invoked every render if supplied with no argument', async () => {
         const mock = sinon.spy({
             callback: () => { }
         })
@@ -223,16 +195,13 @@ describe('useLayoutEffect', () => {
         // Trigger re-render
         updateState(1)
 
-        setTimeout(() => {
-            // Trigger re-render
-            updateState(2)
-            expect(mock.callback.callCount).to.eq(2)
-
-            done()
-        })
+        await tick()
+        // Trigger re-render
+        updateState(2)
+        expect(mock.callback.callCount).to.eq(2)
     })
 
-    it('is cleaned up before every render if supplied with no argument', done => {
+    it('is cleaned up before every render if supplied with no argument', async () => {
         const mock = sinon.spy({
             callback: () => { }
         })
@@ -250,18 +219,14 @@ describe('useLayoutEffect', () => {
         // Trigger re-render
         updateState(1)
 
-        setTimeout(() => {
-            // Trigger re-render
-            updateState(2)
-            setTimeout(() => {
-                expect(mock.callback.callCount).to.eq(2)
-
-                done()
-            })
-        })
+        await tick()
+        // Trigger re-render
+        updateState(2)
+        await tick()
+        expect(mock.callback.callCount).to.eq(2)
     })
 
-    it('is cleaned up before unmount if supplied with no argument', done => {
+    it('is cleaned up before unmount if supplied with no argument', async () => {
         const mock = sinon.spy({
             callback: () => { }
         })
@@ -275,14 +240,11 @@ describe('useLayoutEffect', () => {
 
         render(document.body, [<nothing />], [componentInstance])
 
-        setTimeout(() => {
-            expect(mock.callback.callCount).to.eq(1)
-
-            done()
-        }, 0)
+        await tick()
+        expect(mock.callback.callCount).to.eq(1)
     })
 
-    it('is cleaned up before unmount if supplied with argument', done => {
+    it('is cleaned up before unmount if supplied with argument', async () => {
         const mock = sinon.spy({
             callback: () => { }
         })
@@ -296,14 +258,11 @@ describe('useLayoutEffect', () => {
 
         render(document.body, [<nothing />], [componentInstance])
 
-        setTimeout(() => {
-            expect(mock.callback.callCount).to.eq(1)
-
-            done()
-        }, 0)
+        await tick()
+        expect(mock.callback.callCount).to.eq(1)
     })
 
-    it('is invoked only once if supplied with the same argument', done => {
+    it('is invoked only once if supplied with the same argument', async () => {
         const mock = sinon.spy({
             callback: () => { }
         })
@@ -320,16 +279,13 @@ describe('useLayoutEffect', () => {
 
         updateState(1)
 
-        setTimeout(() => {
-            expect(mock.callback.callCount).to.eq(1)
-
-            done()
-        })
+        await tick()
+        expect(mock.callback.callCount).to.eq(1)
     })
 })
 
 describe('useMemo', () => {
-    it('returns the same value when the inputs does not change', done => {
+    it('returns the same value when the inputs does not change', async () => {
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
         let fn: Function
@@ -342,20 +298,16 @@ describe('useMemo', () => {
         const vNode = <Component />
         render(document.body, [vNode], [])
 
-        setTimeout(() => {
-            const firstFn = fn!
+        await tick()
+        const firstFn = fn!
 
-            setTimeout(() => {
-                render(document.body, [<Component />], [vNode])
+        await tick()
+        render(document.body, [<Component />], [vNode])
 
-                expect(firstFn).to.be.eq(fn!)
-
-                done()
-            })
-        })
+        expect(firstFn).to.be.eq(fn!)
     })
 
-    it('returns a new value when the inputs does change', done => {
+    it('returns a new value when the inputs does change', async () => {
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
         let fn: Function
@@ -368,24 +320,20 @@ describe('useMemo', () => {
         const vNode1 = <Component input={1} />
         render(document.body, [vNode1], [])
 
-        setTimeout(() => {
-            const firstFn = fn!
+        await tick()
+        const firstFn = fn!
 
-            setTimeout(() => {
-                render(document.body, [<Component input={2} />], [vNode1])
+        await tick()
+        render(document.body, [<Component input={2} />], [vNode1])
 
-                expect(firstFn).not.to.be.eq(fn!)
-
-                done()
-            })
-        })
+        expect(firstFn).not.to.be.eq(fn!)
     })
 })
 
 describe('useRef', () => {
-    it('returns an object when called', done => {
+    it('returns an object when called', async () => {
 
-        let ref: Ref<undefined>
+        let ref!: Ref<undefined>
 
         const Component = () => {
             ref = useRef()
@@ -395,16 +343,13 @@ describe('useRef', () => {
         const vNode = <Component />
         render(document.body, [vNode], [])
 
-        setTimeout(() => {
-            expect(typeof ref).to.eq('object')
-
-            done()
-        })
+        await tick()
+        expect(typeof ref).to.eq('object')
     })
 
-    it('is populated with the root element DOM node when supplied as a ref attribute', done => {
+    it('is populated with the root element DOM node when supplied as a ref attribute', async () => {
 
-        let ref: Ref<HTMLDivElement>
+        let ref!: Ref<HTMLDivElement>
 
         const Component = () => {
             ref = useRef()
@@ -414,15 +359,12 @@ describe('useRef', () => {
         const vNode = <Component />
         render(document.body, [vNode], [])
 
-        setTimeout(() => {
-            expect(ref.current).to.be.eq(vNode.domRef)
-
-            done()
-        })
+        await tick()
+        expect(ref.current).to.be.eq(vNode.domRef)
     })
-    it('is populated with a child element DOM node when supplied as a ref attribute', done => {
+    it('is populated with a child element DOM node when supplied as a ref attribute', async () => {
 
-        let ref: Ref<HTMLDivElement>
+        let ref!: Ref<HTMLDivElement>
 
         const Component = () => {
             ref = useRef()
@@ -432,16 +374,13 @@ describe('useRef', () => {
         const vNode = <Component />
         render(document.body, [vNode], [])
 
-        setTimeout(() => {
-            expect(ref.current).to.be.eq(vNode.domRef.firstChild)
-
-            done()
-        })
+        await tick()
+        expect(ref.current).to.be.eq(vNode.domRef.firstChild)
     })
 
-    it('takes the "current" value as an argument and sets it on the returned object', done => {
+    it('takes the "current" value as an argument and sets it on the returned object', async () => {
 
-        let ref: Ref<string>
+        let ref!: Ref<string>
 
         const Component = () => {
             ref = useRef('foo')
@@ -450,16 +389,13 @@ describe('useRef', () => {
         const vNode = <Component />
         render(document.body, [vNode], [])
 
-        setTimeout(() => {
-            expect(ref.current).to.eq('foo')
-
-            done()
-        })
+        await tick()
+        expect(ref.current).to.eq('foo')
     })
 
-    it('keeps the "current" value between renders', done => {
+    it('keeps the "current" value between renders', async () => {
 
-        let ref: Ref<string>
+        let ref!: Ref<string>
 
         const Component = () => {
             ref = useRef('foo')
@@ -471,17 +407,14 @@ describe('useRef', () => {
         const vNode = <Component />
         render(document.body, [vNode], [])
 
-        setTimeout(() => {
-            render(document.body, [<Component />], [vNode])
-            expect(ref.current).to.eq('bar')
-
-            done()
-        })
+        await tick()
+        render(document.body, [<Component />], [vNode])
+        expect(ref.current).to.eq('bar')
     })
 
-    it('returns an object that holds a mutable property named "current"', done => {
+    it('returns an object that holds a mutable property named "current"', async () => {
 
-        let ref: Ref<string>
+        let ref!: Ref<string>
 
         const Component = () => {
             ref = useRef('foo')
@@ -491,16 +424,13 @@ describe('useRef', () => {
         const vNode = <Component />
         render(document.body, [vNode], [])
 
-        setTimeout(() => {
-            expect(ref.current).to.eq('bar')
-
-            done()
-        })
+        await tick()
+        expect(ref.current).to.eq('bar')
     })
 })
 
 describe('useErrorHandling', () => {
-    it('calls the useErrorHandling listener on view rendering error', done => {
+    it('calls the useErrorHandling listener on view rendering error', () => {
         const mock = sinon.spy({
             callback: () => <nothing />
         })
@@ -516,11 +446,9 @@ describe('useErrorHandling', () => {
         expect(vNode.domRef.nodeType).to.be.eq(Node.COMMENT_NODE)
         expect(vNode.domRef.textContent).to.be.eq('Nothing')
         expect(mock.callback.called).to.be.true
-
-        done()
     })
 
-    it('calls the useErrorHandling listener on effect error', done => {
+    it('calls the useErrorHandling listener on effect error', async () => {
         const mock = sinon.spy({
             callback: () => <nothing />
         })
@@ -538,19 +466,16 @@ describe('useErrorHandling', () => {
         const component = <Component />
         myra.mount(component, document.body)
 
-        setTimeout(() => {
-            const node = (component as ComponentVNode<unknown>).domRef!
+        await tick()
+        const node = (component as ComponentVNode<unknown>).domRef!
 
-            expect(node.nodeType).to.be.eq(Node.COMMENT_NODE)
-            expect(node.textContent).to.be.eq('Nothing')
-            expect(mock.callback.called).to.be.true
-
-            done()
-        })
+        expect(node.nodeType).to.be.eq(Node.COMMENT_NODE)
+        expect(node.textContent).to.be.eq('Nothing')
+        expect(mock.callback.called).to.be.true
     })
 
 
-    it('calls the useErrorHandling listener on useLayoutEffect error', done => {
+    it('calls the useErrorHandling listener on useLayoutEffect error', async () => {
         const mock = sinon.spy({
             callback: () => <nothing />
         })
@@ -569,17 +494,14 @@ describe('useErrorHandling', () => {
 
         render(document.body, [component], [])
 
-        setTimeout(() => {
-            const node = (component as ComponentVNode<unknown>).domRef!
-            expect(node.nodeType).to.be.eq(Node.COMMENT_NODE)
-            expect(node.textContent).to.be.eq('Nothing')
-            expect(mock.callback.called).to.be.true
-
-            done()
-        })
+        await tick()
+        const node = (component as ComponentVNode<unknown>).domRef!
+        expect(node.nodeType).to.be.eq(Node.COMMENT_NODE)
+        expect(node.textContent).to.be.eq('Nothing')
+        expect(mock.callback.called).to.be.true
     })
 
-    it('calls the useErrorHandling listener on initialization error', done => {
+    it('calls the useErrorHandling listener on initialization error', () => {
         const mock = sinon.spy({
             callback: () => <nothing />
         })
@@ -599,11 +521,9 @@ describe('useErrorHandling', () => {
         expect(vNode.domRef.nodeType).to.be.eq(Node.COMMENT_NODE)
         expect(vNode.domRef.textContent).to.be.eq('Nothing')
         expect(mock.callback.called).to.be.true
-
-        done()
     })
 
-    it('calls the useErrorHandling listener on evolve error', done => {
+    it('calls the useErrorHandling listener on evolve error', async () => {
         const mock = sinon.spy({
             callback: () => <nothing />
         })
@@ -625,14 +545,11 @@ describe('useErrorHandling', () => {
         const vNode = <Component />
         render(document.body, [vNode], [])
         vNode.domRef.click()
-        setTimeout(() => {
-            expect(mock.callback.called).to.be.true
-
-            done()
-        })
+        await tick()
+        expect(mock.callback.called).to.be.true
     })
 
-    it('does not call the useErrorHandling listener on effect cleanup error', done => {
+    it('does not call the useErrorHandling listener on effect cleanup error', () => {
         const mock = sinon.spy({
             callback: () => <nothing />
         })
@@ -655,11 +572,9 @@ describe('useErrorHandling', () => {
         expect(vNode.domRef.nodeType).to.be.eq(Node.ELEMENT_NODE)
         expect(vNode.domRef.textContent).to.be.eq('')
         expect(mock.callback.called).not.to.be.true
-
-        done()
     })
 
-    it('passes on an exception up the component tree', done => {
+    it('passes on an exception up the component tree', () => {
         const mock = sinon.spy({
             callback: () => <nothing />
         })
@@ -677,11 +592,9 @@ describe('useErrorHandling', () => {
         render(document.body, [<Component />], [])
 
         expect(mock.callback.called).to.be.true
-
-        done()
     })
 
-    it('passes the children of a component to it view', done => {
+    it('passes the children of a component to it view', () => {
         const viewMock = sinon.spy({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             view: (p: any) => {
@@ -703,8 +616,6 @@ describe('useErrorHandling', () => {
         expect(q('#divTestId')).not.to.be.null
 
         expect(viewMock.view.callCount).to.be.eq(1)
-
-        done()
     })
 })
 
@@ -725,27 +636,29 @@ describe('useState', () => {
         render(document.body, [<Component />], [])
     })
 
-    it('lazily initializes the state if the initial state is a function', (done) => {
-        let callCount = 0
-        const Component = () => {
+    it('lazily initializes the state if the initial state is a function', async () => {
+        await new Promise<void>(resolve => {
+            let callCount = 0
+            const Component = () => {
 
-            const [s, evolve] = useState(() => {
-                callCount++
-                return 0
-            })
-            const ref = useRef(evolve)
+                const [s, evolve] = useState(() => {
+                    callCount++
+                    return 0
+                })
+                const ref = useRef(evolve)
 
-            expect(ref.current).to.be.eq(evolve)
-            if (s < 2) {
-                evolve(s + 1)
-            } else {
-                expect(callCount).to.eq(1)
-                done()
+                expect(ref.current).to.be.eq(evolve)
+                if (s < 2) {
+                    evolve(s + 1)
+                } else {
+                    expect(callCount).to.eq(1)
+                    resolve()
+                }
+                return <div></div>
             }
-            return <div></div>
-        }
 
-        render(document.body, [<Component />], [])
+            render(document.body, [<Component />], [])
+        })
     })
 
     it('updates the state when an Update function in supplied', () => {
@@ -810,7 +723,7 @@ describe('useState', () => {
         expect(mocks.onclickUpdate.callCount).to.eq(2)
     })
 
-    it('debounces multiple state updates into a single render', (done) => {
+    it('debounces multiple state updates into a single render', async () => {
 
         let setStateOuter: myra.Evolve<number> = function () { return 0 }
         const Component = () => {
@@ -826,10 +739,7 @@ describe('useState', () => {
 
         setStateOuter(1)
         setStateOuter(2)
-        setTimeout(() => {
-            expect(vNode.domRef.textContent).to.eq('2')
-            done()
-        })
-
+        await tick()
+        expect(vNode.domRef.textContent).to.eq('2')
     })
 })
