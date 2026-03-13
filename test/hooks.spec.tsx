@@ -176,6 +176,31 @@ describe('useEffect', () => {
             })
         })
     })
+
+    it('is not invoked after the component is unmounted', done => {
+        const mock = sinon.spy({
+            callback: () => { }
+        })
+
+        const container = document.createElement('div')
+        document.body.appendChild(container)
+
+        const Component = () => {
+            useEffect(mock.callback, [])
+            return <div />
+        }
+
+        const view1 = <Component />
+        render(container, [view1], [])
+
+        // Immediately unmount by replacing with a nothing node
+        render(container, [<nothing />], [view1])
+
+        setTimeout(() => {
+            expect(mock.callback.callCount).to.eq(0)
+            done()
+        })
+    })
 })
 
 describe('useLayoutEffect', () => {
