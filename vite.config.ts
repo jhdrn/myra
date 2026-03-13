@@ -11,21 +11,21 @@ export default defineConfig(({ mode }) => {
             lib: {
                 entry: 'src/myra.ts',
                 name: 'myra',
-                formats: isMinified ? ['umd'] : ['es', 'umd'],
-                fileName: (format) => {
-                    if (isMinified) return 'myra.min.js'
-                    return format === 'es' ? 'myra.mjs' : 'myra.js'
-                },
+                formats: isMinified ? ['umd'] : undefined,
             },
             rolldownOptions: {
-                output: {
-                    banner,
-                },
+                output: isMinified
+                    ? { format: 'umd', entryFileNames: 'myra.min.js', name: 'myra', banner }
+                    : [
+                        { format: 'es', entryFileNames: 'myra.mjs', banner },
+                        { format: 'umd', entryFileNames: 'myra.cjs', name: 'myra', banner },
+                        { format: 'umd', entryFileNames: 'myra.js', name: 'myra', banner },
+                    ],
             },
             outDir: 'dist',
             emptyOutDir: !isMinified,
             sourcemap: !isMinified,
-            minify: isMinified ? 'esbuild' : false,
+            minify: isMinified,
         },
     }
 })

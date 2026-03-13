@@ -24,6 +24,7 @@
     "registry": "https://registry.npmjs.org"
   },
   "license": "MIT",
+  "type": "module",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin-js": "^4.4.1",
@@ -54,13 +55,13 @@
     "test:local": "vitest",
     "coverage": "vitest run --coverage"
   },
-  "main": "myra.js",
+  "main": "myra.cjs",
   "module": "myra.mjs",
   "typings": "myra.d.ts",
   "exports": {
     ".": {
       "import": "./myra.mjs",
-      "require": "./myra.js",
+      "require": "./myra.cjs",
       "types": "./myra.d.ts"
     }
   },
