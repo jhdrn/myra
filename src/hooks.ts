@@ -193,6 +193,8 @@ export function useReducer<TState, TAction>(
     initialState: TState
 ): [TState, (action: TAction) => void] {
     const [state, setState] = useState(initialState)
-    const dispatch = useCallback((action: TAction) => setState(s => reducer(s, action)), [])
+    const reducerRef = useRef(reducer)
+    reducerRef.current = reducer
+    const dispatch = useCallback((action: TAction) => setState(s => reducerRef.current(s, action)), [])
     return [state, dispatch]
 }
