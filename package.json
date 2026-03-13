@@ -1,7 +1,7 @@
 {
   "name": "myra",
   "private": true,
-  "version": "6.0.2",
+  "version": "6.0.3",
   "description": "Myra is a simple and small Typescript JSX rendering library.",
   "readme": "README.md",
   "repository": {
@@ -24,46 +24,44 @@
     "registry": "https://registry.npmjs.org"
   },
   "license": "MIT",
+  "type": "module",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@rollup/plugin-terser": "^1.0.0",
-    "@rollup/plugin-typescript": "^12.0.0",
     "@stylistic/eslint-plugin-js": "^4.4.1",
     "@types/chai": "^5.2.3",
     "@types/eslint__js": "^8.42.3",
-    "@types/mocha": "^10.0.7",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^20.2.4",
     "@types/sinon": "^21.0.0",
-    "@web/dev-server-esbuild": "^1.0.2",
-    "@web/test-runner": "^0.20.2",
+    "@vitest/coverage-v8": "^3.0.0",
     "chai": "^6.2.2",
     "copyfiles": "^2.4.1",
     "dts-bundle-generator": "^9.5.1",
     "eslint": "^10.0.3",
-    "http-server": "^14.1.1",
-    "mocha": "^11.7.5",
+    "jsdom": "^26.0.0",
     "rimraf": "^6.0.1",
-    "rollup": "^4.20.0",
     "sinon": "^21.0.2",
     "typescript": "^5.5.4",
-    "typescript-eslint": "^8.0.1"
+    "typescript-eslint": "^8.0.1",
+    "vite": "^8.0.0",
+    "vitest": "^3.0.0"
   },
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "rollup -c",
+    "build": "vite build && vite build --mode minified",
     "postbuild": "dts-bundle-generator --config dts-config.json --project tsconfig.json && copyfiles LICENSE README.md package.json dist",
     "pretest": "tsc --noEmit --project tsconfig.test.json",
-    "test": "web-test-runner",
-    "test:local": "npm run pretest && web-test-runner --watch && npm run posttest",
-    "coverage": "http-server -c-1 -o -p 9875 ./coverage/lcov-report"
+    "test": "vitest run",
+    "test:local": "vitest",
+    "coverage": "vitest run --coverage"
   },
-  "main": "myra.js",
+  "main": "myra.cjs",
   "module": "myra.mjs",
   "typings": "myra.d.ts",
   "exports": {
     ".": {
       "import": "./myra.mjs",
-      "require": "./myra.js",
+      "require": "./myra.cjs",
       "types": "./myra.d.ts"
     }
   },

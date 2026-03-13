@@ -3,54 +3,46 @@ import * as myra from '../src/myra'
 import { expect } from 'chai'
 import * as sinon from 'sinon'
 
+const tick = (ms = 0) => new Promise<void>(resolve => setTimeout(resolve, ms))
+
 const q = (x: string) => document.querySelector(x)
 
 /**
  * mount
  */
 describe('mount', () => {
-    beforeEach((done) => {
+    beforeEach(() => {
         // "Clear view" before each test
         Array.prototype.slice.call(document.body.childNodes).forEach((c: Node) => document.body.removeChild(c))
-
-        done()
     })
 
-    it('mounts the component', done => {
+    it('mounts the component', async () => {
 
         const Component = () => <div id="root" />
 
         myra.mount(<Component />, document.body)
 
-        setTimeout(() => {
-            const rootNode = q('#root')
+        await tick()
+        const rootNode = q('#root')
 
-            expect(rootNode).not.to.be.null
-
-            done()
-        })
+        expect(rootNode).not.to.be.null
     })
 
-    it('mounts any JSX element', done => {
+    it('mounts any JSX element', async () => {
 
         myra.mount(<div id="root" />, document.body)
 
-        setTimeout(() => {
-            const rootNode = q('#root')
+        await tick()
+        const rootNode = q('#root')
 
-            expect(rootNode).not.to.be.null
-
-            done()
-        })
+        expect(rootNode).not.to.be.null
     })
 })
 
 describe('component render', () => {
-    beforeEach((done) => {
+    beforeEach(() => {
         // "Clear view" before each test
         Array.prototype.slice.call(document.body.childNodes).forEach((c: Node) => document.body.removeChild(c))
-
-        done()
     })
 
     it('does not call the layout effect listener if the props has not changed', () => {

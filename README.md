@@ -28,7 +28,7 @@ Add a tsconfig.json to your project:
 
     {
       "compilerOptions": {
-        "target": "es5",
+        "target": "es2015",
         "module": "commonjs",
         "jsx": "react",
         "jsxFactory": "myra.h",
@@ -87,4 +87,3 @@ _It's value must be unique amongst the items in the list._
 
 [MIT](http://opensource.org/licenses/MIT)
 
-Copyright (c) 2016-2024 Jonathan Hedrén
