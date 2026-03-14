@@ -1,6 +1,6 @@
 import { render } from '../src/component'
 import { ComponentVNode, Ref } from '../src/contract'
-import { useCallback, useEffect, useErrorHandler, useLayoutEffect, useMemo, useRef, useState } from '../src/hooks'
+import { useCallback, useEffect, useErrorHandler, useLayoutEffect, useMemo, useReducer, useRef, useState } from '../src/hooks'
 import * as myra from '../src/myra'
 import { expect } from 'chai'
 import * as sinon from 'sinon'
@@ -810,5 +810,77 @@ describe('useCallback', () => {
         updateState(1)
         await tick()
         expect(renderCount).to.eq(1)
+    })
+})
+
+describe('useReducer', () => {
+    it('returns the initial state', () => {
+        let state: number | undefined
+
+        const Component = () => {
+            ;[state] = useReducer((s: number, a: number) => s + a, 0)
+            return <div />
+        }
+
+        render(document.body, [<Component />], [])
+        expect(state).to.eq(0)
+    })
+
+    it('updates state when an action is dispatched', async () => {
+        let dispatch!: (action: number) => void
+        let state: number | undefined
+
+        const Component = () => {
+            ;[state, dispatch] = useReducer((s: number, a: number) => s + a, 0)
+            return <div />
+        }
+
+        render(document.body, [<Component />], [])
+        dispatch(5)
+        await tick()
+        expect(state).to.eq(5)
+    })
+
+    it('returns a stable dispatch reference across renders', async () => {
+        const dispatches: ((action: number) => void)[] = []
+        let updateState: myra.Evolve<number> = () => 0
+
+        const Component = () => {
+            const [, setCount] = useState(0)
+            updateState = setCount
+            const [, dispatch] = useReducer((s: number, a: number) => s + a, 0)
+            dispatches.push(dispatch)
+            return <div />
+        }
+
+        render(document.body, [<Component />], [])
+        await tick()
+        updateState(1)
+        await tick()
+        expect(dispatches.length).to.eq(2)
+        expect(dispatches[0]).to.eq(dispatches[1])
+    })
+
+    it('always uses the latest reducer', async () => {
+        let dispatch!: (action: number) => void
+        let state: number | undefined
+        let multiplier = 1
+
+        const Component = () => {
+            ;[state, dispatch] = useReducer((s: number, a: number) => s + a * multiplier, 0)
+            return <div />
+        }
+
+        const vNode = <Component />
+        render(document.body, [vNode], [])
+        dispatch(2)
+        await tick()
+        expect(state).to.eq(2)
+
+        multiplier = 10
+        render(document.body, [<Component />], [vNode])
+        dispatch(2)
+        await tick()
+        expect(state).to.eq(22) // 2 + (2 * 10)
     })
 })

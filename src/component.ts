@@ -51,11 +51,15 @@ export function tryHandleComponentError(parentElement: Element, vNode: Component
 
         renderingContext = undefined
 
-        const errorView = vNode.errorHandler(err)
 
-        render(parentElement, [errorView], vNode.rendition === undefined ? [] : [vNode.rendition], isSvg)
-
-        vNode.rendition = errorView
+        try {
+            const errorView = vNode.errorHandler(err)
+            render(parentElement, [errorView], vNode.rendition === undefined ? [] : [vNode.rendition], isSvg)
+            vNode.rendition = errorView
+        } catch (handlerErr) {
+            console.error('An error occurred in the error handler: ' + handlerErr)
+            throw err
+        }
     } else {
         throw err
     }
@@ -69,7 +73,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
         const keyMap: Record<string, [VNode, Node] | undefined> = {}
 
         // Node "pool" for reuse
-        const unkeyedNodes: Node[] = []
+        const unkeyedNodes = new Set<Node>()
 
         let anyKeyedNodes = false
 
@@ -119,12 +123,12 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                             for (let i = 0; i < nodes.length; i++) {
                                 const node = nodes.item(i)
                                 // if (elementContainsNode(parentElement, node)) {
-                                unkeyedNodes.push(node)
+                                unkeyedNodes.add(node)
                                 // }
                             }
                         }
                         else /*if (elementContainsNode(parentElement, oldDOMNode))*/ {
-                            unkeyedNodes.push(oldDOMNode)
+                            unkeyedNodes.add(oldDOMNode)
                         }
                     }
                 }
@@ -160,9 +164,10 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                         // unsetting the oldChildVNode will cause the DOM node to be appended
                         oldChildVNode = undefined
                     }
-                    else if (unkeyedNodes.length > 0) {
+                    else if (unkeyedNodes.size > 0) {
 
-                        const domNode = unkeyedNodes.shift()!
+                        const domNode = unkeyedNodes.values().next().value!
+                        unkeyedNodes.delete(domNode)
                         // ...reuse an old unkeyed node, if any available
                         oldChildVNode = {
                             _: VNodeType.Nothing,
@@ -224,10 +229,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                 }
 
                 // Remove the current DOM node from unkeyedNodes to make sure it's not reused!
-                const unkeyedIndex = unkeyedNodes.indexOf(domNodeAtIndex!)
-                if (unkeyedIndex >= 0) {
-                    unkeyedNodes.splice(unkeyedIndex, 1)
-                }
+                unkeyedNodes.delete(domNodeAtIndex!)
             }
 
             switch (newChildVNode._) {
@@ -999,7 +1001,7 @@ function attemptEffectCleanup(t: EffectWrapper) {
         try {
             t.cleanup()
         } catch (err) {
-            console.error('An error occured during effect cleanup: ' + err)
+            console.error('An error occurred during effect cleanup: ' + err)
         }
         t.cleanup = undefined
     }

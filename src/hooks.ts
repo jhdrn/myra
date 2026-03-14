@@ -182,3 +182,19 @@ export function useMemo<TMemoization>(fn: () => TMemoization, deps: unknown[]): 
 export function useCallback<TCallback extends Function>(callback: TCallback, deps: unknown[]): TCallback {
     return useMemo(() => callback, deps)
 }
+
+/**
+ *
+ * @param reducer
+ * @param initialState
+ */
+export function useReducer<TState, TAction>(
+    reducer: (state: TState, action: TAction) => TState,
+    initialState: TState
+): [TState, (action: TAction) => void] {
+    const [state, setState] = useState(initialState)
+    const reducerRef = useRef(reducer)
+    reducerRef.current = reducer
+    const dispatch = useCallback((action: TAction) => setState(s => reducerRef.current(s, action)), [])
+    return [state, dispatch]
+}
