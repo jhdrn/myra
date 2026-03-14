@@ -131,6 +131,33 @@ Memoizes a callback. Re-creates when deps change:
 const handleClick = myra.useCallback(() => setCount(c => c + 1), [])
 ```
 
+### useReducer
+
+An alternative to `useState` for more complex state logic. Works the same as React's `useReducer`:
+
+```tsx
+type Action = { type: 'increment' } | { type: 'decrement' }
+
+function reducer(state: number, action: Action): number {
+    switch (action.type) {
+        case 'increment': return state + 1
+        case 'decrement': return state - 1
+    }
+}
+
+const Counter = myra.define(() => {
+    const [count, dispatch] = myra.useReducer(reducer, 0)
+
+    return (
+        <div>
+            <p>{count}</p>
+            <button onclick={() => dispatch({ type: 'increment' })}>+</button>
+            <button onclick={() => dispatch({ type: 'decrement' })}>-</button>
+        </div>
+    )
+})
+```
+
 ### useErrorHandler
 
 Catches errors thrown during render and shows a fallback view:
