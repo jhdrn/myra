@@ -1,8 +1,6 @@
+# Myra
 
-
-Myra
-
-Myra is (another) JSX rendering library. It is small, simple and built with and for [Typescript](http://www.typescriptlang.org/).
+Myra is (another) JSX rendering library. It is small, simple and built with and for [TypeScript](http://www.typescriptlang.org/).
 
 [![npm](https://img.shields.io/npm/v/myra.svg?maxAge=24000)](https://www.npmjs.com/package/myra)
 [![CircleCI](https://dl.circleci.com/status-badge/img/circleci/D4GwQGdQNVPkQc73YZ9WfS/3SYtbN9QW7kqgT75UE6sjS/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/circleci/D4GwQGdQNVPkQc73YZ9WfS/3SYtbN9QW7kqgT75UE6sjS/tree/master)
@@ -13,77 +11,168 @@ Myra is (another) JSX rendering library. It is small, simple and built with and 
 
 [![NPM](https://nodei.co/npm/myra.png)](https://nodei.co/npm/myra/)
 
-Myra is a JSX rendering engine implementing a subset of React, but with some
-differences.
+Myra implements a React-like API (hooks, memo, fragments) on top of a custom virtual DOM diffing engine. It has no runtime dependencies.
 
 ## Setup
 
-Add a reference to myra, for example by installing it with NPM:
+Install with npm:
 
-`
+```sh
 npm install --save myra
-`
-
-Add a tsconfig.json to your project:
-
-    {
-      "compilerOptions": {
-        "target": "es2015",
-        "module": "commonjs",
-        "jsx": "react",
-        "jsxFactory": "myra.h",
-        "jsxFragmentFactory": "myra.Fragment",
-
-        /* Optional, but recommended */
-        "strict": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "noImplicitReturns": true,
-        "noFallthroughCasesInSwitch": true
-      }
-    }
-    
-## Mounting a component
-Use `myra.mount` to mount a component to the DOM:
-
-```JSX
-    // Mount the component to a DOM element
-    myra.mount(<MyComponent />, document.body) 
 ```
 
-## Implemented hooks
-* useState - same as https://reactjs.org/docs/hooks-state.html
-* useMemo - same as https://reactjs.org/docs/hooks-reference.html#usememo
-* useEffect - same as https://reactjs.org/docs/hooks-effect.html
-* useLayoutEffect - same as https://reactjs.org/docs/hooks-reference.html#uselayouteffect
-* useRef - same as https://reactjs.org/docs/hooks-reference.html#useref
-* useErrorHandler - Catches any errors and renders an "error view" instead of 
-  the regular component view:
-    ```JSX
-        myra.useErrorHandler(error => <p>An error occured: {error}</p>) 
-    ```
+Add a `tsconfig.json` to your project:
+
+```json
+{
+  "compilerOptions": {
+    "target": "es2015",
+    "module": "es2015",
+    "jsx": "react",
+    "jsxFactory": "myra.h",
+    "jsxFragmentFactory": "myra.Fragment",
+
+    /* Optional, but recommended */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true
+  }
+}
+```
+
+## Quick start
+
+```tsx
+import * as myra from 'myra'
+
+const Counter = myra.define(() => {
+    const [count, setCount] = myra.useState(0)
+
+    return (
+        <div>
+            <p>Count: {count}</p>
+            <button onclick={() => setCount(count + 1)}>Increment</button>
+        </div>
+    )
+})
+
+myra.mount(<Counter />, document.body)
+```
+
+## Mounting a component
+
+Use `myra.mount` to mount a component to the DOM:
+
+```tsx
+myra.mount(<MyComponent />, document.body)
+```
+
+## Defining components
+
+Use `myra.define` to wrap a component function. This is purely a convenience for TypeScript type inference and has no runtime effect:
+
+```tsx
+interface Props {
+    name: string
+}
+
+const MyComponent = myra.define<Props>(({ name }) => <p>Hello, {name}!</p>)
+```
+
+## Hooks
+
+### useState
+
+Manages local component state. Supports lazy initialization:
+
+```tsx
+const [count, setCount] = myra.useState(0)
+const [data, setData] = myra.useState(() => expensiveInitialValue())
+
+// Functional update
+setCount(prev => prev + 1)
+```
+
+### useEffect / useLayoutEffect
+
+`useEffect` runs asynchronously after render. `useLayoutEffect` runs synchronously after render (equivalent to React's `useLayoutEffect`). Both accept an optional deps array.
+
+```tsx
+myra.useEffect(() => {
+    const sub = subscribe()
+    return () => sub.unsubscribe() // optional cleanup
+}, [dep])
+```
+
+### useRef
+
+```tsx
+const inputRef = myra.useRef<HTMLInputElement>()
+
+return <input ref={inputRef} />
+// inputRef.current is the DOM element after render
+```
+
+### useMemo
+
+Memoizes a computed value. Re-computes when deps change:
+
+```tsx
+const sorted = myra.useMemo(() => items.slice().sort(), [items])
+```
+
+### useCallback
+
+Memoizes a callback. Re-creates when deps change:
+
+```tsx
+const handleClick = myra.useCallback(() => setCount(c => c + 1), [])
+```
+
+### useErrorHandler
+
+Catches errors thrown during render and shows a fallback view:
+
+```tsx
+myra.useErrorHandler(error => <p>An error occurred: {error}</p>)
+```
 
 ## Memoized components
-Use `myra.memo` to create a component that will only render if it's props have
-changed. The second argument is an optional comparison function to make a custom 
-rendering decision:
 
-```JSX
-    // Mount the component to a DOM element
-    const MyMemoComponent = myra.memo<IProps>(props => <p></p>) 
+Use `myra.memo` to skip re-renders when props have not changed. By default a shallow comparison is used. Pass a custom comparator as the second argument to override:
+
+```tsx
+const MyMemoComponent = myra.memo<Props>(props => <p>{props.name}</p>)
+
+// Custom comparator — return true to keep the existing render, false to re-render
+const MyMemoComponent = myra.memo<Props>(
+    props => <p>{props.name}</p>,
+    (newProps, oldProps) => newProps.name === oldProps.name
+)
+```
+
+## Fragments
+
+Use `<></>` (or `<myra.Fragment>`) to return multiple elements without a wrapper:
+
+```tsx
+const MyComponent = myra.define(() => (
+    <>
+        <h1>Title</h1>
+        <p>Body</p>
+    </>
+))
 ```
 
 ## Special props
-Some props and events has special behavior associated with them.
 
-* The `key` prop should be used to ensure that the state of child 
-components is retained when they are changing position in a list. When used with
-elements, it may also prevent unnecessary re-rendering and thus increase performance.
-_It's value must be unique amongst the items in the list._
-* The `class` prop value will be set to the `className` property of the element.
-* The `ref` prop can be used to populate a ref's current value (see https://reactjs.org/docs/hooks-reference.html#useref)
+* **`key`** — ensures stable identity for list items during reconciliation. Must be unique among siblings. Also prevents unnecessary re-renders of elements.
+* **`class`** — maps to the DOM `className` property.
+* **`ref`** — populated with the DOM element after render (use with `useRef`).
+* **`nothing`** — a special JSX tag that always renders as an HTML comment node (`<!-- Nothing -->`), useful as a conditional placeholder.
 
 ## License
 
 [MIT](http://opensource.org/licenses/MIT)
-
