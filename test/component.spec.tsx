@@ -121,3 +121,100 @@ describe('component render', () => {
         expect(mock.callback.callCount).to.eq(2)
     })
 })
+
+describe('component return value normalization', () => {
+    beforeEach(() => {
+        Array.prototype.slice.call(document.body.childNodes).forEach((c: Node) => document.body.removeChild(c))
+    })
+
+    it('renders a comment node when a component returns null', () => {
+        const Component = () => null
+
+        const vNode = <Component />
+        render(document.body, [vNode], [])
+
+        expect(document.body.firstChild).not.to.be.null
+        expect(document.body.firstChild!.nodeType).to.eq(Node.COMMENT_NODE)
+    })
+
+    it('renders a comment node when a component returns undefined', () => {
+        const Component = (() => undefined) as unknown as () => JSX.Element
+
+        const vNode = <Component />
+        render(document.body, [vNode], [])
+
+        expect(document.body.firstChild).not.to.be.null
+        expect(document.body.firstChild!.nodeType).to.eq(Node.COMMENT_NODE)
+    })
+
+    it('renders a comment node when a component returns false', () => {
+        const Component = (() => false) as unknown as () => JSX.Element
+
+        const vNode = <Component />
+        render(document.body, [vNode], [])
+
+        expect(document.body.firstChild).not.to.be.null
+        expect(document.body.firstChild!.nodeType).to.eq(Node.COMMENT_NODE)
+    })
+
+    it('renders a comment node when a component returns true', () => {
+        const Component = (() => true) as unknown as () => JSX.Element
+
+        const vNode = <Component />
+        render(document.body, [vNode], [])
+
+        expect(document.body.firstChild).not.to.be.null
+        expect(document.body.firstChild!.nodeType).to.eq(Node.COMMENT_NODE)
+    })
+
+    it('renders a text node when a component returns a string', () => {
+        const Component = (() => 'hello') as unknown as () => JSX.Element
+
+        const vNode = <Component />
+        render(document.body, [vNode], [])
+
+        expect(document.body.firstChild).not.to.be.null
+        expect(document.body.firstChild!.nodeType).to.eq(Node.TEXT_NODE)
+        expect(document.body.firstChild!.textContent).to.eq('hello')
+    })
+
+    it('renders a text node when a component returns a number', () => {
+        const Component = (() => 42) as unknown as () => JSX.Element
+
+        const vNode = <Component />
+        render(document.body, [vNode], [])
+
+        expect(document.body.firstChild).not.to.be.null
+        expect(document.body.firstChild!.nodeType).to.eq(Node.TEXT_NODE)
+        expect(document.body.firstChild!.textContent).to.eq('42')
+    })
+
+    it('transitions from null to an element correctly', () => {
+        let show = false
+        const Component = () => show ? <div id="it" /> : null
+
+        const vNode = <Component />
+        render(document.body, [vNode], [])
+
+        show = true
+        const newVNode = <Component />
+        render(document.body, [newVNode], [vNode])
+
+        expect(q('#it')).not.to.be.null
+    })
+
+    it('transitions from an element to null correctly', () => {
+        let show = true
+        const Component = () => show ? <div id="it" /> : null
+
+        const vNode = <Component />
+        render(document.body, [vNode], [])
+
+        show = false
+        const newVNode = <Component />
+        render(document.body, [newVNode], [vNode])
+
+        expect(q('#it')).to.be.null
+        expect(document.body.firstChild!.nodeType).to.eq(Node.COMMENT_NODE)
+    })
+})

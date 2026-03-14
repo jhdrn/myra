@@ -526,7 +526,15 @@ export function renderComponent(
                 hookIndex: 0
             }
 
-            const newView = newVNode.view(newVNode.props) as VNode
+            const rawView = newVNode.view(newVNode.props)
+            let newView: VNode
+            if (rawView === null || rawView === undefined || typeof rawView === 'boolean') {
+                newView = { _: VNodeType.Nothing }
+            } else if (typeof rawView === 'string' || typeof rawView === 'number') {
+                newView = { _: VNodeType.Text, text: String(rawView) }
+            } else {
+                newView = rawView as VNode
+            }
 
             if (oldVNode !== undefined && oldVNode._ === VNodeType.Component && renderingContext!.memo) {
 
@@ -541,7 +549,7 @@ export function renderComponent(
 
             render(parentElement, [newView], replaceOrUpdateVNode === undefined ? [] : [replaceOrUpdateVNode], isSvg)
 
-            newVNode.rendition = (newView as VNode)
+            newVNode.rendition = newView
 
             // Trigger synchronous effects (useLayoutEffect)
             triggerEffects(newVNode, parentElement, isSvg, true)
