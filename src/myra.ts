@@ -5,11 +5,7 @@ import {
     VNode
 } from './contract'
 
-export type {
-    ErrorHandler,
-    Evolve,
-    Ref
-} from './contract'
+export type * from './contract'
 export * from './fragment'
 export * from './jsxFactory'
 export * from './hooks'
