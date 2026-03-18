@@ -1,6 +1,6 @@
-import { getRenderingContext } from "./component"
-import { ComponentFactory, ComponentProps, JSXElementFactory, VNode, VNodeType } from "./contract"
-import { useRef } from "./hooks"
+import { getRenderingContext } from './component'
+import { ComponentFactory, ComponentProps, JSXElementFactory, VNode, VNodeType } from './contract'
+import { useRef } from './hooks'
 
 type CompareFn<TProps> = (newProps: TProps, oldProps: TProps) => boolean
 
