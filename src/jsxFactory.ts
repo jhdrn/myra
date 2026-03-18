@@ -39,21 +39,22 @@ export function h<TProps>(
             props: props as unknown as { children: Array<VNode> }
         }
     } else if (tagNameOrComponent === Fragment) {
-        return tagNameOrComponent(props as any) as VNode
+        return tagNameOrComponent(props as object) as VNode
     }
 
     const vNode = {
         _: VNodeType.Component,
         debounceRender: false,
         get domRef() {
-            if (this.rendition !== undefined) {
-                return this.rendition.domRef
+            const self = this as { rendition?: { domRef?: Node } }
+            if (self.rendition !== undefined) {
+                return self.rendition.domRef
             }
             return undefined
         },
         props,
         view: tagNameOrComponent
-    } as any as ComponentVNode<any>
+    } as unknown as ComponentVNode<TProps>
 
     vNode.link = {
         vNode

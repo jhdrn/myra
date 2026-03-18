@@ -877,7 +877,7 @@ function setElementAttribute(el: Element, attributeName: string, attributeValue:
     }
     else if (attributeName in el) {
         try {
-            (el as any)[attributeName] = attributeValue
+            (el as unknown as Record<string, unknown>)[attributeName] = attributeValue
             return
         }
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -897,7 +897,7 @@ function setElementAttribute(el: Element, attributeName: string, attributeValue:
  */
 function removeElementAttribute(a: string, el: Element) {
     if (a.indexOf('on') === 0) {
-        (el as any)[a] = null
+        (el as unknown as Record<string, unknown>)[a] = null
     }
     else if (el.hasAttribute(a)) {
         el.removeAttribute(a)
@@ -917,12 +917,16 @@ function updateElementAttributes(newVNode: ElementVNode<Element>, oldVNode: VNod
         if (attributeName === 'children' || attributeName === 'key' || attributeName === 'ref') {
             continue
         }
-        if ((newProps as any)[attributeName] === undefined ||
-            (attributeName.indexOf('on') === 0 && (newProps as any)[attributeName] !== (oldProps as any)[attributeName])) {
+        const newPropsRecord = newProps as unknown as Record<string, unknown>
+        const oldPropsRecord = oldProps as unknown as Record<string, unknown>
+        if (newPropsRecord[attributeName] === undefined ||
+            (attributeName.indexOf('on') === 0 && newPropsRecord[attributeName] !== oldPropsRecord[attributeName])) {
             removeElementAttribute(attributeName, existingDomNode)
         }
     }
 
+    const newPropsRecord = newProps as unknown as Record<string, unknown>
+    const oldPropsRecord = oldProps as unknown as Record<string, unknown>
     let attributeValue: string
     let oldAttributeValue: string
     let hasAttr: boolean
@@ -932,19 +936,19 @@ function updateElementAttributes(newVNode: ElementVNode<Element>, oldVNode: VNod
         if (name === 'children' || name === 'key') {
             continue
         } else if (name === 'ref') {
-            (newProps as any)[name].current = existingDomNode
+            (newPropsRecord[name] as { current: unknown }).current = existingDomNode
             continue
         }
-        attributeValue = (newProps as any)[name]
+        attributeValue = newPropsRecord[name] as string
         hasAttr = (existingDomNode).hasAttribute(name)
 
         // We need to check the actual DOM value of the "value" property
-        // otherwise it may not be updated if the new prop value equals the old 
+        // otherwise it may not be updated if the new prop value equals the old
         // prop value
         if (name === 'value' && name in existingDomNode) {
             oldAttributeValue = (existingDomNode as HTMLInputElement).value
         } else {
-            oldAttributeValue = (oldProps as any)[name]
+            oldAttributeValue = oldPropsRecord[name] as string
         }
 
         if ((attributeValue !== oldAttributeValue || (!hasAttr && name.indexOf('on') !== 0)) && attributeValue !== undefined) {
@@ -1027,15 +1031,16 @@ function createAndSetElement(vNode: ElementVNode<Element>, isSvg: boolean): Elem
         if (name === 'children' || name === 'key') {
             continue
         } else if (name === 'ref') {
-            (attributes as any)[name].current = el
+            const attributesRecord = attributes as unknown as Record<string, { current: unknown }>
+            attributesRecord[name].current = el
         }
-        const attributeValue = (attributes as any)[name]
+        const attributeValue = (attributes as unknown as Record<string, unknown>)[name]
 
         if (attributeValue !== undefined) {
             setElementAttribute(
                 el,
                 name,
-                attributeValue
+                attributeValue as string
             )
         }
     }

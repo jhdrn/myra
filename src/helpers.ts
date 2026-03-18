@@ -36,8 +36,8 @@ export function equal<T>(a: T, b: T): boolean {
             return false
         }
         for (const k in a) {
-            if ((a as Object).hasOwnProperty(k)) {
-                if (!equal((a as any)[k], (b as any)[k])) {
+            if (Object.prototype.hasOwnProperty.call(a, k)) {
+                if (!equal((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k])) {
                     return false
                 }
             }
@@ -52,7 +52,7 @@ export function equal<T>(a: T, b: T): boolean {
             return false
         }
         for (const i in a) {
-            if (!equal((a as unknown as Array<unknown>)[i as any], (b as unknown as Array<unknown>)[i as any])) {
+            if (!equal((a as unknown as Array<unknown>)[Number(i)], (b as unknown as Array<unknown>)[Number(i)])) {
                 return false
             }
         }
