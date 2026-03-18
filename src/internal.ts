@@ -17,6 +17,7 @@ export interface RenderNode {
     children: RenderNode[]
     vNode?: VNode
     // component-specific
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data?: any[]
     debounceRender?: boolean
     effects?: EffectWrapper[]

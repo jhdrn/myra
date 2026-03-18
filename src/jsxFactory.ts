@@ -49,7 +49,7 @@ export function h<TProps>(
         _: VNodeType.Component,
         props,
         view: tagNameOrComponent
-    } as ComponentVNode<any>
+    } as ComponentVNode<object>
 }
 
 function flattenChildren(children: MyraNode[]) {
