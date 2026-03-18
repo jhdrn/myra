@@ -561,7 +561,9 @@ export function renderComponent(
     allowMemo = false
 ) {
     if (renderingContext === undefined && !renderNode.stale) {
-        renderNode.parent = currentParentVNode
+        if (currentParentVNode !== undefined || renderNode.parent === undefined) {
+            renderNode.parent = currentParentVNode
+        }
         try {
             renderingContext = {
                 renderNode,

@@ -283,7 +283,7 @@ export interface ProviderProps<T> extends ComponentProps {
 
 export interface Context<T> {
     readonly _defaultValue: T
-    readonly Provider: ComponentFactory<ProviderProps<T>>
+    readonly Provider: (props: ProviderProps<T> & ComponentProps) => VNode
 }
 
 export type Effect = () => EffectCleanupCallback

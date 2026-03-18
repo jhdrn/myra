@@ -1,20 +1,21 @@
 import * as myra from 'myra'
-import { useState, ComponentProps, ComponentFactory } from 'myra'
+import { ComponentProps, useState, VNode } from 'myra'
+import { ContextDemo } from './demos/ContextDemo'
 import { Counter } from './demos/Counter'
 import { Effects } from './demos/Effects'
-import { RefDemo } from './demos/RefDemo'
+import { ErrorBoundaryDemo } from './demos/ErrorBoundary'
+import { FragmentDemo } from './demos/FragmentDemo'
+import { KeyedListDemo } from './demos/KeyedList'
 import { MemoDemo } from './demos/MemoDemo'
 import { ReducerDemo } from './demos/ReducerDemo'
-import { ErrorBoundaryDemo } from './demos/ErrorBoundary'
-import { KeyedListDemo } from './demos/KeyedList'
-import { FragmentDemo } from './demos/FragmentDemo'
+import { RefDemo } from './demos/RefDemo'
 import { TimerDemo } from './demos/TimerDemo'
 
 type DemoEntry = {
     key: string
     label: string
     description: string
-    Demo: ComponentFactory<ComponentProps>
+    Demo: (props: ComponentProps) => VNode
 }
 
 const DEMOS: DemoEntry[] = [
@@ -71,6 +72,12 @@ const DEMOS: DemoEntry[] = [
         label: 'useEffect cleanup',
         description: 'setInterval stopwatch demonstrating effect cleanup on unmount',
         Demo: TimerDemo,
+    },
+    {
+        key: 'context',
+        label: 'createContext / useContext',
+        description: 'Theme switching, deep-tree propagation, and default value fallback',
+        Demo: ContextDemo,
     },
 ]
 

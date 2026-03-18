@@ -324,3 +324,35 @@ code {
     color: var(--accent);
     letter-spacing: 0.05em;
 }
+
+/* Context demo */
+.demo-themed-box {
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    border: 2px solid var(--border);
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+    transition: background 0.2s, color 0.2s;
+}
+.demo-themed-box.light {
+    background: #fff;
+    color: #212529;
+}
+.demo-themed-box.dark {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    border-color: #45475a;
+}
+.demo-middle {
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+.demo-deep-consumer {
+    padding: 0.5rem 0.75rem;
+    background: var(--surface2);
+    border-radius: 4px;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
