@@ -27,6 +27,9 @@ export function h<TProps>(
 
     if (props === null) {
         props = {} as TProps
+    } else {
+        delete (props as Record<string, unknown>)['__self']
+        delete (props as Record<string, unknown>)['__source']
     }
 
     (props as unknown as { children: VNode[] }).children = flattenChildren(children)
