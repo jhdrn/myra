@@ -42,23 +42,11 @@ export function h<TProps>(
         return tagNameOrComponent(props as any) as VNode
     }
 
-    const vNode = {
+    return {
         _: VNodeType.Component,
-        debounceRender: false,
-        get domRef() {
-            if (this.rendition !== undefined) {
-                return this.rendition.domRef
-            }
-            return undefined
-        },
         props,
         view: tagNameOrComponent
-    } as any as ComponentVNode<any>
-
-    vNode.link = {
-        vNode
-    }
-    return vNode
+    } as ComponentVNode<any>
 }
 
 function flattenChildren(children: MyraNode[]) {

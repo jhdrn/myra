@@ -275,6 +275,7 @@ export interface Ref<T> {
 export type Effect = () => EffectCleanupCallback
 export type EffectCleanupCallback = (() => void) | void
 
+
 export interface ComponentProps {
     children?: MyraNode
     key?: Key
@@ -290,77 +291,47 @@ export const enum VNodeType {
 }
 
 /**
- * Base interface for a virtual node.
- */
-export interface VNodeBase {
-    /**
-     * A reference to a DOM node.
-     */
-    domRef?: Node
-}
-
-/**
- * A virtual node representing nothing. Will be rendered as a comment DOM 
+ * A virtual node representing nothing. Will be rendered as a comment DOM
  * node.
  */
-export interface NothingVNode extends VNodeBase {
+export interface NothingVNode {
     readonly _: VNodeType.Nothing
 }
 
 /**
- * A virtual node that represents a text DOM node. 
+ * A virtual node that represents a text DOM node.
  */
-export interface TextVNode extends VNodeBase {
+export interface TextVNode {
     readonly _: VNodeType.Text
     readonly text: string
 }
 
 /**
- * A virtual node representing a DOM Element. 
+ * A virtual node representing a DOM Element.
  */
-export interface ElementVNode<TElement extends Element> extends VNodeBase {
+export interface ElementVNode<TElement extends Element> {
     readonly _: VNodeType.Element
     readonly tagName: string
     readonly props: GlobalAttributes<TElement> & { children: VNode[] }
-    domRef?: TElement
 }
 
-export interface FragmentVNode extends VNodeBase {
+export interface FragmentVNode {
     readonly _: VNodeType.Fragment
     readonly props: {
         children: VNode[]
         key?: Key
     }
-    domRef?: HTMLElement
 }
 
-export interface EffectWrapper {
-    arg: any
-    cleanup?: EffectCleanupCallback
-    effect: Effect
-    invoke: boolean
-    sync: boolean
-}
 
 /**
  * A virtual node representing a component.
  */
 export interface ComponentVNode<TProps> {
     readonly _: VNodeType.Component
-    readonly domRef?: Node
-    data?: any[]
-    /** A flag to indicate whether a new "renderComponent" call should be queued or not. */
-    debounceRender: boolean
-    effects?: Array<EffectWrapper>
-    errorHandler?: ErrorHandler
-    link: { vNode: ComponentVNode<TProps> }
     props: TProps
-    /** The most recent VNode tree of the component. */
-    rendition?: VNode
-    /** A stale component should not be rendered */
-    stale?: boolean
     /** The function that generates a VNode tree for the component. */
-    view: ComponentFactory<TProps>
+    readonly view: ComponentFactory<TProps>
 }
 
 /**

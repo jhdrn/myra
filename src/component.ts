@@ -1,7 +1,6 @@
 import {
     ComponentProps,
     ComponentVNode,
-    EffectWrapper,
     ElementVNode,
     FragmentVNode,
     NothingVNode,
@@ -9,18 +8,24 @@ import {
     VNode,
     VNodeType,
 } from './contract'
+import { ComponentLink, EffectWrapper, RenderNode } from './internal'
 
 interface IRenderingContext {
     hookIndex: number
     isSvg: boolean
-    memo?: boolean
-    oldVNode: VNode | undefined
+    /**
+     * Set to the current RenderNode when this is a same-component update from a
+     * parent re-render (allows memo to skip re-render). Undefined for initial
+     * renders, type changes, and state-change re-renders.
+     */
+    oldRenderNode: RenderNode | undefined
     parentElement: Element
-    vNode: ComponentVNode<ComponentProps>
+    renderNode: RenderNode
+    memo?: boolean
 }
 
 /**
- * The renderingContext is used to obtain context varibles from within "hooks".
+ * The renderingContext is used to obtain context variables from within "hooks".
  */
 let renderingContext: IRenderingContext | undefined
 
@@ -40,22 +45,22 @@ const fragmentNextSiblings: Node[] = []
 /**
  * Calls the error handler (if any) and renders the returned view.
  */
-export function tryHandleComponentError(parentElement: Element, vNode: ComponentVNode<ComponentProps>, isSvg: boolean, err: Error) {
+export function tryHandleComponentError(parentElement: Element, renderNode: RenderNode, isSvg: boolean, err: Error) {
 
     // Do nothing if the parentElement is not longer connected to the DOM
     if (parentElement.parentNode === null) {
         return
     }
 
-    if (vNode.errorHandler !== undefined) {
+    if (renderNode.errorHandler !== undefined) {
 
         renderingContext = undefined
 
-
         try {
-            const errorView = vNode.errorHandler(err)
-            render(parentElement, [errorView], vNode.rendition === undefined ? [] : [vNode.rendition], isSvg)
-            vNode.rendition = errorView
+            const errorView = renderNode.errorHandler(err)
+            const oldRendition = renderNode.rendition
+            const newRenditionNodes = render(parentElement, [errorView], oldRendition !== undefined ? [oldRendition] : [], isSvg)
+            renderNode.rendition = newRenditionNodes[0]
         } catch (handlerErr) {
             console.error('An error occurred in the error handler: ' + handlerErr)
             throw err
@@ -65,19 +70,21 @@ export function tryHandleComponentError(parentElement: Element, vNode: Component
     }
 }
 
-export function render(parentElement: Element, newChildVNodes: VNode[], oldChildVNodes: VNode[], isSvg = false) {
+export function render(parentElement: Element, newChildVNodes: VNode[], oldNodes: RenderNode[], isSvg = false): RenderNode[] {
+
+    const result: RenderNode[] = []
 
     if (newChildVNodes.length > 0) {
-        // Create a map holding references to all the old child 
-        // VNodes indexed by key
-        const keyMap: Record<string, [VNode, Node] | undefined> = {}
+        // Create a map holding references to all the old child
+        // RenderNodes indexed by key
+        const keyMap: Record<string, [RenderNode, Node | undefined] | undefined> = {}
 
         // Node "pool" for reuse
         const unkeyedNodes = new Set<Node>()
 
         let anyKeyedNodes = false
 
-        if (oldChildVNodes.length > 0) {
+        if (oldNodes.length > 0) {
             // Prepare the map with the keys from the new nodes
             for (let i = 0; i < newChildVNodes.length; i++) {
                 const newChildVNode = newChildVNodes[i] as ElementVNode<Element>
@@ -88,24 +95,28 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                 }
             }
 
-            // Go through the old child VNodes to see if there are any old ones matching the new VNodes
-            // let matchingKeyedNodes = false
+            // Go through the old RenderNodes to see if there are any matching the new VNodes
             if (anyKeyedNodes) {
-                for (let i = 0; i < oldChildVNodes.length; i++) {
-                    const oldChildVNode = oldChildVNodes[i]
-                    const props = (oldChildVNode as ElementVNode<HTMLElement>).props
+                for (let i = 0; i < oldNodes.length; i++) {
+                    const oldNode = oldNodes[i]
+                    const oldVNode = oldNode.vNode
+                    const props = (oldVNode as ElementVNode<HTMLElement>)?.props
 
                     if (props !== undefined && props !== null && props.key !== undefined) {
-                        let oldDOMNode = oldChildVNode.domRef!
+                        // For Component nodes, domRef is undefined — resolve through the rendition chain.
+                        let oldDOMNode: Node | undefined = getRenderNodeDomRef(oldNode)
 
-                        // In the case of a fragment, group all it's DOM nodes into a DocumentFragment
-                        if (oldChildVNode._ === VNodeType.Fragment || oldChildVNode._ === VNodeType.Component && oldChildVNode.rendition!._ === VNodeType.Fragment) {
-                            const fragmentNodes = getFragmentChildNodesRec(oldChildVNode._ === VNodeType.Component ? oldChildVNode.rendition as FragmentVNode : oldChildVNode)
+                        // In the case of a fragment, group all its DOM nodes into a DocumentFragment
+                        if (oldVNode?._ === VNodeType.Fragment ||
+                            oldVNode?._ === VNodeType.Component && oldNode.rendition?.vNode?._ === VNodeType.Fragment) {
+                            const fragmentNodes = getFragmentChildNodesRec(
+                                oldVNode?._ === VNodeType.Component ? oldNode.rendition! : oldNode
+                            )
                             const documentFragment = createDocumentFragmentNode()
                             const fragmentDOMNodes = Array<Node>(fragmentNodes.length)
 
-                            for (let i = 0; i < fragmentNodes.length; i++) {
-                                fragmentDOMNodes[i] = fragmentNodes[i].domRef
+                            for (let j = 0; j < fragmentNodes.length; j++) {
+                                fragmentDOMNodes[j] = getRenderNodeDomRef(fragmentNodes[j])!
                             }
 
                             documentFragment.append(...fragmentDOMNodes)
@@ -113,21 +124,18 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                             oldDOMNode = documentFragment
                         }
 
-                        // If the key has been added (from a new VNode), update it's value
+                        // If the key has been added (from a new VNode), update its value
                         if (props.key in keyMap) {
-                            keyMap[props.key] = [oldChildVNode, oldDOMNode]
+                            keyMap[props.key] = [oldNode, oldDOMNode]
                         }
                         // else save the DOM node for reuse or removal
-                        else if (oldDOMNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+                        else if (oldDOMNode?.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
                             const nodes = (oldDOMNode as DocumentFragment).childNodes
-                            for (let i = 0; i < nodes.length; i++) {
-                                const node = nodes.item(i)
-                                // if (elementContainsNode(parentElement, node)) {
-                                unkeyedNodes.add(node)
-                                // }
+                            for (let j = 0; j < nodes.length; j++) {
+                                unkeyedNodes.add(nodes.item(j))
                             }
                         }
-                        else /*if (elementContainsNode(parentElement, oldDOMNode))*/ {
+                        else if (oldDOMNode !== undefined) {
                             unkeyedNodes.add(oldDOMNode)
                         }
                     }
@@ -138,11 +146,11 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
         let domNodeAtIndex: Node | null = parentElement.firstChild
         let nextDomNode: Node | null = null
 
-        const oldChildVNodesToRemove = new Set<VNode>(oldChildVNodes)
+        const oldNodesToRemove = new Set<RenderNode>(oldNodes)
 
         for (let i = 0; i < newChildVNodes.length; i++) {
             const newChildVNode = newChildVNodes[i]
-            let oldChildVNode: VNode | undefined = oldChildVNodes[i]
+            let oldNode: RenderNode | undefined = oldNodes[i]
 
             if (domNodeAtIndex !== null) {
                 nextDomNode = domNodeAtIndex.nextSibling
@@ -150,27 +158,26 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
 
             const newProps = (newChildVNode as ElementVNode<Element>).props
             // Check if the new VNode is "keyed"
-            if (anyKeyedNodes && newProps !== undefined && newProps.key !== undefined && oldChildVNodes.length > 0) {
+            if (anyKeyedNodes && newProps !== undefined && newProps.key !== undefined && oldNodes.length > 0) {
 
                 const newChildVNodeKey = newProps.key
 
                 // Fetch the old keyed item from the key map
                 const keyMapEntry = keyMap[newChildVNodeKey]
 
-                // If there was no old matching key, reset oldChildVNode so 
-                // a new DOM node will be added (somewhat ugly) 
+                // If there was no old matching key, reset oldNode so
+                // a new DOM node will be added
                 if (keyMapEntry === undefined) {
                     if (domNodeAtIndex === null) {
-                        // unsetting the oldChildVNode will cause the DOM node to be appended
-                        oldChildVNode = undefined
+                        oldNode = undefined
                     }
                     else if (unkeyedNodes.size > 0) {
 
                         const domNode = unkeyedNodes.values().next().value!
                         unkeyedNodes.delete(domNode)
                         // ...reuse an old unkeyed node, if any available
-                        oldChildVNode = {
-                            _: VNodeType.Nothing,
+                        oldNode = {
+                            children: [],
                             domRef: domNode
                         }
 
@@ -178,38 +185,30 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
 
                         nextDomNode = domNode.nextSibling
                     } else {
-                        oldChildVNode = {
-                            _: VNodeType.Nothing,
+                        oldNode = {
+                            children: [],
                             domRef: domNodeAtIndex
                         }
                     }
                 }
-                // If there was a matching key, use the old vNodes dom ref
+                // If there was a matching key, use the old RenderNode
                 else {
 
-                    const [mappedVNode, domNode] = keyMapEntry
+                    const [mappedNode, domNode] = keyMapEntry
 
-                    oldChildVNodesToRemove.delete(mappedVNode)
+                    oldNodesToRemove.delete(mappedNode)
 
-                    oldChildVNode = mappedVNode
+                    oldNode = mappedNode
 
-                    // Move the matching dom node to it's new position
+                    // Move the matching dom node to its new position
                     if (domNode !== undefined && domNode !== domNodeAtIndex) {
-                        // DocumentFragment nodes are emptied when inserted into the DOM —
-                        // their children are moved into the parent and the fragment itself
-                        // has no parent afterwards, so domNode.nextSibling would always be
-                        // null. Capture the last child before insertion so we can find the
-                        // correct next sibling afterwards.
                         const lastFragmentChild = domNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE
                             ? domNode.lastChild
                             : null
 
-                        // If there is no DOM node at the current index,
-                        // the matching DOM node should be appended.
                         if (domNodeAtIndex === null) {
                             appendElementChild(parentElement, domNode)
                         }
-                        // Move the node by replacing the node at the current index
                         else if (elementContainsNode(parentElement, domNode)) {
 
                             replaceElementChild(parentElement, domNode, domNodeAtIndex)
@@ -224,188 +223,206 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldChild
                     }
                 }
             } else {
-                if (oldChildVNode !== undefined) {
-                    oldChildVNodesToRemove.delete(oldChildVNode)
+                if (oldNode !== undefined) {
+                    oldNodesToRemove.delete(oldNode)
                 }
 
                 // Remove the current DOM node from unkeyedNodes to make sure it's not reused!
                 unkeyedNodes.delete(domNodeAtIndex!)
             }
 
+            let newNode: RenderNode
             switch (newChildVNode._) {
                 case VNodeType.Component:
-                    renderComponentVNode(oldChildVNode, newChildVNode, parentElement, isSvg)
+                    newNode = renderComponentVNode(oldNode, newChildVNode, parentElement, isSvg)
                     break
 
                 case VNodeType.Element:
-                    renderElementVNode(oldChildVNode, newChildVNode, parentElement, isSvg)
+                    newNode = renderElementVNode(oldNode, newChildVNode, parentElement, isSvg)
                     break
 
                 case VNodeType.Fragment:
-                    renderFragmentVNode(oldChildVNode, newChildVNode, parentElement, isSvg)
+                    newNode = renderFragmentVNode(oldNode, newChildVNode, parentElement, isSvg)
                     break
 
                 case VNodeType.Nothing:
-                    renderNothingVNode(oldChildVNode, newChildVNode, parentElement)
+                    newNode = renderNothingVNode(oldNode, newChildVNode, parentElement)
                     break
 
                 case VNodeType.Text:
-                    renderTextVNode(oldChildVNode, newChildVNode, parentElement)
+                    newNode = renderTextVNode(oldNode, newChildVNode, parentElement)
                     break
             }
 
+            result.push(newNode!)
             domNodeAtIndex = nextDomNode
         }
 
-        oldChildVNodesToRemove.forEach(oldChildVNode => {
+        oldNodesToRemove.forEach(oldNode => {
             // Make sure any sub-components are "unmounted"
-            cleanupRecursively(oldChildVNode, false)
+            cleanupRecursively(oldNode, false)
 
-            if (oldChildVNode._ === VNodeType.Fragment) {
-                removeFragmentDOMNodes(parentElement, oldChildVNode)
-            } else if (oldChildVNode._ === VNodeType.Component && oldChildVNode.rendition?._ === VNodeType.Fragment) {
-                removeFragmentDOMNodes(parentElement, oldChildVNode.rendition as FragmentVNode)
+            const vNodeType = oldNode.vNode?._
+            if (vNodeType === VNodeType.Fragment) {
+                removeFragmentDOMNodes(parentElement, oldNode)
+            } else if (vNodeType === VNodeType.Component && oldNode.rendition?.vNode?._ === VNodeType.Fragment) {
+                removeFragmentDOMNodes(parentElement, oldNode.rendition!)
             } else {
-                const oldChildDomNode = oldChildVNode.domRef!
-                if (oldChildDomNode !== undefined && elementContainsNode(parentElement, oldChildDomNode)) {
-                    removeElementChild(parentElement, oldChildDomNode)
+                const domRef = getRenderNodeDomRef(oldNode)
+                if (domRef !== undefined && elementContainsNode(parentElement, domRef)) {
+                    removeElementChild(parentElement, domRef)
                 }
             }
         })
 
-    } else if (oldChildVNodes.length > 0) {
+    } else if (oldNodes.length > 0) {
         // no new nodes, clear DOM and clean up
         parentElement.replaceChildren()
 
-        for (let i = 0; i < oldChildVNodes.length; i++) {
+        for (let i = 0; i < oldNodes.length; i++) {
             // Make sure any sub-components are "unmounted"
-            cleanupRecursively(oldChildVNodes[i], false)
+            cleanupRecursively(oldNodes[i], false)
         }
     }
+
+    return result
 }
 
-function renderTextVNode(oldChildVNode: VNode | undefined, newChildVNode: TextVNode, parentElement: Element) {
-    if (oldChildVNode === undefined) {
-        const newNode = createAndSetTextNode(newChildVNode)
+function renderTextVNode(oldNode: RenderNode | undefined, newChildVNode: TextVNode, parentElement: Element): RenderNode {
+    const newRenderNode: RenderNode = { children: [], vNode: newChildVNode }
 
-        insertOrAppendDOMNode(parentElement, newNode)
+    if (oldNode === undefined) {
+        const el = document.createTextNode(newChildVNode.text)
+        newRenderNode.domRef = el
+        insertOrAppendDOMNode(parentElement, el)
     }
 
-    // Reuse the old DOM node and update it's text content if 
-    // changed
-    else if (oldChildVNode._ === VNodeType.Text) {
-        const domRef = oldChildVNode.domRef!
-        if (domRef!.nodeType !== Node.TEXT_NODE) {
-            createAndSetTextNode(newChildVNode)
-            replaceElementChild(parentElement, newChildVNode.domRef!, domRef!)
+    // Reuse the old DOM node and update its text content if changed
+    else if (oldNode.vNode?._ === VNodeType.Text) {
+        const domRef = oldNode.domRef!
+        if (domRef.nodeType !== Node.TEXT_NODE) {
+            const el = document.createTextNode(newChildVNode.text)
+            newRenderNode.domRef = el
+            replaceElementChild(parentElement, el, domRef)
         } else {
-            newChildVNode.domRef = domRef
+            newRenderNode.domRef = domRef
         }
         if (domRef.textContent !== newChildVNode.text) {
             domRef.textContent = newChildVNode.text
         }
     }
-    else if (oldChildVNode._ === VNodeType.Component && oldChildVNode.rendition!._ === VNodeType.Fragment) {
-        replaceFragmentWithTextNode(parentElement, newChildVNode, oldChildVNode.rendition as FragmentVNode)
+    else if (oldNode.vNode?._ === VNodeType.Component && oldNode.rendition?.vNode?._ === VNodeType.Fragment) {
+        replaceFragmentWithTextNode(parentElement, newChildVNode, oldNode.rendition!, newRenderNode)
     }
-    else if (oldChildVNode._ === VNodeType.Fragment) {
-        replaceFragmentWithTextNode(parentElement, newChildVNode, oldChildVNode)
+    else if (oldNode.vNode?._ === VNodeType.Fragment) {
+        replaceFragmentWithTextNode(parentElement, newChildVNode, oldNode, newRenderNode)
     }
     else {
-        replaceNode(parentElement, newChildVNode, oldChildVNode, oldChildVNode?.domRef)
+        replaceNode(parentElement, newChildVNode, oldNode, getRenderNodeDomRef(oldNode), undefined, newRenderNode)
     }
+
+    return newRenderNode
 }
 
-function renderNothingVNode(oldChildVNode: VNode | undefined, newChildVNode: NothingVNode, parentElement: Element) {
-    if (oldChildVNode === undefined) {
-        const newNode = createAndSetNothingNode(newChildVNode)
+function renderNothingVNode(oldNode: RenderNode | undefined, newChildVNode: NothingVNode, parentElement: Element): RenderNode {
+    const newRenderNode: RenderNode = { children: [], vNode: newChildVNode }
 
-        insertOrAppendDOMNode(parentElement, newNode)
+    if (oldNode === undefined) {
+        const el = document.createComment('Nothing')
+        newRenderNode.domRef = el
+        insertOrAppendDOMNode(parentElement, el)
     }
 
     // Reuse the old DOM node
-    else if (oldChildVNode._ === VNodeType.Nothing) {
-        const domRef = oldChildVNode.domRef
+    else if (oldNode.vNode?._ === VNodeType.Nothing) {
+        const domRef = oldNode.domRef
         if (domRef!.nodeType !== Node.COMMENT_NODE) {
-            createAndSetNothingNode(newChildVNode)
-            replaceElementChild(parentElement, newChildVNode.domRef!, domRef!)
+            const el = document.createComment('Nothing')
+            newRenderNode.domRef = el
+            replaceElementChild(parentElement, el, domRef!)
         } else {
-            newChildVNode.domRef = domRef
+            newRenderNode.domRef = domRef
         }
     }
-    else if (oldChildVNode._ === VNodeType.Component && oldChildVNode.rendition!._ === VNodeType.Fragment) {
-        replaceFragmentWithNothingNode(parentElement, newChildVNode, oldChildVNode.rendition as FragmentVNode)
+    else if (oldNode.vNode?._ === VNodeType.Component && oldNode.rendition?.vNode?._ === VNodeType.Fragment) {
+        replaceFragmentWithNothingNode(parentElement, newChildVNode, oldNode.rendition!, newRenderNode)
     }
-    else if (oldChildVNode._ === VNodeType.Fragment) {
-        replaceFragmentWithNothingNode(parentElement, newChildVNode, oldChildVNode)
+    else if (oldNode.vNode?._ === VNodeType.Fragment) {
+        replaceFragmentWithNothingNode(parentElement, newChildVNode, oldNode, newRenderNode)
     }
     else {
-        replaceNode(parentElement, newChildVNode, oldChildVNode, oldChildVNode.domRef!)
+        replaceNode(parentElement, newChildVNode, oldNode, getRenderNodeDomRef(oldNode), undefined, newRenderNode)
     }
+
+    return newRenderNode
 }
 
-function renderElementVNode(oldChildVNode: VNode | undefined, newChildVNode: ElementVNode<Element>, parentElement: Element, isSvg: boolean) {
+function renderElementVNode(oldNode: RenderNode | undefined, newChildVNode: ElementVNode<Element>, parentElement: Element, isSvg: boolean): RenderNode {
     if (newChildVNode.tagName === 'svg') {
         isSvg = true
     }
 
-    // Create a new DOM element, add it to the parent DOM element 
+    const newRenderNode: RenderNode = { children: [], vNode: newChildVNode }
+
+    // Create a new DOM element, add it to the parent DOM element
     // and render the children.
-    if (oldChildVNode === undefined) {
-        const newNode = createAndSetElement(newChildVNode, isSvg)
+    if (oldNode === undefined) {
+        const newElement = createAndSetElement(newChildVNode, isSvg, newRenderNode)
 
-        insertOrAppendDOMNode(parentElement, newNode)
+        insertOrAppendDOMNode(parentElement, newElement)
 
-        render(newNode, newChildVNode.props.children, [], isSvg)
+        newRenderNode.children = render(newElement, newChildVNode.props.children, [], isSvg)
     }
     // If the node type has not changed, reuse the old DOM node and
-    // update it's attributes
-    else if (oldChildVNode._ === VNodeType.Element && oldChildVNode.tagName === newChildVNode.tagName) {
+    // update its attributes
+    else if (oldNode.vNode?._ === VNodeType.Element && (oldNode.vNode as ElementVNode<Element>).tagName === newChildVNode.tagName) {
 
-        const domRef = oldChildVNode.domRef
+        const domRef = oldNode.domRef!
 
-        if (domRef!.nodeType !== Node.ELEMENT_NODE) {
-            createAndSetElement(newChildVNode, isSvg)
-            replaceElementChild(parentElement, newChildVNode.domRef!, domRef!)
+        if (domRef.nodeType !== Node.ELEMENT_NODE) {
+            createAndSetElement(newChildVNode, isSvg, newRenderNode)
+            replaceElementChild(parentElement, newRenderNode.domRef!, domRef)
         } else {
             // Reuse the same DOM element
-            newChildVNode.domRef = domRef
+            newRenderNode.domRef = domRef
         }
 
         // Update/remove/add any attributes
-        updateElementAttributes(newChildVNode, oldChildVNode, domRef)
+        updateElementAttributes(newChildVNode, oldNode.vNode as ElementVNode<Element>, domRef as Element)
 
         // Render the element's children
-        render(domRef as Element, newChildVNode.props.children, oldChildVNode.props.children, isSvg)
+        newRenderNode.children = render(domRef as Element, newChildVNode.props.children, oldNode.children, isSvg)
     }
-    else if (oldChildVNode._ === VNodeType.Component && oldChildVNode.rendition!._ === VNodeType.Fragment) {
-        replaceFragmentWithElementNode(parentElement, newChildVNode, oldChildVNode.rendition as FragmentVNode, isSvg)
+    else if (oldNode.vNode?._ === VNodeType.Component && oldNode.rendition?.vNode?._ === VNodeType.Fragment) {
+        newRenderNode.children = replaceFragmentWithElementNode(parentElement, newChildVNode, oldNode.rendition!, isSvg, newRenderNode)
     }
-    else if (oldChildVNode._ === VNodeType.Fragment) {
-        replaceFragmentWithElementNode(parentElement, newChildVNode, oldChildVNode, isSvg)
+    else if (oldNode.vNode?._ === VNodeType.Fragment) {
+        newRenderNode.children = replaceFragmentWithElementNode(parentElement, newChildVNode, oldNode, isSvg, newRenderNode)
     }
-    // Replace the old DOM node with a new element and render it's
-    // children
+    // Replace the old DOM node with a new element and render its children
     else {
-        replaceNode(parentElement, newChildVNode, oldChildVNode, oldChildVNode.domRef, isSvg)
-        render(newChildVNode.domRef!, newChildVNode.props.children, [], isSvg)
+        replaceNode(parentElement, newChildVNode, oldNode, getRenderNodeDomRef(oldNode), isSvg, newRenderNode)
+        newRenderNode.children = render(newRenderNode.domRef as Element, newChildVNode.props.children, [], isSvg)
     }
+
+    return newRenderNode
 }
 
-function renderFragmentVNode(oldChildVNode: VNode | undefined, newChildVNode: FragmentVNode, parentElement: Element, isSvg: boolean) {
+function renderFragmentVNode(oldNode: RenderNode | undefined, newChildVNode: FragmentVNode, parentElement: Element, isSvg: boolean): RenderNode {
+    const newRenderNode: RenderNode = { children: [], vNode: newChildVNode }
 
-    if (oldChildVNode === undefined) {
-        render(parentElement, newChildVNode.props.children, [], isSvg)
+    if (oldNode === undefined) {
+        newRenderNode.children = render(parentElement, newChildVNode.props.children, [], isSvg)
     }
-    else if (oldChildVNode._ === newChildVNode._) {
+    else if (oldNode.vNode?._ === VNodeType.Fragment) {
         const newChildren = newChildVNode.props.children
-        const oldChildren = oldChildVNode.props.children
+        const oldChildren = oldNode.children
 
         let nextSibling: Node | null = null
-        const allOldChildren = getFragmentChildNodesRec(oldChildVNode)
+        const allOldChildren = getFragmentChildNodesRec(oldNode)
         for (let i = allOldChildren.length - 1; i > -1; i--) {
             const child = allOldChildren[i]
-            const childDomRef = getVNodeDomRef(child)
+            const childDomRef = getRenderNodeDomRef(child)
             if (childDomRef !== undefined && childDomRef.parentElement === parentElement) {
                 nextSibling = childDomRef.nextSibling
                 break
@@ -415,120 +432,143 @@ function renderFragmentVNode(oldChildVNode: VNode | undefined, newChildVNode: Fr
             fragmentNextSiblings.push(nextSibling)
         }
 
-        render(parentElement, newChildren, oldChildren, isSvg)
+        newRenderNode.children = render(parentElement, newChildren, oldChildren, isSvg)
 
         if (fragmentNextSiblings[fragmentNextSiblings.length - 1] === nextSibling) {
             fragmentNextSiblings.pop()
         }
     }
-    else if (oldChildVNode._ === VNodeType.Component && oldChildVNode.rendition?._ === VNodeType.Fragment) {
-        cleanupRecursively(oldChildVNode, false)
+    else if (oldNode.vNode?._ === VNodeType.Component && oldNode.rendition?.vNode?._ === VNodeType.Fragment) {
+        cleanupRecursively(oldNode, false)
 
         const documentFragment = createDocumentFragmentNode()
 
-        render(documentFragment as unknown as Element, newChildVNode.props.children, [], isSvg)
+        newRenderNode.children = render(documentFragment as unknown as Element, newChildVNode.props.children, [], isSvg)
 
-        const oldNodes = getFragmentChildNodesRec(oldChildVNode.rendition as FragmentVNode)
-        const firstDomRef = oldNodes.length > 0 ? getVNodeDomRef(oldNodes[0]) : undefined
+        const oldFragmentNodes = getFragmentChildNodesRec(oldNode.rendition!)
+        const firstDomRef = oldFragmentNodes.length > 0 ? getRenderNodeDomRef(oldFragmentNodes[0]) : undefined
         if (firstDomRef !== undefined) {
             insertElementChildBefore(parentElement, documentFragment, firstDomRef)
         } else {
             appendElementChild(parentElement, documentFragment)
         }
-        for (let i = 0; i < oldNodes.length; i++) {
-            const domRef = getVNodeDomRef(oldNodes[i])
+        for (let i = 0; i < oldFragmentNodes.length; i++) {
+            const domRef = getRenderNodeDomRef(oldFragmentNodes[i])
             if (domRef !== undefined && elementContainsNode(parentElement, domRef)) {
                 removeElementChild(parentElement, domRef)
             }
         }
     }
     else {
-        cleanupRecursively(oldChildVNode, false)
+        cleanupRecursively(oldNode, false)
 
         const documentFragment = createDocumentFragmentNode()
 
-        render(documentFragment as unknown as Element, newChildVNode.props.children, [], isSvg)
+        newRenderNode.children = render(documentFragment as unknown as Element, newChildVNode.props.children, [], isSvg)
 
-        replaceElementChild(parentElement, documentFragment, oldChildVNode.domRef!)
+        const oldDomRef = getRenderNodeDomRef(oldNode)
+        if (oldDomRef !== undefined && elementContainsNode(parentElement, oldDomRef)) {
+            replaceElementChild(parentElement, documentFragment, oldDomRef)
+        } else {
+            insertOrAppendDOMNode(parentElement, documentFragment)
+        }
     }
+
+    return newRenderNode
 }
 
-function renderComponentVNode(oldChildVNode: VNode | undefined, newChildVNode: ComponentVNode<ComponentProps>, parentElement: Element, isSvg: boolean) {
-    let replaceOrUpdateVNode: VNode | undefined
+function renderComponentVNode(oldNode: RenderNode | undefined, newChildVNode: ComponentVNode<ComponentProps>, parentElement: Element, isSvg: boolean): RenderNode {
+    let renderNode: RenderNode
+    let replaceOrUpdateNode: RenderNode | undefined
+    let allowMemo = false
 
-    if (oldChildVNode !== undefined) {
-        if (oldChildVNode._ === VNodeType.Component) {
-            if (newChildVNode.view === oldChildVNode.view && newChildVNode.props.key === oldChildVNode.props.key) {
-                newChildVNode.data = oldChildVNode.data
-                newChildVNode.effects = oldChildVNode.effects
-                newChildVNode.errorHandler = oldChildVNode.errorHandler
-                newChildVNode.link = oldChildVNode.link
-                newChildVNode.link.vNode = newChildVNode
+    if (oldNode !== undefined) {
+        const oldVNode = oldNode.vNode
+        if (oldVNode?._ === VNodeType.Component) {
+            const oldComponentVNode = oldVNode as ComponentVNode<ComponentProps>
+            if (newChildVNode.view === oldComponentVNode.view && (newChildVNode.props as ComponentProps).key === (oldComponentVNode.props as ComponentProps).key) {
+                // Same component — reuse the render node, update the VNode reference
+                renderNode = oldNode
+                renderNode.vNode = newChildVNode
+                allowMemo = true
             } else {
-                cleanupRecursively(oldChildVNode, true)
+                cleanupRecursively(oldNode, true)
+                renderNode = { children: [], vNode: newChildVNode }
+                renderNode.link = { renderNode }
             }
 
-            replaceOrUpdateVNode = oldChildVNode.rendition
+            replaceOrUpdateNode = oldNode.rendition
 
         }
-        else if (oldChildVNode._ === VNodeType.Fragment) {
-            const oldNodes = getFragmentChildNodesRec(oldChildVNode)
+        else if (oldVNode?._ === VNodeType.Fragment) {
+            const oldFragmentNodes = getFragmentChildNodesRec(oldNode)
 
-            for (let i = 0; i < oldNodes.length; i++) {
-                const oldNode = oldNodes[i]
-                // ComponentVNode.domRef is always undefined — the real DOM lives in its
-                // rendition chain. Resolve to the leaf vnode so we can find the DOM ref.
-                const leafNode = oldNode._ === VNodeType.Component
-                    ? getLeafFromComponent(oldNode)
-                    : oldNode
-                const domRef = leafNode?.domRef
+            renderNode = { children: [], vNode: newChildVNode }
+            renderNode.link = { renderNode }
 
-                if (replaceOrUpdateVNode === undefined && domRef !== undefined) {
-                    cleanupRecursively(oldNode, false)
-                    replaceOrUpdateVNode = leafNode!
+            for (let i = 0; i < oldFragmentNodes.length; i++) {
+                const oldFragChild = oldFragmentNodes[i]
+                const domRef = getRenderNodeDomRef(oldFragChild)
+
+                if (replaceOrUpdateNode === undefined && domRef !== undefined) {
+                    cleanupRecursively(oldFragChild, false)
+                    replaceOrUpdateNode = oldFragChild
                 }
                 else if (domRef !== undefined) {
-                    cleanupRecursively(oldNode, false)
+                    cleanupRecursively(oldFragChild, false)
                     removeElementChild(parentElement, domRef)
                 }
             }
         }
         else {
-            cleanupRecursively(oldChildVNode, true)
-            replaceOrUpdateVNode = oldChildVNode
+            cleanupRecursively(oldNode, true)
+            renderNode = { children: [], vNode: newChildVNode }
+            renderNode.link = { renderNode }
+            replaceOrUpdateNode = oldNode
         }
+    } else {
+        renderNode = { children: [], vNode: newChildVNode }
+        renderNode.link = { renderNode }
     }
 
     renderComponent(
         parentElement,
         newChildVNode,
-        oldChildVNode,
-        replaceOrUpdateVNode,
-        isSvg
+        renderNode,
+        replaceOrUpdateNode,
+        isSvg,
+        allowMemo
     )
+
+    return renderNode
 }
 
 /**
- * Renders a component and then triggers any effects
+ * Renders a component and then triggers any effects.
  */
 export function renderComponent(
     parentElement: Element,
-    newVNode: ComponentVNode<ComponentProps>,
-    oldVNode: VNode | undefined,
-    replaceOrUpdateVNode: VNode | undefined,
-    isSvg: boolean
+    vNode: ComponentVNode<ComponentProps>,
+    renderNode: RenderNode,
+    replaceOrUpdateNode: RenderNode | undefined,
+    isSvg: boolean,
+    allowMemo = false
 ) {
-    if (renderingContext === undefined && !newVNode.stale) {
+    if (renderingContext === undefined && !renderNode.stale) {
         try {
             renderingContext = {
-                vNode: newVNode,
+                renderNode,
                 isSvg,
-                oldVNode,
+                // For memo: set to the current renderNode if this is a
+                // same-component update from a parent re-render. Undefined
+                // for initial renders, type changes, and state-change
+                // re-renders so that memo is never skipped in those cases.
+                oldRenderNode: allowMemo ? renderNode : undefined,
                 parentElement,
                 hookIndex: 0
             }
 
-            const rawView = newVNode.view(newVNode.props)
+            const rawView = vNode.view(vNode.props)
             let newView: VNode
             if (rawView === null || rawView === undefined || typeof rawView === 'boolean') {
                 newView = { _: VNodeType.Nothing }
@@ -538,29 +578,27 @@ export function renderComponent(
                 newView = rawView as VNode
             }
 
-            if (oldVNode !== undefined && oldVNode._ === VNodeType.Component && renderingContext!.memo) {
-
-                newVNode.rendition = oldVNode.rendition
-
+            if (renderingContext!.memo) {
+                // Props are equal — rendition is already preserved on
+                // renderNode from the previous render cycle; just return.
                 renderingContext = undefined
-
                 return
             }
 
             renderingContext = undefined
 
-            render(parentElement, [newView], replaceOrUpdateVNode === undefined ? [] : [replaceOrUpdateVNode], isSvg)
+            const newRenditionNodes = render(parentElement, [newView], replaceOrUpdateNode !== undefined ? [replaceOrUpdateNode] : [], isSvg)
 
-            newVNode.rendition = newView
+            renderNode.rendition = newRenditionNodes[0]
 
             // Trigger synchronous effects (useLayoutEffect)
-            triggerEffects(newVNode, parentElement, isSvg, true)
+            triggerEffects(renderNode, parentElement, isSvg, true)
 
             // Trigger asynchronous effects (useEffect)
-            triggerEffects(newVNode, parentElement, isSvg, false)
+            triggerEffects(renderNode, parentElement, isSvg, false)
         }
         catch (err) {
-            tryHandleComponentError(parentElement, newVNode, isSvg, err as Error)
+            tryHandleComponentError(parentElement, renderNode, isSvg, err as Error)
         }
     }
 }
@@ -575,38 +613,38 @@ function insertOrAppendDOMNode(parentElement: Element, newNode: Node) {
     }
 }
 
-function removeFragmentDOMNodes(parentElement: Element, oldChildVNode: FragmentVNode,) {
-    const oldVNodes = getFragmentChildNodesRec(oldChildVNode)
-    for (let i = oldVNodes.length; i > 0; i--) {
-        const oldNode = oldVNodes[i - 1]
-        const domRef = getVNodeDomRef(oldNode)
+function removeFragmentDOMNodes(parentElement: Element, fragmentRenderNode: RenderNode) {
+    const oldNodes = getFragmentChildNodesRec(fragmentRenderNode)
+    for (let i = oldNodes.length; i > 0; i--) {
+        const oldNode = oldNodes[i - 1]
+        const domRef = getRenderNodeDomRef(oldNode)
         if (domRef !== undefined && elementContainsNode(parentElement, domRef)) {
             removeElementChild(parentElement, domRef)
         }
     }
 }
 
-function replaceFragmentWithElementNode(parentElement: Element, newChildVNode: ElementVNode<Element>, oldChildVNode: FragmentVNode, isSvg: boolean) {
-    const oldNodes = getFragmentChildNodesRec(oldChildVNode)
+function replaceFragmentWithElementNode(parentElement: Element, newChildVNode: ElementVNode<Element>, oldFragmentNode: RenderNode, isSvg: boolean, newRenderNode: RenderNode): RenderNode[] {
+    const oldNodes = getFragmentChildNodesRec(oldFragmentNode)
 
-    let reuseVNode: ElementVNode<Element> | undefined
-    let replaceVNode: VNode | undefined
+    let reuseNode: RenderNode | undefined
     let replaceDomRef: Node | undefined
     for (let i = 0; i < oldNodes.length; i++) {
         const oldNode = oldNodes[i]
-        const doReuseNode = reuseVNode === undefined && (oldNode as ElementVNode<Element>).tagName === newChildVNode.tagName
+        const doReuseNode = reuseNode === undefined &&
+            oldNode.vNode?._ === VNodeType.Element &&
+            (oldNode.vNode as ElementVNode<Element>).tagName === newChildVNode.tagName
 
         cleanupRecursively(oldNode, doReuseNode)
 
         // Check for a DOM node to reuse
         if (doReuseNode) {
-            reuseVNode = oldNode as ElementVNode<Element>
+            reuseNode = oldNode
         }
         // If no DOM node suitable for reuse is found, keep one to replace
         else {
-            const domRef = getVNodeDomRef(oldNode)
-            if (replaceVNode === undefined && domRef !== undefined) {
-                replaceVNode = oldNode
+            const domRef = getRenderNodeDomRef(oldNode)
+            if (replaceDomRef === undefined && domRef !== undefined) {
                 replaceDomRef = domRef
             }
             else if (domRef !== undefined) {
@@ -615,52 +653,55 @@ function replaceFragmentWithElementNode(parentElement: Element, newChildVNode: E
         }
     }
 
-    let oldChildren: VNode[] = []
-    if (reuseVNode !== undefined) {
+    let oldChildren: RenderNode[] = []
+    if (reuseNode !== undefined) {
 
-        // Clean up any temporary "replaceVNode"
+        // Clean up any temporary replaceDomRef
         if (replaceDomRef !== undefined) {
             removeElementChild(parentElement, replaceDomRef)
         }
 
         // Reuse the same DOM element
-        newChildVNode.domRef = reuseVNode.domRef
+        newRenderNode.domRef = reuseNode.domRef
 
         // Update/remove/add any attributes
-        updateElementAttributes(newChildVNode, reuseVNode, reuseVNode.domRef!)
+        updateElementAttributes(newChildVNode, reuseNode.vNode as ElementVNode<Element>, reuseNode.domRef as Element)
 
-        oldChildren = reuseVNode.props.children
+        oldChildren = reuseNode.children
     }
     // We should have a DOM node to replace in this case
     else {
-        replaceNode(parentElement, newChildVNode, replaceVNode!, replaceDomRef!, isSvg)
+        const newElement = createAndSetElement(newChildVNode, isSvg, newRenderNode)
+        if (replaceDomRef !== undefined && elementContainsNode(parentElement, replaceDomRef)) {
+            replaceElementChild(parentElement, newElement, replaceDomRef)
+        } else {
+            insertOrAppendDOMNode(parentElement, newElement)
+        }
     }
 
     // Render the element's children
-    render(newChildVNode.domRef as Element, newChildVNode.props.children, oldChildren, isSvg)
+    return render(newRenderNode.domRef as Element, newChildVNode.props.children, oldChildren, isSvg)
 }
 
-function replaceFragmentWithNothingNode(parentElement: Element, newChildVNode: NothingVNode, oldChildVNode: FragmentVNode) {
-    const oldNodes = getFragmentChildNodesRec(oldChildVNode)
+function replaceFragmentWithNothingNode(parentElement: Element, _newChildVNode: NothingVNode, oldFragmentNode: RenderNode, newRenderNode: RenderNode) {
+    const oldNodes = getFragmentChildNodesRec(oldFragmentNode)
 
-    let reuseVNode: NothingVNode | undefined
-    let replaceVNode: VNode | undefined
+    let reuseNode: RenderNode | undefined
     let replaceDomRef: Node | undefined
     for (let i = 0; i < oldNodes.length; i++) {
         const oldNode = oldNodes[i]
-        const doReuseNode = reuseVNode === undefined && oldNode._ === VNodeType.Nothing
+        const doReuseNode = reuseNode === undefined && oldNode.vNode?._ === VNodeType.Nothing
 
         cleanupRecursively(oldNode, doReuseNode)
 
         // Check for a DOM node to reuse
         if (doReuseNode) {
-            reuseVNode = oldNode
+            reuseNode = oldNode
         }
         // If no DOM node suitable for reuse is found, keep one to replace
         else {
-            const domRef = getVNodeDomRef(oldNode)
-            if (replaceVNode === undefined && domRef !== undefined) {
-                replaceVNode = oldNode
+            const domRef = getRenderNodeDomRef(oldNode)
+            if (replaceDomRef === undefined && domRef !== undefined) {
                 replaceDomRef = domRef
             }
             else if (domRef !== undefined) {
@@ -669,44 +710,48 @@ function replaceFragmentWithNothingNode(parentElement: Element, newChildVNode: N
         }
     }
 
-    if (reuseVNode !== undefined) {
+    if (reuseNode !== undefined) {
 
-        // Clean up any temporary "replaceVNode"
+        // Clean up any temporary replaceDomRef
         if (replaceDomRef !== undefined) {
             removeElementChild(parentElement, replaceDomRef)
         }
 
         // Reuse the same DOM element
-        newChildVNode.domRef = reuseVNode.domRef
+        newRenderNode.domRef = reuseNode.domRef
     }
 
     // We should have a DOM node to replace in this case
     else {
-        replaceNode(parentElement, newChildVNode, replaceVNode!, replaceDomRef!)
+        const el = document.createComment('Nothing')
+        newRenderNode.domRef = el
+        if (replaceDomRef !== undefined && elementContainsNode(parentElement, replaceDomRef)) {
+            replaceElementChild(parentElement, el, replaceDomRef)
+        } else {
+            insertOrAppendDOMNode(parentElement, el)
+        }
     }
 }
 
-function replaceFragmentWithTextNode(parentElement: Element, newChildVNode: TextVNode, oldChildVNode: FragmentVNode) {
-    const oldNodes = getFragmentChildNodesRec(oldChildVNode)
+function replaceFragmentWithTextNode(parentElement: Element, newChildVNode: TextVNode, oldFragmentNode: RenderNode, newRenderNode: RenderNode) {
+    const oldNodes = getFragmentChildNodesRec(oldFragmentNode)
 
-    let reuseVNode: TextVNode | undefined
-    let replaceVNode: VNode | undefined
+    let reuseNode: RenderNode | undefined
     let replaceDomRef: Node | undefined
     for (let i = 0; i < oldNodes.length; i++) {
         const oldNode = oldNodes[i]
-        const doReuseNode = reuseVNode === undefined && oldNode._ === VNodeType.Text
+        const doReuseNode = reuseNode === undefined && oldNode.vNode?._ === VNodeType.Text
 
         cleanupRecursively(oldNode, doReuseNode)
 
         // Check for a DOM node to reuse
         if (doReuseNode) {
-            reuseVNode = oldNode
+            reuseNode = oldNode
         }
         // If no DOM node suitable for reuse is found keep one to replace
         else {
-            const domRef = getVNodeDomRef(oldNode)
-            if (replaceVNode === undefined && domRef !== undefined) {
-                replaceVNode = oldNode
+            const domRef = getRenderNodeDomRef(oldNode)
+            if (replaceDomRef === undefined && domRef !== undefined) {
                 replaceDomRef = domRef
             }
             else if (domRef !== undefined) {
@@ -715,103 +760,117 @@ function replaceFragmentWithTextNode(parentElement: Element, newChildVNode: Text
         }
     }
 
-    if (reuseVNode !== undefined) {
+    if (reuseNode !== undefined) {
 
-        // Clean up any temporary "replaceVNode"
+        // Clean up any temporary replaceDomRef
         if (replaceDomRef !== undefined) {
             removeElementChild(parentElement, replaceDomRef)
         }
 
         // Reuse the same DOM element
-        const reuseNode = reuseVNode.domRef!
-        reuseNode.textContent = newChildVNode.text
-        newChildVNode.domRef = reuseNode
+        const reuseNode_ = reuseNode.domRef!
+        reuseNode_.textContent = newChildVNode.text
+        newRenderNode.domRef = reuseNode_
     }
 
     // We should have a DOM node to replace in this case
     else {
-        replaceNode(parentElement, newChildVNode, replaceVNode!, replaceDomRef!)
+        const el = document.createTextNode(newChildVNode.text)
+        newRenderNode.domRef = el
+        if (replaceDomRef !== undefined && elementContainsNode(parentElement, replaceDomRef)) {
+            replaceElementChild(parentElement, el, replaceDomRef)
+        } else {
+            insertOrAppendDOMNode(parentElement, el)
+        }
     }
 }
 
-function replaceNode(parentElement: Element, newChildVNode: NothingVNode | TextVNode | ElementVNode<Element>, oldChildVNode: VNode, oldDomNode: Node, isSvg = false) {
+function replaceNode(parentElement: Element, newChildVNode: NothingVNode | TextVNode | ElementVNode<Element>, oldNode: RenderNode, oldDomNode: Node | undefined, isSvg: boolean | undefined, newRenderNode: RenderNode) {
 
-    cleanupRecursively(oldChildVNode, false)
+    cleanupRecursively(oldNode, false)
 
     let newNode: Node
     switch (newChildVNode._) {
         case VNodeType.Element:
-            newNode = createAndSetElement(newChildVNode, isSvg)
+            newNode = createAndSetElement(newChildVNode, isSvg ?? false, newRenderNode)
             break
         case VNodeType.Text:
-            newNode = createAndSetTextNode(newChildVNode)
+            newNode = document.createTextNode((newChildVNode as TextVNode).text)
+            newRenderNode.domRef = newNode
             break
         case VNodeType.Nothing:
-            newNode = createAndSetNothingNode(newChildVNode)
+            newNode = document.createComment('Nothing')
+            newRenderNode.domRef = newNode
             break
     }
 
-    replaceElementChild(parentElement, newNode, oldDomNode)
+    if (oldDomNode !== undefined && elementContainsNode(parentElement, oldDomNode)) {
+        replaceElementChild(parentElement, newNode!, oldDomNode)
+    } else {
+        insertOrAppendDOMNode(parentElement, newNode!)
+    }
 }
 
-/** 
- * Traverses the virtual node hierarchy and unmounts any components in the 
- * hierarchy.
+/**
+ * Traverses the render node hierarchy and unmounts any components.
  */
-function cleanupRecursively(vNode: VNode | undefined, removeEventListeners: boolean) {
-    if (vNode === undefined) {
+function cleanupRecursively(renderNode: RenderNode | undefined, removeEventListeners: boolean) {
+    if (renderNode === undefined) {
         return
     }
 
-    if (vNode._ === VNodeType.Component) {
+    const vNode = renderNode.vNode
+
+    if (vNode?._ === VNodeType.Component) {
         // Attempt to call any "cleanup" function for all effects before unmount.
-        const effects = vNode.effects
+        const effects = renderNode.effects
         if (effects !== undefined) {
             for (const i in effects) {
                 attemptEffectCleanup(effects[i])
             }
         }
 
-        vNode.stale = true
+        renderNode.stale = true
 
-        cleanupRecursively(vNode.rendition!, removeEventListeners)
+        cleanupRecursively(renderNode.rendition, removeEventListeners)
     }
-    else if (vNode._ === VNodeType.Element || vNode._ === VNodeType.Fragment) {
+    else if (vNode?._ === VNodeType.Element || vNode?._ === VNodeType.Fragment) {
         if (vNode._ === VNodeType.Element && removeEventListeners) {
 
-            // If the old VNode is an element node, remove old event listeners 
-            for (const attr in vNode.props) {
+            // If the old VNode is an element node, remove old event listeners
+            for (const attr in (vNode as ElementVNode<Element>).props) {
                 if (attr.indexOf('on') === 0) {
-                    removeElementAttribute(attr, vNode.domRef as Element)
+                    removeElementAttribute(attr, renderNode.domRef as Element)
                 }
             }
         }
 
-        for (const c of vNode.props.children) {
+        for (const c of renderNode.children) {
             cleanupRecursively(c, removeEventListeners)
         }
     }
 }
 
 /**
- * Recursively traverses the vNode tree, finds all fragment child nodes and
- * returns them as a flattened array.
+ * Recursively traverses the RenderNode tree, finds all fragment child nodes
+ * and returns them as a flattened array.
  */
-function getFragmentChildNodesRec(fragmentNode: FragmentVNode): VNode[] {
-    const nodes: VNode[] = []
-    for (const fragmentChild of fragmentNode.props.children) {
-        if (fragmentChild._ === VNodeType.Fragment) {
-            nodes.push(...getFragmentChildNodesRec(fragmentChild))
+function getFragmentChildNodesRec(fragmentNode: RenderNode): RenderNode[] {
+    const nodes: RenderNode[] = []
+    for (const child of fragmentNode.children) {
+        const vNodeType = child.vNode?._
+        if (vNodeType === VNodeType.Fragment) {
+            nodes.push(...getFragmentChildNodesRec(child))
         }
-        else if (fragmentChild._ === VNodeType.Component) {
-            const innerFragment = getComponentRenderedFragment(fragmentChild)
+        else if (vNodeType === VNodeType.Component) {
+            const innerFragment = getComponentRenderedFragment(child)
             if (innerFragment !== undefined) {
                 nodes.push(...getFragmentChildNodesRec(innerFragment))
             } else {
-                nodes.push(fragmentChild)
+                nodes.push(child)
             }
         } else {
-            nodes.push(fragmentChild)
+            nodes.push(child)
         }
     }
     return nodes
@@ -819,57 +878,52 @@ function getFragmentChildNodesRec(fragmentNode: FragmentVNode): VNode[] {
 
 /**
  * Follows a component's rendition chain and returns the first non-Component
- * VNode encountered (the leaf), or undefined if the component has not rendered.
- * Used to resolve the actual DOM reference for a ComponentVNode.
+ * RenderNode encountered (the leaf), or undefined if the component has not rendered.
  */
-function getLeafFromComponent(vNode: ComponentVNode<ComponentProps>): VNode | undefined {
-    const rendition = vNode.rendition
+function getLeafFromComponent(renderNode: RenderNode): RenderNode | undefined {
+    const rendition = renderNode.rendition
     if (rendition === undefined) {
         return undefined
     }
-    if (rendition._ === VNodeType.Component) {
+    if (rendition.vNode?._ === VNodeType.Component) {
         return getLeafFromComponent(rendition)
     }
     return rendition
 }
 
 /**
- * Returns the DOM node associated with a VNode, resolving through component
- * rendition chains when the VNode is a ComponentVNode (which has no domRef of
- * its own). Used when callers need the actual DOM node for a node that may be
- * a component rendering a non-fragment leaf.
+ * Returns the DOM node associated with a RenderNode, resolving through
+ * component rendition chains when the RenderNode is for a component.
  */
-function getVNodeDomRef(vNode: VNode): Node | undefined {
-    if (vNode._ === VNodeType.Component) {
-        return getLeafFromComponent(vNode)?.domRef
+function getRenderNodeDomRef(renderNode: RenderNode): Node | undefined {
+    if (renderNode.vNode?._ === VNodeType.Component) {
+        return getLeafFromComponent(renderNode)?.domRef
     }
-    return vNode.domRef
+    return renderNode.domRef
 }
 
 /**
- * Follows a component's rendition chain and returns the first FragmentVNode
- * encountered, or undefined if the component renders a non-fragment leaf.
+ * Follows a component's rendition chain and returns the first fragment
+ * RenderNode encountered, or undefined if the component renders a non-fragment.
  */
-function getComponentRenderedFragment(vNode: ComponentVNode<ComponentProps>): FragmentVNode | undefined {
-    const rendition = vNode.rendition
+function getComponentRenderedFragment(renderNode: RenderNode): RenderNode | undefined {
+    const rendition = renderNode.rendition
     if (rendition === undefined) {
         return undefined
     }
-    if (rendition._ === VNodeType.Fragment) {
+    if (rendition.vNode?._ === VNodeType.Fragment) {
         return rendition
     }
-    if (rendition._ === VNodeType.Component) {
+    if (rendition.vNode?._ === VNodeType.Component) {
         return getComponentRenderedFragment(rendition)
     }
     return undefined
 }
 
-/** 
- * Sets an attribute or event listener on an Element. 
+/**
+ * Sets an attribute or event listener on an Element.
  */
 function setElementAttribute(el: Element, attributeName: string, attributeValue: string) {
-    // The the "value" attribute shoud be set explicitly (and only if it has 
-    // changed) to prevent jumping cursors in some browsers (Safari)
     if (attributeName === 'value' && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT')) {
         if ((el as HTMLInputElement).value !== attributeValue) {
             (el as HTMLInputElement).value = attributeValue
@@ -892,8 +946,8 @@ function setElementAttribute(el: Element, attributeName: string, attributeValue:
     }
 }
 
-/** 
- * Removes an attribute or event listener from an HTMLElement. 
+/**
+ * Removes an attribute or event listener from an HTMLElement.
  */
 function removeElementAttribute(a: string, el: Element) {
     if (a.indexOf('on') === 0) {
@@ -906,11 +960,11 @@ function removeElementAttribute(a: string, el: Element) {
 
 
 /**
- * Sets/removes attributes on an DOM element node
+ * Sets/removes attributes on a DOM element node.
  */
-function updateElementAttributes(newVNode: ElementVNode<Element>, oldVNode: VNode, existingDomNode: Element) {
+function updateElementAttributes(newVNode: ElementVNode<Element>, oldVNode: ElementVNode<Element>, existingDomNode: Element) {
     const newProps = newVNode.props
-    const oldProps = (oldVNode as ElementVNode<Element>).props
+    const oldProps = oldVNode.props
     // remove any attributes that were in the old virtual node but are absent in
     // the new one, or whose event handler reference has changed.
     for (const attributeName in oldProps) {
@@ -938,9 +992,6 @@ function updateElementAttributes(newVNode: ElementVNode<Element>, oldVNode: VNod
         attributeValue = (newProps as any)[name]
         hasAttr = (existingDomNode).hasAttribute(name)
 
-        // We need to check the actual DOM value of the "value" property
-        // otherwise it may not be updated if the new prop value equals the old 
-        // prop value
         if (name === 'value' && name in existingDomNode) {
             oldAttributeValue = (existingDomNode as HTMLInputElement).value
         } else {
@@ -963,8 +1014,8 @@ function updateElementAttributes(newVNode: ElementVNode<Element>, oldVNode: VNod
 /**
  * Triggers all invokeable effects.
  */
-function triggerEffects(newVNode: ComponentVNode<ComponentProps>, parentElement: Element, isSvg: boolean, sync: boolean) {
-    const effects = newVNode.effects
+function triggerEffects(renderNode: RenderNode, parentElement: Element, isSvg: boolean, sync: boolean) {
+    const effects = renderNode.effects
     if (effects !== undefined) {
         for (const i in effects) {
             const t = effects[i]
@@ -975,7 +1026,7 @@ function triggerEffects(newVNode: ComponentVNode<ComponentProps>, parentElement:
                     t.invoke = false
                 } else if (!sync) {
                     setTimeout(() => {
-                        if (newVNode.stale) {
+                        if (renderNode.stale) {
                             return
                         }
                         try {
@@ -983,7 +1034,7 @@ function triggerEffects(newVNode: ComponentVNode<ComponentProps>, parentElement:
 
                             t.cleanup = t.effect()
                         } catch (err) {
-                            tryHandleComponentError(parentElement, newVNode, isSvg, err as Error)
+                            tryHandleComponentError(parentElement, renderNode, isSvg, err as Error)
                         }
                     }, 0)
                     t.invoke = false
@@ -994,7 +1045,7 @@ function triggerEffects(newVNode: ComponentVNode<ComponentProps>, parentElement:
 }
 
 /**
- * Calls the cleanup function if it's set and then removes it from the wrapper
+ * Calls the cleanup function if it's set and then removes it from the wrapper.
  */
 function attemptEffectCleanup(t: EffectWrapper) {
     if (t.cleanup !== undefined) {
@@ -1008,10 +1059,10 @@ function attemptEffectCleanup(t: EffectWrapper) {
 }
 
 /**
- * Creates a DOM element, set it's attributes from vNode.props, and sets the
- * new Element to vNode.domRef.
+ * Creates a DOM element, sets its attributes from vNode.props, and sets the
+ * new Element to renderNode.domRef.
  */
-function createAndSetElement(vNode: ElementVNode<Element>, isSvg: boolean): Element {
+function createAndSetElement(vNode: ElementVNode<Element>, isSvg: boolean, renderNode: RenderNode): Element {
 
     const attributes = vNode.props
     const tagName = vNode.tagName
@@ -1040,27 +1091,8 @@ function createAndSetElement(vNode: ElementVNode<Element>, isSvg: boolean): Elem
         }
     }
 
-    vNode.domRef = el
+    renderNode.domRef = el
 
-    return el
-}
-
-/**
- * Creates a comment DOM node and sets it to vNode.domRef.
- */
-function createAndSetNothingNode(vNode: NothingVNode): Node {
-    const el = document.createComment('Nothing')
-    vNode.domRef = el
-    return el
-}
-
-/**
- * Creates a text DOM node with textContent set to vNode.text and sets it to 
- * vNode.domRef.
- */
-function createAndSetTextNode(vNode: TextVNode): Node {
-    const el = document.createTextNode(vNode.text)
-    vNode.domRef = el
     return el
 }
 
@@ -1087,3 +1119,6 @@ function replaceElementChild(parentElement: Element, newChild: Node, oldChild: N
 function removeElementChild(parentElement: Element, oldDOMNode: Node) {
     parentElement.removeChild(oldDOMNode)
 }
+
+// Re-export ComponentLink so hooks.ts can use the type
+export type { ComponentLink }

@@ -57,8 +57,8 @@ describe('component render', () => {
         })
 
         const vNode = <Component val={45} />
-        render(document.body, [vNode], [])
-        render(document.body, [<Component val={45} />], [vNode])
+        const oldNodes = render(document.body, [vNode], [])
+        render(document.body, [<Component val={45} />], oldNodes)
 
         expect(mock.beforeRender.callCount).to.eq(1)
     })
@@ -75,10 +75,10 @@ describe('component render', () => {
         }
 
         const vNode = <Component prop="a value" />
-        render(document.body, [vNode], [])
+        const oldNodes = render(document.body, [vNode], [])
 
         const newVNode = <Component prop="a new value" />
-        render(document.body, [newVNode], [vNode])
+        render(document.body, [newVNode], oldNodes)
 
         expect(mock.callback.callCount).to.eq(2)
     })
@@ -94,10 +94,10 @@ describe('component render', () => {
         })
 
         const vNode = <Component>Child A</Component>
-        render(document.body, [vNode], [])
+        const oldNodes = render(document.body, [vNode], [])
 
         const newVNode = <Component>Child A</Component>
-        render(document.body, [newVNode], [vNode])
+        render(document.body, [newVNode], oldNodes)
 
         expect(mock.callback.callCount).to.eq(1)
     })
@@ -113,10 +113,10 @@ describe('component render', () => {
         })
 
         const vNode = <Component>Child A</Component>
-        render(document.body, [vNode], [])
+        const oldNodes = render(document.body, [vNode], [])
 
         const newVNode = <Component>Child B</Component>
-        render(document.body, [newVNode], [vNode])
+        render(document.body, [newVNode], oldNodes)
 
         expect(mock.callback.callCount).to.eq(2)
     })
@@ -194,11 +194,11 @@ describe('component return value normalization', () => {
         const Component = () => show ? <div id="it" /> : null
 
         const vNode = <Component />
-        render(document.body, [vNode], [])
+        const oldNodes = render(document.body, [vNode], [])
 
         show = true
         const newVNode = <Component />
-        render(document.body, [newVNode], [vNode])
+        render(document.body, [newVNode], oldNodes)
 
         expect(q('#it')).not.to.be.null
     })
@@ -208,11 +208,11 @@ describe('component return value normalization', () => {
         const Component = () => show ? <div id="it" /> : null
 
         const vNode = <Component />
-        render(document.body, [vNode], [])
+        const oldNodes = render(document.body, [vNode], [])
 
         show = false
         const newVNode = <Component />
-        render(document.body, [newVNode], [vNode])
+        render(document.body, [newVNode], oldNodes)
 
         expect(q('#it')).to.be.null
         expect(document.body.firstChild!.nodeType).to.eq(Node.COMMENT_NODE)

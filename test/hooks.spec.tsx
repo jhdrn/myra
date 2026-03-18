@@ -1,5 +1,5 @@
 import { render } from '../src/component'
-import { ComponentVNode, Ref } from '../src/contract'
+import { Ref } from '../src/contract'
 import { useCallback, useEffect, useErrorHandler, useLayoutEffect, useMemo, useReducer, useRef, useState } from '../src/hooks'
 import * as myra from '../src/myra'
 import { expect } from 'chai'
@@ -8,6 +8,10 @@ import * as sinon from 'sinon'
 const tick = (ms = 0) => new Promise<void>(resolve => setTimeout(resolve, ms))
 
 const q = (x: string) => document.querySelector(x)
+
+beforeEach(() => {
+    document.body.innerHTML = ''
+})
 
 describe('useEffect', () => {
 
@@ -83,10 +87,10 @@ describe('useEffect', () => {
             return <div />
         }
         const componentInstance = <Component />
-        render(document.body, [componentInstance], [])
+        const oldNodes = render(document.body, [componentInstance], [])
 
         await tick()
-        render(document.body, [<nothing />], [componentInstance])
+        render(document.body, [<nothing />], oldNodes)
         await tick()
         expect(mock.callback.callCount).to.eq(1)
     })
@@ -101,10 +105,10 @@ describe('useEffect', () => {
             return <div />
         }
         const componentInstance = <Component />
-        render(document.body, [componentInstance], [])
+        const oldNodes = render(document.body, [componentInstance], [])
 
         await tick()
-        render(document.body, [<nothing />], [componentInstance])
+        render(document.body, [<nothing />], oldNodes)
         await tick()
         expect(mock.callback.callCount).to.eq(1)
     })
@@ -119,10 +123,10 @@ describe('useEffect', () => {
             return <div />
         }
         const componentInstance = <Component />
-        render(document.body, [componentInstance], [])
+        const oldNodes = render(document.body, [componentInstance], [])
 
         await tick()
-        render(document.body, [<nothing />], [componentInstance])
+        render(document.body, [<nothing />], oldNodes)
         await tick()
         expect(mock.callback.callCount).to.eq(1)
     })
@@ -165,10 +169,10 @@ describe('useEffect', () => {
         }
 
         const view1 = <Component />
-        render(container, [view1], [])
+        const oldNodes = render(container, [view1], [])
 
         // Immediately unmount by replacing with a nothing node
-        render(container, [<nothing />], [view1])
+        render(container, [<nothing />], oldNodes)
 
         await tick()
         expect(mock.callback.callCount).to.eq(0)
@@ -236,9 +240,9 @@ describe('useLayoutEffect', () => {
             return <div />
         }
         const componentInstance = <Component />
-        render(document.body, [componentInstance], [])
+        const oldNodes1 = render(document.body, [componentInstance], [])
 
-        render(document.body, [<nothing />], [componentInstance])
+        render(document.body, [<nothing />], oldNodes1)
 
         await tick()
         expect(mock.callback.callCount).to.eq(1)
@@ -254,9 +258,9 @@ describe('useLayoutEffect', () => {
             return <div />
         }
         const componentInstance = <Component />
-        render(document.body, [componentInstance], [])
+        const oldNodes2 = render(document.body, [componentInstance], [])
 
-        render(document.body, [<nothing />], [componentInstance])
+        render(document.body, [<nothing />], oldNodes2)
 
         await tick()
         expect(mock.callback.callCount).to.eq(1)
@@ -296,13 +300,13 @@ describe('useMemo', () => {
             return <div />
         }
         const vNode = <Component />
-        render(document.body, [vNode], [])
+        const oldNodes1 = render(document.body, [vNode], [])
 
         await tick()
         const firstFn = fn!
 
         await tick()
-        render(document.body, [<Component />], [vNode])
+        render(document.body, [<Component />], oldNodes1)
 
         expect(firstFn).to.be.eq(fn!)
     })
@@ -318,13 +322,13 @@ describe('useMemo', () => {
             return <div />
         }
         const vNode1 = <Component input={1} />
-        render(document.body, [vNode1], [])
+        const oldNodes2 = render(document.body, [vNode1], [])
 
         await tick()
         const firstFn = fn!
 
         await tick()
-        render(document.body, [<Component input={2} />], [vNode1])
+        render(document.body, [<Component input={2} />], oldNodes2)
 
         expect(firstFn).not.to.be.eq(fn!)
     })
@@ -360,7 +364,7 @@ describe('useRef', () => {
         render(document.body, [vNode], [])
 
         await tick()
-        expect(ref.current).to.be.eq(vNode.domRef)
+        expect(ref.current).to.be.eq(document.body.firstChild)
     })
     it('is populated with a child element DOM node when supplied as a ref attribute', async () => {
 
@@ -375,7 +379,7 @@ describe('useRef', () => {
         render(document.body, [vNode], [])
 
         await tick()
-        expect(ref.current).to.be.eq(vNode.domRef.firstChild)
+        expect(ref.current).to.be.eq(document.body.firstChild!.firstChild)
     })
 
     it('takes the "current" value as an argument and sets it on the returned object', async () => {
@@ -405,10 +409,10 @@ describe('useRef', () => {
             return <div />
         }
         const vNode = <Component />
-        render(document.body, [vNode], [])
+        const oldNodes = render(document.body, [vNode], [])
 
         await tick()
-        render(document.body, [<Component />], [vNode])
+        render(document.body, [<Component />], oldNodes)
         expect(ref.current).to.eq('bar')
     })
 
@@ -443,8 +447,8 @@ describe('useErrorHandling', () => {
         const vNode = <Component />
         render(document.body, [vNode], [])
 
-        expect(vNode.domRef.nodeType).to.be.eq(Node.COMMENT_NODE)
-        expect(vNode.domRef.textContent).to.be.eq('Nothing')
+        expect(document.body.firstChild!.nodeType).to.be.eq(Node.COMMENT_NODE)
+        expect(document.body.firstChild!.textContent).to.be.eq('Nothing')
         expect(mock.callback.called).to.be.true
     })
 
@@ -467,7 +471,7 @@ describe('useErrorHandling', () => {
         myra.mount(component, document.body)
 
         await tick()
-        const node = (component as ComponentVNode<unknown>).domRef!
+        const node = document.body.firstChild as Element
 
         expect(node.nodeType).to.be.eq(Node.COMMENT_NODE)
         expect(node.textContent).to.be.eq('Nothing')
@@ -495,7 +499,7 @@ describe('useErrorHandling', () => {
         render(document.body, [component], [])
 
         await tick()
-        const node = (component as ComponentVNode<unknown>).domRef!
+        const node = document.body.firstChild as Element
         expect(node.nodeType).to.be.eq(Node.COMMENT_NODE)
         expect(node.textContent).to.be.eq('Nothing')
         expect(mock.callback.called).to.be.true
@@ -518,8 +522,8 @@ describe('useErrorHandling', () => {
         const vNode = <Component />
         render(document.body, [vNode], [])
 
-        expect(vNode.domRef.nodeType).to.be.eq(Node.COMMENT_NODE)
-        expect(vNode.domRef.textContent).to.be.eq('Nothing')
+        expect(document.body.firstChild!.nodeType).to.be.eq(Node.COMMENT_NODE)
+        expect(document.body.firstChild!.textContent).to.be.eq('Nothing')
         expect(mock.callback.called).to.be.true
     })
 
@@ -544,7 +548,7 @@ describe('useErrorHandling', () => {
 
         const vNode = <Component />
         render(document.body, [vNode], [])
-        vNode.domRef.click()
+        ;(document.body.firstChild as HTMLElement).click()
         await tick()
         expect(mock.callback.called).to.be.true
     })
@@ -567,10 +571,11 @@ describe('useErrorHandling', () => {
         }
 
         const vNode = <Component />
-        render(document.body, [vNode], [])
-        render(document.body, [<nothing />], [vNode])
-        expect(vNode.domRef.nodeType).to.be.eq(Node.ELEMENT_NODE)
-        expect(vNode.domRef.textContent).to.be.eq('')
+        const oldNodes = render(document.body, [vNode], [])
+        const prevNode = document.body.firstChild as Element
+        render(document.body, [<nothing />], oldNodes)
+        expect(prevNode.nodeType).to.be.eq(Node.ELEMENT_NODE)
+        expect(prevNode.textContent).to.be.eq('')
         expect(mock.callback.called).not.to.be.true
     })
 
@@ -740,7 +745,7 @@ describe('useState', () => {
         setStateOuter(1)
         setStateOuter(2)
         await tick()
-        expect(vNode.domRef.textContent).to.eq('2')
+        expect(document.body.firstChild!.textContent).to.eq('2')
     })
 })
 
@@ -872,13 +877,13 @@ describe('useReducer', () => {
         }
 
         const vNode = <Component />
-        render(document.body, [vNode], [])
+        const oldNodes = render(document.body, [vNode], [])
         dispatch(2)
         await tick()
         expect(state).to.eq(2)
 
         multiplier = 10
-        render(document.body, [<Component />], [vNode])
+        render(document.body, [<Component />], oldNodes)
         dispatch(2)
         await tick()
         expect(state).to.eq(22) // 2 + (2 * 10)
