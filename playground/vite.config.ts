@@ -9,8 +9,7 @@ export default defineConfig({
     esbuild: {
         jsx: 'transform',
         jsxFactory: 'myra.h',
-        jsxFragment: 'myra.Fragment',
-        jsxDev: false
+        jsxFragment: 'myra.Fragment'
     },
     resolve: {
         alias: {
