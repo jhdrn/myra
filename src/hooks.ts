@@ -196,58 +196,42 @@ export function useContext<T>(context: Context<T>): T {
     const rc = getRenderingContext()!
     const { hookIndex, isSvg, parentElement, renderNode } = rc
 
-    if (renderNode.data === undefined) {
-        renderNode.data = []
-    }
     if (renderNode.effects === undefined) {
         renderNode.effects = []
     }
 
     const binding = findContextBinding(renderNode, context)
 
-    type Stored = { binding: ContextBinding<T> | undefined, unsubscribe: (() => void) | undefined }
-    let stored: Stored = renderNode.data[hookIndex]
-
-    if (stored === undefined) {
-        let unsubscribe: (() => void) | undefined
-        if (binding !== undefined) {
-            unsubscribe = binding.subscribe(makeReRenderCallback(renderNode.link!, parentElement, isSvg))
-        }
-        stored = { binding, unsubscribe }
-        renderNode.data[hookIndex] = stored
-    } else if (stored.binding !== binding) {
-        if (stored.unsubscribe !== undefined) {
-            stored.unsubscribe()
-        }
-        let unsubscribe: (() => void) | undefined
-        if (binding !== undefined) {
-            unsubscribe = binding.subscribe(makeReRenderCallback(renderNode.link!, parentElement, isSvg))
-        }
-        stored.binding = binding
-        stored.unsubscribe = unsubscribe
-    }
-    rc.hookIndex++
-
-    // Cleanup-only effects slot: invoke is always false, cleanup fires on unmount
-    if (renderNode.effects[rc.hookIndex] === undefined) {
-        renderNode.effects[rc.hookIndex] = {
-            arg: undefined,
-            sync: false,
+    // One effects slot: arg tracks the binding for change detection, cleanup
+    // holds the unsubscribe function. invoke is always false so the effect
+    // itself never runs — cleanup fires only via cleanupRecursively on unmount.
+    let slot = renderNode.effects[hookIndex]
+    if (slot === undefined) {
+        slot = {
+            arg: binding,
+            cleanup: binding?.subscribe(makeReRenderCallback(renderNode.link!, parentElement, isSvg)),
+            effect: () => { /* never invoked */ },
             invoke: false,
-            effect: () => { /* never called */ },
+            sync: false,
         }
+        renderNode.effects[hookIndex] = slot
+    } else if (slot.arg !== binding) {
+        slot.cleanup?.()
+        slot.arg = binding
+        slot.cleanup = binding?.subscribe(makeReRenderCallback(renderNode.link!, parentElement, isSvg))
     }
-    renderNode.effects[rc.hookIndex].cleanup = stored.unsubscribe
     rc.hookIndex++
 
-    return binding !== undefined ? binding.getValue() : context._defaultValue
+    return binding !== undefined ? binding.getValue() : (context as unknown as { _defaultValue: T })._defaultValue
 }
 
 function findContextBinding<T>(renderNode: RenderNode, context: Context<T>): ContextBinding<T> | undefined {
     let current = renderNode.parent
     while (current !== undefined) {
         const b = current.contextBindings?.get(context)
-        if (b !== undefined) return b as ContextBinding<T>
+        if (b !== undefined) {
+            return b as ContextBinding<T>
+        }
         current = current.parent
     }
     return undefined
@@ -260,7 +244,9 @@ function makeReRenderCallback(
 ): () => void {
     return () => {
         const currentRenderNode = link.renderNode
-        if (currentRenderNode.stale) return
+        if (currentRenderNode.stale) {
+            return
+        }
         if (!currentRenderNode.debounceRender) {
             setTimeout(() => {
                 link.renderNode.debounceRender = false

@@ -3,7 +3,7 @@ import { ComponentProps, Context, ContextBinding, ProviderProps, VNode } from '.
 import { Fragment } from './fragment'
 import { useLayoutEffect, useRef } from './hooks'
 
-export function registerContextBinding<T>(context: Context<T>, binding: ContextBinding<T>): void {
+function registerContextBinding<T>(context: Context<T>, binding: ContextBinding<T>): void {
     const rc = getRenderingContext()!
     if (rc.renderNode.contextBindings === undefined) {
         rc.renderNode.contextBindings = new Map()
