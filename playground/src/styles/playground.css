@@ -1,0 +1,326 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --surface2: #f0f2f5;
+    --border: #dee2e6;
+    --text: #212529;
+    --text-muted: #6c757d;
+    --accent: #5c6bc0;
+    --accent-hover: #3949ab;
+    --accent-text: #ffffff;
+    --danger: #e53935;
+    --success: #43a047;
+    --code-bg: #f0f2f5;
+    --sidebar-width: 220px;
+    font-size: 15px;
+}
+
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+}
+
+/* Layout */
+.pg-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.pg-sidebar {
+    width: var(--sidebar-width);
+    min-height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.pg-logo {
+    padding: 1.25rem 1rem 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent);
+    border-bottom: 1px solid var(--border);
+    letter-spacing: -0.01em;
+}
+
+.pg-nav {
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem 0;
+    gap: 1px;
+}
+
+.pg-nav-item {
+    appearance: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    color: var(--text);
+    border-radius: 0;
+    transition: background 0.1s;
+}
+
+.pg-nav-item:hover {
+    background: var(--surface2);
+}
+
+.pg-nav-item.active {
+    background: var(--accent);
+    color: var(--accent-text);
+    font-weight: 500;
+}
+
+.pg-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.pg-demo-header {
+    padding: 1.5rem 2rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+}
+
+.pg-demo-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.pg-demo-desc {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.pg-demo-body {
+    padding: 1.5rem 2rem;
+    flex: 1;
+}
+
+/* Demo sections */
+.demo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem;
+}
+
+.demo-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.demo-card h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.demo-card p {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+/* Buttons */
+button {
+    appearance: none;
+    background: var(--accent);
+    color: var(--accent-text);
+    border: none;
+    border-radius: 5px;
+    padding: 0.375rem 0.875rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background 0.1s;
+    font-family: inherit;
+}
+
+button:hover {
+    background: var(--accent-hover);
+}
+
+button.secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+
+button.secondary:hover {
+    background: var(--border);
+}
+
+button.danger {
+    background: var(--danger);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.btn-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* Values & badges */
+.value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-text);
+    font-weight: 600;
+}
+
+.badge.green {
+    background: var(--success);
+}
+
+.badge.red {
+    background: var(--danger);
+}
+
+/* Log panel */
+.log-panel {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    min-height: 80px;
+    max-height: 200px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    line-height: 1.6;
+}
+
+/* Forms & inputs */
+input[type="text"],
+input[type="number"] {
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 0.375rem 0.625rem;
+    font-size: 0.875rem;
+    font-family: inherit;
+    background: var(--surface);
+    color: var(--text);
+    width: 100%;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: -1px;
+}
+
+/* Toggle */
+.toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+label.toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Code */
+code {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.85em;
+    background: var(--code-bg);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+}
+
+/* List items */
+.list-item-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.list-item-row:last-child {
+    border-bottom: none;
+}
+
+/* Box demo */
+.measure-box {
+    background: var(--surface2);
+    border: 2px dashed var(--border);
+    border-radius: 6px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    transition: width 0.2s;
+}
+
+/* Error box */
+.error-box {
+    background: #fff5f5;
+    border: 1px solid #fca5a5;
+    border-radius: 6px;
+    padding: 1rem;
+    color: var(--danger);
+    font-size: 0.875rem;
+}
+
+/* Fragment demo: DOM tree display */
+.dom-note {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Timer */
+.timer-display {
+    font-size: 2.5rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+}
