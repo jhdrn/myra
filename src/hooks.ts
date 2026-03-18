@@ -1,5 +1,5 @@
 import { getRenderingContext, renderComponent, tryHandleComponentError } from './component'
-import { ComponentProps, ComponentVNode, Effect, ErrorHandler, Evolve, Ref, UpdateState } from './contract'
+import { ComponentProps, ComponentVNode, Context, ContextBinding, Effect, ErrorHandler, Evolve, Ref, UpdateState } from './contract'
 import { equal } from './helpers'
 
 
@@ -181,6 +181,89 @@ export function useMemo<TMemoization>(fn: () => TMemoization, deps: unknown[]): 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 export function useCallback<TCallback extends Function>(callback: TCallback, deps: unknown[]): TCallback {
     return useMemo(() => callback, deps)
+}
+
+/**
+ *
+ * @param context
+ */
+export function useContext<T>(context: Context<T>): T {
+    const rc = getRenderingContext()!
+    const { hookIndex, isSvg, parentElement, vNode } = rc
+
+    if (vNode.data === undefined) {
+        vNode.data = []
+    }
+    if (vNode.effects === undefined) {
+        vNode.effects = []
+    }
+
+    const binding = findContextBinding(vNode, context)
+
+    type Stored = { binding: ContextBinding<T> | undefined, unsubscribe: (() => void) | undefined }
+    let stored: Stored = vNode.data[hookIndex]
+
+    if (stored === undefined) {
+        let unsubscribe: (() => void) | undefined
+        if (binding !== undefined) {
+            unsubscribe = binding.subscribe(makeReRenderCallback(vNode.link, parentElement, isSvg))
+        }
+        stored = { binding, unsubscribe }
+        vNode.data[hookIndex] = stored
+    } else if (stored.binding !== binding) {
+        if (stored.unsubscribe !== undefined) {
+            stored.unsubscribe()
+        }
+        let unsubscribe: (() => void) | undefined
+        if (binding !== undefined) {
+            unsubscribe = binding.subscribe(makeReRenderCallback(vNode.link, parentElement, isSvg))
+        }
+        stored.binding = binding
+        stored.unsubscribe = unsubscribe
+    }
+    rc.hookIndex++
+
+    // Cleanup-only effects slot: invoke is always false, cleanup fires on unmount
+    if (vNode.effects[rc.hookIndex] === undefined) {
+        vNode.effects[rc.hookIndex] = {
+            arg: undefined,
+            sync: false,
+            invoke: false,
+            effect: () => { /* never called */ },
+        }
+    }
+    vNode.effects[rc.hookIndex].cleanup = stored.unsubscribe
+    rc.hookIndex++
+
+    return binding !== undefined ? binding.getValue() : context._defaultValue
+}
+
+function findContextBinding<T>(vNode: ComponentVNode<ComponentProps>, context: Context<T>): ContextBinding<T> | undefined {
+    let current = vNode.parent
+    while (current !== undefined) {
+        const b = current.contextBindings?.get(context)
+        if (b !== undefined) return b as ContextBinding<T>
+        current = current.parent
+    }
+    return undefined
+}
+
+function makeReRenderCallback(
+    link: { vNode: ComponentVNode<ComponentProps> },
+    parentElement: Element,
+    isSvg: boolean
+): () => void {
+    return () => {
+        const currentVNode = link.vNode
+        if (currentVNode.stale) return
+        if (!currentVNode.debounceRender) {
+            setTimeout(() => {
+                link.vNode.debounceRender = false
+                renderComponent(parentElement, link.vNode, undefined, link.vNode.rendition, isSvg)
+            })
+        }
+        currentVNode.debounceRender = true
+    }
 }
 
 /**

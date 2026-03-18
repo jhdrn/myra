@@ -24,6 +24,12 @@ interface IRenderingContext {
  */
 let renderingContext: IRenderingContext | undefined
 
+/**
+ * Tracks the component vNode currently rendering its subtree, used to set
+ * parent references on child component vNodes.
+ */
+let currentParentVNode: ComponentVNode<ComponentProps> | undefined
+
 export function getRenderingContext() {
     return renderingContext
 }
@@ -519,6 +525,7 @@ export function renderComponent(
     isSvg: boolean
 ) {
     if (renderingContext === undefined && !newVNode.stale) {
+        newVNode.parent = currentParentVNode
         try {
             renderingContext = {
                 vNode: newVNode,
@@ -549,7 +556,13 @@ export function renderComponent(
 
             renderingContext = undefined
 
-            render(parentElement, [newView], replaceOrUpdateVNode === undefined ? [] : [replaceOrUpdateVNode], isSvg)
+            const prevParentVNode = currentParentVNode
+            currentParentVNode = newVNode
+            try {
+                render(parentElement, [newView], replaceOrUpdateVNode === undefined ? [] : [replaceOrUpdateVNode], isSvg)
+            } finally {
+                currentParentVNode = prevParentVNode
+            }
 
             newVNode.rendition = newView
 

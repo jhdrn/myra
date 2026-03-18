@@ -272,6 +272,20 @@ export interface Ref<T> {
     current: T
 }
 
+export interface ContextBinding<T> {
+    getValue: () => T
+    subscribe: (callback: () => void) => (() => void)
+}
+
+export interface ProviderProps<T> extends ComponentProps {
+    value: T
+}
+
+export interface Context<T> {
+    readonly _defaultValue: T
+    readonly Provider: ComponentFactory<ProviderProps<T>>
+}
+
 export type Effect = () => EffectCleanupCallback
 export type EffectCleanupCallback = (() => void) | void
 
@@ -348,12 +362,14 @@ export interface EffectWrapper {
 export interface ComponentVNode<TProps> {
     readonly _: VNodeType.Component
     readonly domRef?: Node
+    contextBindings?: Map<Context<any>, ContextBinding<any>>
     data?: any[]
     /** A flag to indicate whether a new "renderComponent" call should be queued or not. */
     debounceRender: boolean
     effects?: Array<EffectWrapper>
     errorHandler?: ErrorHandler
     link: { vNode: ComponentVNode<TProps> }
+    parent?: ComponentVNode<ComponentProps>
     props: TProps
     /** The most recent VNode tree of the component. */
     rendition?: VNode
