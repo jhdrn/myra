@@ -1,112 +1,117 @@
 import { getRenderingContext, renderComponent, tryHandleComponentError } from './component'
 import { ComponentProps, ComponentVNode, Effect, ErrorHandler, Evolve, Ref, UpdateState } from './contract'
+import { RenderNode } from './internal'
 import { equal } from './helpers'
 
 
 type LazyStateInitialization<TState> = () => TState
 
 /**
- * 
- * @param initialState the initial state 
+ *
+ * @param initialState the initial state
  */
 export function useState<TState>(initialState: TState | LazyStateInitialization<TState>): [TState, Evolve<TState>] {
 
     const renderingContext = getRenderingContext()
-    const { hookIndex, isSvg, parentElement, vNode } = renderingContext!
-    if (vNode.data === undefined) {
-        vNode.data = []
+    const { hookIndex, isSvg, parentElement, renderNode } = renderingContext!
+    if (renderNode.data === undefined) {
+        renderNode.data = []
     }
 
-    if (vNode.data[hookIndex] === undefined) {
+    if (renderNode.data[hookIndex] === undefined) {
 
-        const link = vNode.link
+        const link = renderNode.link!
 
         const evolve = (update: UpdateState<unknown>) => {
-            const currentVNode = link.vNode
+            const currentRenderNode = link.renderNode
             try {
                 if (typeof update === 'function') {
-                    update = update(currentVNode.data![hookIndex][0])
+                    update = update(currentRenderNode.data![hookIndex][0])
                 }
 
-                currentVNode.data![hookIndex] = [update, evolve]
+                currentRenderNode.data![hookIndex] = [update, evolve]
 
-                if (!currentVNode.debounceRender) {
+                if (!currentRenderNode.debounceRender) {
                     setTimeout(() => {
-                        link.vNode.debounceRender = false
+                        link.renderNode.debounceRender = false
 
-                        renderComponent(
-                            parentElement,
-                            link.vNode,
-                            undefined,
-                            link.vNode.rendition,
-                            isSvg
-                        )
+                        const vNode = link.renderNode.vNode
+                        if (vNode !== undefined) {
+                            renderComponent(
+                                parentElement,
+                                link.renderNode.vNode as ComponentVNode<ComponentProps>,
+                                link.renderNode,
+                                link.renderNode.rendition,
+                                isSvg,
+                                false  // state-change re-render: never allow memo skip
+                            )
+                        }
                     })
                 }
-                currentVNode.debounceRender = true
+                currentRenderNode.debounceRender = true
             } catch (err) {
                 setTimeout(() => {
-                    tryHandleComponentError(parentElement, currentVNode, isSvg, err as Error)
+                    tryHandleComponentError(parentElement, currentRenderNode, isSvg, err as Error)
                 })
             }
-            return currentVNode.data![hookIndex][0]
+            return currentRenderNode.data![hookIndex][0]
         }
 
         if (typeof initialState === 'function') {
             initialState = (initialState as LazyStateInitialization<TState>)()
         }
-        vNode.data[hookIndex] = [initialState, evolve]
+        renderNode.data[hookIndex] = [initialState, evolve]
     }
 
-    const state = vNode.data[hookIndex]
+    const state = renderNode.data[hookIndex]
     renderingContext!.hookIndex++
 
     return state
 }
 
 /**
- * 
- * @param current an optional value 
+ *
+ * @param current an optional value
  */
 export function useRef<T>(current?: T): Ref<T> {
     const renderingContext = getRenderingContext()
-    const { hookIndex, vNode } = renderingContext!
-    if (vNode.data === undefined) {
-        vNode.data = []
+    const { hookIndex, renderNode } = renderingContext!
+    if (renderNode.data === undefined) {
+        renderNode.data = []
     }
 
-    if (vNode.data[hookIndex] === undefined) {
-        vNode.data[hookIndex] = {
+    if (renderNode.data[hookIndex] === undefined) {
+        renderNode.data[hookIndex] = {
             current
         }
     }
     renderingContext!.hookIndex++
-    return vNode.data[hookIndex]
+    return renderNode.data[hookIndex]
 }
 
 /**
- * 
- * @param handler 
+ *
+ * @param handler
  */
 export function useErrorHandler(handler: ErrorHandler) {
     const renderingContext = getRenderingContext()
-    const vNode = renderingContext!.vNode as ComponentVNode<ComponentProps>
-    vNode.errorHandler = handler
+    const renderNode = renderingContext!.renderNode as RenderNode
+    renderNode.errorHandler = handler
 }
 
 /**
- * 
- * @param effect 
- * @param arg 
+ *
+ * @param effect
+ * @param arg
  */
 export function useLayoutEffect<TArg extends unknown[]>(effect: Effect, arg?: TArg) {
     useEffectInternal(true, effect, arg)
 }
 
 /**
- * 
- * @param effect 
- * @param arg 
+ *
+ * @param effect
+ * @param arg
  */
 export function useEffect<TArg extends unknown[]>(effect: Effect, arg?: TArg) {
     useEffectInternal(false, effect, arg)
@@ -115,16 +120,16 @@ export function useEffect<TArg extends unknown[]>(effect: Effect, arg?: TArg) {
 function useEffectInternal<TArg>(sync: boolean, effect: Effect, arg?: TArg) {
 
     const renderingContext = getRenderingContext()
-    const { hookIndex, vNode } = renderingContext!
+    const { hookIndex, renderNode } = renderingContext!
 
-    if (vNode.effects === undefined) {
-        vNode.effects = []
+    if (renderNode.effects === undefined) {
+        renderNode.effects = []
     }
 
-    const t = vNode.effects[hookIndex]
+    const t = renderNode.effects[hookIndex]
 
     if (t === undefined) {
-        vNode.effects[hookIndex] = {
+        renderNode.effects[hookIndex] = {
             arg,
             sync,
             invoke: true,
@@ -147,25 +152,25 @@ function useEffectInternal<TArg>(sync: boolean, effect: Effect, arg?: TArg) {
 export function useMemo<TMemoization>(fn: () => TMemoization, deps: unknown[]): TMemoization {
 
     const renderingContext = getRenderingContext()
-    const { hookIndex, vNode } = renderingContext!
+    const { hookIndex, renderNode } = renderingContext!
 
-    if (vNode.data === undefined) {
-        vNode.data = []
+    if (renderNode.data === undefined) {
+        renderNode.data = []
     }
 
     let res: TMemoization
-    if (vNode.data[hookIndex] === undefined) {
+    if (renderNode.data[hookIndex] === undefined) {
         res = fn()
-        vNode.data[hookIndex] = [res, deps]
+        renderNode.data[hookIndex] = [res, deps]
     }
     else {
-        const [prevRes, prevDeps] = vNode.data[hookIndex]
+        const [prevRes, prevDeps] = renderNode.data[hookIndex]
         if (equal(prevDeps, deps)) {
             res = prevRes
         }
         else {
             res = fn()
-            vNode.data[hookIndex] = [res, deps]
+            renderNode.data[hookIndex] = [res, deps]
         }
     }
 
