@@ -1545,4 +1545,90 @@ describe('fragment', () => {
         expect(children2[4].id).to.eq('z')
     })
 
+    it('reuses a nothing node from a fragment when replacing with nothing', () => {
+        // Fragment with a single <nothing /> child → replaced by <nothing />
+        // Exercises the reuseNode branch in replaceFragmentWithNothingNode
+        const container = document.createElement('div')
+        document.body.appendChild(container)
+
+        let showFragment = true
+        const Component = () => showFragment
+            ? <><nothing /></>
+            : <nothing />
+
+        const oldNodes = render(container, [<Component />], [])
+        expect(container.firstChild!.nodeType).to.eq(Node.COMMENT_NODE)
+
+        showFragment = false
+        render(container, [<Component />], oldNodes)
+
+        expect(container.firstChild!.nodeType).to.eq(Node.COMMENT_NODE)
+        expect(container.childNodes.length).to.eq(1)
+    })
+
+    it('reuses a nothing node from a fragment and removes extra nodes when replacing with nothing', () => {
+        // Fragment with <nothing /><div /> → replaced by <nothing />
+        // Exercises reuseNode + replaceDomRef removal in replaceFragmentWithNothingNode
+        const container = document.createElement('div')
+        document.body.appendChild(container)
+
+        let showFragment = true
+        const Component = () => showFragment
+            ? <><nothing /><div id="extra" /></>
+            : <nothing />
+
+        const oldNodes = render(container, [<Component />], [])
+        expect(container.childNodes.length).to.eq(2)
+
+        showFragment = false
+        render(container, [<Component />], oldNodes)
+
+        expect(container.childNodes.length).to.eq(1)
+        expect(container.firstChild!.nodeType).to.eq(Node.COMMENT_NODE)
+    })
+
+    it('reuses a text node from a fragment when replacing with text', () => {
+        // Fragment with a single text child → replaced by text
+        // Exercises the reuseNode branch in replaceFragmentWithTextNode
+        const container = document.createElement('div')
+        document.body.appendChild(container)
+
+        let showFragment = true
+        const Component = () => showFragment
+            ? <>hello</>
+            : 'hello' as unknown as JSX.Element
+
+        const oldNodes = render(container, [<Component />], [])
+        expect(container.firstChild!.nodeType).to.eq(Node.TEXT_NODE)
+
+        showFragment = false
+        render(container, [<Component />], oldNodes)
+
+        expect(container.firstChild!.nodeType).to.eq(Node.TEXT_NODE)
+        expect(container.firstChild!.textContent).to.eq('hello')
+        expect(container.childNodes.length).to.eq(1)
+    })
+
+    it('reuses a text node from a fragment and removes extra nodes when replacing with text', () => {
+        // Fragment with text + <div /> → replaced by text
+        // Exercises reuseNode + replaceDomRef removal in replaceFragmentWithTextNode
+        const container = document.createElement('div')
+        document.body.appendChild(container)
+
+        let showFragment = true
+        const Component = () => showFragment
+            ? <>hello<div id="extra2" /></>
+            : 'hello' as unknown as JSX.Element
+
+        const oldNodes = render(container, [<Component />], [])
+        expect(container.childNodes.length).to.eq(2)
+
+        showFragment = false
+        render(container, [<Component />], oldNodes)
+
+        expect(container.childNodes.length).to.eq(1)
+        expect(container.firstChild!.nodeType).to.eq(Node.TEXT_NODE)
+        expect(container.firstChild!.textContent).to.eq('hello')
+    })
+
 })

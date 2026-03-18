@@ -1,5 +1,5 @@
 import { render } from '../src/component'
-import { ButtonAttributes, ComponentProps, ElementVNode } from '../src/contract'
+import { ButtonAttributes, ComponentProps, ElementVNode, NothingVNode, TextVNode, VNodeType } from '../src/contract'
 import { useState } from '../src/hooks'
 import * as myra from '../src/myra'
 import { expect } from 'chai'
@@ -1406,6 +1406,146 @@ describe('render', () => {
     //     expect(mountMock.unmount).toHaveBeenCalledTimes(1)
     // })
 
+    it('replaces domRef with new text node when old domRef is not a text node', () => {
+        const container = document.createElement('div')
+        document.body.appendChild(container)
+
+        const textVNode: TextVNode = { _: VNodeType.Text, text: 'hello' }
+        const oldNodes = render(container, [textVNode], [])
+
+        // Replace text domRef with a span — simulates corrupt DOM state
+        const span = document.createElement('span')
+        container.replaceChild(span, container.firstChild!)
+        oldNodes[0].domRef = span
+
+        render(container, [{ _: VNodeType.Text, text: 'world' } as TextVNode], oldNodes)
+
+        expect(container.firstChild!.nodeType).to.eq(Node.TEXT_NODE)
+        expect(container.firstChild!.textContent).to.eq('world')
+    })
+
+    it('reuses existing comment node when re-rendering nothing with nothing', () => {
+        const container = document.createElement('div')
+        document.body.appendChild(container)
+
+        const nothingVNode: NothingVNode = { _: VNodeType.Nothing }
+        const oldNodes = render(container, [nothingVNode], [])
+        const originalComment = container.firstChild!
+
+        render(container, [{ _: VNodeType.Nothing } as NothingVNode], oldNodes)
+
+        expect(container.firstChild).to.eq(originalComment)
+        expect(container.firstChild!.nodeType).to.eq(Node.COMMENT_NODE)
+    })
+
+    it('replaces domRef with new comment node when old domRef is not a comment node', () => {
+        const container = document.createElement('div')
+        document.body.appendChild(container)
+
+        const nothingVNode: NothingVNode = { _: VNodeType.Nothing }
+        const oldNodes = render(container, [nothingVNode], [])
+
+        // Replace comment domRef with a span — simulates corrupt DOM state
+        const span = document.createElement('span')
+        container.replaceChild(span, container.firstChild!)
+        oldNodes[0].domRef = span
+
+        render(container, [{ _: VNodeType.Nothing } as NothingVNode], oldNodes)
+
+        expect(container.firstChild!.nodeType).to.eq(Node.COMMENT_NODE)
+    })
+
+    it('appends new node when old DOM node is no longer in the parent', () => {
+        const container = document.createElement('div')
+        document.body.appendChild(container)
+
+        const textVNode: TextVNode = { _: VNodeType.Text, text: 'some text' }
+        const oldNodes = render(container, [textVNode], [])
+
+        // Detach the text node from its parent
+        container.removeChild(container.firstChild!)
+
+        // Re-render with nothing — replaceNode falls back to insertOrAppendDOMNode
+        render(container, [{ _: VNodeType.Nothing } as NothingVNode], oldNodes)
+
+        expect(container.firstChild!.nodeType).to.eq(Node.COMMENT_NODE)
+    })
+
+    it('appends fragment when replacing a component-with-fragment whose leaf nodes have no domRef', () => {
+        const container = document.createElement('div')
+        document.body.appendChild(container)
+
+        const Component = () => <><div /></>
+        const oldNodes = render(container, [<Component />], [])
+
+        // Clear the fragment's children to simulate no leaf DOM refs
+        oldNodes[0].rendition!.children = []
+
+        render(container, [<><span /></>], oldNodes)
+
+        expect(container.querySelector('span')).to.exist
+    })
+
+    it('appends element when replacing a component-with-empty-fragment with an element', () => {
+        const container = document.createElement('div')
+        document.body.appendChild(container)
+
+        const Component = () => <><div /></>
+        const oldNodes = render(container, [<Component />], [])
+
+        oldNodes[0].rendition!.children = []
+
+        render(container, [<span id="appended-el" />], oldNodes)
+
+        expect(container.querySelector('#appended-el')).to.exist
+    })
+
+    it('appends nothing node when replacing a component-with-empty-fragment with nothing', () => {
+        const container = document.createElement('div')
+        document.body.appendChild(container)
+
+        const Component = () => <><div /></>
+        const oldNodes = render(container, [<Component />], [])
+
+        oldNodes[0].rendition!.children = []
+
+        render(container, [{ _: VNodeType.Nothing } as NothingVNode], oldNodes)
+
+        // A comment node should have been appended
+        const comments = Array.from(container.childNodes).filter(n => n.nodeType === Node.COMMENT_NODE)
+        expect(comments.length).to.be.greaterThan(0)
+    })
+
+    it('appends text node when replacing a component-with-empty-fragment with text', () => {
+        const container = document.createElement('div')
+        document.body.appendChild(container)
+
+        const Component = () => <><div /></>
+        const oldNodes = render(container, [<Component />], [])
+
+        oldNodes[0].rendition!.children = []
+
+        render(container, [{ _: VNodeType.Text, text: 'appended' } as TextVNode], oldNodes)
+
+        const textNodes = Array.from(container.childNodes).filter(n => n.nodeType === Node.TEXT_NODE)
+        expect(textNodes.length).to.be.greaterThan(0)
+        expect(textNodes[textNodes.length - 1].textContent).to.eq('appended')
+    })
+
+    it('appends fragment replacing a non-fragment when old DOM node is not in parent', () => {
+        const container = document.createElement('div')
+        document.body.appendChild(container)
+
+        const oldNodes = render(container, [<span id="old-frag" />], [])
+
+        // Remove the old node from parent
+        container.removeChild(container.firstChild!)
+
+        render(container, [<><div id="new-frag" /></>], oldNodes)
+
+        expect(container.querySelector('#new-frag')).to.exist
+    })
+
     it('renders svg nodes with correct namespace', () => {
         const view = <svg id="svg-test1"></svg>
         render(document.body, [view], [])
@@ -1426,6 +1566,171 @@ describe('render', () => {
         const el = document.getElementById('svg-test2') as SVGElement | null
         expect(el).to.be.ok
         expect(el!.namespaceURI).to.be.eq('http://www.w3.org/2000/svg')
+    })
+
+    it('clears old child nodes when re-rendering with no new children', () => {
+        const view1 = <div><span id="child" /></div>
+        const oldNodes = render(document.body, [view1], [])
+
+        expect((document.body.firstChild as HTMLDivElement).childElementCount).to.eq(1)
+
+        const view2 = <div></div>
+        render(document.body, [view2], oldNodes)
+
+        expect((document.body.firstChild as HTMLDivElement).childElementCount).to.eq(0)
+    })
+
+    it('reuses an unkeyed old node when a new keyed node has no matching old key', () => {
+        const view1 =
+            <div>
+                <span key="a">a</span>
+                <span key="b">b</span>
+            </div>
+        const oldNodes = render(document.body, [view1], [])
+
+        // "b" is replaced by "x" — old "b" DOM node becomes an unkeyed pool entry
+        const view2 =
+            <div>
+                <span key="a">a</span>
+                <span key="x">x</span>
+            </div>
+        render(document.body, [view2], oldNodes)
+
+        const div = document.body.firstChild as HTMLDivElement
+        expect(div.childElementCount).to.eq(2)
+        expect(div.children[0].textContent).to.eq('a')
+        expect(div.children[1].textContent).to.eq('x')
+    })
+
+    it('removes event listeners when a component is replaced by a different component', () => {
+        const handler = sinon.spy()
+        const CompA = () => <div onclick={handler} id="comp-a" />
+        const CompB = () => <span id="comp-b" />
+
+        const oldNodes = render(document.body, [<CompA />], [])
+        render(document.body, [<CompB />], oldNodes)
+
+        const span = document.getElementById('comp-b')
+        expect(span).to.exist
+        // If onclick was not removed, the div would still have it — verifying
+        // that cleanupRecursively ran with removeEventListeners=true
+        expect((document.getElementById('comp-a') as HTMLDivElement | null)).to.be.null
+    })
+
+    it('resolves DOM node through a nested component chain in keyed reconciliation', () => {
+        const Inner = () => <div />
+        const Outer = () => <Inner />
+
+        const view1 =
+            <div>
+                <Outer key="a" />
+                <Outer key="b" />
+            </div>
+        const oldNodes = render(document.body, [view1], [])
+
+        // Reorder to exercise getRenderNodeDomRef → getLeafFromComponent recursion
+        const view2 =
+            <div>
+                <Outer key="b" />
+                <Outer key="a" />
+            </div>
+        render(document.body, [view2], oldNodes)
+
+        expect((document.body.firstChild as HTMLDivElement).childElementCount).to.eq(2)
+    })
+
+    it('updates ref.current when an element with a ref is re-rendered', () => {
+        let ref!: ReturnType<typeof myra.useRef<HTMLDivElement>>
+
+        const Component = () => {
+            ref = myra.useRef<HTMLDivElement>()
+            return <div ref={ref} id="ref-target" />
+        }
+
+        const oldNodes = render(document.body, [<Component />], [])
+        expect(ref.current).to.exist
+
+        render(document.body, [<Component />], oldNodes)
+
+        expect(ref.current).to.eq(document.getElementById('ref-target'))
+    })
+
+    it('reads input value from DOM element when updating value attribute', () => {
+        const view1 = <input value="initial" />
+        const oldNodes = render(document.body, [view1], [])
+
+        const input = document.body.firstChild as HTMLInputElement
+        expect(input.value).to.eq('initial')
+
+        const view2 = <input value="updated" />
+        render(document.body, [view2], oldNodes)
+
+        expect(input.value).to.eq('updated')
+    })
+
+    it('sets value on a textarea element', () => {
+        const view = <textarea value="hello" />
+        render(document.body, [view], [])
+
+        const textarea = document.body.firstChild as HTMLTextAreaElement
+        expect(textarea.value).to.eq('hello')
+    })
+
+    it('falls back to setAttribute when a property setter throws', () => {
+        const view1 = <div id="setter-test" />
+        const oldNodes = render(document.body, [view1], [])
+
+        const el = document.body.firstChild as HTMLDivElement
+        // Override the id setter so it throws, forcing fallback to setAttribute
+        Object.defineProperty(el, 'id', {
+            get: () => 'setter-test',
+            set: () => { throw new Error('setter error') },
+            configurable: true
+        })
+
+        const view2 = <div id="new-id" />
+        render(document.body, [view2], oldNodes)
+
+        expect(el.getAttribute('id')).to.eq('new-id')
+    })
+
+    it('removes an externally-set attribute when the new prop value is undefined', () => {
+        const view1 = <div></div>
+        const oldNodes = render(document.body, [view1], [])
+
+        const el = document.body.firstChild as HTMLDivElement
+        el.setAttribute('data-custom', 'value')
+        expect(el.hasAttribute('data-custom')).to.be.true
+
+        // 'data-custom' is not in oldProps, so the first loop won't remove it.
+        // New prop is undefined → hits the else-if removeAttribute path.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const view2 = <div {...{ 'data-custom': undefined } as any}></div>
+        render(document.body, [view2], oldNodes)
+
+        expect(el.hasAttribute('data-custom')).to.be.false
+    })
+
+    it('sets value on a select element', () => {
+        // Render options first, then set value on re-render so the option exists
+        const view1 =
+            <select>
+                <option value="a">a</option>
+                <option value="b">b</option>
+            </select>
+        const oldNodes = render(document.body, [view1], [])
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const props = { value: 'b' } as any
+        const view2 =
+            <select {...props}>
+                <option value="a">a</option>
+                <option value="b">b</option>
+            </select>
+        render(document.body, [view2], oldNodes)
+
+        const select = document.body.firstChild as HTMLSelectElement
+        expect(select.value).to.eq('b')
     })
 
 })

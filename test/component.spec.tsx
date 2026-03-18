@@ -1,4 +1,5 @@
-import { render } from '../src/component'
+import { render, tryHandleComponentError } from '../src/component'
+import { RenderNode } from '../src/internal'
 import * as myra from '../src/myra'
 import { expect } from 'chai'
 import * as sinon from 'sinon'
@@ -216,5 +217,44 @@ describe('component return value normalization', () => {
 
         expect(q('#it')).to.be.null
         expect(document.body.firstChild!.nodeType).to.eq(Node.COMMENT_NODE)
+    })
+})
+
+describe('tryHandleComponentError', () => {
+    beforeEach(() => {
+        Array.prototype.slice.call(document.body.childNodes).forEach((c: Node) => document.body.removeChild(c))
+    })
+
+    it('does nothing when the parent element is no longer connected to the DOM', () => {
+        const detachedEl = document.createElement('div')
+        // detachedEl is not appended to document, so parentNode === null
+        const renderNode: RenderNode = {
+            children: [],
+            errorHandler: sinon.spy(() => <nothing />)
+        }
+
+        // Should not throw and should not call the error handler
+        tryHandleComponentError(detachedEl, renderNode, false, new Error('test'))
+
+        expect((renderNode.errorHandler as sinon.SinonSpy).called).to.be.false
+    })
+
+    it('rethrows the original error when the error handler itself throws', () => {
+        const Component = (() => {
+            myra.useErrorHandler(() => {
+                throw new Error('handler error')
+            })
+            throw new Error('original error')
+        }) as unknown as () => JSX.Element
+
+        let caughtError: Error | undefined
+        try {
+            render(document.body, [<Component />], [])
+        } catch (e) {
+            caughtError = e as Error
+        }
+
+        expect(caughtError).to.exist
+        expect(caughtError!.message).to.eq('original error')
     })
 })
