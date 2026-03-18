@@ -1,0 +1,14 @@
+{
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "jsx": "react",
+        "jsxFactory": "myra.h",
+        "jsxFragmentFactory": "myra.Fragment",
+        "outDir": "build",
+        "tsBuildInfoFile": "build/.tsbuildinfo",
+        "paths": {
+            "myra": ["../src/myra.ts"]
+        }
+    },
+    "include": ["src"]
+}

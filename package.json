@@ -53,16 +53,18 @@
     "pretest": "tsc --noEmit --project tsconfig.test.json",
     "test": "vitest run",
     "test:local": "vitest",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "playground": "vite --config playground/vite.config.ts",
+    "playground:build": "vite build --config playground/vite.config.ts"
   },
   "main": "myra.cjs",
   "module": "myra.mjs",
   "typings": "myra.d.ts",
   "exports": {
     ".": {
+      "types": "./myra.d.ts",
       "import": "./myra.mjs",
-      "require": "./myra.cjs",
-      "types": "./myra.d.ts"
+      "require": "./myra.cjs"
     }
   },
   "engines": {

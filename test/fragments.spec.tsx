@@ -33,7 +33,7 @@ describe('fragment', () => {
 
         const view1 = <nothing />
 
-        render(fragmentContainer, [view1], [])
+        const oldNodes1 = render(fragmentContainer, [view1], [])
 
         const view2 =
             <>
@@ -41,7 +41,7 @@ describe('fragment', () => {
                 <div></div>
             </>
 
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes1)
 
         expect(fragmentContainer.childNodes.length).to.be.eq(2)
     })
@@ -56,7 +56,7 @@ describe('fragment', () => {
             text: 'text'
         }
 
-        render(fragmentContainer, [view1], [])
+        const oldNodes2 = render(fragmentContainer, [view1], [])
 
         const view2 =
             <>
@@ -64,7 +64,7 @@ describe('fragment', () => {
                 <div></div>
             </>
 
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes2)
 
         expect(fragmentContainer.childNodes.length).to.be.eq(2)
     })
@@ -77,7 +77,7 @@ describe('fragment', () => {
 
         const view1 = <span></span>
 
-        render(fragmentContainer, [view1], [])
+        const oldNodes3 = render(fragmentContainer, [view1], [])
 
         const view2 =
             <>
@@ -85,7 +85,7 @@ describe('fragment', () => {
                 <div></div>
             </>
 
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes3)
 
         expect(fragmentContainer.childNodes.length).to.be.eq(2)
         expect((fragmentContainer.firstChild as Element).tagName).to.be.eq('DIV')
@@ -101,7 +101,7 @@ describe('fragment', () => {
         const Component = () => <span></span>
 
         const view1 = <Component />
-        render(fragmentContainer, [view1], [])
+        const oldNodes4 = render(fragmentContainer, [view1], [])
 
         const view2 =
             <>
@@ -109,7 +109,7 @@ describe('fragment', () => {
                 <div></div>
             </>
 
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes4)
 
         expect(fragmentContainer.childNodes.length).to.be.eq(2)
         expect((fragmentContainer.firstChild as Element).tagName).to.be.eq('DIV')
@@ -223,7 +223,7 @@ describe('fragment', () => {
                 <div></div>
             </div>
 
-        render(fragmentContainer, [view1], [])
+        const oldNodes = render(fragmentContainer, [view1], [])
 
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(5)
 
@@ -233,7 +233,7 @@ describe('fragment', () => {
             </div>
 
 
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes)
 
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(1)
         expect(fragmentContainer.firstChild?.firstChild?.nodeType).to.be.eq(Node.ELEMENT_NODE)
@@ -259,7 +259,7 @@ describe('fragment', () => {
                 <div></div>
             </div>
 
-        render(fragmentContainer, [view1], [])
+        const oldNodes = render(fragmentContainer, [view1], [])
 
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(5)
 
@@ -269,7 +269,7 @@ describe('fragment', () => {
             </div>
 
 
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes)
 
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(1)
         expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('x')
@@ -302,7 +302,7 @@ describe('fragment', () => {
                 <div id="y"></div>
             </div>
 
-        render(fragmentContainer, [view1], [])
+        const oldNodes = render(fragmentContainer, [view1], [])
 
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(9)
 
@@ -312,7 +312,7 @@ describe('fragment', () => {
             </div>
 
 
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes)
 
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(1)
         expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('x')
@@ -344,7 +344,7 @@ describe('fragment', () => {
                 </>
             </div>
 
-        render(fragmentContainer, [view1], [])
+        const oldNodes = render(fragmentContainer, [view1], [])
 
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(8)
 
@@ -355,7 +355,7 @@ describe('fragment', () => {
             </div>
 
 
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes)
 
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(2)
         expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('x')
@@ -380,7 +380,7 @@ describe('fragment', () => {
                 <ComponentA />
             </>
 
-        render(fragmentContainer, [view1], [])
+        const oldNodes = render(fragmentContainer, [view1], [])
 
         expect(fragmentContainer.childNodes.length).to.be.eq(2)
 
@@ -390,7 +390,7 @@ describe('fragment', () => {
             </div>
 
 
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes)
 
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(2)
         expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('x')
@@ -423,7 +423,7 @@ describe('fragment', () => {
                 </>
             </div>
 
-        render(fragmentContainer, [view1], [])
+        const oldNodes = render(fragmentContainer, [view1], [])
 
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(8)
 
@@ -434,7 +434,7 @@ describe('fragment', () => {
             </div>
 
 
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes)
 
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(2)
         expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('x')
@@ -467,7 +467,7 @@ describe('fragment', () => {
                 </>
             </div>
 
-        render(fragmentContainer, [view1], [])
+        const oldNodes = render(fragmentContainer, [view1], [])
 
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(8)
 
@@ -478,7 +478,7 @@ describe('fragment', () => {
             </div>
 
 
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes)
 
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(2)
         expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('x')
@@ -547,13 +547,13 @@ describe('fragment', () => {
                 <ChildComponent />
             </>
 
-        render(fragmentContainer, [view1], [])
+        const oldNodes1 = render(fragmentContainer, [view1], [])
 
         const view2 = <>
             <nothing />
         </>
 
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes1)
 
         const nothingNode = fragmentContainer.firstChild
         expect(nothingNode).not.to.be.null
@@ -572,13 +572,13 @@ describe('fragment', () => {
                 <ChildComponent />
             </>
 
-        render(fragmentContainer, [view1], [])
+        const oldNodes2 = render(fragmentContainer, [view1], [])
 
         const view2 = <>
             text
         </>
 
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes2)
 
         const textNode = fragmentContainer.firstChild
         expect(textNode).not.to.be.null
@@ -598,13 +598,13 @@ describe('fragment', () => {
                 <ChildComponent />
             </>
 
-        render(fragmentContainer, [view1], [])
+        const oldNodes3 = render(fragmentContainer, [view1], [])
 
         const view2 = <>
             <span></span>
         </>
 
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes3)
 
         const textNode = fragmentContainer.firstChild
         expect(textNode).not.to.be.null
@@ -620,7 +620,7 @@ describe('fragment', () => {
         const Component = () => <><div></div><div></div></>
 
         const view1 = <Component />
-        render(fragmentContainer, [view1], [])
+        const oldNodes1 = render(fragmentContainer, [view1], [])
 
         expect(fragmentContainer.childNodes.length).to.be.eq(2)
 
@@ -629,7 +629,7 @@ describe('fragment', () => {
                 <span></span>
             </>
 
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes1)
 
         expect(fragmentContainer.childNodes.length).to.be.eq(1)
         expect((fragmentContainer.firstChild as Element).tagName).to.be.eq('SPAN')
@@ -643,11 +643,11 @@ describe('fragment', () => {
         const Component = () => <><div></div><div></div></>
 
         const view1 = <Component />
-        render(fragmentContainer, [view1], [])
+        const oldNodes2 = render(fragmentContainer, [view1], [])
 
         expect(fragmentContainer.childNodes.length).to.be.eq(2)
 
-        render(fragmentContainer, [<span></span>], [view1])
+        render(fragmentContainer, [<span></span>], oldNodes2)
 
         expect(fragmentContainer.childNodes.length).to.be.eq(1)
         expect((fragmentContainer.firstChild as Element).tagName).to.be.eq('SPAN')
@@ -661,11 +661,11 @@ describe('fragment', () => {
         const Component = () => <><div></div><div></div></>
 
         const view1 = <Component />
-        render(fragmentContainer, [view1], [])
+        const oldNodes3 = render(fragmentContainer, [view1], [])
 
         expect(fragmentContainer.childNodes.length).to.be.eq(2)
 
-        render(fragmentContainer, [<nothing />], [view1])
+        render(fragmentContainer, [<nothing />], oldNodes3)
 
         expect(fragmentContainer.childNodes.length).to.be.eq(1)
         expect(fragmentContainer.firstChild?.nodeType).to.be.eq(Node.COMMENT_NODE)
@@ -679,12 +679,12 @@ describe('fragment', () => {
         const Component = () => <><div></div><div></div></>
 
         const view1 = <Component />
-        render(fragmentContainer, [view1], [])
+        const oldNodes4 = render(fragmentContainer, [view1], [])
 
         expect(fragmentContainer.childNodes.length).to.be.eq(2)
 
         const textVNode: TextVNode = { _: VNodeType.Text, text: 'replacement' }
-        render(fragmentContainer, [textVNode], [view1])
+        render(fragmentContainer, [textVNode], oldNodes4)
 
         expect(fragmentContainer.childNodes.length).to.be.eq(1)
         expect(fragmentContainer.firstChild?.nodeType).to.be.eq(Node.TEXT_NODE)
@@ -706,13 +706,13 @@ describe('fragment', () => {
         const OuterComp = () => <><LeafComp /></>
 
         const view1 = <OuterComp />
-        render(fragmentContainer, [view1], [])
+        const oldNodes = render(fragmentContainer, [view1], [])
 
         expect(fragmentContainer.querySelector('#old-inner-leaf')).not.to.be.null
         expect(fragmentContainer.childNodes.length).to.be.eq(1)
 
         const view2 = <><span id="new-fragment-child"></span></>
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes)
 
         // Old leaf must be gone (no ghost node)
         expect(fragmentContainer.querySelector('#old-inner-leaf')).to.be.null
@@ -735,7 +735,7 @@ describe('fragment', () => {
                 </>
             </div>
 
-        render(fragmentContainer, [view1], [])
+        const oldNodes = render(fragmentContainer, [view1], [])
 
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(3)
         expect((fragmentContainer.firstChild?.childNodes[0] as HTMLElement).id).to.be.eq('inner-a')
@@ -744,7 +744,7 @@ describe('fragment', () => {
 
         const view2 = <div><span id="only"></span></div>
 
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes)
 
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(1)
         expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('only')
@@ -768,13 +768,13 @@ describe('fragment', () => {
                 </>
             </div>
 
-        render(fragmentContainer, [view1], [])
+        const oldNodes = render(fragmentContainer, [view1], [])
 
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(3)
 
         const view2 = <div><p id="replaced"></p></div>
 
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes)
 
         expect(fragmentContainer.firstChild?.childNodes.length).to.be.eq(1)
         expect((fragmentContainer.firstChild?.firstChild as HTMLElement).id).to.be.eq('replaced')
@@ -792,7 +792,7 @@ describe('fragment', () => {
                 <ChildComponent />
             </>
 
-        render(fragmentContainer, [view1], [])
+        const oldNodes = render(fragmentContainer, [view1], [])
 
         const Memo = myra.memo(() =>
             <>
@@ -801,7 +801,7 @@ describe('fragment', () => {
         )
         const view2 = <Memo />
 
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes)
 
         const node = fragmentContainer.firstChild
         expect(node).not.to.be.null
@@ -822,13 +822,13 @@ describe('fragment', () => {
                 <div class="A" title="A"></div>
             </>
 
-        render(fragmentContainer, [view1], [])
+        const oldNodes = render(fragmentContainer, [view1], [])
 
         const view2 =
             <div title="B"></div>
 
 
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes)
 
         const element = fragmentContainer.firstChild as Element
         const titleAttr = element.attributes.getNamedItem('title')
@@ -854,7 +854,7 @@ describe('fragment', () => {
             </span>
         </div>
 
-        render(fragmentContainer, [view1], [])
+        const oldNodes = render(fragmentContainer, [view1], [])
 
         const view2 = <table>
             <>
@@ -868,7 +868,7 @@ describe('fragment', () => {
             <span>E2</span>
         </table>
 
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes)
 
         const div = fragmentContainer.firstChild as HTMLDivElement
 
@@ -903,7 +903,7 @@ describe('fragment', () => {
             </>
         </>
 
-        render(fragmentContainer, [view1], [])
+        const oldNodes = render(fragmentContainer, [view1], [])
 
         const view2 = <>
             <>
@@ -920,7 +920,7 @@ describe('fragment', () => {
             </>
         </>
 
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes)
 
         expect(fragmentContainer.childNodes.length).to.be.eq(4)
         expect(fragmentContainer.childNodes[0].textContent).to.be.eq('A')
@@ -1131,9 +1131,9 @@ describe('fragment', () => {
                 )}
             </div>
 
-        render(document.body, [view1], [])
+        const oldNodes = render(document.body, [view1], [])
 
-        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
+        let btn = (document.body.firstChild as HTMLDivElement).querySelector('button')!
         btn.click()
 
         await tick()
@@ -1149,14 +1149,14 @@ describe('fragment', () => {
                 )}
             </div>
 
-        render(document.body, [view2], [view1])
+        render(document.body, [view2], oldNodes)
 
-        btn = (view2.domRef as HTMLDivElement).querySelector('button')!
+        btn = (document.body.firstChild as HTMLDivElement).querySelector('button')!
         expect(btn.className).to.be.eq("")
         expect(btn.id).to.be.eq("item-5")
 
         // The last element should've been updated
-        btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
+        btn = (document.body.firstChild as HTMLDivElement).lastChild as HTMLButtonElement
         expect(btn.className).to.be.eq("clicked")
         expect(btn.id).to.be.eq("item-1")
     })
@@ -1195,10 +1195,10 @@ describe('fragment', () => {
                 {items.map(x => <><ItemComponent item={x} /></>)}
             </div>
 
-        render(document.body, [view1], [])
+        const oldNodes = render(document.body, [view1], [])
 
         await tick()
-        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
+        let btn = (document.body.firstChild as HTMLDivElement).querySelector('button')!
         btn.click()
 
         await tick()
@@ -1210,14 +1210,14 @@ describe('fragment', () => {
                 {items.reverse().map(x => <><ItemComponent item={x} /></>)}
             </div>
 
-        render(document.body, [view2], [view1])
+        render(document.body, [view2], oldNodes)
 
-        btn = (view2.domRef as HTMLDivElement).querySelector('button')!
+        btn = (document.body.firstChild as HTMLDivElement).querySelector('button')!
         expect(btn.className).to.be.eq("clicked")
         expect(btn.id).to.be.eq("item-5")
 
         // The last element should've been updated
-        btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
+        btn = (document.body.firstChild as HTMLDivElement).lastChild as HTMLButtonElement
         expect(btn.className).to.be.eq("")
         expect(btn.id).to.be.eq("item-1")
     })
@@ -1259,9 +1259,9 @@ describe('fragment', () => {
                 {items.map(x => <ItemComponent key={x.id.toString()} item={x} />)}
             </div>
 
-        render(document.body, [view1], [])
+        const oldNodes = render(document.body, [view1], [])
 
-        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
+        let btn = (document.body.firstChild as HTMLDivElement).querySelector('button')!
         btn.click()
 
         await tick()
@@ -1273,14 +1273,14 @@ describe('fragment', () => {
                 {items.reverse().map(x => <ItemComponent key={x.id.toString()} item={x} />)}
             </div>
 
-        render(document.body, [view2], [view1])
+        render(document.body, [view2], oldNodes)
 
-        btn = (view2.domRef as HTMLDivElement).querySelector('button')!
+        btn = (document.body.firstChild as HTMLDivElement).querySelector('button')!
         expect(btn.className).to.be.eq("")
         expect(btn.id).to.be.eq("item-5")
 
         // The last element should've been updated
-        btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
+        btn = (document.body.firstChild as HTMLDivElement).lastChild as HTMLButtonElement
         expect(btn.className).to.be.eq("clicked")
         expect(btn.id).to.be.eq("item-1")
     })
@@ -1321,9 +1321,9 @@ describe('fragment', () => {
                 {items.map(x => <ItemComponent item={x} />)}
             </div>
 
-        render(document.body, [view1], [])
+        const oldNodes = render(document.body, [view1], [])
 
-        let btn = (view1.domRef as HTMLDivElement).querySelector('button')!
+        let btn = (document.body.firstChild as HTMLDivElement).querySelector('button')!
         btn.click()
 
         await tick()
@@ -1335,14 +1335,14 @@ describe('fragment', () => {
                 {items.reverse().map(x => <ItemComponent item={x} />)}
             </div>
 
-        render(document.body, [view2], [view1])
+        render(document.body, [view2], oldNodes)
 
-        btn = (view2.domRef as HTMLDivElement).querySelector('button')!
+        btn = (document.body.firstChild as HTMLDivElement).querySelector('button')!
         expect(btn.className).to.be.eq("clicked")
         expect(btn.id).to.be.eq("item-5")
 
         // The last element should've been updated
-        btn = (view2.domRef as HTMLDivElement).lastChild as HTMLButtonElement
+        btn = (document.body.firstChild as HTMLDivElement).lastChild as HTMLButtonElement
         expect(btn.className).to.be.eq("")
         expect(btn.id).to.be.eq("item-1")
     })
@@ -1362,12 +1362,12 @@ describe('fragment', () => {
         const NewComp = () => <span id="new-comp-leaf"></span>
 
         const view1 = <><OldComp /></>
-        render(fragmentContainer, [view1], [])
+        const oldNodes = render(fragmentContainer, [view1], [])
 
         expect(fragmentContainer.querySelector('#old-comp-leaf')).not.to.be.null
 
         const view2 = <NewComp />
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes)
 
         expect(fragmentContainer.childNodes.length).to.be.eq(1)
         expect(fragmentContainer.querySelector('#old-comp-leaf')).to.be.null
@@ -1387,12 +1387,12 @@ describe('fragment', () => {
         const NewComp = () => <span id="replacement"></span>
 
         const view1 = <><CompA /><CompB /></>
-        render(fragmentContainer, [view1], [])
+        const oldNodes = render(fragmentContainer, [view1], [])
 
         expect(fragmentContainer.childNodes.length).to.be.eq(2)
 
         const view2 = <NewComp />
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes)
 
         expect(fragmentContainer.childNodes.length).to.be.eq(1)
         expect(fragmentContainer.querySelector('#ghost-a')).to.be.null
@@ -1416,11 +1416,11 @@ describe('fragment', () => {
         const NewComp = () => <span id="new-after-cleanup"></span>
 
         const view1 = <><OldComp /></>
-        render(fragmentContainer, [view1], [])
+        const oldNodes = render(fragmentContainer, [view1], [])
 
         await tick()
         const view2 = <NewComp />
-        render(fragmentContainer, [view2], [view1])
+        render(fragmentContainer, [view2], oldNodes)
 
         expect(cleanup.callCount).to.eq(1)
     })
@@ -1439,13 +1439,13 @@ describe('fragment', () => {
         const Child = () => <div id="child-leaf"></div>
 
         const view1 = <><Child /></>
-        render(fragmentContainer, [view1], [])
+        const oldNodes = render(fragmentContainer, [view1], [])
 
         expect(fragmentContainer.querySelector('#child-leaf')).not.to.be.null
 
         // Re-render fragment-to-fragment — must not throw
         const view2 = <><Child /></>
-        expect(() => render(fragmentContainer, [view2], [view1])).not.to.throw()
+        expect(() => render(fragmentContainer, [view2], oldNodes)).not.to.throw()
 
         expect(fragmentContainer.querySelector('#child-leaf')).not.to.be.null
     })
@@ -1461,9 +1461,6 @@ describe('fragment', () => {
         // New order: [Fragment key="b", div#a (keyed), span.static]
         // Expected DOM: [span#b1, span#b2, div#a, span.static]
 
-        const container = document.createElement('div')
-        document.body.appendChild(container)
-
         const view1 =
             <div>
                 <div id="a" key="a" />
@@ -1474,9 +1471,9 @@ describe('fragment', () => {
                 <span id="static" />
             </div>
 
-        render(document.body, [view1], [])
+        const oldNodes1 = render(document.body, [view1], [])
 
-        const parent = view1.domRef as HTMLDivElement
+        const parent1 = document.body.firstChild as HTMLDivElement
 
         const view2 =
             <div>
@@ -1488,9 +1485,9 @@ describe('fragment', () => {
                 <span id="static" />
             </div>
 
-        render(document.body, [view2], [view1])
+        render(document.body, [view2], oldNodes1)
 
-        const children = Array.from(parent.childNodes) as HTMLElement[]
+        const children = Array.from(parent1.childNodes) as HTMLElement[]
         expect(children).to.have.length(4)
         expect(children[0].id).to.eq('b1')
         expect(children[1].id).to.eq('b2')
@@ -1507,9 +1504,6 @@ describe('fragment', () => {
         // New: [Fragment key="Y", Fragment key="X", div#z (key="Z")]
         // Expected DOM: [span#y1, span#y2, span#x1, span#x2, div#z]
 
-        const container = document.createElement('div')
-        document.body.appendChild(container)
-
         const view1 =
             <div>
                 <myra.Fragment key="X">
@@ -1523,9 +1517,9 @@ describe('fragment', () => {
                 <div id="z" key="Z" />
             </div>
 
-        render(document.body, [view1], [])
+        const oldNodes2 = render(document.body, [view1], [])
 
-        const parent = view1.domRef as HTMLDivElement
+        const parent2 = document.body.firstChild as HTMLDivElement
 
         const view2 =
             <div>
@@ -1540,15 +1534,15 @@ describe('fragment', () => {
                 <div id="z" key="Z" />
             </div>
 
-        render(document.body, [view2], [view1])
+        render(document.body, [view2], oldNodes2)
 
-        const children = Array.from(parent.childNodes) as HTMLElement[]
-        expect(children).to.have.length(5)
-        expect(children[0].id).to.eq('y1')
-        expect(children[1].id).to.eq('y2')
-        expect(children[2].id).to.eq('x1')
-        expect(children[3].id).to.eq('x2')
-        expect(children[4].id).to.eq('z')
+        const children2 = Array.from(parent2.childNodes) as HTMLElement[]
+        expect(children2).to.have.length(5)
+        expect(children2[0].id).to.eq('y1')
+        expect(children2[1].id).to.eq('y2')
+        expect(children2[2].id).to.eq('x1')
+        expect(children2[3].id).to.eq('x2')
+        expect(children2[4].id).to.eq('z')
     })
 
 })

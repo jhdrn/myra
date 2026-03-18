@@ -12,14 +12,14 @@ declare global {
         export interface ElementAttributesProperty<TProps> {
             props: TProps
         }
-        export interface ElementChildrenAttribute { children: {} }
+        export interface ElementChildrenAttribute { children: unknown }
 
         interface IntrinsicAttributes {
             key?: string | number
         }
 
         export interface IntrinsicElements {
-            nothing: {}
+            nothing: Record<string, never>
 
             a: AAttributes
             abbr: GlobalHtmlAttributes<HTMLElement>
@@ -289,6 +289,7 @@ export interface Context<T> {
 export type Effect = () => EffectCleanupCallback
 export type EffectCleanupCallback = (() => void) | void
 
+
 export interface ComponentProps {
     children?: MyraNode
     key?: Key
@@ -304,84 +305,53 @@ export const enum VNodeType {
 }
 
 /**
- * Base interface for a virtual node.
- */
-export interface VNodeBase {
-    /**
-     * A reference to a DOM node.
-     */
-    domRef?: Node
-}
-
-/**
- * A virtual node representing nothing. Will be rendered as a comment DOM 
+ * A virtual node representing nothing. Will be rendered as a comment DOM
  * node.
  */
-export interface NothingVNode extends VNodeBase {
+export interface NothingVNode {
     readonly _: VNodeType.Nothing
 }
 
 /**
- * A virtual node that represents a text DOM node. 
+ * A virtual node that represents a text DOM node.
  */
-export interface TextVNode extends VNodeBase {
+export interface TextVNode {
     readonly _: VNodeType.Text
     readonly text: string
 }
 
 /**
- * A virtual node representing a DOM Element. 
+ * A virtual node representing a DOM Element.
  */
-export interface ElementVNode<TElement extends Element> extends VNodeBase {
+export interface ElementVNode<TElement extends Element> {
     readonly _: VNodeType.Element
     readonly tagName: string
     readonly props: GlobalAttributes<TElement> & { children: VNode[] }
-    domRef?: TElement
 }
 
-export interface FragmentVNode extends VNodeBase {
+export interface FragmentVNode {
     readonly _: VNodeType.Fragment
     readonly props: {
         children: VNode[]
         key?: Key
     }
-    domRef?: HTMLElement
 }
 
-export interface EffectWrapper {
-    arg: any
-    cleanup?: EffectCleanupCallback
-    effect: Effect
-    invoke: boolean
-    sync: boolean
-}
 
 /**
  * A virtual node representing a component.
  */
 export interface ComponentVNode<TProps> {
     readonly _: VNodeType.Component
-    readonly domRef?: Node
-    contextBindings?: Map<Context<any>, ContextBinding<any>>
-    data?: any[]
-    /** A flag to indicate whether a new "renderComponent" call should be queued or not. */
-    debounceRender: boolean
-    effects?: Array<EffectWrapper>
-    errorHandler?: ErrorHandler
-    link: { vNode: ComponentVNode<TProps> }
-    parent?: ComponentVNode<ComponentProps>
     props: TProps
-    /** The most recent VNode tree of the component. */
-    rendition?: VNode
-    /** A stale component should not be rendered */
-    stale?: boolean
     /** The function that generates a VNode tree for the component. */
-    view: ComponentFactory<TProps>
+    readonly view: ComponentFactory<TProps>
 }
 
 /**
  * Union type of the different types of virtual nodes.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type VNode = TextVNode | ElementVNode<any> | FragmentVNode | ComponentVNode<any> | NothingVNode
 
 export interface GenericEvent<T extends EventTarget> extends Event {
@@ -502,50 +472,50 @@ export interface GlobalAttributes<TElement extends Element> {
 
     // Widget attributes
 
-    'aria-autocomplete'?: any
-    'aria-checked'?: any
-    'aria-disabled'?: any
-    'aria-expanded'?: any
-    'aria-haspopup'?: any
-    'aria-hidden'?: any
-    'aria-invalid'?: any
-    'aria-label'?: any
-    'aria-level'?: any
-    'aria-multiline'?: any
-    'aria-multiselectable'?: any
-    'aria-orientation'?: any
-    'aria-pressed'?: any
-    'aria-readonly'?: any
-    'aria-required'?: any
-    'aria-selected'?: any
-    'aria-sort'?: any
-    'aria-valuemax'?: any
-    'aria-valuemin'?: any
-    'aria-valuenow'?: any
-    'aria-valuetext'?: any
+    'aria-autocomplete'?: string | boolean | number
+    'aria-checked'?: string | boolean | number
+    'aria-disabled'?: string | boolean | number
+    'aria-expanded'?: string | boolean | number
+    'aria-haspopup'?: string | boolean | number
+    'aria-hidden'?: string | boolean | number
+    'aria-invalid'?: string | boolean | number
+    'aria-label'?: string | boolean | number
+    'aria-level'?: string | boolean | number
+    'aria-multiline'?: string | boolean | number
+    'aria-multiselectable'?: string | boolean | number
+    'aria-orientation'?: string | boolean | number
+    'aria-pressed'?: string | boolean | number
+    'aria-readonly'?: string | boolean | number
+    'aria-required'?: string | boolean | number
+    'aria-selected'?: string | boolean | number
+    'aria-sort'?: string | boolean | number
+    'aria-valuemax'?: string | boolean | number
+    'aria-valuemin'?: string | boolean | number
+    'aria-valuenow'?: string | boolean | number
+    'aria-valuetext'?: string | boolean | number
 
     // Live region attributes
 
-    'aria-live'?: any
-    'aria-relevant'?: any
-    'aria-atomic'?: any
-    'aria-busy'?: any
+    'aria-live'?: string | boolean | number
+    'aria-relevant'?: string | boolean | number
+    'aria-atomic'?: string | boolean | number
+    'aria-busy'?: string | boolean | number
 
     // Drag & drop attributes
 
-    'aria-dropeffect'?: any
-    'aria-dragged'?: any
+    'aria-dropeffect'?: string | boolean | number
+    'aria-dragged'?: string | boolean | number
 
     // Relationship attributes
 
-    'aria-activedescendant'?: any
-    'aria-controls'?: any
-    'aria-describedby'?: any
-    'aria-flowto'?: any
-    'aria-labelledby'?: any
-    'aria-owns'?: any
-    'aria-posinset'?: any
-    'aria-setsize'?: any
+    'aria-activedescendant'?: string | boolean | number
+    'aria-controls'?: string | boolean | number
+    'aria-describedby'?: string | boolean | number
+    'aria-flowto'?: string | boolean | number
+    'aria-labelledby'?: string | boolean | number
+    'aria-owns'?: string | boolean | number
+    'aria-posinset'?: string | boolean | number
+    'aria-setsize'?: string | boolean | number
 
     // [name: string]: any
 }
@@ -573,11 +543,11 @@ export interface AreaAttributes extends GlobalAttributes<HTMLAreaElement> {
 }
 export interface AudioAttributes extends GlobalAttributes<HTMLAudioElement> {
     autoplay?: boolean | 'true' | 'false'
-    buffered?: any
-    controls?: any
+    buffered?: string | boolean | number
+    controls?: string | boolean | number
     loop?: boolean | 'true' | 'false'
     muted?: boolean | 'true' | 'false'
-    played?: any
+    played?: string | boolean | number
     preload?: '' | 'none' | 'metadata' | 'auto'
     src?: string
     volume?: number | string
@@ -811,7 +781,7 @@ export interface TrackAttributes extends GlobalAttributes<HTMLTrackElement> {
 }
 export interface VideoAttributes extends GlobalAttributes<HTMLVideoElement> {
     autoplay?: boolean | 'true' | 'false'
-    buffered?: any
+    buffered?: string | boolean | number
     controls?: boolean | 'true' | 'false'
     crossorigin?: 'anonymous' | 'use-credentials'
     height?: number | string
@@ -826,5 +796,6 @@ export interface VideoAttributes extends GlobalAttributes<HTMLVideoElement> {
 
 // TODO: explicit attributes
 export interface SvgAttributes {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [name: string]: any
 }

@@ -27,6 +27,9 @@ export function h<TProps>(
 
     if (props === null) {
         props = {} as TProps
+    } else {
+        delete (props as Record<string, unknown>)['__self']
+        delete (props as Record<string, unknown>)['__source']
     }
 
     (props as unknown as { children: VNode[] }).children = flattenChildren(children)
@@ -39,26 +42,14 @@ export function h<TProps>(
             props: props as unknown as { children: Array<VNode> }
         }
     } else if (tagNameOrComponent === Fragment) {
-        return tagNameOrComponent(props as any) as VNode
+        return tagNameOrComponent(props as object) as VNode
     }
 
-    const vNode = {
+    return {
         _: VNodeType.Component,
-        debounceRender: false,
-        get domRef() {
-            if (this.rendition !== undefined) {
-                return this.rendition.domRef
-            }
-            return undefined
-        },
         props,
         view: tagNameOrComponent
-    } as any as ComponentVNode<any>
-
-    vNode.link = {
-        vNode
-    }
-    return vNode
+    } as ComponentVNode<object>
 }
 
 function flattenChildren(children: MyraNode[]) {

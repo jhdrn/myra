@@ -4,10 +4,10 @@ import { useLayoutEffect, useRef } from './hooks'
 
 export function registerContextBinding<T>(context: Context<T>, binding: ContextBinding<T>): void {
     const rc = getRenderingContext()!
-    if (rc.vNode.contextBindings === undefined) {
-        rc.vNode.contextBindings = new Map()
+    if (rc.renderNode.contextBindings === undefined) {
+        rc.renderNode.contextBindings = new Map()
     }
-    rc.vNode.contextBindings.set(context, binding)
+    rc.renderNode.contextBindings.set(context, binding)
 }
 
 export function createContext<T>(defaultValue: T): Context<T> {
