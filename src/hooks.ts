@@ -1,5 +1,6 @@
-import { getRenderingContext, renderComponent, tryHandleComponentError } from './component'
-import { ComponentProps, ComponentVNode, Context, ContextBinding, Effect, ErrorHandler, Evolve, Ref, UpdateState } from './contract'
+import { getRenderingContext, tryHandleComponentError } from './component'
+import { enqueueRender } from './queue'
+import { Context, ContextBinding, Effect, ErrorHandler, Evolve, Ref, UpdateState } from './contract'
 import { equal } from './helpers'
 import { ComponentLink, RenderNode } from './internal'
 
@@ -31,24 +32,7 @@ export function useState<TState>(initialState: TState | LazyStateInitialization<
 
                 currentRenderNode.data![hookIndex] = [update, evolve]
 
-                if (!currentRenderNode.debounceRender) {
-                    setTimeout(() => {
-                        link.renderNode.debounceRender = false
-
-                        const vNode = link.renderNode.vNode
-                        if (vNode !== undefined) {
-                            renderComponent(
-                                parentElement,
-                                link.renderNode.vNode as ComponentVNode<ComponentProps>,
-                                link.renderNode,
-                                link.renderNode.rendition,
-                                isSvg,
-                                false  // state-change re-render: never allow memo skip
-                            )
-                        }
-                    })
-                }
-                currentRenderNode.debounceRender = true
+                enqueueRender(parentElement, currentRenderNode, isSvg, false)
             } catch (err) {
                 setTimeout(() => {
                     tryHandleComponentError(parentElement, currentRenderNode, isSvg, err as Error)
@@ -247,16 +231,7 @@ function makeReRenderCallback(
         if (currentRenderNode.stale) {
             return
         }
-        if (!currentRenderNode.debounceRender) {
-            setTimeout(() => {
-                link.renderNode.debounceRender = false
-                const vNode = link.renderNode.vNode
-                if (vNode !== undefined) {
-                    renderComponent(parentElement, link.renderNode.vNode as ComponentVNode<ComponentProps>, link.renderNode, link.renderNode.rendition, isSvg, false)
-                }
-            })
-        }
-        currentRenderNode.debounceRender = true
+        enqueueRender(parentElement, currentRenderNode, isSvg, false)
     }
 }
 
