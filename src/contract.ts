@@ -272,6 +272,19 @@ export interface Ref<T> {
     current: T
 }
 
+export interface ContextBinding<T> {
+    getValue: () => T
+    subscribe: (callback: () => void) => (() => void)
+}
+
+export interface ProviderProps<T> extends ComponentProps {
+    value: T
+}
+
+export interface Context<T> {
+    readonly Provider: (props: ProviderProps<T> & ComponentProps) => VNode
+}
+
 export type Effect = () => EffectCleanupCallback
 export type EffectCleanupCallback = (() => void) | void
 

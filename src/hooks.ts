@@ -1,7 +1,7 @@
 import { getRenderingContext, renderComponent, tryHandleComponentError } from './component'
-import { ComponentProps, ComponentVNode, Effect, ErrorHandler, Evolve, Ref, UpdateState } from './contract'
-import { RenderNode } from './internal'
+import { ComponentProps, ComponentVNode, Context, ContextBinding, Effect, ErrorHandler, Evolve, Ref, UpdateState } from './contract'
 import { equal } from './helpers'
+import { ComponentLink, RenderNode } from './internal'
 
 
 type LazyStateInitialization<TState> = () => TState
@@ -186,6 +186,78 @@ export function useMemo<TMemoization>(fn: () => TMemoization, deps: unknown[]): 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 export function useCallback<TCallback extends Function>(callback: TCallback, deps: unknown[]): TCallback {
     return useMemo(() => callback, deps)
+}
+
+/**
+ *
+ * @param context
+ */
+export function useContext<T>(context: Context<T>): T {
+    const rc = getRenderingContext()!
+    const { hookIndex, isSvg, parentElement, renderNode } = rc
+
+    if (renderNode.effects === undefined) {
+        renderNode.effects = []
+    }
+
+    const binding = findContextBinding(renderNode, context)
+
+    // One effects slot: arg tracks the binding for change detection, cleanup
+    // holds the unsubscribe function. invoke is always false so the effect
+    // itself never runs — cleanup fires only via cleanupRecursively on unmount.
+    let slot = renderNode.effects[hookIndex]
+    if (slot === undefined) {
+        slot = {
+            arg: binding,
+            cleanup: binding?.subscribe(makeReRenderCallback(renderNode.link!, parentElement, isSvg)),
+            effect: () => { /* never invoked */ },
+            invoke: false,
+            sync: false,
+        }
+        renderNode.effects[hookIndex] = slot
+    } else if (slot.arg !== binding) {
+        slot.cleanup?.()
+        slot.arg = binding
+        slot.cleanup = binding?.subscribe(makeReRenderCallback(renderNode.link!, parentElement, isSvg))
+    }
+    rc.hookIndex++
+
+    return binding !== undefined ? binding.getValue() : (context as unknown as { _defaultValue: T })._defaultValue
+}
+
+function findContextBinding<T>(renderNode: RenderNode, context: Context<T>): ContextBinding<T> | undefined {
+    let current = renderNode.parent
+    while (current !== undefined) {
+        const b = current.contextBindings?.get(context)
+        if (b !== undefined) {
+            return b as ContextBinding<T>
+        }
+        current = current.parent
+    }
+    return undefined
+}
+
+function makeReRenderCallback(
+    link: ComponentLink,
+    parentElement: Element,
+    isSvg: boolean
+): () => void {
+    return () => {
+        const currentRenderNode = link.renderNode
+        if (currentRenderNode.stale) {
+            return
+        }
+        if (!currentRenderNode.debounceRender) {
+            setTimeout(() => {
+                link.renderNode.debounceRender = false
+                const vNode = link.renderNode.vNode
+                if (vNode !== undefined) {
+                    renderComponent(parentElement, link.renderNode.vNode as ComponentVNode<ComponentProps>, link.renderNode, link.renderNode.rendition, isSvg, false)
+                }
+            })
+        }
+        currentRenderNode.debounceRender = true
+    }
 }
 
 /**

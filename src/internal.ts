@@ -1,4 +1,4 @@
-import type { Effect, ErrorHandler, VNode } from './contract'
+import type { Context, ContextBinding, Effect, ErrorHandler, VNode } from './contract'
 
 export interface EffectWrapper {
     arg: unknown
@@ -22,8 +22,11 @@ export interface RenderNode {
     debounceRender?: boolean
     effects?: EffectWrapper[]
     errorHandler?: ErrorHandler
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    contextBindings?: Map<Context<any>, ContextBinding<any>>
     link?: ComponentLink
     memo?: boolean
+    parent?: RenderNode
     stale?: boolean
     rendition?: RenderNode
 }

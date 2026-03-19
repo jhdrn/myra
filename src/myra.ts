@@ -6,6 +6,7 @@ import {
 } from './contract'
 
 export type * from './contract'
+export * from './context'
 export * from './fragment'
 export * from './jsxFactory'
 export * from './hooks'

@@ -62,9 +62,9 @@
   "typings": "myra.d.ts",
   "exports": {
     ".": {
+      "types": "./myra.d.ts",
       "import": "./myra.mjs",
-      "require": "./myra.cjs",
-      "types": "./myra.d.ts"
+      "require": "./myra.cjs"
     }
   },
   "engines": {
