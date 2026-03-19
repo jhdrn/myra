@@ -17,55 +17,32 @@ export function typeOf(obj: unknown): Type {
     return ({}).toString.call(obj).slice(8, -1).toLowerCase() as Type
 }
 
-const basicEqualityTypes = ['string', 'number', 'boolean', 'undefined', 'null', 'function']
-
 /**
  * Does a deep equality check.
  */
 export function equal<T>(a: T, b: T): boolean {
-    const typeOfA = typeOf(a)
-    const typeOfB = typeOf(b)
-    if (basicEqualityTypes.indexOf(typeOfA) >= 0) {
-        return a === b
-    }
-    else if (typeOfA === 'object' && typeOfB === 'object') {
-        if (a === b) {
-            return true
-        }
-        if (Object.keys(a as object).length !== Object.keys(b as object).length) {
-            return false
-        }
-        for (const k in a) {
-            if (Object.prototype.hasOwnProperty.call(a, k)) {
-                if (!equal((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k])) {
-                    return false
-                }
-            }
-        }
+    if (a === b) {
         return true
     }
-    else if (typeOfA === 'array' && typeOfB === 'array') {
-        if (a === b) {
-            return true
-        }
-        if ((a as unknown as Array<unknown>).length !== (b as unknown as Array<unknown>).length) {
-            return false
-        }
-        for (const i in a) {
-            if (!equal((a as unknown as Array<unknown>)[Number(i)], (b as unknown as Array<unknown>)[Number(i)])) {
-                return false
-            }
-        }
-        return true
+    const ta = typeOf(a)
+    if (ta !== typeOf(b)) {
+        return false
     }
-    else if (typeOfA === 'date' && typeOfB === 'date') {
+    if (ta === 'array') {
+        const aa = a as unknown as unknown[]
+        const ba = b as unknown as unknown[]
+        return aa.length === ba.length && aa.every((v, i) => equal(v, ba[i]))
+    }
+    if (ta === 'object') {
+        const ka = Object.keys(a as object)
+        return ka.length === Object.keys(b as object).length &&
+            ka.every(k => equal((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]))
+    }
+    if (ta === 'date') {
         return (a as unknown as Date).getTime() === (b as unknown as Date).getTime()
     }
-    else if (typeOfA === 'regexp' && typeOfB === 'regexp') {
+    if (ta === 'regexp') {
         return (a as unknown as RegExp).toString() === (b as unknown as RegExp).toString()
-    }
-    else if (typeOfA === typeOfB) {
-        return a === b
     }
     return false
 }
