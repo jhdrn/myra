@@ -6,7 +6,6 @@ interface RenderQueueEntry {
     parentElement: Element
     renderNode: RenderNode
     isSvg: boolean
-    allowMemo: boolean
 }
 
 const renderQueue: RenderQueueEntry[] = []
@@ -15,11 +14,10 @@ let flushScheduled = false
 export function enqueueRender(
     parentElement: Element,
     renderNode: RenderNode,
-    isSvg: boolean,
-    allowMemo: boolean
+    isSvg: boolean
 ): void {
     if (!renderNode.debounceRender) {
-        renderQueue.push({ parentElement, renderNode, isSvg, allowMemo })
+        renderQueue.push({ parentElement, renderNode, isSvg })
         renderNode.debounceRender = true
     }
     if (!flushScheduled) {
@@ -34,6 +32,8 @@ function flushRenderQueue(): void {
     // (e.g. cascading setState) go into the next batch rather than this one.
     const batch = renderQueue.splice(0)
     for (const entry of batch) {
+        // Reset before rendering so any setState called during render can re-enqueue
+        // for the next batch (see splice(0) above).
         entry.renderNode.debounceRender = false
         const vNode = entry.renderNode.vNode
         if (vNode !== undefined) {
@@ -43,7 +43,8 @@ function flushRenderQueue(): void {
                 entry.renderNode,
                 entry.renderNode.rendition,
                 entry.isSvg,
-                entry.allowMemo
+                // allowMemo is always false for state-change re-renders
+                false
             )
         }
     }

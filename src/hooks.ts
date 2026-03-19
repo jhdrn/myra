@@ -32,7 +32,7 @@ export function useState<TState>(initialState: TState | LazyStateInitialization<
 
                 currentRenderNode.data![hookIndex] = [update, evolve]
 
-                enqueueRender(parentElement, currentRenderNode, isSvg, false)
+                enqueueRender(parentElement, currentRenderNode, isSvg)
             } catch (err) {
                 setTimeout(() => {
                     tryHandleComponentError(parentElement, currentRenderNode, isSvg, err as Error)
@@ -231,7 +231,7 @@ function makeReRenderCallback(
         if (currentRenderNode.stale) {
             return
         }
-        enqueueRender(parentElement, currentRenderNode, isSvg, false)
+        enqueueRender(parentElement, currentRenderNode, isSvg)
     }
 }
 

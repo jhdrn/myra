@@ -1793,7 +1793,8 @@ describe('batching', () => {
         renderCountA = 0
         renderCountB = 0
 
-        // Both siblings update in the same tick — should produce one render each
+        // Both siblings update in the same synchronous block — they share one
+        // setTimeout flush, so each renders exactly once (no duplicate renders).
         setA(1)
         setB(1)
         await tick()
@@ -1843,10 +1844,10 @@ describe('batching', () => {
 
         expect(document.getElementById('c1')!.textContent).to.eq('42')
         expect(document.getElementById('c2')!.textContent).to.eq('42')
-        // Each consumer renders exactly twice: once via synchronous tree-walk
-        // when the Provider re-renders, and once via the subscription callback.
-        // The batching ensures all subscription-triggered renders share one
-        // setTimeout flush rather than N separate flushes.
+        // Each consumer renders twice: once via the synchronous Provider tree-walk,
+        // and once via the context subscription callback. Both subscription callbacks
+        // are batched into the same setTimeout flush (rather than N separate flushes),
+        // so each consumer still renders exactly once from the subscription.
         expect(renderCountC1).to.eq(2)
         expect(renderCountC2).to.eq(2)
     })
