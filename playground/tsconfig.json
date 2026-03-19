@@ -1,14 +1,19 @@
 {
     "extends": "../tsconfig.json",
     "compilerOptions": {
+        "target": "es2019",
         "jsx": "react",
         "jsxFactory": "myra.h",
         "jsxFragmentFactory": "myra.Fragment",
         "outDir": "build",
         "tsBuildInfoFile": "build/.tsbuildinfo",
         "paths": {
-            "myra": ["../src/myra.ts"]
+            "myra": [
+                "../src/myra.ts"
+            ]
         }
     },
-    "include": ["src"]
+    "include": [
+        "src"
+    ]
 }

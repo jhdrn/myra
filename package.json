@@ -53,6 +53,7 @@
     "pretest": "tsc --noEmit --project tsconfig.test.json",
     "test": "vitest run",
     "test:local": "vitest",
+    "bench": "vitest bench",
     "coverage": "vitest run --coverage",
     "playground": "vite --config playground/vite.config.ts",
     "playground:build": "vite build --config playground/vite.config.ts"

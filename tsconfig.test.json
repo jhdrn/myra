@@ -1,7 +1,7 @@
 {
     "extends": "./tsconfig.json",
     "compilerOptions": {
-        "types": ["mocha"],
+        "types": ["vitest/globals"],
         "jsx": "react",
         "jsxFactory": "myra.h",
         "jsxFragmentFactory": "myra.Fragment"

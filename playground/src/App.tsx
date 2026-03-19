@@ -1,5 +1,6 @@
 import * as myra from 'myra'
 import { ComponentProps, useState, VNode } from 'myra'
+import { BenchmarkDemo } from './demos/Benchmark'
 import { ContextDemo } from './demos/ContextDemo'
 import { Counter } from './demos/Counter'
 import { Effects } from './demos/Effects'
@@ -78,6 +79,12 @@ const DEMOS: DemoEntry[] = [
         label: 'createContext / useContext',
         description: 'Theme switching, deep-tree propagation, and default value fallback',
         Demo: ContextDemo,
+    },
+    {
+        key: 'benchmark',
+        label: 'Benchmarks',
+        description: 'Wall-clock performance: mount, state update, and keyed reconciliation',
+        Demo: BenchmarkDemo,
     },
 ]
 
