@@ -158,6 +158,19 @@ const Counter = myra.define(() => {
 })
 ```
 
+### useContext
+
+Subscribes to a context value provided by a `Context.Provider` ancestor. Re-renders the component whenever the context value changes. Falls back to the default value if no matching provider is found in the tree:
+
+```tsx
+const ThemeContext = myra.createContext('light')
+
+const ThemedButton = myra.define(() => {
+    const theme = myra.useContext(ThemeContext)
+    return <button class={theme}>Click me</button>
+})
+```
+
 ### useErrorHandler
 
 Catches errors thrown during render and shows a fallback view:
@@ -165,6 +178,24 @@ Catches errors thrown during render and shows a fallback view:
 ```tsx
 myra.useErrorHandler(error => <p>An error occurred: {error}</p>)
 ```
+
+## Context
+
+Context lets you pass values down the component tree without threading props through every level.
+
+Use `myra.createContext` to create a context object with a default value, then wrap the subtree with its `Provider` to supply a value:
+
+```tsx
+const ThemeContext = myra.createContext('light')
+
+const App = myra.define(() => (
+    <ThemeContext.Provider value="dark">
+        <ThemedButton />
+    </ThemeContext.Provider>
+))
+```
+
+Any descendant can read the nearest provider's value with `useContext` (see above). When the provider's `value` prop changes, all subscribed consumers re-render automatically. If no provider is found, the default value passed to `createContext` is used.
 
 ## Memoized components
 
