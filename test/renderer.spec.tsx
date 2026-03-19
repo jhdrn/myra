@@ -1758,3 +1758,129 @@ it('keeps focus of element when rendering keyed siblings', () => {
     expect(node).to.be.eq(document.activeElement as HTMLInputElement)
 })
 
+/**
+ * Shared-queue batching
+ */
+describe('batching', () => {
+
+    beforeEach(() => {
+        Array.prototype.slice.call(document.body.childNodes).forEach((c: Node) => document.body.removeChild(c))
+    })
+
+    it('batches sibling component renders into a single flush', async () => {
+        let renderCountA = 0
+        let renderCountB = 0
+        let setA: myra.Evolve<number> = () => 0
+        let setB: myra.Evolve<number> = () => 0
+
+        const A = () => {
+            const [n, set] = myra.useState(0)
+            setA = set
+            renderCountA++
+            return <span id="a">{n}</span>
+        }
+        const B = () => {
+            const [n, set] = myra.useState(0)
+            setB = set
+            renderCountB++
+            return <span id="b">{n}</span>
+        }
+        const Root = () => <div><A /><B /></div>
+
+        myra.mount(<Root />, document.body)
+        await tick()
+
+        renderCountA = 0
+        renderCountB = 0
+
+        // Both siblings update in the same synchronous block — they share one
+        // setTimeout flush, so each renders exactly once (no duplicate renders).
+        setA(1)
+        setB(1)
+        await tick()
+
+        expect(renderCountA).to.eq(1)
+        expect(renderCountB).to.eq(1)
+        expect(document.getElementById('a')!.textContent).to.eq('1')
+        expect(document.getElementById('b')!.textContent).to.eq('1')
+    })
+
+    it('batches context fan-out: all consumers update in a single flush', async () => {
+        const Ctx = myra.createContext(0)
+        let renderCountC1 = 0
+        let renderCountC2 = 0
+        let setVal: myra.Evolve<number> = () => 0
+
+        const Consumer1 = () => {
+            renderCountC1++
+            const v = myra.useContext(Ctx)
+            return <span id="c1">{v}</span>
+        }
+        const Consumer2 = () => {
+            renderCountC2++
+            const v = myra.useContext(Ctx)
+            return <span id="c2">{v}</span>
+        }
+        const Provider = () => {
+            const [val, set] = myra.useState(0)
+            setVal = set
+            return (
+                <Ctx.Provider value={val}>
+                    <Consumer1 />
+                    <Consumer2 />
+                </Ctx.Provider>
+            )
+        }
+
+        myra.mount(<Provider />, document.body)
+        await tick()
+
+        renderCountC1 = 0
+        renderCountC2 = 0
+
+        setVal(42)
+        await tick()
+        await tick() // context notifications fire in a layout effect, need an extra tick
+
+        expect(document.getElementById('c1')!.textContent).to.eq('42')
+        expect(document.getElementById('c2')!.textContent).to.eq('42')
+        // Each consumer renders twice: once via the synchronous Provider tree-walk,
+        // and once via the context subscription callback. Both subscription callbacks
+        // are batched into the same setTimeout flush (rather than N separate flushes),
+        // so each consumer still renders exactly once from the subscription.
+        expect(renderCountC1).to.eq(2)
+        expect(renderCountC2).to.eq(2)
+    })
+
+    it('defers cascading setState into the next batch', async () => {
+        let renderCount = 0
+        let triggerCascade: myra.Evolve<number> = () => 0
+
+        const Cascading = () => {
+            const [a, setA] = myra.useState(0)
+            const [b, setB] = myra.useState(0)
+            triggerCascade = setA
+            renderCount++
+            if (a > 0 && b === 0) {
+                setB(a * 2)
+            }
+            return <span id="cas">{a},{b}</span>
+        }
+
+        myra.mount(<Cascading />, document.body)
+        await tick()
+
+        renderCount = 0
+        triggerCascade(5)
+
+        // First tick: renders with a=5, b=0 — setB enqueued for next batch
+        await tick()
+        expect(renderCount).to.eq(1)
+
+        // Second tick: renders with a=5, b=10
+        await tick()
+        expect(renderCount).to.eq(2)
+        expect(document.getElementById('cas')!.textContent).to.eq('5,10')
+    })
+})
+
