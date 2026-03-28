@@ -548,7 +548,7 @@ describe('useErrorHandling', () => {
 
         const vNode = <Component />
         render(document.body, [vNode], [])
-        ;(document.body.firstChild as HTMLElement).click()
+            ; (document.body.firstChild as HTMLElement).click()
         await tick()
         expect(mock.callback.called).to.be.true
     })
@@ -887,5 +887,53 @@ describe('useReducer', () => {
         dispatch(2)
         await tick()
         expect(state).to.eq(22) // 2 + (2 * 10)
+    })
+})
+
+describe('render queue', () => {
+    beforeEach(() => {
+        document.body.innerHTML = ''
+    })
+
+    it('correctly renders newly mounted components whose parent DOM element changes', async () => {
+        // When a component is re-rendered in a different DOM parent (same
+        // component type + key), subsequent state updates must render in the
+        // correct (new) parent element, not the originally-captured one.
+        let setCount!: myra.Evolve<number>
+        let setUseSection!: myra.Evolve<boolean>
+
+        const Child = () => {
+            const [count, _setCount] = useState(0)
+            setCount = _setCount
+            return <span id="child-output">{count}</span>
+        }
+
+        const Parent = () => {
+            const [useSection, _setUseSection] = useState(false)
+            setUseSection = _setUseSection
+            return useSection
+                ? <section id="section-container"><Child key="c" /></section>
+                : <div id="div-container"><Child key="c" /></div>
+        }
+
+        myra.mount(<Parent />, document.body)
+        await tick()
+        await tick()
+
+        expect(q('#div-container #child-output')?.textContent).to.eq('0')
+
+        // Move Child from div to section — renderNode is reused, parentElement updates
+        setUseSection(true)
+        await tick()
+        await tick()
+
+        expect(q('#section-container #child-output')).not.to.be.null
+
+        // State update must render in section, not the now-detached div
+        setCount(42)
+        await tick()
+        await tick()
+
+        expect(q('#section-container #child-output')?.textContent).to.eq('42')
     })
 })

@@ -1884,3 +1884,45 @@ describe('batching', () => {
     })
 })
 
+describe('stale component reuse', () => {
+    beforeEach(() => {
+        document.body.innerHTML = ''
+    })
+
+    it('does not reuse a stale render node when a parent switches component type but both render the same child component type', async () => {
+        // Regression: when RouteA is replaced by RouteB (different component types),
+        // cleanupRecursively marks RouteA's rendition (Page) as stale. If RouteB
+        // also renders Page, the reconciler must NOT reuse the stale Page render node —
+        // doing so causes the render guard (!renderNode.stale) to skip the render
+        // entirely, leaving the old DOM in place.
+        let setRoute!: myra.Evolve<'a' | 'b'>
+
+        const Page = (props: { route: string }) =>
+            <div id="page">{props.route}</div>
+
+        const RouteA = () => <Page route="a" />
+        const RouteB = () => <Page route="b" />
+
+        const App = () => {
+            const [route, _setRoute] = myra.useState<'a' | 'b'>('a')
+            setRoute = _setRoute
+            return route === 'a' ? <RouteA /> : <RouteB />
+        }
+
+        myra.mount(<App />, document.body)
+        await tick()
+        await tick()
+
+        expect(document.getElementById('page')?.textContent).to.eq('a')
+
+        setRoute('b')
+        await tick()
+        await tick()
+
+        // Without the fix, Page's stale render node is reused and the render guard
+        // skips it — leaving "a" in the DOM. With the fix, a fresh node is created
+        // and "b" is rendered correctly.
+        expect(document.getElementById('page')?.textContent).to.eq('b')
+    })
+})
+

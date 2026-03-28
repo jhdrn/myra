@@ -438,10 +438,12 @@ function renderFragmentVNode(oldNode: RenderNode | undefined, newChildVNode: Fra
             fragmentNextSiblings.push(nextSibling)
         }
 
-        newRenderNode.children = render(parentElement, newChildren, oldChildren, isSvg)
-
-        if (fragmentNextSiblings[fragmentNextSiblings.length - 1] === nextSibling) {
-            fragmentNextSiblings.pop()
+        try {
+            newRenderNode.children = render(parentElement, newChildren, oldChildren, isSvg)
+        } finally {
+            if (fragmentNextSiblings[fragmentNextSiblings.length - 1] === nextSibling) {
+                fragmentNextSiblings.pop()
+            }
         }
     }
     else if (oldNode.vNode?._ === VNodeType.Component && oldNode.rendition?.vNode?._ === VNodeType.Fragment) {
@@ -492,7 +494,7 @@ function renderComponentVNode(oldNode: RenderNode | undefined, newChildVNode: Co
         const oldVNode = oldNode.vNode
         if (oldVNode?._ === VNodeType.Component) {
             const oldComponentVNode = oldVNode as ComponentVNode<ComponentProps>
-            if (newChildVNode.view === oldComponentVNode.view && (newChildVNode.props as ComponentProps).key === (oldComponentVNode.props as ComponentProps).key) {
+            if (newChildVNode.view === oldComponentVNode.view && (newChildVNode.props as ComponentProps).key === (oldComponentVNode.props as ComponentProps).key && !oldNode.stale) {
                 // Same component — reuse the render node, update the VNode reference
                 renderNode = oldNode
                 renderNode.vNode = newChildVNode
@@ -564,6 +566,8 @@ export function renderComponent(
         if (currentParentVNode !== undefined || renderNode.parent === undefined) {
             renderNode.parent = currentParentVNode
         }
+        renderNode.parentElement = parentElement
+        renderNode.isSvg = isSvg
         try {
             renderingContext = {
                 renderNode,
@@ -614,6 +618,11 @@ export function renderComponent(
             triggerEffects(renderNode, parentElement, isSvg, false)
         }
         catch (err) {
+            // Ensure renderingContext is always cleared even when the component's
+            // view function throws before the normal renderingContext = undefined
+            // at line 597. Leaving it set would cause the guard at the top of
+            // renderComponent to silently drop all subsequent renders.
+            renderingContext = undefined
             tryHandleComponentError(parentElement, renderNode, isSvg, err as Error)
         }
     }

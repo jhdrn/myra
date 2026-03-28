@@ -24,9 +24,11 @@ export interface RenderNode {
     errorHandler?: ErrorHandler
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     contextBindings?: Map<Context<any>, ContextBinding<any>>
+    isSvg?: boolean
     link?: ComponentLink
     memo?: boolean
     parent?: RenderNode
+    parentElement?: Element
     stale?: boolean
     rendition?: RenderNode
 }
