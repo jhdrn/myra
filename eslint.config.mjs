@@ -17,10 +17,12 @@ export default tseslint.config(
             '@stylistic/js': stylisticJs
         },
         rules: {
-            "@typescript-eslint/no-namespace": "off",
-            "@typescript-eslint/no-unused-expressions": "off",
-            "@stylistic/js/quotes": ["error", "single"],
-            "@stylistic/js/semi": ["error", "never"],
+            '@typescript-eslint/no-namespace': 'off',
+            '@typescript-eslint/no-unused-expressions': 'off',
+            '@stylistic/js/quotes': ['error', 'single'],
+            '@stylistic/js/semi': ['error', 'never'],
+            '@stylistic/js/brace-style': ['error', '1tbs', { allowSingleLine: false }],
+            '@stylistic/js/curly-newline': ['error', 'always'],
         }
     }
 )

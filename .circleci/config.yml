@@ -15,7 +15,12 @@ jobs:
           command: npm test
       - run:
           name: Upload coverage
-          command: curl -Os https://uploader.codecov.io/latest/linux/codecov && chmod +x codecov && ./codecov
+          command: |
+            CODECOV_VERSION=v0.7.3
+            curl -Os https://uploader.codecov.io/${CODECOV_VERSION}/linux/codecov
+            curl -Os https://uploader.codecov.io/${CODECOV_VERSION}/linux/codecov.SHA256SUM
+            sha256sum -c codecov.SHA256SUM
+            chmod +x codecov && ./codecov
 
 workflows:
   test:
