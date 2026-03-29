@@ -14,7 +14,7 @@ type LazyStateInitialization<TState> = () => TState
 export function useState<TState>(initialState: TState | LazyStateInitialization<TState>): [TState, Evolve<TState>] {
 
     const renderingContext = getRenderingContext()
-    const { hookIndex, isSvg, parentElement, renderNode } = renderingContext!
+    const { hookIndex, renderNode } = renderingContext!
     if (renderNode.data === undefined) {
         renderNode.data = []
     }
@@ -32,10 +32,10 @@ export function useState<TState>(initialState: TState | LazyStateInitialization<
 
                 currentRenderNode.data![hookIndex] = [update, evolve]
 
-                enqueueRender(parentElement, currentRenderNode, isSvg)
+                enqueueRender(currentRenderNode)
             } catch (err) {
                 setTimeout(() => {
-                    tryHandleComponentError(parentElement, currentRenderNode, isSvg, err as Error)
+                    tryHandleComponentError(currentRenderNode.parentElement!, currentRenderNode, currentRenderNode.isSvg ?? false, err as Error)
                 })
             }
             return currentRenderNode.data![hookIndex][0]
@@ -178,7 +178,7 @@ export function useCallback<TCallback extends Function>(callback: TCallback, dep
  */
 export function useContext<T>(context: Context<T>): T {
     const rc = getRenderingContext()!
-    const { hookIndex, isSvg, parentElement, renderNode } = rc
+    const { hookIndex, renderNode } = rc
 
     if (renderNode.effects === undefined) {
         renderNode.effects = []
@@ -193,7 +193,7 @@ export function useContext<T>(context: Context<T>): T {
     if (slot === undefined) {
         slot = {
             arg: binding,
-            cleanup: binding?.subscribe(makeReRenderCallback(renderNode.link!, parentElement, isSvg)),
+            cleanup: binding?.subscribe(makeReRenderCallback(renderNode.link!)),
             effect: () => { /* never invoked */ },
             invoke: false,
             sync: false,
@@ -202,7 +202,7 @@ export function useContext<T>(context: Context<T>): T {
     } else if (slot.arg !== binding) {
         slot.cleanup?.()
         slot.arg = binding
-        slot.cleanup = binding?.subscribe(makeReRenderCallback(renderNode.link!, parentElement, isSvg))
+        slot.cleanup = binding?.subscribe(makeReRenderCallback(renderNode.link!))
     }
     rc.hookIndex++
 
@@ -222,16 +222,14 @@ function findContextBinding<T>(renderNode: RenderNode, context: Context<T>): Con
 }
 
 function makeReRenderCallback(
-    link: ComponentLink,
-    parentElement: Element,
-    isSvg: boolean
+    link: ComponentLink
 ): () => void {
     return () => {
         const currentRenderNode = link.renderNode
         if (currentRenderNode.stale) {
             return
         }
-        enqueueRender(parentElement, currentRenderNode, isSvg)
+        enqueueRender(currentRenderNode)
     }
 }
 

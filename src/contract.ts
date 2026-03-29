@@ -300,7 +300,6 @@ export const enum VNodeType {
     Element,
     Fragment,
     Component,
-    Memo
 }
 
 /**

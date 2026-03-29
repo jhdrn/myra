@@ -838,6 +838,34 @@ describe('fragment', () => {
         expect(element.classList.length).to.be.eq(0)
     })
 
+    it('preserves event handlers on reused element node when fragment is replaced', () => {
+        // Regression: scanFragmentForReuse called cleanupRecursively(reuseNode, true)
+        // which stripped all event handlers. updateElementAttributes then skipped
+        // re-adding them because the handler reference was stable (same function).
+        // Result: onclick (and any other on* props) silently stopped working.
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        let clicked = false
+        const handler = () => { clicked = true }
+
+        const view1 =
+            <>
+                <div id="target" onclick={handler}></div>
+            </>
+
+        const oldNodes = render(fragmentContainer, [view1], [])
+
+        // Replace fragment with plain element — triggers replaceFragmentWithElementNode
+        // and the scanFragmentForReuse reuse path
+        const view2 = <div id="target" onclick={handler}></div>
+        render(fragmentContainer, [view2], oldNodes)
+
+        const el = fragmentContainer.firstChild as HTMLElement
+        el.click()
+        expect(clicked).to.be.true
+    })
+
     it('replaces and inserts fragment child nodes in correct order', () => {
 
         const fragmentContainer = document.createElement('div')
@@ -1631,4 +1659,85 @@ describe('fragment', () => {
         expect(container.firstChild!.textContent).to.eq('hello')
     })
 
+    it('does not leave a stale sibling reference in fragmentNextSiblings when a child throws during re-render', () => {
+        // When a fragment re-renders and a child component throws, the
+        // try/finally in renderFragmentVNode must pop the nextSibling reference
+        // that was pushed before the inner render started. Without the fix,
+        // the reference stays and subsequent insertOrAppendDOMNode calls insert
+        // new nodes before that stale sibling instead of appending them.
+        const container = document.createElement('div')
+        document.body.appendChild(container)
+
+        // Initial render: [<><p/></>, <span id="sibling"/>]
+        const initialNodes = render(container, [
+            <><p id="frag-child" /></>,
+            <span id="sibling" />
+        ], [])
+        // DOM: [p#frag-child, span#sibling]
+
+        // Re-render where the fragment's child throws (no error handler → re-throws)
+        const Throws = (() => { throw new Error('intentional test error') }) as unknown as () => JSX.Element
+        try {
+            render(container, [<><Throws /></>, <span id="sibling" />], initialNodes)
+        } catch { /* expected */ }
+        // DOM unchanged: [p#frag-child, span#sibling]
+
+        // Render a new, unrelated node with no old nodes — forces insertOrAppendDOMNode.
+        // Without fix: stale span#sibling in fragmentNextSiblings causes the new
+        // div to be inserted BEFORE span#sibling.
+        // With fix: fragmentNextSiblings is clean, new div is appended AFTER.
+        render(container, [<div id="new-node" />], [])
+
+        const nodes = Array.from(container.childNodes) as Element[]
+        const siblingIdx = nodes.findIndex(el => el.id === 'sibling')
+        const newIdx = nodes.findIndex(el => el.id === 'new-node')
+
+        expect(siblingIdx).to.be.greaterThanOrEqual(0)
+        expect(newIdx).to.be.greaterThanOrEqual(0)
+        // new-node must come AFTER sibling — not before it due to stale ref
+        expect(newIdx).to.be.greaterThan(siblingIdx)
+    })
+})
+
+describe('renderingContext cleanup on error', () => {
+    beforeEach(() => {
+        document.body.innerHTML = ''
+    })
+
+    it('does not block subsequent renders when a component throws during rendering', async () => {
+        // If a component's view function throws, renderingContext must be cleared
+        // in the catch block. Without this fix, the module-level renderingContext
+        // is left set, and the guard "if (renderingContext === undefined)" in
+        // renderComponent silently drops every subsequent queued render.
+        const Throws = (() => { throw new Error('render error') }) as unknown as () => JSX.Element
+
+        // First mount a throwing component wrapped in an error handler so the
+        // error is swallowed at the parent level.
+        const Parent = () => {
+            myra.useErrorHandler(() => <div id="error-fallback" />)
+            return <Throws />
+        }
+
+        render(document.body, [<Parent />], [])
+
+        expect(q('#error-fallback')).not.to.be.null
+
+        // Now mount a completely independent component via setState.
+        // If renderingContext was left set, its queued render would be silently dropped.
+        let setVal!: myra.Evolve<number>
+        const Normal = () => {
+            const [val, s] = myra.useState(0)
+            setVal = s
+            return <div id="normal">{val}</div>
+        }
+
+        myra.mount(<Normal />, document.body)
+        await tick()
+
+        setVal(99)
+        await tick()
+        await tick()
+
+        expect(q('#normal')?.textContent).to.eq('99')
+    })
 })

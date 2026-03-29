@@ -2,23 +2,15 @@ import { ComponentProps, ComponentVNode } from './contract'
 import { RenderNode } from './internal'
 import { renderComponent } from './component'
 
-interface RenderQueueEntry {
-    parentElement: Element
-    renderNode: RenderNode
-    isSvg: boolean
-}
-
-const renderQueue: RenderQueueEntry[] = []
+const renderQueue: RenderNode[] = []
 let flushScheduled = false
 
 export function enqueueRender(
-    parentElement: Element,
-    renderNode: RenderNode,
-    isSvg: boolean
+    renderNode: RenderNode
 ): void {
-    if (!renderNode.debounceRender) {
-        renderQueue.push({ parentElement, renderNode, isSvg })
-        renderNode.debounceRender = true
+    if (!renderNode.renderPending) {
+        renderQueue.push(renderNode)
+        renderNode.renderPending = true
     }
     if (!flushScheduled) {
         flushScheduled = true
@@ -34,15 +26,15 @@ function flushRenderQueue(): void {
     for (const entry of batch) {
         // Reset before rendering so any setState called during render can re-enqueue
         // for the next batch (see splice(0) above).
-        entry.renderNode.debounceRender = false
-        const vNode = entry.renderNode.vNode
+        entry.renderPending = false
+        const vNode = entry.vNode
         if (vNode !== undefined) {
             renderComponent(
-                entry.parentElement,
+                entry.parentElement!,
                 vNode as ComponentVNode<ComponentProps>,
-                entry.renderNode,
-                entry.renderNode.rendition,
-                entry.isSvg,
+                entry,
+                entry.rendition,
+                entry.isSvg ?? false,
                 // allowMemo is always false for state-change re-renders
                 false
             )
