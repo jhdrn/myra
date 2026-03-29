@@ -19,14 +19,13 @@ export interface RenderNode {
     // component-specific
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data?: any[]
-    debounceRender?: boolean
+    renderPending?: boolean
     effects?: EffectWrapper[]
     errorHandler?: ErrorHandler
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     contextBindings?: Map<Context<any>, ContextBinding<any>>
     isSvg?: boolean
     link?: ComponentLink
-    memo?: boolean
     parent?: RenderNode
     parentElement?: Element
     stale?: boolean
