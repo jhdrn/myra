@@ -838,6 +838,34 @@ describe('fragment', () => {
         expect(element.classList.length).to.be.eq(0)
     })
 
+    it('preserves event handlers on reused element node when fragment is replaced', () => {
+        // Regression: scanFragmentForReuse called cleanupRecursively(reuseNode, true)
+        // which stripped all event handlers. updateElementAttributes then skipped
+        // re-adding them because the handler reference was stable (same function).
+        // Result: onclick (and any other on* props) silently stopped working.
+        const fragmentContainer = document.createElement('div')
+        document.body.appendChild(fragmentContainer)
+
+        let clicked = false
+        const handler = () => { clicked = true }
+
+        const view1 =
+            <>
+                <div id="target" onclick={handler}></div>
+            </>
+
+        const oldNodes = render(fragmentContainer, [view1], [])
+
+        // Replace fragment with plain element — triggers replaceFragmentWithElementNode
+        // and the scanFragmentForReuse reuse path
+        const view2 = <div id="target" onclick={handler}></div>
+        render(fragmentContainer, [view2], oldNodes)
+
+        const el = fragmentContainer.firstChild as HTMLElement
+        el.click()
+        expect(clicked).to.be.true
+    })
+
     it('replaces and inserts fragment child nodes in correct order', () => {
 
         const fragmentContainer = document.createElement('div')

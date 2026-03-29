@@ -12,14 +12,12 @@ import { ComponentLink, EffectWrapper, RenderNode } from './internal'
 
 interface IRenderingContext {
     hookIndex: number
-    isSvg: boolean
     /**
      * Set to the current RenderNode when this is a same-component update from a
      * parent re-render (allows memo to skip re-render). Undefined for initial
      * renders, type changes, and state-change re-renders.
      */
     oldRenderNode: RenderNode | undefined
-    parentElement: Element
     renderNode: RenderNode
     memo?: boolean
 }
@@ -575,13 +573,11 @@ export function renderComponent(
         try {
             renderingContext = {
                 renderNode,
-                isSvg,
                 // For memo: set to the current renderNode if this is a
                 // same-component update from a parent re-render. Undefined
                 // for initial renders, type changes, and state-change
                 // re-renders so that memo is never skipped in those cases.
                 oldRenderNode: allowMemo ? renderNode : undefined,
-                parentElement,
                 hookIndex: 0
             }
 
@@ -664,7 +660,10 @@ function scanFragmentForReuse(
     for (let i = 0; i < oldNodes.length; i++) {
         const oldNode = oldNodes[i]
         const doReuseNode = reuseNode === undefined && canReuse(oldNode)
-        cleanupRecursively(oldNode, doReuseNode)
+        // Never strip event listeners from the reused node — updateElementAttributes
+        // handles removing/replacing changed handlers. Stripping them here then
+        // skipping re-add (stable reference) is what causes handlers to go dead.
+        cleanupRecursively(oldNode, false)
         if (doReuseNode) {
             reuseNode = oldNode
         } else {
