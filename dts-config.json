@@ -1,4 +1,7 @@
 {
+    "compilationOptions": {
+        "preferredConfigPath": "./tsconfig.json"
+    },
     "entries": [
         {
             "filePath": "src/myra.ts",
@@ -7,6 +10,14 @@
                 "inlineDeclareGlobals": true,
                 "exportReferencedTypes": false,
                 "umdModuleName": "myra"
+            }
+        },
+        {
+            "filePath": "src/jsx-runtime.ts",
+            "outFile": "dist/jsx-runtime.d.ts",
+            "output": {
+                "inlineDeclareGlobals": true,
+                "exportReferencedTypes": false
             }
         }
     ]
