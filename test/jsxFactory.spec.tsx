@@ -1,8 +1,22 @@
 import * as myra from '../src/myra'
 import { ElementVNode, TextVNode, NothingVNode, ComponentVNode, VNode, ComponentProps, VNodeType } from '../src/contract'
 import { expect } from 'chai'
+import { Fragment as RuntimeFragment, jsx, jsxDEV, jsxs } from '../src/jsx-runtime'
 
 describe('jsxFactory', () => {
+
+    it('supports the automatic JSX runtime', () => {
+        const child = jsx('span', { children: 'child' })
+        const view = jsxs('div', { id: 'parent', children: [child, 'text'] }, 'key') as ElementVNode<Element>
+
+        expect(view.props).to.deep.eq({
+            id: 'parent',
+            key: 'key',
+            children: [child, { _: VNodeType.Text, text: 'text' }]
+        })
+        expect(jsxDEV('div', { id: 'development' })).to.deep.eq(jsx('div', { id: 'development' }))
+        expect(RuntimeFragment).to.eq(myra.Fragment)
+    })
 
     it('creates a TextVNode from an expression inside an element', () => {
 

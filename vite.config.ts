@@ -5,6 +5,29 @@ const banner = '/** @license MIT https://github.com/jhdrn/myra/blob/master/LICEN
 export default defineConfig(({ mode }) => {
     const isMinified = mode === 'minified'
 
+    if (mode === 'jsx-runtime') {
+        return {
+            define: {
+                __DEV__: JSON.stringify(false),
+            },
+            build: {
+                target: 'es2015',
+                lib: {
+                    entry: 'src/jsx-runtime.ts',
+                },
+                rolldownOptions: {
+                    output: [
+                        { format: 'es', entryFileNames: 'jsx-runtime.mjs', banner },
+                        { format: 'cjs', entryFileNames: 'jsx-runtime.cjs', banner },
+                    ],
+                },
+                outDir: 'dist',
+                emptyOutDir: false,
+                sourcemap: true,
+            },
+        }
+    }
+
     return {
         build: {
             target: 'es2015',
