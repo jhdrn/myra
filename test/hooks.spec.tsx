@@ -441,7 +441,7 @@ describe('useErrorHandling', () => {
 
         const Component = () => {
             useErrorHandler(mock.callback)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
             return <div>{(undefined as any).property}</div>
         }
         const vNode = <Component />
@@ -584,7 +584,7 @@ describe('useErrorHandling', () => {
             callback: () => <nothing />
         })
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         const SubComponent = () => <div>{(undefined as any).property}</div>
 
         const Component = () => {
@@ -601,7 +601,7 @@ describe('useErrorHandling', () => {
 
     it('passes the children of a component to it view', () => {
         const viewMock = sinon.spy({
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
             view: (p: any) => {
                 expect(Array.isArray(p.children)).to.be.eq(true)
                 return <div>{p.children}</div>

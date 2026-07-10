@@ -51,7 +51,7 @@ describe('component render', () => {
             beforeRender: () => { }
         })
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
         const Component = myra.memo((_p: { val: number }) => {
             myra.useLayoutEffect(() => mock.beforeRender())
             return <div />
@@ -69,7 +69,7 @@ describe('component render', () => {
             callback: () => { }
         })
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
         const Component = (_p: { prop: string }) => {
             myra.useLayoutEffect(() => mock.callback())
             return <div />

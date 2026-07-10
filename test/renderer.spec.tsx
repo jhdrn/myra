@@ -956,7 +956,7 @@ describe('render', () => {
 
         let node = document.body.firstChild as HTMLDivElement
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         (node as any)._id = 1
         expect(node.tagName).to.be.eq('DIV')
 
@@ -964,7 +964,7 @@ describe('render', () => {
 
         node = document.body.firstChild as HTMLDivElement
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         expect((node as any)._id).not.to.be.ok
         expect(node.tagName).to.be.eq('SPAN')
     })
@@ -1704,7 +1704,7 @@ describe('render', () => {
 
         // 'data-custom' is not in oldProps, so the first loop won't remove it.
         // New prop is undefined → hits the else-if removeAttribute path.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         const view2 = <div {...{ 'data-custom': undefined } as any}></div>
         render(document.body, [view2], oldNodes)
 
@@ -1720,7 +1720,7 @@ describe('render', () => {
             </select>
         const oldNodes = render(document.body, [view1], [])
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         const props = { value: 'b' } as any
         const view2 =
             <select {...props}>
