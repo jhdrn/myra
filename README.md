@@ -1,6 +1,6 @@
 # Myra
 
-Myra is (another) JSX rendering library. It is small, simple and built with and for [TypeScript](http://www.typescriptlang.org/).
+Myra is (another) JSX rendering library. It is small, simple and built with and for [TypeScript](https://www.typescriptlang.org/).
 
 [![npm](https://img.shields.io/npm/v/myra.svg?maxAge=24000)](https://www.npmjs.com/package/myra)
 [![CircleCI](https://dl.circleci.com/status-badge/img/circleci/D4GwQGdQNVPkQc73YZ9WfS/3SYtbN9QW7kqgT75UE6sjS/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/circleci/D4GwQGdQNVPkQc73YZ9WfS/3SYtbN9QW7kqgT75UE6sjS/tree/master)
@@ -18,7 +18,7 @@ Myra implements a React-like API (hooks, memo, fragments) on top of a custom vir
 Install with npm:
 
 ```sh
-npm install --save myra
+npm install myra
 ```
 
 Add a `tsconfig.json` to your project:
@@ -28,9 +28,8 @@ Add a `tsconfig.json` to your project:
   "compilerOptions": {
     "target": "es2015",
     "module": "es2015",
-    "jsx": "react",
-    "jsxFactory": "myra.h",
-    "jsxFragmentFactory": "myra.Fragment",
+    "jsx": "react-jsx",
+    "jsxImportSource": "myra",
 
     /* Optional, but recommended */
     "strict": true,
@@ -41,6 +40,26 @@ Add a `tsconfig.json` to your project:
   }
 }
 ```
+
+This uses TypeScript's automatic JSX runtime, which imports the JSX helpers from
+`myra/jsx-runtime`. You do not need to import `h` or `Fragment` in files that
+contain JSX. To emit development-mode JSX through `myra/jsx-dev-runtime`, set
+`"jsx"` to `"react-jsxdev"` instead.
+
+The classic JSX transform remains supported. To use it, replace the JSX options
+above with:
+
+```json
+{
+  "compilerOptions": {
+    "jsx": "react",
+    "jsxFactory": "myra.h",
+    "jsxFragmentFactory": "myra.Fragment"
+  }
+}
+```
+
+With the classic transform, `myra` must be in scope wherever JSX is used.
 
 ## Quick start
 
@@ -95,9 +114,13 @@ const [data, setData] = myra.useState(() => expensiveInitialValue())
 setCount(prev => prev + 1)
 ```
 
+State updates are queued asynchronously. Multiple updates to the same component
+before the queue flushes are batched into one re-render, so the DOM is not
+updated immediately after calling a setter.
+
 ### useEffect / useLayoutEffect
 
-`useEffect` runs asynchronously after render. `useLayoutEffect` runs synchronously after render (equivalent to React's `useLayoutEffect`). Both accept an optional deps array.
+`useEffect` runs asynchronously after render. `useLayoutEffect` runs synchronously after render. Both accept an optional dependency array and may return a cleanup function. Dependency arrays are compared using Myra's deep `equal()` comparison.
 
 ```tsx
 myra.useEffect(() => {
@@ -133,7 +156,8 @@ const handleClick = myra.useCallback(() => setCount(c => c + 1), [])
 
 ### useReducer
 
-An alternative to `useState` for more complex state logic. Works the same as React's `useReducer`:
+An alternative to `useState` for state transitions described by a reducer. Pass
+the reducer and its initial state, then dispatch actions to update the state:
 
 ```tsx
 type Action = { type: 'increment' } | { type: 'decrement' }
@@ -176,7 +200,7 @@ const ThemedButton = myra.define(() => {
 Catches errors thrown during render and shows a fallback view:
 
 ```tsx
-myra.useErrorHandler(error => <p>An error occurred: {error}</p>)
+myra.useErrorHandler(error => <p>An error occurred: {String(error)}</p>)
 ```
 
 ## Context
@@ -226,10 +250,17 @@ const MyComponent = myra.define(() => (
 
 ## Special props
 
-* **`key`** — ensures stable identity for list items during reconciliation. Must be unique among siblings. Also prevents unnecessary re-renders of elements.
+* **`key`** — ensures stable identity for list items during reconciliation. Must be unique among siblings.
 * **`class`** — maps to the DOM `className` property.
 * **`ref`** — populated with the DOM element after render (use with `useRef`).
 * **`nothing`** — a special JSX tag that always renders as an HTML comment node (`<!-- Nothing -->`), useful as a conditional placeholder.
+
+## Utilities
+
+Myra also exports two general-purpose helpers:
+
+* **`equal(a, b)`** — deeply compares arrays, plain objects, dates, and regular expressions.
+* **`typeOf(value)`** — returns a more specific type name than JavaScript's `typeof`, distinguishing arrays, dates, regular expressions, `null`, and `undefined`.
 
 ## License
 
