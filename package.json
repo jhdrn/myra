@@ -48,7 +48,7 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "vite build && vite build --mode minified && vite build --mode jsx-runtime",
-    "postbuild": "dts-bundle-generator --config dts-config.json --project tsconfig.json && copyfiles LICENSE README.md package.json dist",
+    "postbuild": "dts-bundle-generator --config dts-config.json --project tsconfig.json && copyfiles LICENSE README.md dist && node scripts/generate-package.mjs",
     "typecheck": "tsc --noEmit --project tsconfig.test.json",
     "pretest": "tsc --noEmit --project tsconfig.test.json",
     "test": "vitest run",
@@ -57,6 +57,8 @@
     "bench": "vitest bench",
     "coverage": "vitest run --coverage",
     "test:package": "node scripts/smoke-package.mjs",
+    "release:check": "npm run build && npm run test:package",
+    "publish:package": "npm run release:check && npm publish ./dist",
     "playground": "vite --config playground/vite.config.ts",
     "playground:build": "vite build --config playground/vite.config.ts"
   },
@@ -79,8 +81,5 @@
       "import": "./jsx-runtime.mjs",
       "require": "./jsx-runtime.cjs"
     }
-  },
-  "engines": {
-    "node": ">=20"
   }
 }

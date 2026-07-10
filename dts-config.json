@@ -11,14 +11,6 @@
                 "exportReferencedTypes": false,
                 "umdModuleName": "myra"
             }
-        },
-        {
-            "filePath": "src/jsx-runtime.ts",
-            "outFile": "dist/jsx-runtime.d.ts",
-            "output": {
-                "inlineDeclareGlobals": true,
-                "exportReferencedTypes": false
-            }
         }
     ]
 }
