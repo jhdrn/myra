@@ -1,7 +1,7 @@
 import * as myra from '../src/myra'
 import { ElementVNode, TextVNode, NothingVNode, ComponentVNode, VNode, ComponentProps, VNodeType } from '../src/contract'
 import { expect } from 'chai'
-import { Fragment as RuntimeFragment, jsx, jsxs } from '../src/jsx-runtime'
+import { Fragment as RuntimeFragment, jsx, jsxDEV, jsxs } from '../src/jsx-runtime'
 
 describe('jsxFactory', () => {
 
@@ -14,6 +14,7 @@ describe('jsxFactory', () => {
             key: 'key',
             children: [child, { _: VNodeType.Text, text: 'text' }]
         })
+        expect(jsxDEV('div', { id: 'development' })).to.deep.eq(jsx('div', { id: 'development' }))
         expect(RuntimeFragment).to.eq(myra.Fragment)
     })
 
