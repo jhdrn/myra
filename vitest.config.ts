@@ -12,8 +12,25 @@ export default defineConfig({
         include: ['test/**/*.spec.{ts,tsx}'],
         coverage: {
             provider: 'v8',
-            reporter: ['lcov', 'html'],
+            include: ['src/**/*.{ts,tsx}'],
+            exclude: [
+                'src/**/*.d.ts',
+                'src/contract.ts',
+                'src/internal.ts',
+                'playground/**',
+                'playground-dist/**',
+                'build/**',
+                'dist/**',
+                'test/**',
+            ],
+            reporter: ['text', 'lcov', 'html'],
             reportsDirectory: './coverage',
+            thresholds: {
+                statements: 97,
+                branches: 95,
+                functions: 97,
+                lines: 97,
+            },
         },
     },
 })
