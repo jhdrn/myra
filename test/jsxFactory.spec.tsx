@@ -42,14 +42,14 @@ describe('jsxFactory', () => {
 
     it('creates a NothingVNode from booleans', () => {
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         const view1 = myra.h(false as any, {})
 
         expect(view1).to.deep.eq({
             _: 0
         } as NothingVNode)
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         const view2 = myra.h(true as any, {})
 
         expect(view2).to.deep.eq({
@@ -167,7 +167,7 @@ describe('jsxFactory', () => {
             test: string
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
         const TestComponent = (_p: TestProps) => <div></div>
 
         const view = <TestComponent test="test" /> as ComponentVNode<TestProps & ComponentProps>

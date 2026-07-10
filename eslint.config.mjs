@@ -1,7 +1,6 @@
 // @ts-check
 
 import eslint from '@eslint/js'
-import stylisticJs from '@stylistic/eslint-plugin-js'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
@@ -10,19 +9,24 @@ export default tseslint.config(
     {
         ignores: [
             'node_modules/',
+            '.rollup.cache/',
             'build/',
-            'dist/'
+            'coverage/',
+            'dist/',
+            'playground-dist/'
         ],
-        plugins: {
-            '@stylistic/js': stylisticJs
-        },
         rules: {
             '@typescript-eslint/no-namespace': 'off',
             '@typescript-eslint/no-unused-expressions': 'off',
-            '@stylistic/js/quotes': ['error', 'single'],
-            '@stylistic/js/semi': ['error', 'never'],
-            '@stylistic/js/brace-style': ['error', '1tbs', { allowSingleLine: false }],
-            '@stylistic/js/curly-newline': ['error', 'always'],
+            '@typescript-eslint/no-unused-vars': ['error', {
+                argsIgnorePattern: '^_'
+            }]
+        }
+    },
+    {
+        files: ['test/**/*.{ts,tsx}'],
+        rules: {
+            '@typescript-eslint/no-explicit-any': 'off'
         }
     }
 )

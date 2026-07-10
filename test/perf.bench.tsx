@@ -47,7 +47,7 @@ bench('mount: deep component tree (depth 50)', async () => {
 // ── Update benchmarks ─────────────────────────────────────────────────────────
 // Component is mounted once; each iteration triggers a single state update.
 
-// eslint-disable-next-line prefer-const
+
 let setCount!: (f: (n: number) => number) => void
 
 function Counter(): myra.VNode {
@@ -151,7 +151,7 @@ for (const n of [5, 20, 50]) {
 
 // ── Reconciliation benchmarks ─────────────────────────────────────────────────
 
-// eslint-disable-next-line prefer-const
+
 let setItems!: (f: (a: number[]) => number[]) => void
 
 function shuffle(arr: number[]): number[] {

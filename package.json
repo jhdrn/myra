@@ -27,7 +27,6 @@
   "type": "module",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@stylistic/eslint-plugin-js": "^4.4.1",
     "@types/chai": "^5.2.3",
     "@types/eslint__js": "^8.42.3",
     "@types/mocha": "^10.0.10",
@@ -53,6 +52,7 @@
     "pretest": "tsc --noEmit --project tsconfig.test.json",
     "test": "vitest run",
     "test:local": "vitest",
+    "lint": "eslint src test --max-warnings 0",
     "bench": "vitest bench",
     "coverage": "vitest run --coverage",
     "playground": "vite --config playground/vite.config.ts",

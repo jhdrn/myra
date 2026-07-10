@@ -255,7 +255,6 @@ describe('createContext / useContext', () => {
 
     it('does not notify unsubscribed consumers', async () => {
         const ctx = myra.createContext(0)
-        let unsubscribeCalled = false
         let renderCount = 0
         let updateValue!: myra.Evolve<number>
         let showConsumer!: myra.Evolve<boolean>
@@ -286,14 +285,11 @@ describe('createContext / useContext', () => {
         showConsumer(false)
         await tick()
         await tick()
-        unsubscribeCalled = renderCount === countAfterMount
-
         // Change context value — unmounted consumer should not re-render
         updateValue(99)
         await tick()
         await tick()
 
-        expect(unsubscribeCalled).to.be.true
         expect(renderCount).to.eq(countAfterMount)
     })
 })

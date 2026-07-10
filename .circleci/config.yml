@@ -11,6 +11,9 @@ jobs:
       - node/install-packages:
           pkg-manager: npm
       - run:
+          name: Run lint
+          command: npm run lint
+      - run:
           name: Run tests
           command: npm test
       - run:
