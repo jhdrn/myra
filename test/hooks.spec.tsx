@@ -936,4 +936,44 @@ describe('render queue', () => {
 
         expect(q('#section-container #child-output')?.textContent).to.eq('42')
     })
+
+    it('continues rendering the batch after a component throws', async () => {
+        let setShouldThrow!: myra.Evolve<boolean>
+        let setCount!: myra.Evolve<number>
+
+        const Throwing = () => {
+            const [shouldThrow, set] = useState(false)
+            setShouldThrow = set
+            if (shouldThrow) {
+                throw new Error('queued render failed')
+            }
+            return <span id="throwing-output" />
+        }
+
+        const Boundary = () => {
+            useErrorHandler(() => <span id="error-fallback" />)
+            return <Throwing />
+        }
+
+        const Healthy = () => {
+            const [count, set] = useState(0)
+            setCount = set
+            return <span id="healthy-output">{count}</span>
+        }
+
+        myra.mount(<div><Boundary /><Healthy /></div>, document.body)
+
+        // Queue the throwing component first to reproduce the batch-abort case.
+        setShouldThrow(true)
+        setCount(1)
+        await tick()
+
+        expect(q('#error-fallback')).not.to.be.null
+        expect(q('#healthy-output')?.textContent).to.eq('1')
+
+        // The later entry's pending flag must also have been reset.
+        setCount(2)
+        await tick()
+        expect(q('#healthy-output')?.textContent).to.eq('2')
+    })
 })
