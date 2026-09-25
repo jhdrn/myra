@@ -8,7 +8,7 @@ import {
     VNode,
     VNodeType,
 } from './contract'
-import { ComponentLink, EffectWrapper, RenderNode } from './internal'
+import { ComponentLink, DomRange, EffectWrapper, RenderNode } from './internal'
 
 interface IRenderingContext {
     hookIndex: number
@@ -78,7 +78,7 @@ export function tryHandleComponentError(parentElement: Element, renderNode: Rend
     }
 }
 
-export function render(parentElement: Element, newChildVNodes: VNode[], oldNodes: RenderNode[], isSvg = false): RenderNode[] {
+export function render(parentElement: Element, newChildVNodes: VNode[], oldNodes: RenderNode[], isSvg = false, domRange?: DomRange): RenderNode[] {
 
     const result: RenderNode[] = []
 
@@ -151,7 +151,13 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldNodes
             }
         }
 
-        let domNodeAtIndex: Node | null = parentElement.firstChild
+        // Determine the end of the range and the starting DOM node for the diffing process.
+        const rangeEnd = domRange !== undefined ? domRange.end : null
+        let domNodeAtIndex: Node | null = domRange !== undefined ? domRange.first : parentElement.firstChild
+        if (domNodeAtIndex === rangeEnd) {
+            domNodeAtIndex = null
+        }
+
         let nextDomNode: Node | null = null
 
         const oldNodesToRemove = new Set<RenderNode>(oldNodes)
@@ -215,7 +221,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldNodes
                             : null
 
                         if (domNodeAtIndex === null) {
-                            parentElement.appendChild(domNode)
+                            insertOrAppendDOMNode(parentElement, domNode)
                         }
                         else if (parentElement.contains(domNode)) {
 
@@ -263,7 +269,7 @@ export function render(parentElement: Element, newChildVNodes: VNode[], oldNodes
             }
 
             result.push(newNode!)
-            domNodeAtIndex = nextDomNode
+            domNodeAtIndex = nextDomNode === rangeEnd ? null : nextDomNode
         }
 
         oldNodesToRemove.forEach(oldNode => {
@@ -419,15 +425,28 @@ function renderElementVNode(oldNode: RenderNode | undefined, newChildVNode: Elem
 function renderFragmentVNode(oldNode: RenderNode | undefined, newChildVNode: FragmentVNode, parentElement: Element, isSvg: boolean): RenderNode {
     const newRenderNode: RenderNode = { children: [], vNode: newChildVNode }
 
+    // Determine the children to render for the fragment. If the fragment has no 
+    // children, use a placeholder "Nothing" vnode.
+    const newChildren: VNode[] = newChildVNode.props.children.length > 0
+        ? newChildVNode.props.children
+        : [{ _: VNodeType.Nothing }]
+
     if (oldNode === undefined) {
-        newRenderNode.children = render(parentElement, newChildVNode.props.children, [], isSvg)
+        newRenderNode.children = render(parentElement, newChildren, [], isSvg)
     }
     else if (oldNode.vNode?._ === VNodeType.Fragment) {
-        const newChildren = newChildVNode.props.children
         const oldChildren = oldNode.children
 
         let nextSibling: Node | null = null
+        let first: Node | null = null
         const allOldChildren = getFragmentChildNodesRec(oldNode)
+        for (let i = 0; i < allOldChildren.length; i++) {
+            const childDomRef = getRenderNodeDomRef(allOldChildren[i])
+            if (childDomRef !== undefined && childDomRef.parentElement === parentElement) {
+                first = childDomRef
+                break
+            }
+        }
         for (let i = allOldChildren.length - 1; i > -1; i--) {
             const child = allOldChildren[i]
             const childDomRef = getRenderNodeDomRef(child)
@@ -441,7 +460,7 @@ function renderFragmentVNode(oldNode: RenderNode | undefined, newChildVNode: Fra
         }
 
         try {
-            newRenderNode.children = render(parentElement, newChildren, oldChildren, isSvg)
+            newRenderNode.children = render(parentElement, newChildren, oldChildren, isSvg, { first, end: nextSibling })
         } finally {
             if (fragmentNextSiblings[fragmentNextSiblings.length - 1] === nextSibling) {
                 fragmentNextSiblings.pop()
@@ -453,7 +472,7 @@ function renderFragmentVNode(oldNode: RenderNode | undefined, newChildVNode: Fra
 
         const documentFragment = document.createDocumentFragment()
 
-        newRenderNode.children = render(documentFragment as unknown as Element, newChildVNode.props.children, [], isSvg)
+        newRenderNode.children = render(documentFragment as unknown as Element, newChildren, [], isSvg)
 
         const oldFragmentNodes = getFragmentChildNodesRec(oldNode.rendition!)
         const firstDomRef = oldFragmentNodes.length > 0 ? getRenderNodeDomRef(oldFragmentNodes[0]) : undefined
@@ -474,7 +493,7 @@ function renderFragmentVNode(oldNode: RenderNode | undefined, newChildVNode: Fra
 
         const documentFragment = document.createDocumentFragment()
 
-        newRenderNode.children = render(documentFragment as unknown as Element, newChildVNode.props.children, [], isSvg)
+        newRenderNode.children = render(documentFragment as unknown as Element, newChildren, [], isSvg)
 
         const oldDomRef = getRenderNodeDomRef(oldNode)
         if (oldDomRef !== undefined && parentElement.contains(oldDomRef)) {

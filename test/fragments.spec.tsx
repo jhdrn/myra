@@ -1,6 +1,6 @@
 import * as myra from '../src/myra'
 import { render } from '../src/component'
-import { ComponentProps, TextVNode, VNodeType } from '../src/contract'
+import { ComponentProps, FragmentVNode, TextVNode, VNodeType } from '../src/contract'
 import { expect } from 'chai'
 import * as sinon from 'sinon'
 
@@ -1739,5 +1739,74 @@ describe('renderingContext cleanup on error', () => {
         await tick()
 
         expect(q('#normal')?.textContent).to.eq('99')
+    })
+})
+
+describe('fragment regressions', () => {
+    it('keeps preceding siblings when a nested fragment with keyed children re-renders', async () => {
+        let setDate: (v: string) => void = () => undefined
+        let setLoaded: (v: boolean) => void = () => undefined
+        const Component = () => {
+            const [date, sd] = myra.useState('a')
+            const [loaded, sl] = myra.useState(false)
+            const [expanded] = myra.useState<Set<string>>(new Set())
+            setDate = sd
+            setLoaded = sl
+            const items = loaded ? ['x', 'y'] : []
+            const hidden = date === 'never'
+            return (
+                <div id="panel">
+                    <h2>Title</h2>
+                    {hidden && <span />}
+                    <div id="filter"><input value={date} /></div>
+                    {hidden && <span />}
+                    {loaded && <>
+                        {items.length < 1
+                            ? <p>none</p>
+                            : <>
+                                <div id="summary">sum</div>
+                                {items.map(i =>
+                                    <div class="card" key={i}>
+                                        <div class="hdr">{i}</div>
+                                        {expanded.has(i) && <div>rows</div>}
+                                    </div>
+                                )}
+                            </>
+                        }
+                    </>}
+                </div>
+            )
+        }
+        myra.mount(<Component />, document.body)
+        await tick()
+        setLoaded(true)
+        await tick(20)
+        expect(document.querySelector('#filter')).not.to.be.null
+        setDate('b')
+        await tick(20)
+        const panel = document.querySelector('#panel')!
+        expect(panel.querySelector('h2')?.textContent).to.eq('Title')
+        expect(panel.innerHTML).to.contain('id="filter"')
+        expect(document.querySelectorAll('.card').length).to.eq(2)
+    })
+
+    it('preserves siblings when a fragment becomes empty and fills again', () => {
+        const container = document.createElement('div')
+        const fragment = (filled: boolean): FragmentVNode => ({
+            _: VNodeType.Fragment,
+            props: { children: filled ? [<span id="inside">inside</span>] : [] }
+        })
+        const view = (filled: boolean) => [
+            <span id="before">before</span>,
+            fragment(filled),
+            <span id="after">after</span>
+        ]
+
+        let nodes = render(container, view(true), [])
+        nodes = render(container, view(false), nodes)
+        expect(Array.from(container.children).map(child => child.id)).to.deep.eq(['before', 'after'])
+
+        render(container, view(true), nodes)
+        expect(Array.from(container.children).map(child => child.id)).to.deep.eq(['before', 'inside', 'after'])
     })
 })

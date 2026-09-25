@@ -12,6 +12,11 @@ export interface ComponentLink {
     renderNode: RenderNode
 }
 
+export interface DomRange {
+    first: Node | null
+    end: Node | null
+}
+
 export interface RenderNode {
     domRef?: Node
     children: RenderNode[]
