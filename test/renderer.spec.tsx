@@ -1580,7 +1580,7 @@ describe('render', () => {
         expect((document.body.firstChild as HTMLDivElement).childElementCount).to.eq(0)
     })
 
-    it('reuses an unkeyed old node when a new keyed node has no matching old key', () => {
+    it('inserts a new keyed node when an old key is removed', () => {
         const view1 =
             <div>
                 <span key="a">a</span>
@@ -1588,7 +1588,6 @@ describe('render', () => {
             </div>
         const oldNodes = render(document.body, [view1], [])
 
-        // "b" is replaced by "x" — old "b" DOM node becomes an unkeyed pool entry
         const view2 =
             <div>
                 <span key="a">a</span>
@@ -1600,6 +1599,45 @@ describe('render', () => {
         expect(div.childElementCount).to.eq(2)
         expect(div.children[0].textContent).to.eq('a')
         expect(div.children[1].textContent).to.eq('x')
+    })
+
+    describe('keyed reorder moves the fewest DOM nodes', () => {
+        const letters = 'ABCDEFGHIJ'.split('')
+        const swapped = letters.map((l, i) => i === 1 ? 'I' : i === 8 ? 'B' : l)
+        const cases: Array<[string, string[], number]> = [
+            ['first item moved to the end', [...letters.slice(1), 'A'], 1],
+            ['last item moved to the front', ['J', ...letters.slice(0, 9)], 1],
+            ['two items swapped', swapped, 2],
+            ['list reversed', [...letters].reverse(), 9],
+        ]
+
+        cases.forEach(([name, after, expectedMoves]) => {
+            it(name, () => {
+                const view = (keys: string[]) => <ul>{keys.map(k => <li key={k}>{k}</li>)}</ul>
+                const oldNodes = render(document.body, [view(letters)], [])
+                const items = Array.from(document.querySelectorAll('li'))
+
+                const observer = new MutationObserver(() => { })
+                observer.observe(document.body, { childList: true, subtree: true })
+                render(document.body, [view(after)], oldNodes)
+                const moves = observer.takeRecords().reduce((n, record) => n + record.addedNodes.length, 0)
+                observer.disconnect()
+
+                expect(moves).to.eq(expectedMoves)
+                expect(document.body.textContent).to.eq(after.join(''))
+                const byText = new Map(items.map(li => [li.textContent, li]))
+                Array.from(document.querySelectorAll('li')).forEach(li => expect(li).to.eq(byText.get(li.textContent)))
+            })
+        })
+    })
+
+    it('creates a new node for a duplicate key instead of reusing one node twice', () => {
+        const view = (keys: string[]) => <ul>{keys.map(k => <li key={k}>{k}</li>)}</ul>
+        const oldNodes = render(document.body, [view(['a', 'b'])], [])
+
+        render(document.body, [view(['a', 'a', 'b'])], oldNodes)
+
+        expect(document.body.textContent).to.eq('aab')
     })
 
     it('removes event listeners when a component is replaced by a different component', () => {
@@ -1926,3 +1964,252 @@ describe('stale component reuse', () => {
     })
 })
 
+
+describe('keyed components that forward key to their root element', () => {
+    beforeEach(() => {
+        Array.prototype.slice.call(document.body.childNodes).forEach((c: Node) => document.body.removeChild(c))
+    })
+
+    type CardProps = { key?: string, label: string }
+    // Spreads all props (including key) onto its root element
+    const Card = (props: CardProps) => <div {...props} class="card">{props.label}</div>
+
+    const renderList = (labels: string[], oldNodes: ReturnType<typeof render>) =>
+        render(document.body, [
+            <section>{labels.map(l => <Card key={l} label={l} />)}</section>
+        ], oldNodes)
+
+    const text = () => document.body.firstElementChild!.textContent
+
+    const cases: Array<[string, string[], string[]]> = [
+        ['prepend', ['A', 'U'], ['Y', 'A', 'U']],
+        ['append', ['A', 'U'], ['A', 'U', 'Y']],
+        ['insert in the middle', ['A', 'U'], ['A', 'Y', 'U']],
+        ['reverse', ['A', 'B', 'C', 'D'], ['D', 'C', 'B', 'A']],
+        ['remove first', ['A', 'B', 'C'], ['B', 'C']],
+        ['move and insert', ['A', 'B', 'C'], ['C', 'X', 'A']],
+    ]
+
+    cases.forEach(([name, before, after]) => {
+        it(`renders correctly on ${name}`, () => {
+            const oldNodes = renderList(before, [])
+            expect(text()).to.eq(before.join(''))
+
+            renderList(after, oldNodes)
+            expect(text()).to.eq(after.join(''))
+        })
+    })
+
+    it('keeps the DOM element of each kept item when prepending', () => {
+        const oldNodes = renderList(['A', 'U'], [])
+        const [divA, divU] = Array.from(document.querySelectorAll('.card'))
+
+        renderList(['Y', 'A', 'U'], oldNodes)
+        const cards = Array.from(document.querySelectorAll('.card'))
+
+        expect(cards.length).to.eq(3)
+        expect(cards[1]).to.eq(divA)
+        expect(cards[2]).to.eq(divU)
+    })
+
+    // Keyed fragment roots must stay in their component's own DOM range.
+    describe('when the forwarded key lands on a fragment', () => {
+        type RowProps = { key?: string, label: string }
+        const Item = (props: RowProps) =>
+            <myra.Fragment {...props}><b>{props.label}</b><i>{props.label}</i></myra.Fragment>
+
+        const renderRows = (labels: string[], oldNodes: ReturnType<typeof render>) =>
+            render(document.body, [
+                <section>{labels.map(l => <Item key={l} label={l} />)}</section>
+            ], oldNodes)
+
+        const rowCases: Array<[string, string[], string[]]> = [
+            ['append', ['A', 'B'], ['A', 'B', 'C']],
+            ['prepend', ['A', 'B'], ['C', 'A', 'B']],
+            ['reverse', ['A', 'B', 'C'], ['C', 'B', 'A']],
+            ['remove middle', ['A', 'B', 'C'], ['A', 'C']],
+        ]
+
+        rowCases.forEach(([name, before, after]) => {
+            it(`renders correctly on ${name}`, () => {
+                const oldNodes = renderRows(before, [])
+                renderRows(after, oldNodes)
+                expect(text()).to.eq(after.map(l => l + l).join(''))
+            })
+        })
+    })
+
+    it('re-renders a component whose root is a keyed fragment in place', () => {
+        const C = (props: { label: string }) =>
+            <myra.Fragment key="k"><b>{props.label}</b></myra.Fragment>
+
+        const oldNodes = render(document.body, [<section><p>x</p><C label="1" /><p>y</p></section>], [])
+        render(document.body, [<section><p>x</p><C label="2" /><p>y</p></section>], oldNodes)
+
+        expect(text()).to.eq('x2y')
+    })
+})
+
+describe('components wrapping a fragment-rendering component', () => {
+    beforeEach(() => {
+        Array.prototype.slice.call(document.body.childNodes).forEach((c: Node) => document.body.removeChild(c))
+    })
+
+    type RowProps = { key?: string, label: string }
+    const Row = (props: RowProps) => <><b>{props.label}</b><i>{props.label}</i></>
+    // Two component levels between the keyed list item and the fragment
+    const Item = (props: RowProps) => <Row label={props.label} />
+    const ForwardingItem = (props: RowProps) => <Row {...props} />
+    const Wrapper = (props: RowProps) => <Item label={props.label} />
+
+    const text = () => document.body.firstElementChild!.textContent
+
+    const cases: Array<[string, string[], string[]]> = [
+        ['append', ['A', 'B'], ['A', 'B', 'C']],
+        ['prepend', ['A', 'B'], ['C', 'A', 'B']],
+        ['reverse', ['A', 'B', 'C'], ['C', 'B', 'A']],
+        ['remove middle', ['A', 'B', 'C'], ['A', 'C']],
+        ['move and insert', ['A', 'B', 'C'], ['C', 'X', 'A']],
+    ]
+
+    const variants: Array<[string, (props: RowProps) => myra.VNode]> = [
+        ['two levels deep', Item],
+        ['two levels deep, key forwarded', ForwardingItem],
+        ['three levels deep', Wrapper],
+    ]
+
+    variants.forEach(([variantName, Component]) => {
+        const renderList = (labels: string[], oldNodes: ReturnType<typeof render>) =>
+            render(document.body, [
+                <section>{labels.map(l => <Component key={l} label={l} />)}</section>
+            ], oldNodes)
+
+        cases.forEach(([name, before, after]) => {
+            it(`renders a keyed list correctly on ${name} (${variantName})`, () => {
+                const oldNodes = renderList(before, [])
+                expect(text()).to.eq(before.map(l => l + l).join(''))
+
+                renderList(after, oldNodes)
+                expect(text()).to.eq(after.map(l => l + l).join(''))
+            })
+        })
+
+        it(`keeps unkeyed siblings when a fragment component's key changes (${variantName})`, () => {
+            const view = (label: string) =>
+                <section><p>x</p><Component key={label} label={label} /><p>y</p></section>
+
+            let oldNodes = render(document.body, [view('A')], [])
+            const [header, footer] = Array.from(document.querySelectorAll('p'))
+
+            for (const label of ['B', 'C']) {
+                oldNodes = render(document.body, [view(label)], oldNodes)
+                expect(text()).to.eq(`x${label}${label}y`)
+                expect(document.querySelectorAll('p')[0]).to.eq(header)
+                expect(document.querySelectorAll('p')[1]).to.eq(footer)
+            }
+        })
+
+        it(`replaces a keyed fragment component beside a retained keyed sibling (${variantName})`, () => {
+            const Single = () => <b>Z</b>
+            const view = (replace: boolean) =>
+                <section><p>x</p>{replace ? <Single /> : <Component key="A" label="A" />}<Component key="D" label="D" /><p>y</p></section>
+
+            const oldNodes = render(document.body, [view(false)], [])
+            const [keptB, keptI] = Array.from(document.querySelectorAll('b, i')).slice(2)
+            const [header, footer] = Array.from(document.querySelectorAll('p'))
+
+            render(document.body, [view(true)], oldNodes)
+
+            expect(text()).to.eq('xZDDy')
+            expect(document.querySelectorAll('b')[1]).to.eq(keptB)
+            expect(document.querySelector('i')).to.eq(keptI)
+            expect(document.querySelectorAll('p')[0]).to.eq(header)
+            expect(document.querySelectorAll('p')[1]).to.eq(footer)
+        })
+
+        cases.forEach(([name, before, after]) => {
+            it(`keeps unkeyed boundaries on ${name} (${variantName})`, () => {
+                const view = (labels: string[]) =>
+                    <section><p>x</p>{labels.map(label => <Component key={label} label={label} />)}<p>y</p></section>
+
+                const oldNodes = render(document.body, [view(before)], [])
+
+                render(document.body, [view(after)], oldNodes)
+
+                expect(text()).to.eq(`x${after.map(label => label + label).join('')}y`)
+            })
+        })
+    })
+
+    it('preserves keyed fragment state and cleans up only removed components in a mixed list', () => {
+        let mounts = 0
+        const cleanup = sinon.spy()
+        const StatefulRow = (props: RowProps) => {
+            const [id] = useState(() => ++mounts)
+            myra.useLayoutEffect(() => () => cleanup(props.label), [])
+            return <><b>{props.label}</b><i>{id}</i></>
+        }
+        const StatefulItem = (props: RowProps) => <StatefulRow label={props.label} />
+        const Single = () => <u>Z</u>
+        const view = (labels: string[], showSingle: boolean) =>
+            <section><p>x</p>{showSingle ? [<Single />] : []}{labels.map(label => <StatefulItem key={label} label={label} />)}<p>y</p></section>
+
+        let oldNodes = render(document.body, [view(['A', 'B'], false)], [])
+        oldNodes = render(document.body, [view(['A', 'B'], true)], oldNodes)
+        expect(text()).to.eq('xZA1B2y')
+        expect(mounts).to.eq(2)
+        expect(cleanup.callCount).to.eq(0)
+
+        oldNodes = render(document.body, [view(['B', 'C'], true)], oldNodes)
+        expect(text()).to.eq('xZB2C3y')
+        expect(mounts).to.eq(3)
+        expect(cleanup.callCount).to.eq(1)
+        expect(cleanup.firstCall.args).to.deep.eq(['A'])
+
+        render(document.body, [], oldNodes)
+        expect(cleanup.getCalls().map(call => call.args[0])).to.deep.eq(['A', 'B', 'C'])
+    })
+
+    const replacements: Array<[string, myra.VNode, string]> = [
+        ['a text node', { _: VNodeType.Text, text: 't' }, 'xty'],
+        ['an element', <u>e</u>, 'xey'],
+        ['nothing', <nothing />, 'xy'],
+        ['a fragment', <><u>1</u><u>2</u></>, 'x12y'],
+    ]
+
+    replacements.forEach(([name, replacement, expected]) => {
+        it(`replaces the nested fragment with ${name} in place`, () => {
+            const view = (showItem: boolean) =>
+                <section><p>x</p>{showItem ? <Item label="A" /> : replacement}<p>y</p></section>
+
+            const oldNodes = render(document.body, [view(true)], [])
+            expect(text()).to.eq('xAAy')
+
+            render(document.body, [view(false)], oldNodes)
+            expect(text()).to.eq(expected)
+            expect(document.body.firstElementChild!.querySelectorAll('b, i').length).to.eq(0)
+        })
+    })
+
+    replacements.forEach(([name, replacement]) => {
+        [1, 2].forEach(depth => {
+            it(`unmounts a fragment-rendering component ${depth} level(s) deep when replaced with ${name}`, () => {
+                const cleanup = sinon.spy()
+                const Leaf = () => {
+                    myra.useLayoutEffect(() => cleanup, [])
+                    return <><b>a</b><i>b</i></>
+                }
+                const Outer = () => <Leaf />
+                const Comp = depth === 1 ? Leaf : Outer
+
+                const view = (show: boolean) =>
+                    <section><p>x</p>{show ? <Comp /> : replacement}<p>y</p></section>
+
+                const oldNodes = render(document.body, [view(true)], [])
+                render(document.body, [view(false)], oldNodes)
+
+                expect(cleanup.callCount).to.eq(1)
+            })
+        })
+    })
+})
