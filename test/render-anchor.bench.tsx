@@ -2,21 +2,21 @@
 // (renderComponent → nested render of the component's view). Unlike
 // perf.bench.tsx these don't await a setTimeout per iteration, so small
 // per-component overheads aren't hidden by timer latency.
-import { bench, describe } from 'vitest'
+import { test } from 'vitest'
 import * as myra from '../src/myra'
 import { render } from '../src/component'
 import { VNode } from '../src/contract'
 
 function scenario(name: string, view: (v: number) => VNode) {
-    describe(name, () => {
+    test(name, async ({ bench }) => {
         const el = document.createElement('div')
         document.body.appendChild(el)
         let old = render(el, [view(0)], [])
         let v = 0
-        bench(name, () => {
+        await bench(name, () => {
             v++
             old = render(el, [view(v)], old)
-        }, { throws: true })
+        }).run({ throws: true })
     })
 }
 

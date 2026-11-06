@@ -6,10 +6,12 @@ const outDir = fileURLToPath(new URL('../playground-dist', import.meta.url))
 
 export default defineConfig({
     root: 'playground',
-    esbuild: {
-        jsx: 'transform',
-        jsxFactory: 'myra.h',
-        jsxFragment: 'myra.Fragment'
+    oxc: {
+        jsx: {
+            runtime: 'classic',
+            pragma: 'myra.h',
+            pragmaFrag: 'myra.Fragment',
+        },
     },
     resolve: {
         alias: {

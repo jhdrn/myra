@@ -1,4 +1,4 @@
-import { bench } from 'vitest'
+import { test } from 'vitest'
 import * as myra from '../src/myra'
 import { useState } from '../src/myra'
 
@@ -13,8 +13,8 @@ function mkContainer(): HTMLElement {
 /**
  * Registers a benchmark that runs against a mounted view.
  *
- * Vitest's bench runner ignores describe-level hooks (beforeAll/afterAll), so
- * the view is mounted through tinybench's `setup`/`teardown` options instead.
+ * Each test runs its benchmark through Vitest's test-context fixture. The
+ * view is mounted through tinybench's `setup`/`teardown` run options.
  * These run around both the warmup and the measured phase, so each phase gets
  * a freshly mounted view. `check` runs after mounting to assert the setup
  * actually took effect, and `throws: true` makes any error fail the run
@@ -26,59 +26,67 @@ function mountedBench(
     fn: () => Promise<void>,
     { settleTicks = 1, check }: { settleTicks?: number, check?: () => void } = {},
 ) {
-    let el: HTMLElement | undefined
-    bench(name, fn, {
-        throws: true,
-        async setup() {
-            el = mkContainer()
-            myra.mount(view(), el)
-            for (let i = 0; i < settleTicks; i++) {
-                await tick()
-            }
-            check?.()
-        },
-        teardown() {
-            if (el !== undefined) {
-                document.body.removeChild(el)
-                el = undefined
-            }
-        },
+    test(name, async ({ bench }) => {
+        let el: HTMLElement | undefined
+        await bench(name, fn).run({
+            throws: true,
+            async setup() {
+                el = mkContainer()
+                myra.mount(view(), el)
+                for (let i = 0; i < settleTicks; i++) {
+                    await tick()
+                }
+                check?.()
+            },
+            teardown() {
+                if (el !== undefined) {
+                    document.body.removeChild(el)
+                    el = undefined
+                }
+            },
+        })
     })
 }
 
 // ── Mount benchmarks ──────────────────────────────────────────────────────────
 
-bench('mount: 1 000-item keyed list', async () => {
-    const el = mkContainer()
-    myra.mount(
-        <ul>{Array.from({ length: 1000 }, (_, i) => <li key={i}>{i}</li>)}</ul>,
-        el,
-    )
-    await tick()
-    document.body.removeChild(el)
-}, { throws: true })
+test('mount: 1 000-item keyed list', async ({ bench }) => {
+    await bench('mount', async () => {
+        const el = mkContainer()
+        myra.mount(
+            <ul>{Array.from({ length: 1000 }, (_, i) => <li key={i}>{i}</li>)}</ul>,
+            el,
+        )
+        await tick()
+        document.body.removeChild(el)
+    }).run({ throws: true })
+})
 
-bench('mount: 1 000-item unkeyed list', async () => {
-    const el = mkContainer()
-    myra.mount(
-        <ul>{Array.from({ length: 1000 }, (_, i) => <li>{i}</li>)}</ul>,
-        el,
-    )
-    await tick()
-    document.body.removeChild(el)
-}, { throws: true })
+test('mount: 1 000-item unkeyed list', async ({ bench }) => {
+    await bench('mount', async () => {
+        const el = mkContainer()
+        myra.mount(
+            <ul>{Array.from({ length: 1000 }, (_, i) => <li>{i}</li>)}</ul>,
+            el,
+        )
+        await tick()
+        document.body.removeChild(el)
+    }).run({ throws: true })
+})
 
 // Module-level so the function reference is stable across iterations
 function Deep({ d }: { d: number }): myra.VNode {
     return d <= 0 ? <span>leaf</span> : <div><Deep d={d - 1} /></div>
 }
 
-bench('mount: deep component tree (depth 50)', async () => {
-    const el = mkContainer()
-    myra.mount(<Deep d={50} />, el)
-    await tick()
-    document.body.removeChild(el)
-}, { throws: true })
+test('mount: deep component tree (depth 50)', async ({ bench }) => {
+    await bench('mount', async () => {
+        const el = mkContainer()
+        myra.mount(<Deep d={50} />, el)
+        await tick()
+        document.body.removeChild(el)
+    }).run({ throws: true })
+})
 
 // ── Update benchmarks ─────────────────────────────────────────────────────────
 // Component is mounted in setup; each iteration triggers a single state update.

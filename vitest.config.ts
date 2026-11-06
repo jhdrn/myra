@@ -1,10 +1,12 @@
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
-    esbuild: {
-        jsx: 'transform',
-        jsxFactory: 'myra.h',
-        jsxFragment: 'myra.Fragment',
+    oxc: {
+        jsx: {
+            runtime: 'classic',
+            pragma: 'myra.h',
+            pragmaFrag: 'myra.Fragment',
+        },
     },
     test: {
         environment: 'jsdom',

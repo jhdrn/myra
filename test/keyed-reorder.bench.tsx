@@ -1,6 +1,6 @@
 // Synchronous keyed-list reorder benchmarks. Each iteration renders the list in
 // a new order, so the cost is dominated by how many DOM nodes render() moves.
-import { bench, describe } from 'vitest'
+import { test } from 'vitest'
 import * as myra from '../src/myra'
 import { render } from '../src/component'
 import { VNode } from '../src/contract'
@@ -10,15 +10,15 @@ const ids = (n: number) => Array.from({ length: n }, (_, i) => i)
 const base = ids(N)
 
 function scenario(name: string, order: (iteration: number) => number[], view: (order: number[]) => VNode) {
-    describe(name, () => {
+    test(name, async ({ bench }) => {
         const el = document.createElement('div')
         document.body.appendChild(el)
         let old = render(el, [view(order(0))], [])
         let iteration = 0
-        bench(name, () => {
+        await bench(name, () => {
             iteration++
             old = render(el, [view(order(iteration))], old)
-        }, { throws: true })
+        }).run({ throws: true })
     })
 }
 

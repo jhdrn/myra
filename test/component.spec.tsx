@@ -41,6 +41,19 @@ describe('mount', () => {
 })
 
 describe('component render', () => {
+    it('rerenders memoized components when a prop changes or is removed', () => {
+        const output = sinon.spy((props: { value?: string }) => <span>{props.value ?? 'default'}</span>)
+        const Component = myra.memo(output)
+        const container = document.createElement('div')
+        let nodes = render(container, [<Component value="first" />], [])
+        nodes = render(container, [<Component value="second" />], nodes)
+        expect(container.textContent).to.eq('second')
+        nodes = render(container, [<Component />], nodes)
+        expect(container.textContent).to.eq('default')
+        render(container, [<Component />], nodes)
+        expect(output.callCount).to.eq(3)
+    })
+
     beforeEach(() => {
         // "Clear view" before each test
         Array.prototype.slice.call(document.body.childNodes).forEach((c: Node) => document.body.removeChild(c))
