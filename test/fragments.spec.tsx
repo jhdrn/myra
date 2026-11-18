@@ -1810,3 +1810,314 @@ describe('fragment regressions', () => {
         expect(Array.from(container.children).map(child => child.id)).to.deep.eq(['before', 'inside', 'after'])
     })
 })
+
+describe('components inside a fragment that replaces another node', () => {
+    let container: HTMLElement
+
+    beforeEach(() => {
+        container = document.createElement('div')
+        document.body.appendChild(container)
+    })
+
+    afterEach(() => {
+        container.remove()
+    })
+
+    const Spinner = () => <span class="loader">loading</span>
+
+    // A component that shows a loader until its own effect sets state. The loaded view replaces the
+    // loader's node rather than patching it, so the update needs the right parent element.
+    const Loading = (props: { id: string }) => {
+        const [loaded, setLoaded] = myra.useState(false)
+        myra.useEffect(() => {
+            setLoaded(true)
+        }, [])
+        return loaded ? <div class="loaded" id={props.id}>loaded</div> : <Spinner />
+    }
+
+    it('updates a component in a fragment that replaced Nothing', async () => {
+        let show: (v: boolean) => void = () => undefined
+        const Page = () => {
+            const [shown, setShown] = myra.useState(false)
+            show = setShown
+            return (
+                <div id="page">
+                    <h2>Title</h2>
+                    {shown && <><Loading id="a" /><span>sibling</span></>}
+                </div>
+            )
+        }
+        myra.mount(<Page />, container)
+
+        show(true)
+        await tick(20)
+
+        expect(container.querySelector('#a')).not.to.be.null
+        expect(container.querySelectorAll('.loader').length).to.eq(0)
+        expect(Array.from(container.querySelector('#page')!.children).map(c => c.tagName)).to.deep.eq(['H2', 'DIV', 'SPAN'])
+    })
+
+    it('updates components nested in components and fragments in that fragment', async () => {
+        let show: (v: boolean) => void = () => undefined
+        const Wrapper = () => <><Loading id="nested" /></>
+        const Outer = () => <Wrapper />
+        const Page = () => {
+            const [shown, setShown] = myra.useState(false)
+            show = setShown
+            return <div id="page">{shown ? <><><Outer /></><Loading id="direct" /></> : <span>placeholder</span>}</div>
+        }
+        myra.mount(<Page />, container)
+
+        show(true)
+        await tick(20)
+
+        expect(container.querySelector('#nested')).not.to.be.null
+        expect(container.querySelector('#direct')).not.to.be.null
+        expect(container.querySelectorAll('.loader').length).to.eq(0)
+    })
+
+    it('updates a component in a fragment that replaced a component rendering a fragment', async () => {
+        let show: (v: boolean) => void = () => undefined
+        const Previous = () => <><span>one</span><span>two</span></>
+        const Page = () => {
+            const [shown, setShown] = myra.useState(false)
+            show = setShown
+            return <div id="page">{shown ? <><Loading id="a" /></> : <Previous />}</div>
+        }
+        myra.mount(<Page />, container)
+
+        show(true)
+        await tick(20)
+
+        expect(container.querySelector('#a')).not.to.be.null
+        expect(container.querySelectorAll('.loader').length).to.eq(0)
+        expect(container.querySelectorAll('span').length).to.eq(0)
+    })
+
+    it('shows the error handler of a component whose effect throws', async () => {
+        let show: (v: boolean) => void = () => undefined
+        const Failing = () => {
+            myra.useErrorHandler(() => <div id="fallback">failed</div>)
+            myra.useEffect(() => {
+                throw new Error('effect failed')
+            }, [])
+            return <span id="failing">rendered</span>
+        }
+        const Page = () => {
+            const [shown, setShown] = myra.useState(false)
+            show = setShown
+            return <div id="page">{shown && <><Failing /></>}</div>
+        }
+        myra.mount(<Page />, container)
+
+        show(true)
+        await tick(20)
+
+        expect(container.querySelector('#fallback')).not.to.be.null
+        expect(container.querySelector('#failing')).to.be.null
+    })
+
+    it('removes all of the fragment\'s nodes when the view changes after an update', async () => {
+        let show: (v: boolean) => void = () => undefined
+        let tab: (v: string) => void = () => undefined
+        const Page = () => {
+            const [shown, setShown] = myra.useState(false)
+            show = setShown
+            return <div id="page">{shown && <><Loading id="a" /><Loading id="b" /></>}</div>
+        }
+        const Other = () => <div id="other">other</div>
+        const App = () => {
+            const [current, setCurrent] = myra.useState('page')
+            tab = setCurrent
+            return <main>{current === 'page' ? <Page /> : <Other />}</main>
+        }
+        myra.mount(<App />, container)
+
+        show(true)
+        await tick(20)
+        tab('other')
+        await tick(20)
+
+        expect(container.innerHTML).to.eq('<main><div id="other">other</div></main>')
+    })
+
+    it('shows the error handler of a component in a fragment that replaced a component rendering a fragment when its effect throws', async () => {
+        let show: (v: boolean) => void = () => undefined
+        const Previous = () => <><span>one</span><span>two</span></>
+        const Failing = () => {
+            myra.useErrorHandler(() => <div id="fallback">failed</div>)
+            myra.useEffect(() => {
+                throw new Error('effect failed')
+            }, [])
+            return <span id="failing">rendered</span>
+        }
+        const Page = () => {
+            const [shown, setShown] = myra.useState(false)
+            show = setShown
+            return <div id="page">{shown ? <><Failing /></> : <Previous />}</div>
+        }
+        myra.mount(<Page />, container)
+
+        show(true)
+        await tick(20)
+
+        expect(container.querySelector('#page')!.innerHTML).to.eq('<div id="fallback">failed</div>')
+    })
+
+    it('shows the error handler of a component that throws while rendering', async () => {
+        let show: (v: boolean) => void = () => undefined
+        const Failing = () => {
+            myra.useErrorHandler(() => <div id="fallback">failed</div>)
+            throw new Error('render failed')
+        }
+        const Page = () => {
+            const [shown, setShown] = myra.useState(false)
+            show = setShown
+            return <div id="page"><h2 />{shown && <><Failing /></>}<footer /></div>
+        }
+        myra.mount(<Page />, container)
+
+        show(true)
+        await tick(20)
+
+        expect(container.querySelector('#page')!.innerHTML).to.eq('<h2></h2><div id="fallback">failed</div><footer></footer>')
+    })
+
+    it('shows the error handler of a component whose layout effect throws', async () => {
+        let show: (v: boolean) => void = () => undefined
+        const Failing = () => {
+            myra.useErrorHandler(() => <div id="fallback">failed</div>)
+            myra.useLayoutEffect(() => {
+                throw new Error('layout effect failed')
+            }, [])
+            return <span id="failing">rendered</span>
+        }
+        const Page = () => {
+            const [shown, setShown] = myra.useState(false)
+            show = setShown
+            return <div id="page"><h2 />{shown && <><Failing /></>}<footer /></div>
+        }
+        myra.mount(<Page />, container)
+
+        show(true)
+        await tick(20)
+
+        expect(container.querySelector('#page')!.innerHTML).to.eq('<h2></h2><div id="fallback">failed</div><footer></footer>')
+    })
+
+    it.each(['an element', 'a component rendering a fragment'])('runs layout effects with the new DOM attached and the old DOM removed when replacing %s', async variant => {
+        let show: (v: boolean) => void = () => undefined
+        let seen: { connected: boolean, oldRemoved: boolean, previous: string | null, next: string | null } | undefined
+        const Measure = () => {
+            const ref = myra.useRef<HTMLElement>()
+            myra.useLayoutEffect(() => {
+                const el = ref.current!
+                seen = {
+                    connected: el.isConnected,
+                    oldRemoved: document.getElementById('old') === null,
+                    // Node siblings rather than element siblings, so no extra node can sit in between.
+                    previous: el.previousSibling?.nodeName ?? null,
+                    next: el.nextSibling?.nodeName ?? null
+                }
+            }, [])
+            return <span ref={ref}>measured</span>
+        }
+        const Previous = () => <><i id="old">one</i><i>two</i></>
+        const Page = () => {
+            const [shown, setShown] = myra.useState(false)
+            show = setShown
+            const before = variant === 'an element' ? <i id="old">old</i> : <Previous />
+            return <div id="page"><h2 />{shown ? <><Measure /></> : before}<footer /></div>
+        }
+        myra.mount(<Page />, container)
+
+        show(true)
+        await tick(20)
+
+        expect(seen).to.deep.eq({ connected: true, oldRemoved: true, previous: 'H2', next: 'FOOTER' })
+    })
+
+    it.each(['an element', 'a component rendering a fragment'])('appends the fragment\'s children when replacing %s that was the last child', async variant => {
+        let show: (v: boolean) => void = () => undefined
+        const Previous = () => <><i>one</i><i>two</i></>
+        const Page = () => {
+            const [shown, setShown] = myra.useState(false)
+            show = setShown
+            const before = variant === 'an element' ? <i>old</i> : <Previous />
+            return <div id="page"><h2 />{shown ? <><span>a</span><span>b</span></> : before}</div>
+        }
+        myra.mount(<Page />, container)
+
+        show(true)
+        await tick(20)
+
+        expect(container.querySelector('#page')!.innerHTML).to.eq('<h2></h2><span>a</span><span>b</span>')
+    })
+
+    it('leaves the replaced slot empty when a child without an error handler throws', () => {
+        const Failing = () => {
+            throw new Error('render failed')
+        }
+        const page = document.createElement('div')
+        container.appendChild(page)
+        const oldNodes = render(page, [<h2 />, <i>old</i>, <footer />], [])
+
+        expect(() => render(page, [<h2 />, <><Failing /></>, <footer />], oldNodes)).to.throw('render failed')
+
+        // The old node's components were unmounted before the throw, so its DOM is removed too.
+        expect(page.innerHTML).to.eq('<h2></h2><footer></footer>')
+    })
+
+    it('places keyed children between siblings and reorders them later', async () => {
+        let show: (v: boolean) => void = () => undefined
+        let order: (v: string[]) => void = () => undefined
+        const Item = (props: { id: string }) => <li id={props.id}><b>{props.id}</b></li>
+        const Page = () => {
+            const [shown, setShown] = myra.useState(false)
+            const [ids, setIds] = myra.useState(['a', 'b', 'c'])
+            show = setShown
+            order = setIds
+            return <ul><li id="first" />{shown && <>{ids.map(id => <Item key={id} id={id} />)}</>}<li id="last" /></ul>
+        }
+        myra.mount(<Page />, container)
+
+        show(true)
+        await tick(20)
+        expect(Array.from(container.querySelectorAll('li')).map(li => li.id)).to.deep.eq(['first', 'a', 'b', 'c', 'last'])
+
+        order(['c', 'a', 'b'])
+        await tick(20)
+        expect(Array.from(container.querySelectorAll('li')).map(li => li.id)).to.deep.eq(['first', 'c', 'a', 'b', 'last'])
+        expect(container.querySelector('#c')!.innerHTML).to.eq('<b>c</b>')
+    })
+
+    it('updates context consumers when a provider in that fragment changes its value', async () => {
+        let show: (v: boolean) => void = () => undefined
+        let setValue: (v: string) => void = () => undefined
+        const Ctx = myra.createContext('default')
+        // A different element per value, so the update replaces DOM rather than patching it.
+        const Consumer = () => {
+            const value = myra.useContext(Ctx)
+            return value === 'a' ? <span id="consumer">{value}</span> : <b id="consumer">{value}</b>
+        }
+        const ProviderHost = () => {
+            const [value, setV] = myra.useState('a')
+            setValue = setV
+            return <Ctx.Provider value={value}><Consumer /></Ctx.Provider>
+        }
+        const Page = () => {
+            const [shown, setShown] = myra.useState(false)
+            show = setShown
+            return <div id="page"><h2 />{shown && <><ProviderHost /></>}<footer /></div>
+        }
+        myra.mount(<Page />, container)
+
+        show(true)
+        await tick(20)
+        expect(container.querySelector('#consumer')!.textContent).to.eq('a')
+
+        setValue('b')
+        await tick(20)
+        expect(container.querySelector('#page')!.innerHTML).to.eq('<h2></h2><b id="consumer">b</b><footer></footer>')
+    })
+})

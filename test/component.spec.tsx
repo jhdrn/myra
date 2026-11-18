@@ -238,18 +238,53 @@ describe('tryHandleComponentError', () => {
         Array.prototype.slice.call(document.body.childNodes).forEach((c: Node) => document.body.removeChild(c))
     })
 
-    it('does nothing when the parent element is no longer connected to the DOM', () => {
-        const detachedEl = document.createElement('div')
-        // detachedEl is not appended to document, so parentNode === null
+    it('ignores errors from an unmounted component', () => {
         const renderNode: RenderNode = {
             children: [],
+            stale: true,
             errorHandler: sinon.spy(() => <nothing />)
         }
 
         // Should not throw and should not call the error handler
-        tryHandleComponentError(detachedEl, renderNode, false, new Error('test'))
+        tryHandleComponentError(document.body, renderNode, false, new Error('test'))
 
         expect((renderNode.errorHandler as sinon.SinonSpy).called).to.be.false
+    })
+
+    it('calls the error handler when the parent element is not attached to the document', () => {
+        const detachedEl = document.createElement('div')
+        const renderNode: RenderNode = {
+            children: [],
+            errorHandler: sinon.spy(() => <div id="fallback" />)
+        }
+
+        tryHandleComponentError(detachedEl, renderNode, false, new Error('test'))
+
+        expect((renderNode.errorHandler as sinon.SinonSpy).calledOnce).to.be.true
+        expect(detachedEl.innerHTML).to.eq('<div id="fallback"></div>')
+    })
+
+    it('rethrows when the parent element is not attached to the document and there is no error handler', () => {
+        const detachedEl = document.createElement('div')
+        const renderNode: RenderNode = { children: [] }
+
+        expect(() => tryHandleComponentError(detachedEl, renderNode, false, new Error('test'))).to.throw('test')
+    })
+
+    it('shows the error handler of a component mounted into a detached element whose effect throws', async () => {
+        const detachedEl = document.createElement('div')
+        const Failing = () => {
+            myra.useErrorHandler(() => <div id="fallback">failed</div>)
+            myra.useEffect(() => {
+                throw new Error('effect failed')
+            }, [])
+            return <span>rendered</span>
+        }
+
+        myra.mount(<Failing />, detachedEl)
+        await new Promise(resolve => setTimeout(resolve, 20))
+
+        expect(detachedEl.innerHTML).to.eq('<div id="fallback">failed</div>')
     })
 
     it('rethrows the original error when the error handler itself throws', () => {

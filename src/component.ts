@@ -47,16 +47,20 @@ export function getRenderingContext() {
  * is rendered, any "nextSibling" will be pushed to this array,
  * and will then be used to insert other nodes. When the fragment
  * has been rendered, the last DOM node will be removed.
+ * A null entry means that new nodes are appended to the parent.
  */
-const fragmentNextSiblings: Node[] = []
+const fragmentNextSiblings: (Node | null)[] = []
 
 /**
- * Calls the error handler (if any) and renders the returned view.
+ * Calls the error handler (if any) and renders the returned view. Without an
+ * error handler the error is rethrown.
  */
 export function tryHandleComponentError(parentElement: Element, renderNode: RenderNode, isSvg: boolean, err: Error) {
 
-    // Do nothing if the parentElement is not longer connected to the DOM
-    if (parentElement.parentNode === null) {
+    // An unmounted component has no view left to replace, so its errors are
+    // ignored. A mounted component's errors are always handled or rethrown,
+    // even when its DOM is not attached to the document.
+    if (renderNode.stale) {
         return
     }
 
@@ -504,7 +508,7 @@ function renderFragmentVNode(oldNode: RenderNode | undefined, newChildVNode: Fra
         try {
             newRenderNode.children = render(parentElement, newChildren, oldChildren, isSvg, { first, end: nextSibling })
         } finally {
-            if (fragmentNextSiblings[fragmentNextSiblings.length - 1] === nextSibling) {
+            if (nextSibling !== null && fragmentNextSiblings[fragmentNextSiblings.length - 1] === nextSibling) {
                 fragmentNextSiblings.pop()
             }
         }
@@ -512,40 +516,63 @@ function renderFragmentVNode(oldNode: RenderNode | undefined, newChildVNode: Fra
     else if (getComponentRenderedFragment(oldNode) !== undefined) {
         cleanupRecursively(oldNode, false)
 
-        const documentFragment = document.createDocumentFragment()
-
-        newRenderNode.children = render(documentFragment as unknown as Element, newChildren, [], isSvg)
-
-        const oldFragmentNodes = getFragmentChildNodesRec(getComponentRenderedFragment(oldNode)!)
-        const firstDomRef = oldFragmentNodes.length > 0 ? getRenderNodeDomRef(oldFragmentNodes[0]) : undefined
-        if (firstDomRef !== undefined) {
-            parentElement.insertBefore(documentFragment, firstDomRef)
-        } else {
-            parentElement.appendChild(documentFragment)
-        }
-        for (let i = 0; i < oldFragmentNodes.length; i++) {
-            const domRef = getRenderNodeDomRef(oldFragmentNodes[i])
-            if (domRef !== undefined && parentElement.contains(domRef)) {
-                parentElement.removeChild(domRef)
-            }
-        }
+        const oldDomNodes = getFragmentChildNodesRec(getComponentRenderedFragment(oldNode)!).map(getRenderNodeDomRef)
+        newRenderNode.children = renderInPlaceOfDOMNodes(parentElement, newChildren, oldDomNodes, isSvg)
     }
     else {
         cleanupRecursively(oldNode, false)
 
-        const documentFragment = document.createDocumentFragment()
-
-        newRenderNode.children = render(documentFragment as unknown as Element, newChildren, [], isSvg)
-
-        const oldDomRef = getRenderNodeDomRef(oldNode)
-        if (oldDomRef !== undefined && parentElement.contains(oldDomRef)) {
-            parentElement.replaceChild(documentFragment, oldDomRef)
-        } else {
-            insertOrAppendDOMNode(parentElement, documentFragment)
-        }
+        newRenderNode.children = renderInPlaceOfDOMNodes(parentElement, newChildren, [getRenderNodeDomRef(oldNode)], isSvg)
     }
 
     return newRenderNode
+}
+
+/**
+ * Renders new children into parentElement where oldDomNodes currently are,
+ * and removes oldDomNodes.
+ *
+ * The old nodes are removed first and the children are inserted before the
+ * node that followed them, so they render directly into parentElement.
+ * Rendering them into a detached container instead would leave components
+ * pointing at that container: their state updates and error handlers would
+ * render into it, and their layout effects would run before their DOM is
+ * attached.
+ *
+ * Each child's layout effects run as soon as that child has rendered, so they
+ * see the child's own DOM attached but not the DOM of later siblings.
+ *
+ * If a child throws and has no error handler, the old nodes stay removed.
+ * Their components are already unmounted, so the slot is left empty.
+ *
+ * oldDomNodes must be in DOM order, as render node children always are.
+ */
+function renderInPlaceOfDOMNodes(parentElement: Element, newChildren: VNode[], oldDomNodes: (Node | undefined)[], isSvg: boolean): RenderNode[] {
+    // The node after the old ones. null means they were the last children, so
+    // the new children are appended rather than placed before an enclosing
+    // fragment's next sibling. undefined means there was nothing to replace.
+    let nextSibling: Node | null | undefined
+    for (let i = 0; i < oldDomNodes.length; i++) {
+        const domNode = oldDomNodes[i]
+        if (domNode !== undefined && domNode.parentNode === parentElement) {
+            nextSibling = domNode.nextSibling
+            parentElement.removeChild(domNode)
+        }
+    }
+
+    if (nextSibling === undefined) {
+        // Nothing to replace: insert at the enclosing insertion point.
+        return render(parentElement, newChildren, [], isSvg)
+    }
+
+    fragmentNextSiblings.push(nextSibling)
+    try {
+        return render(parentElement, newChildren, [], isSvg)
+    } finally {
+        if (fragmentNextSiblings[fragmentNextSiblings.length - 1] === nextSibling) {
+            fragmentNextSiblings.pop()
+        }
+    }
 }
 
 function renderComponentVNode(oldNode: RenderNode | undefined, newChildVNode: ComponentVNode<ComponentProps>, parentElement: Element, isSvg: boolean): RenderNode {
@@ -726,7 +753,7 @@ function renderInPlace(parentElement: Element, newView: VNode, oldNode: RenderNo
 
 function insertOrAppendDOMNode(parentElement: Element, newNode: Node) {
     const nextSibling = fragmentNextSiblings[fragmentNextSiblings.length - 1]
-    if (nextSibling !== undefined && nextSibling.parentElement === parentElement) {
+    if (nextSibling !== undefined && nextSibling !== null && nextSibling.parentElement === parentElement) {
         parentElement.insertBefore(newNode, nextSibling)
     }
     else {
